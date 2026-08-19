@@ -7,11 +7,13 @@ if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding='utf-8')
     sys.stderr.reconfigure(encoding='utf-8')
 
-source_dir = os.path.dirname(os.path.abspath(__file__))
+tools_dir = os.path.dirname(os.path.abspath(__file__))
+source_dir = os.path.dirname(tools_dir)
 root_dir = os.path.dirname(source_dir)
 dest_dir = os.path.join(root_dir, "A.U.R.A Distro", "Standalone")
 phi_src = r"C:\GIT-Projects\Local-Chatbot-basecode\models\phi-3.5\model_q4.gguf"
 icon_src = os.path.join(source_dir, "app_icon.ico")
+app_entry = os.path.join(source_dir, "app.py")
 python_exe = r"C:\GIT-Projects\Local-Chatbot-basecode\venv_app\Scripts\python.exe"
 
 print("=========================================================")
@@ -21,9 +23,9 @@ print(f"=== Output Directory: {dest_dir} ===")
 print("=========================================================")
 
 # 1. Clean previous build if exists
-build_temp = os.path.join(source_dir, "build")
-dist_temp = os.path.join(source_dir, "dist")
-spec_file = os.path.join(source_dir, "AURA_Assist.spec")
+build_temp = os.path.join(tools_dir, "build")
+dist_temp = os.path.join(tools_dir, "dist")
+spec_file = os.path.join(tools_dir, "AURA_Assist.spec")
 
 for p in [build_temp, dist_temp, dest_dir]:
     if os.path.exists(p):
@@ -61,7 +63,7 @@ cmd = [
     "--collect-all", "openvino",
     "--collect-all", "winocr",
     "--noconfirm",
-    os.path.join(source_dir, "app.py")
+    app_entry
 ]
 
 print("\n[1] Executing PyInstaller...")

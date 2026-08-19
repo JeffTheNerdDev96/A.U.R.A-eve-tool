@@ -8,11 +8,12 @@ if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding='utf-8')
     sys.stderr.reconfigure(encoding='utf-8')
 
-SOURCE_DIR = os.path.dirname(os.path.abspath(__file__))
+TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
+SOURCE_DIR = os.path.dirname(TOOLS_DIR)
 ROOT_DIR = os.path.dirname(SOURCE_DIR)
 STANDALONE_DIR = os.path.join(ROOT_DIR, "A.U.R.A Distro", "Standalone")
 INSTALLER_OUTPUT_DIR = os.path.join(ROOT_DIR, "A.U.R.A Distro", "Installer")
-BUILD_TEMP_DIR = os.path.join(SOURCE_DIR, "build_installer_temp")
+BUILD_TEMP_DIR = os.path.join(TOOLS_DIR, "build_installer_temp")
 PYTHON_EXE = r"C:\GIT-Projects\Local-Chatbot-basecode\venv_app\Scripts\python.exe"
 
 print("=========================================================")
@@ -48,7 +49,7 @@ print(f"  [OK] Payload archive created successfully! ({zip_size_mb:.2f} MB)")
 print("\n[2] Compiling standalone graphical installer executable with PyInstaller...")
 
 icon_path = os.path.join(SOURCE_DIR, "app_icon.ico")
-installer_script = os.path.join(SOURCE_DIR, "installer_gui.py")
+installer_script = os.path.join(TOOLS_DIR, "installer_gui.py")
 
 pyinstaller_cmd = [
     PYTHON_EXE,

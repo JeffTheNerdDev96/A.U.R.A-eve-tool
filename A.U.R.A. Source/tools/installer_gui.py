@@ -131,9 +131,17 @@ class InstallWorker(QThread):
                     payload_zip = bundle_zip
 
             # Check for local standalone folder source fallback
-            standalone_source = os.path.join(exe_dir, "..", "AURA_Standalone_Windows")
-            if not os.path.exists(payload_zip) and not os.path.exists(standalone_source):
-                standalone_source = os.path.join(exe_dir, "AURA_Standalone_Windows")
+            standalone_source = None
+            for cand in [
+                os.path.join(exe_dir, "..", "..", "A.U.R.A Distro", "Standalone"),
+                os.path.join(exe_dir, "..", "A.U.R.A Distro", "Standalone"),
+                os.path.join(exe_dir, "..", "Standalone"),
+                os.path.join(exe_dir, "Standalone"),
+                r"C:\GIT-Projects\A.U.R.A-eve-tool\A.U.R.A Distro\Standalone"
+            ]:
+                if os.path.exists(cand):
+                    standalone_source = os.path.abspath(cand)
+                    break
 
             # Extract or copy application files
             if os.path.exists(payload_zip):
@@ -146,7 +154,7 @@ class InstallWorker(QThread):
                         if idx % 20 == 0:
                             pct = 10 + int((idx / total_members) * 35)
                             self.progress_updated.emit(pct, f"Extracting {member.filename}...")
-            elif os.path.exists(standalone_source):
+            elif standalone_source and os.path.exists(standalone_source):
                 self.progress_updated.emit(10, "Copying application binaries and neural core runtimes...")
                 # Copy tree except models (which is handled separately)
                 for item in os.listdir(standalone_source):
@@ -161,7 +169,7 @@ class InstallWorker(QThread):
                     else:
                         shutil.copy2(s_path, d_path)
             else:
-                raise FileNotFoundError("Could not find installation payload (app_payload.zip or AURA_Standalone_Windows).")
+                raise FileNotFoundError("Could not find installation payload (app_payload.zip or Standalone distribution).")
 
             self.progress_updated.emit(45, "Application files deployed successfully!")
 
@@ -180,8 +188,9 @@ class InstallWorker(QThread):
                         os.path.join(exe_dir, "models", "phi-3.5", "model_q4.gguf"),
                         os.path.join(exe_dir, "model_q4.gguf"),
                         os.path.join(os.path.dirname(exe_dir), "models", "phi-3.5", "model_q4.gguf"),
-                        r"c:\Local-Chatbot\models\phi-3.5\model_q4.gguf",
-                        r"c:\Local-Chatbot\A.U.R.A. Assist\AURA_Standalone_Windows\models\phi-3.5\model_q4.gguf"
+                        r"C:\GIT-Projects\Local-Chatbot-basecode\models\phi-3.5\model_q4.gguf",
+                        r"C:\GIT-Projects\A.U.R.A-eve-tool\A.U.R.A Distro\Standalone\models\phi-3.5\model_q4.gguf",
+                        r"C:\Local-Chatbot\models\phi-3.5\model_q4.gguf"
                     ]
                     found_source = None
                     for src in offline_sources:
