@@ -18,13 +18,22 @@ from typing import Dict, List, Any, Optional
 from config import config
 
 
+# Global hardware scan cache to ensure instant O(1) hardware queries across the app
+_CACHED_HARDWARE_DEVICES: Optional[Dict[str, Any]] = None
+
+
 class HardwareDetector:
     """
     Discovers and classifies available compute hardware units on the host machine.
-    Scans for Intel & AMD NPUs, Dedicated & Integrated GPUs, and CPU capabilities.
+    Scans for Intel & AMD & Qualcomm NPUs, Dedicated & Integrated GPUs (NVIDIA, AMD, Intel), and CPU capabilities.
     """
-    def __init__(self):
-        self.devices = self.scan_devices()
+    def __init__(self, force_rescan: bool = False):
+        global _CACHED_HARDWARE_DEVICES
+        if _CACHED_HARDWARE_DEVICES is not None and not force_rescan:
+            self.devices = _CACHED_HARDWARE_DEVICES
+        else:
+            self.devices = self.scan_devices()
+            _CACHED_HARDWARE_DEVICES = self.devices
 
     def scan_devices(self) -> Dict[str, Any]:
         # 1. CPU Detection
@@ -185,18 +194,21 @@ class HardwareDetector:
                             if name and "basic" not in name.lower() and "remote" not in name.lower():
                                 name_lower = name.lower()
                                 
-                                # Identify Vendor
-                                if "nvidia" in name_lower or "geforce" in name_lower or "quadro" in name_lower or "rtx" in name_lower:
+                                # Identify Vendor & Type
+                                if any(k in name_lower for k in ["nvidia", "geforce", "quadro", "rtx", "gtx", "titan", "tesla", "ada"]):
                                     vendor = "NVIDIA"
                                     is_dgpu = True
-                                elif "amd" in name_lower or "radeon" in name_lower:
+                                elif any(k in name_lower for k in ["amd", "radeon"]):
                                     vendor = "AMD"
-                                    is_dgpu = any(k in name_lower for k in ["rx ", "xt", "pro ", "radeon vii", "firepro", "vega 56", "vega 64", "rx5", "rx6", "rx7", "rx8"])
-                                    if any(k in name_lower for k in ["680m", "780m", "890m", "graphics", "integrated"]):
-                                        is_dgpu = False
+                                    is_dgpu = any(k in name_lower for k in ["rx ", "xt", "pro ", "radeon vii", "firepro", "vega 56", "vega 64", "rx5", "rx6", "rx7", "rx8", "w6", "w7"])
+                                    if any(k in name_lower for k in ["680m", "780m", "890m", "graphics", "integrated", "mobile"]):
+                                        if not any(k in name_lower for k in ["xt", "rx", "pro", "dedicated"]):
+                                            is_dgpu = False
                                 elif "intel" in name_lower:
                                     vendor = "Intel"
-                                    is_dgpu = any(k in name_lower for k in ["arc", "battlemage", "a770", "a750", "a580", "a380", "a310"])
+                                    is_dgpu = any(k in name_lower for k in ["arc", "battlemage", "a770", "a750", "a580", "a380", "a310", "b580", "b570", "b560", "dg1", "dg2"])
+                                    if any(k in name_lower for k in ["iris", "uhd", "hd graphics"]):
+                                        is_dgpu = False
                                 else:
                                     vendor = "Generic"
                                     is_dgpu = False
@@ -207,7 +219,7 @@ class HardwareDetector:
                                         "device_name": name,
                                         "vendor": vendor,
                                         "type": "dGPU" if is_dgpu else "iGPU",
-                                        "backend": f"{vendor} DirectML / DXGI"
+                                        "backend": f"{vendor} Hardware Acceleration (DirectML / Vulkan / OpenVINO)"
                                     })
                     except Exception:
                         pass

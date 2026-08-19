@@ -21,17 +21,26 @@ from ingestion import DocumentParser, ImagePreprocessor
 from eve_data import get_tactical_grounding
 
 
+_CACHED_MODEL_PATH: Optional[str] = None
+_PATH_RESOLVED: bool = False
+
+
 def find_model_file() -> Optional[str]:
-    """Scans candidate paths to locate the Phi-3.5 Mini model_q4.gguf file."""
+    """Scans candidate paths to locate the Phi-3.5 Mini model_q4.gguf file with caching."""
+    global _CACHED_MODEL_PATH, _PATH_RESOLVED
+    if _PATH_RESOLVED and _CACHED_MODEL_PATH and os.path.exists(_CACHED_MODEL_PATH):
+        return _CACHED_MODEL_PATH
+
+    source_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.dirname(source_dir)
+    
     candidates = [
-        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models", "phi-3.5", "model_q4.gguf"),
+        os.path.join(source_dir, "models", "phi-3.5", "model_q4.gguf"),
+        os.path.join(root_dir, "models", "phi-3.5", "model_q4.gguf"),
+        os.path.join(root_dir, "A.U.R.A Distro", "Standalone", "models", "phi-3.5", "model_q4.gguf"),
+        os.path.join(root_dir, "A.U.R.A Distro", "Installer", "models", "phi-3.5", "model_q4.gguf"),
         os.path.join(os.path.dirname(sys.executable), "models", "phi-3.5", "model_q4.gguf"),
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), "models", "phi-3.5", "model_q4.gguf"),
         os.path.join(os.getcwd(), "models", "phi-3.5", "model_q4.gguf"),
-        r"C:\GIT-Projects\Local-Chatbot-basecode\models\phi-3.5\model_q4.gguf",
-        r"C:\GIT-Projects\A.U.R.A-eve-tool\A.U.R.A Distro\Standalone\models\phi-3.5\model_q4.gguf",
-        r"C:\GIT-Projects\A.U.R.A-eve-tool\AURA_Standalone_Windows\models\phi-3.5\model_q4.gguf",
-        r"C:\Local-Chatbot\models\phi-3.5\model_q4.gguf",
         os.path.expanduser(r"~\AppData\Local\Programs\A.U.R.A. v0.1.1-alpha3\models\phi-3.5\model_q4.gguf"),
         os.path.expanduser(r"~\AppData\Local\Programs\A.U.R.A. v0.1.0-alpha2\models\phi-3.5\model_q4.gguf"),
         r"C:\Program Files\A.U.R.A. v0.1.1-alpha3\models\phi-3.5\model_q4.gguf",
@@ -41,7 +50,12 @@ def find_model_file() -> Optional[str]:
     ]
     for p in candidates:
         if os.path.exists(p) and os.path.getsize(p) > 100000000:
-            return os.path.abspath(p)
+            _CACHED_MODEL_PATH = os.path.abspath(p)
+            _PATH_RESOLVED = True
+            return _CACHED_MODEL_PATH
+            
+    _PATH_RESOLVED = True
+    _CACHED_MODEL_PATH = None
     return None
 
 
@@ -143,6 +157,11 @@ class UnifiedInferenceEngine:
                 type_k = getattr(llama_cpp, "GGML_TYPE_Q8_0", getattr(llama_cpp, "GGML_TYPE_F16", None))
                 type_v = getattr(llama_cpp, "GGML_TYPE_Q8_0", getattr(llama_cpp, "GGML_TYPE_F16", None))
                 
+                # Compute layers offload: Offload to dedicated GPU if present and Turbo/dGPU enabled
+                gpu_layers = 0
+                if self.detector.has_dgpu and not self.detector.has_npu:
+                    gpu_layers = 33  # Fully offload Phi-3.5 Mini to Dedicated GPU
+                
                 llama_kwargs = {
                     "model_path": model_file,
                     "n_ctx": config.context_window,
@@ -152,7 +171,7 @@ class UnifiedInferenceEngine:
                     "n_ubatch": 512,
                     "use_mmap": True,
                     "use_mlock": False,
-                    "n_gpu_layers": 0,
+                    "n_gpu_layers": gpu_layers,
                     "verbose": False
                 }
                 
@@ -166,6 +185,8 @@ class UnifiedInferenceEngine:
                 try:
                     self.llm = Llama(**llama_kwargs)
                 except Exception:
+                    # Fallback to pure CPU memory mapping if GPU offloading fails
+                    llama_kwargs["n_gpu_layers"] = 0
                     llama_kwargs.pop("type_k", None)
                     llama_kwargs.pop("type_v", None)
                     self.llm = Llama(**llama_kwargs)

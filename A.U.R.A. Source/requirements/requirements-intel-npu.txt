@@ -1,0 +1,5 @@
+# Intel NPU (Neural Processing Unit) & Intel Arc / iGPU Acceleration via OpenVINO
+openvino>=2024.0.0
+openvino-genai>=2024.0.0
+openvino-telemetry>=2024.0.0
+numpy>=1.26.0,<3.0.0

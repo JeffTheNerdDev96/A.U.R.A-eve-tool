@@ -11,7 +11,7 @@ class AppConfig:
     def __init__(self):
         self.app_name = "A.U.R.A. Assist — Adaptive Underworld Recon Array"
         self.faction = "Angel Cartel"
-        self.version = "v0.1.1-alpha3"
+        self.version = "v0.1.2-alpha4"
         
         # Dedicated Neural Model: Microsoft Phi-3.5 Mini (3.8B Reasoning)
         self.model_name = "microsoft/Phi-3.5-mini-instruct"

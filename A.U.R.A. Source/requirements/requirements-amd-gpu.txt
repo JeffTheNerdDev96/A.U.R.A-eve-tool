@@ -1,0 +1,7 @@
+# AMD Radeon GPU & Ryzen AI NPU Acceleration (Vulkan / ROCm / OpenVINO)
+# OpenVINO automatically accelerates on AMD CPU & Intel/AMD iGPU
+openvino>=2024.0.0
+# To install Vulkan-enabled llama-cpp-python:
+# CMAKE_ARGS="-DGGML_VULKAN=on" pip install llama-cpp-python --no-cache-dir
+llama-cpp-python>=0.3.0
+numpy>=1.26.0,<3.0.0

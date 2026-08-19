@@ -77,7 +77,17 @@ class DScanParser:
         if info:
             return info.get("canonical_name", text), info
             
-        # 2. Check parts split by tab or multiple spaces
+        # 2. Fast C-level split if tab present
+        if "\t" in text:
+            for p in text.split("\t"):
+                p_clean = p.strip()
+                if not p_clean or p_clean.isdigit() or any(u in p_clean.lower() for u in ["km", "au", "m", "-"]):
+                    continue
+                info = lookup_ship(p_clean)
+                if info:
+                    return info.get("canonical_name", p_clean), info
+
+        # 3. Check parts split by tab or multiple spaces
         parts = [p.strip() for p in _RE_TAB_SPLIT.split(text) if p.strip()]
         for p in parts:
             if p.isdigit() or any(u in p.lower() for u in ["km", "au", "m", "-"]):
@@ -86,7 +96,7 @@ class DScanParser:
             if info:
                 return info.get("canonical_name", p), info
 
-        # 3. Check individual tokens
+        # 4. Check individual tokens
         words = [w.strip() for w in _RE_DELIM_SPLIT.split(text) if w.strip()]
         for w in words:
             info = lookup_ship(w)

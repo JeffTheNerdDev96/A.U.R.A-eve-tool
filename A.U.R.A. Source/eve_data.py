@@ -4008,21 +4008,36 @@ EVE_COMBAT_AXIOMS = """
    - Match weapon and module classes to hull faction and size (e.g. Minmatar hulls use Projectiles/HAMs, not Lasers; Cruisers/T3Cs cannot fit Battleship MJDs or Battleship weapons).
 """
 
-# Fast Normalized Lookup Tables for Sub-Microsecond Resolution
+_RE_CLEAN_ALPHANUM = re.compile(r"[^a-z0-9]")
+_RE_WORDS = re.compile(r"\b[A-Za-z0-9\-]+\b")
+_RE_OWN_SHIP = re.compile(
+    r"\b(?:i am in a|i'm in a|flying a|piloting a|my ship is a?|in a)\s+([A-Za-z0-9\-\s]+?)(?:\s+and|\s+with|\s+need|\s+looking|\s+waiting|\s*\.|\s*,|\s*$)",
+    re.IGNORECASE
+)
+
+# Fast Normalized Lookup Tables & Pre-Rendered Dossiers for Sub-Microsecond Resolution
 _FAST_SHIP_LOOKUP: Dict[str, Dict[str, Any]] = {}
 for _k, _v in SHIP_DATABASE.items():
     _v_copy = dict(_v)
     _v_copy["canonical_name"] = _k
+    _v_copy["pre_rendered_dossier"] = (
+        f"• {_k} ({_v.get('class', 'Vessel')} - {_v.get('faction', 'General')}) | Tank: {_v.get('tank', 'Shield/Armor')} | "
+        f"Optimal: {_v.get('optimal_range', 'Standard')} | Threat: {_v.get('threat', 'Combatant')}\n"
+        f"  Tactics: {_v.get('tactics', 'Engage according to weapon tracking and range.')}"
+    )
     _FAST_SHIP_LOOKUP[_k.lower()] = _v_copy
-    _clean_k = re.sub(r"[^a-z0-9]", "", _k.lower())
+    _clean_k = _RE_CLEAN_ALPHANUM.sub("", _k.lower())
     _FAST_SHIP_LOOKUP[_clean_k] = _v_copy
+
+_MULTI_WORD_SHIPS = [(_k, _v, _k.lower()) for _k, _v in SHIP_DATABASE.items() if " " in _k]
+_ROLE_DOCTRINES_LOWER = [(_rk.lower(), _rdoc) for _rk, _rdoc in ROLE_DOCTRINES.items()]
 
 _FAST_MODULE_LOOKUP: Dict[str, Dict[str, Any]] = {}
 for _mk, _mv in MODULE_DATABASE.items():
     _mv_copy = dict(_mv)
     _mv_copy["canonical_name"] = _mk
     _FAST_MODULE_LOOKUP[_mk.lower()] = _mv_copy
-    _clean_mk = re.sub(r"[^a-z0-9]", "", _mk.lower())
+    _clean_mk = _RE_CLEAN_ALPHANUM.sub("", _mk.lower())
     _FAST_MODULE_LOOKUP[_clean_mk] = _mv_copy
 
 
@@ -4033,10 +4048,8 @@ def lookup_ship(name: str) -> Optional[Dict[str, Any]]:
     raw_lower = name.strip().lower()
     if raw_lower in _FAST_SHIP_LOOKUP:
         return _FAST_SHIP_LOOKUP[raw_lower]
-    clean = re.sub(r"[^a-z0-9]", "", raw_lower)
-    if clean in _FAST_SHIP_LOOKUP:
-        return _FAST_SHIP_LOOKUP[clean]
-    return None
+    clean = _RE_CLEAN_ALPHANUM.sub("", raw_lower)
+    return _FAST_SHIP_LOOKUP.get(clean)
 
 
 def lookup_module(name: str) -> Optional[Dict[str, Any]]:
@@ -4046,7 +4059,7 @@ def lookup_module(name: str) -> Optional[Dict[str, Any]]:
     raw_lower = name.strip().lower()
     if raw_lower in _FAST_MODULE_LOOKUP:
         return _FAST_MODULE_LOOKUP[raw_lower]
-    clean = re.sub(r"[^a-z0-9]", "", raw_lower)
+    clean = _RE_CLEAN_ALPHANUM.sub("", raw_lower)
     if clean in _FAST_MODULE_LOOKUP:
         return _FAST_MODULE_LOOKUP[clean]
     for mk, mv in MODULE_DATABASE.items():
@@ -4083,23 +4096,19 @@ def get_tactical_grounding(prompt: str, attachments: List[Dict[str, Any]] = None
     Extracts verified ship dossiers and tactical axioms for everything mentioned in the prompt.
     Correctly distinguishes Capsuleer's own piloted vessel from hostile contacts.
     """
-    full_text = prompt + " "
     if attachments:
-        for att in attachments:
-            full_text += att.get("text", "") + " "
+        full_text = prompt + " " + " ".join([att.get("text", "") for att in attachments])
+    else:
+        full_text = prompt
 
     lower_text = full_text.lower()
-    words = re.findall(r"\b[A-Za-z0-9\-]+\b", full_text)
+    words = _RE_WORDS.findall(full_text)
     
     grounding_blocks = []
     detected_hulls = set()
     
     # Check if Capsuleer is stating their own piloted vessel
-    own_ship_match = re.search(
-        r"\b(?:i am in a|i'm in a|flying a|piloting a|my ship is a?|in a)\s+([A-Za-z0-9\-\s]+?)(?:\s+and|\s+with|\s+need|\s+looking|\s+waiting|\s*\.|\s*,|\s*$)",
-        prompt,
-        re.IGNORECASE
-    )
+    own_ship_match = _RE_OWN_SHIP.search(prompt)
     piloted_ship_name = None
     s_res = None
     if own_ship_match:
@@ -4121,37 +4130,28 @@ def get_tactical_grounding(prompt: str, attachments: List[Dict[str, Any]] = None
         )
 
     # Check for direct multi-word ship names first
-    for ship_name, s_info in SHIP_DATABASE.items():
-        if len(ship_name.split()) > 1 and ship_name.lower() in lower_text:
-            if piloted_ship_name and ship_name.lower() == piloted_ship_name.lower():
+    for ship_name, s_info, ship_lower in _MULTI_WORD_SHIPS:
+        if ship_lower in lower_text:
+            if piloted_ship_name and ship_lower == piloted_ship_name.lower():
                 continue
-            if ship_name.lower() not in detected_hulls:
-                detected_hulls.add(ship_name.lower())
-                dossier = (
-                    f"• {ship_name} ({s_info.get('class', 'Vessel')} - {s_info.get('faction', 'General')}) | Tank: {s_info.get('tank', 'Shield/Armor')} | "
-                    f"Optimal: {s_info.get('optimal_range', 'Standard')} | Threat: {s_info.get('threat', 'Combatant')}\n"
-                    f"  Tactics: {s_info.get('tactics', 'Engage according to weapon tracking and range.')}"
-                )
-                grounding_blocks.append(dossier)
+            if ship_lower not in detected_hulls:
+                detected_hulls.add(ship_lower)
+                grounding_blocks.append(s_info.get("pre_rendered_dossier", f"• {ship_name}"))
 
     for w in words:
         s_info = lookup_ship(w)
         if s_info:
             cname = s_info.get("canonical_name", w.capitalize())
-            if piloted_ship_name and cname.lower() == piloted_ship_name.lower():
+            cname_l = cname.lower()
+            if piloted_ship_name and cname_l == piloted_ship_name.lower():
                 continue
-            if cname.lower() not in detected_hulls:
-                detected_hulls.add(cname.lower())
-                dossier = (
-                    f"• {cname} ({s_info.get('class', 'Vessel')} - {s_info.get('faction', 'General')}) | Tank: {s_info.get('tank', 'Shield/Armor')} | "
-                    f"Optimal: {s_info.get('optimal_range', 'Standard')} | Threat: {s_info.get('threat', 'Combatant')}\n"
-                    f"  Tactics: {s_info.get('tactics', 'Engage according to weapon tracking and range.')}"
-                )
-                grounding_blocks.append(dossier)
+            if cname_l not in detected_hulls:
+                detected_hulls.add(cname_l)
+                grounding_blocks.append(s_info.get("pre_rendered_dossier", f"• {cname}"))
 
     # Check for Role Doctrine Grounding
-    for role_key, role_doctrine in ROLE_DOCTRINES.items():
-        if role_key.lower() in lower_text:
+    for role_key_l, role_doctrine in _ROLE_DOCTRINES_LOWER:
+        if role_key_l in lower_text:
             grounding_blocks.append(role_doctrine)
 
     if grounding_blocks:

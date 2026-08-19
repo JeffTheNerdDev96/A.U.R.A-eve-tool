@@ -32,6 +32,11 @@ _RE_COUNT_X_PREFIX = re.compile(r"\bx\s*(\d{1,3})\b", re.IGNORECASE)
 _RE_NV = re.compile(r"\b(?:nv|na|no\s*visual|novisual)\b", re.IGNORECASE)
 _RE_CLEAR = re.compile(r"\b(?:clear|clr)\b", re.IGNORECASE)
 
+_CAPITAL_CLASSES = frozenset({"Titan", "Supercarrier", "Dreadnought", "Faction Dreadnought", "Lancer Dreadnought", "Force Auxiliary", "Carrier", "Freighter", "Jump Freighter", "Capital Industrial", "Industrial Command"})
+_BATTLESHIP_CLASSES = frozenset({"Battleship", "Faction Battleship", "Marauder", "Black Ops"})
+_CAPITAL_KEYWORDS = frozenset({"titan", "super", "supercarrier", "dread", "dreadnought", "carrier", "fax", "rorqual", "hel", "nyx", "wyvern", "aeon", "avatar", "erebus", "ragnarok", "leviathan", "naglfar", "moros", "revelation", "phoenix", "nidhoggur", "archon", "thanatos", "chimera", "lif", "apostle", "minokawa", "ninazu"})
+_BATTLESHIP_KEYWORDS = frozenset({"battleship", "battleships", "bs", "marauder", "blops", "machariel", "rokh", "megathron", "tempest", "raven", "abaddon", "nightmare", "bhaalgorn", "vindicator", "barghest", "praxis", "paladin", "kronos", "golem", "vargur", "panther", "widow", "sin", "redeemer"})
+
 
 class IntelParser:
     """Parses in-game chat logs and intel channel streams in real-time with sub-millisecond latency."""
@@ -237,23 +242,17 @@ class IntelParser:
             else:
                 status_flags.append("NO VISUAL / NV")
 
-        # 4. Evaluate Ship Classes
-        has_capital = any(
-            t in [THREAT_SUPER, THREAT_CAPITAL] for t in threat_tags
-        ) or any(
-            SHIP_DATABASE.get(s, {}).get("class") in ["Titan", "Supercarrier", "Dreadnought", "Force Auxiliary", "Carrier", "Freighter", "Jump Freighter", "Industrial Command"]
-            for s in detected_ships
-        ) or any(
-            k in msg_l for k in ["titan", "super", "supercarrier", "dread", "dreadnought", "carrier", "fax", "rorqual", "hel", "nyx", "wyvern", "aeon", "avatar", "erebus", "ragnarok", "leviathan", "naglfar", "moros", "revelation", "phoenix", "nidhoggur", "archon", "thanatos", "chimera", "lif", "apostle", "minokawa", "ninazu"]
+        # 4. Evaluate Ship Classes (Fast Set Checks)
+        has_capital = (
+            any(t in [THREAT_SUPER, THREAT_CAPITAL] for t in threat_tags)
+            or any(SHIP_DATABASE.get(s, {}).get("class") in _CAPITAL_CLASSES for s in detected_ships)
+            or any(k in msg_l for k in _CAPITAL_KEYWORDS)
         )
 
-        has_battleship = any(
-            t == THREAT_MARAUDER for t in threat_tags
-        ) or any(
-            SHIP_DATABASE.get(s, {}).get("class") in ["Battleship", "Marauder", "Black Ops"]
-            for s in detected_ships
-        ) or any(
-            k in msg_l for k in ["battleship", "battleships", "bs", "marauder", "blops", "machariel", "rokh", "megathron", "tempest", "raven", "abaddon", "nightmare", "bhaalgorn", "vindicator", "barghest", "praxis", "paladin", "kronos", "golem", "vargur", "panther", "widow", "sin", "redeemer"]
+        has_battleship = (
+            any(t == THREAT_MARAUDER for t in threat_tags)
+            or any(SHIP_DATABASE.get(s, {}).get("class") in _BATTLESHIP_CLASSES for s in detected_ships)
+            or any(k in msg_l for k in _BATTLESHIP_KEYWORDS)
         )
 
         total_effective_count = max(est_count, len(detected_pilots), len(detected_ships))

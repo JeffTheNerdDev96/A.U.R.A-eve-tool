@@ -8,20 +8,18 @@
 *.onnx
 *.safetensors
 *.pt
-models/phi-3.5/*.gguf
-models/*/*.gguf
-**/models/*/*.gguf
+models/
+**/models/
 
-# Large Installer Executables (>100MB GitHub limit)
-A.U.R.A. Installer/*.exe
+# Large Binaries, Installers, & Compiled Libraries (>50MB / 100MB GitHub limit)
 *.exe
-
-# Python Cache & Bytecode
-__pycache__/
-*.py[cod]
-*$py.class
+*.dll
 *.so
-.pytest_cache/
+*.dylib
+*.whl
+*.zip
+*.7z
+*.tar.gz
 
 # Virtual Environments
 venv/
@@ -29,12 +27,41 @@ venv_app/
 env/
 ENV/
 .venv/
+requirements/venv/
+**/venv/
+**/venv_app/
+**/requirements/venv/
 
-# PyInstaller / Build Artifacts
+# PyInstaller & Distribution Packages
 build/
 dist/
+A.U.R.A Distro/
+**/A.U.R.A Distro/
+AURA_Standalone_Windows/
+A.U.R.A. Installer/
 build_installer_temp/
+build_standalone_temp/
+dist_standalone_temp/
+*.spec
 *.spec.bak
+
+# Vulkan & Hardware Libraries
+vulkan_llama/
+**/vulkan_llama/
+requirements/vulkan_llama/
+**/requirements/vulkan_llama/
+
+# Development & Benchmark Tools
+tools/
+**/tools/
+A.U.R.A. Source/tools/
+**/A.U.R.A. Source/tools/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
 
 # OS & IDE Files
 .DS_Store
@@ -47,21 +74,5 @@ desktop.ini
 
 # Local Chat / Log Temp files
 *.log
-logs/Chatlogs/
 logs/
-
-# PyInstaller & Standalone Distributions
-A.U.R.A Distro/
-**/A.U.R.A Distro/
-AURA_Standalone_Windows/
-A.U.R.A. Installer/
-build/
-dist/
-build_installer_temp/
-*.spec
-*.zip
-
-# Tooling Files
-A.U.R.A. Source/tools/
-**/tools/
-tools/
+**/logs/

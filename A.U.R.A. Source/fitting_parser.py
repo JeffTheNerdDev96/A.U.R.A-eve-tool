@@ -112,30 +112,18 @@ class FittingParser:
         cap_mods = []
         weapons = []
 
-        # Analyze Highs
+        # Analyze Highs (Single-Pass String Checks)
         for m in high_slots:
             ml = m.lower()
-            if any(k in ml for k in ["autocannon", "artillery"]):
+            if "autocannon" in ml or "artillery" in ml or "blaster" in ml or "railgun" in ml or "laser" in ml or "beam" in ml or "pulse" in ml or "missile" in ml or "rocket" in ml or "torpedo" in ml:
                 weapons.append(m)
-            elif any(k in ml for k in ["blaster", "railgun"]):
-                weapons.append(m)
-            elif any(k in ml for k in ["laser", "beam", "pulse"]):
-                weapons.append(m)
-            elif any(k in ml for k in ["missile", "rocket", "torpedo", "heavy assault missile"]):
-                weapons.append(m)
-            elif "nosferatu" in ml:
-                cap_mods.append(m)
-            elif "neutralizer" in ml:
+            elif "nosferatu" in ml or "neutralizer" in ml:
                 cap_mods.append(m)
 
         # Analyze Mids
         for m in mid_slots:
             ml = m.lower()
-            if "microwarpdrive" in ml or "5mn" in ml or "50mn" in ml or "500mn" in ml:
-                prop_type = m
-            elif "afterburner" in ml or "1mn" in ml or "10mn" in ml or "100mn" in ml:
-                prop_type = m
-            elif "micro jump drive" in ml or "mjd" in ml:
+            if "microwarpdrive" in ml or "5mn" in ml or "50mn" in ml or "500mn" in ml or "afterburner" in ml or "1mn" in ml or "10mn" in ml or "100mn" in ml or "micro jump drive" in ml or "mjd" in ml:
                 prop_type = m
 
             if "scrambler" in ml:
@@ -160,7 +148,7 @@ class FittingParser:
             ml = m.lower()
             if "armor repairer" in ml or "ancillary armor repairer" in ml:
                 tank_types.append(f"Active Armor ({m})")
-            elif "steel plates" in ml or "rolled tungsten" in ml or "armor plate" in ml or "200mm" in ml or "400mm" in ml or "800mm" in ml or "1600mm" in ml:
+            elif "steel plates" in ml or "rolled tungsten" in ml or "armor plate" in ml or "1600mm" in ml or "800mm" in ml or "400mm" in ml or "200mm" in ml:
                 tank_types.append(f"Buffer Armor ({m})")
             elif "damage control" in ml:
                 tank_types.append(f"Assault/Damage Control ({m})")
