@@ -114,10 +114,11 @@ class DScanDialog(QDialog):
 
     def _init_ui(self):
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(14, 14, 14, 14)
         layout.setSpacing(10)
 
         header = QLabel("📡 <b>D-SCAN & Hostile Intel Analyzer</b>")
-        header.setStyleSheet("color: #f43f5e; font-size: 15px;")
+        header.setStyleSheet("color: #f43f5e; font-size: 15px; font-weight: bold;")
         layout.addWidget(header)
 
         sub = QLabel("Paste Directional Scan rows OR chat/intel log lines (or both):")
@@ -139,14 +140,17 @@ class DScanDialog(QDialog):
         layout.addWidget(self.input_edit, stretch=1)
 
         btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(10)
         btn_layout.addStretch()
 
         cancel_btn = QPushButton("Cancel")
         cancel_btn.setObjectName("CancelBtn")
+        cancel_btn.setFixedHeight(34)
         cancel_btn.clicked.connect(self.reject)
         btn_layout.addWidget(cancel_btn)
 
         analyze_btn = QPushButton("⚡ Analyze Threat Matrix ➤")
+        analyze_btn.setFixedHeight(34)
         analyze_btn.clicked.connect(self._on_analyze)
         btn_layout.addWidget(analyze_btn)
 
@@ -215,10 +219,11 @@ class FittingDialog(QDialog):
 
     def _init_ui(self):
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(14, 14, 14, 14)
         layout.setSpacing(10)
 
         header = QLabel("🛠️ <b>Ship Fitting Ingestion & Role Optimization</b>")
-        header.setStyleSheet("color: #f59e0b; font-size: 15px;")
+        header.setStyleSheet("color: #f59e0b; font-size: 15px; font-weight: bold;")
         layout.addWidget(header)
 
         role_layout = QHBoxLayout()
@@ -227,6 +232,7 @@ class FittingDialog(QDialog):
         role_layout.addWidget(role_lbl)
 
         self.role_combo = QComboBox()
+        self.role_combo.setFixedHeight(34)
         self.role_combo.addItems([
             "Solo PvP Roaming (Lowsec / FW / Null)",
             "Small Gang Brawling (Close Range Web & Scram)",
@@ -249,14 +255,17 @@ class FittingDialog(QDialog):
         layout.addWidget(self.input_edit)
 
         btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(10)
         btn_layout.addStretch()
 
         cancel_btn = QPushButton("Cancel")
         cancel_btn.setObjectName("CancelBtn")
+        cancel_btn.setFixedHeight(34)
         cancel_btn.clicked.connect(self.reject)
         btn_layout.addWidget(cancel_btn)
 
         analyze_btn = QPushButton("⚡ Evaluate & Optimize Fit ➤")
+        analyze_btn.setFixedHeight(34)
         analyze_btn.clicked.connect(self._on_analyze)
         btn_layout.addWidget(analyze_btn)
 
@@ -318,10 +327,11 @@ class IntelBatchDialog(QDialog):
 
     def _init_ui(self):
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(14, 14, 14, 14)
         layout.setSpacing(10)
 
         header = QLabel("🛰️ <b>Batch Chat Log Ingestion</b>")
-        header.setStyleSheet("color: #38bdf8; font-size: 15px;")
+        header.setStyleSheet("color: #38bdf8; font-size: 15px; font-weight: bold;")
         layout.addWidget(header)
 
         sub = QLabel("Paste chat or historical intel log lines:")
@@ -333,14 +343,17 @@ class IntelBatchDialog(QDialog):
         layout.addWidget(self.input_edit)
 
         btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(10)
         btn_layout.addStretch()
 
         cancel_btn = QPushButton("Cancel")
         cancel_btn.setObjectName("CancelBtn")
+        cancel_btn.setFixedHeight(34)
         cancel_btn.clicked.connect(self.reject)
         btn_layout.addWidget(cancel_btn)
 
         analyze_btn = QPushButton("⚡ Decode Threat Vectors ➤")
+        analyze_btn.setFixedHeight(34)
         analyze_btn.clicked.connect(self._on_analyze)
         btn_layout.addWidget(analyze_btn)
 
@@ -380,7 +393,7 @@ class MainWindow(QMainWindow):
         
         npu_info = f" | {self.engine.detector.npu_vendor} NPU Core" if self.engine.detector.has_npu else ""
         # Full name preserved in window title bar as requested
-        self.setWindowTitle(f"A.U.R.A. Assist — Adaptive Underworld Recon Array (Version 0.1.0){npu_info}")
+        self.setWindowTitle(f"A.U.R.A. Assist — Adaptive Underworld Recon Array ({config.version}){npu_info}")
         self.resize(1380, 880)
         self.setMinimumSize(1080, 680)
         
@@ -610,25 +623,29 @@ class MainWindow(QMainWindow):
         hw_frame.setObjectName("HardwarePanel")
         hw_layout = QHBoxLayout(hw_frame)
         hw_layout.setContentsMargins(10, 6, 10, 6)
-        hw_layout.setSpacing(12)
+        hw_layout.setSpacing(10)
 
         self.reset_btn = QPushButton("🔄 Purge Memory")
         self.reset_btn.setObjectName("ResetBtn")
+        self.reset_btn.setFixedHeight(32)
         self.reset_btn.setToolTip("Purge conversation memory and memory buffer")
         self.reset_btn.clicked.connect(self._reset_memory)
         hw_layout.addWidget(self.reset_btn)
 
         self.piloted_ship_lbl = QLabel("🛸 Hull: Unspecified")
-        self.piloted_ship_lbl.setStyleSheet("color: #94a3b8; background: #070a12; border: 1px solid #334155; padding: 4px 10px; border-radius: 6px; font-size: 13px;")
+        self.piloted_ship_lbl.setFixedHeight(32)
+        self.piloted_ship_lbl.setStyleSheet("color: #94a3b8; background: #070a12; border: 1px solid #334155; padding: 4px 12px; border-radius: 6px; font-size: 13px;")
         self.piloted_ship_lbl.setToolTip("Active Capsuleer ship doctrine. State your ship (e.g. 'I am in a Loki') to tailor combat counter-play.")
         hw_layout.addWidget(self.piloted_ship_lbl)
 
         self.context_lbl = QLabel(f"📊 Memory Buffer: 0 / {config.context_window} (0%)")
-        self.context_lbl.setStyleSheet("color: #94a3b8; background: #070a12; border: 1px solid #334155; padding: 4px 10px; border-radius: 6px; font-size: 13px;")
+        self.context_lbl.setFixedHeight(32)
+        self.context_lbl.setStyleSheet("color: #94a3b8; background: #070a12; border: 1px solid #334155; padding: 4px 12px; border-radius: 6px; font-size: 13px;")
         hw_layout.addWidget(self.context_lbl)
 
         # Turbo Mode Toggle Button
         self.turbo_btn = QPushButton("⚡ Turbo: OFF (NPU Only)")
+        self.turbo_btn.setFixedHeight(32)
         self.turbo_btn.setCheckable(True)
         self.turbo_btn.setChecked(config.turbo_mode)
         self.turbo_btn.setObjectName("TurboBtn")
@@ -636,17 +653,13 @@ class MainWindow(QMainWindow):
         self.turbo_btn.toggled.connect(self._on_turbo_toggled)
         hw_layout.addWidget(self.turbo_btn)
 
-
         hw_layout.addStretch()
 
         self.tier_badge = QLabel(self._get_idle_badge_text())
+        self.tier_badge.setFixedHeight(32)
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
         self.tier_badge.setToolTip(self.engine.detector.get_summary_string())
         hw_layout.addWidget(self.tier_badge)
-
-        self.speed_lbl = QLabel("🚀 0.0 t/s")
-        self.speed_lbl.setStyleSheet("color: #f59e0b; font-weight: bold; background: #070a12; border: 1px solid #d97706; padding: 4px 10px; border-radius: 6px;")
-        hw_layout.addWidget(self.speed_lbl)
 
         main_layout.addWidget(hw_frame)
 
@@ -713,18 +726,21 @@ class MainWindow(QMainWindow):
 
         self.dscan_btn = QPushButton("📡 D-SCAN Analyzer")
         self.dscan_btn.setObjectName("ToolBtnDScan")
+        self.dscan_btn.setFixedHeight(34)
         self.dscan_btn.setToolTip("Paste D-Scan tables or intel logs for instant fleet threat matrix & tactical analysis")
         self.dscan_btn.clicked.connect(self._open_dscan_dialog)
         tools_layout.addWidget(self.dscan_btn)
 
         self.fit_btn = QPushButton("🛠️ Fitting Lab & Optimizer")
         self.fit_btn.setObjectName("ToolBtnFit")
+        self.fit_btn.setFixedHeight(34)
         self.fit_btn.setToolTip("Paste an EFT ship fit for role-specific AI optimization & weakness analysis")
         self.fit_btn.clicked.connect(self._open_fitting_dialog)
         tools_layout.addWidget(self.fit_btn)
 
         self.attach_btn = QPushButton("📁 Attach Screenshot")
         self.attach_btn.setObjectName("AttachBtn")
+        self.attach_btn.setFixedHeight(34)
         self.attach_btn.setToolTip("Attach killmail screenshots, overview snips, or tactical briefs")
         self.attach_btn.clicked.connect(self._browse_attachment)
         tools_layout.addWidget(self.attach_btn)
@@ -740,11 +756,11 @@ class MainWindow(QMainWindow):
         self.input_edit = QTextEdit()
         self.input_edit.setObjectName("InputEdit")
         self.input_edit.setPlaceholderText("Command A.U.R.A. or ask tactical engagement queries... (Press Send Command)")
-        self.input_edit.setFixedHeight(56)
+        self.input_edit.setFixedHeight(52)
         input_h_layout.addWidget(self.input_edit, stretch=1)
 
         self.send_btn = QPushButton("Send Command ➤")
-        self.send_btn.setFixedHeight(56)
+        self.send_btn.setFixedHeight(52)
         self.send_btn.clicked.connect(self._send_message)
         input_h_layout.addWidget(self.send_btn)
 
@@ -1176,21 +1192,39 @@ class MainWindow(QMainWindow):
         summary_md = parsed.get("summary_md", "")
         hull = parsed.get("hull_name", "Unknown Vessel")
         fit_name = parsed.get("fit_name", "Custom Fit")
+        s_class = parsed.get("ship_class", "Frigate")
         
+        # Build hull-class sizing rules to strictly prevent module hallucinations
+        if any(k in s_class.lower() for k in ["frigate", "destroyer", "interceptor", "covert ops", "stealth bomber"]):
+            size_rules = (
+                f"• SHIP CLASS CONSTRAINT: `{hull}` is a {s_class.upper()}. Modules MUST be Small size only (1MN/5MN propulsion, Small Armor Repairer/SAAR, 200mm/400mm Plates, Small/Medium Shield Extenders, Small Cap Battery/Booster). "
+                f"NEVER recommend Medium, Large, or Capital modules (e.g. NEVER suggest 800mm/1600mm Plates, Large Shield Extenders, Heavy Cap Boosters, or Micro Jump Drives, which are physically impossible to fit on a {s_class})."
+            )
+        elif any(k in s_class.lower() for k in ["cruiser", "battlecruiser", "hac", "hic", "recon", "strategic"]):
+            size_rules = (
+                f"• SHIP CLASS CONSTRAINT: `{hull}` is a {s_class.upper()}. Modules MUST be Medium size (10MN/50MN propulsion, Medium Armor Repairer/MAAR, 800mm/1600mm Plates, Large Shield Extenders, Medium Cap Battery/Booster, 220mm-425mm AC / Heavy Missiles)."
+            )
+        elif any(k in s_class.lower() for k in ["battleship", "marauder", "black ops"]):
+            size_rules = (
+                f"• SHIP CLASS CONSTRAINT: `{hull}` is a {s_class.upper()}. Modules MUST be Large size (100MN/500MN propulsion, Micro Jump Drive, Large Armor Repairers, 1600mm Plates, Large/X-Large Shield Boosters, Heavy Cap Booster 800/3200, Large Cap Battery, 800mm-1400mm Guns / Cruise / Torps)."
+            )
+        else:
+            size_rules = f"• SHIP CLASS CONSTRAINT: `{hull}` is a {s_class.upper()}. Recommend only authentic, size-appropriate modules for this hull class."
+
         prompt = (
             f"[FITTING LAB EVALUATION REQUEST]\n"
             f"• Vessel: `{hull}` ({fit_name})\n"
+            f"• Hull Class: {s_class}\n"
             f"• Target Combat Role: **{role}**\n\n"
-            f"[EFT SHIP FIT MODULE LAYOUT]:\n"
-            f"{raw_text}\n\n"
             f"{summary_md}\n\n"
             f"[ROLE SPECIFIC EVALUATION DIRECTIVE]:\n"
+            f"{size_rules}\n"
             f"Evaluate this `{hull}` fitting specifically for the **{role}** doctrine.\n"
             f"Provide a structured 3 to 4 bullet assessment:\n"
-            f"1. Role Compatibility: Detail how suitable this fit is for {role}.\n"
-            f"2. Capacitor & Tank: Evaluate capacitor resilience and tank survival specifically when performing {role}.\n"
-            f"3. Recommended Module Swaps: Suggest 1-2 concrete, authentic EVE module replacements (using valid module names: e.g. Heavy Capacitor Booster, Large Cap Battery, Large Shield Extender, Shield Boost Amplifier, 1600mm Steel Plates, Micro Jump Drive, Warp Disruptor; never invent fake names like Cap Regen II).\n"
-            f"4. Piloting & Range Envelope: State the exact engagement range and flight tactics for {role} (Note: Battleships kite using Micro Jump Drive 100km repositioning and Cruise/Artillery/Beam projection; Stasis Webifiers are strictly defensive peeling inside 10km, not for >40km kiting)."
+            f"1. Role Compatibility: Acknowledge the fitted weapons, tank, and tackle. Assess how well this configuration performs in {role}.\n"
+            f"2. Capacitor & Tank: Evaluate capacitor resilience and tank synergy (e.g. active reps, buffer, ADC, resistances) during sustained engagements in {role}.\n"
+            f"3. Module / Ammo Refinements: Suggest 1-2 authentic, size-legal module or ammo adjustments (e.g., ammo switching between Hail S for close brawling and Barrage S for tracking/falloff projection; or optional sidegrades matching this exact hull class).\n"
+            f"4. Piloting & Range Envelope: State the exact engagement range and flight tactics for {role} (e.g., closing distance with MWD, applying Scram to disable enemy MWD, managing optimal/falloff ranges, cycling active tank with nanite paste, and timing Assault Damage Control)."
         )
         self._set_piloted_ship(hull)
         self._execute_tactical_prompt(prompt, f"🛠️ <b>Fitting Lab Review</b>: `{hull}` ({role})")
@@ -1209,7 +1243,6 @@ class MainWindow(QMainWindow):
         self.tier_badge.setStyleSheet("color: #fda4af; font-weight: bold; background: #4c0519; padding: 4px 12px; border-radius: 6px; border: 1px solid #e11d48;")
         self.progress_status_lbl.setText("⚡ A.U.R.A. calculating tactical countermeasures...")
         self.progress_container.setVisible(True)
-        self.speed_lbl.setText("🚀 --.- t/s")
 
         ts = self._get_timestamp_str()
         self.chat_display.append(f"<small style='color: #94a3b8; font-family: monospace;'>[{ts}]</small> <b style='color: #f43f5e;'>A.U.R.A.:</b><br>")
@@ -1323,7 +1356,6 @@ class MainWindow(QMainWindow):
         self._display_welcome()
         self.tier_badge.setText(self._get_idle_badge_text())
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
-        self.speed_lbl.setText("🚀 0.0 t/s")
         self._update_context_display(0)
 
     def _append_message(self, sender: str, text: str):
@@ -1369,14 +1401,10 @@ class MainWindow(QMainWindow):
         
         self.tier_badge.setText("● Thinking...")
         self.tier_badge.setStyleSheet("color: #fda4af; font-weight: bold; background: #4c0519; padding: 4px 12px; border-radius: 6px; border: 1px solid #e11d48;")
-        self.progress_status_lbl.setText(f"🚀 {strategy} ({tokens} memory tokens)...")
+        self.progress_status_lbl.setText(f"🚀 {strategy} Active...")
 
     def _on_token(self, packet: dict):
         text = packet.get("text", "")
-        tps = packet.get("current_tps", 0.0)
-        if tps > 0:
-            self.speed_lbl.setText(f"🚀 {tps:.1f} t/s")
-            
         self.current_assistant_tokens.append(text)
         self.chat_display.moveCursor(QTextCursor.MoveOperation.End)
         self.chat_display.insertPlainText(text)
@@ -1384,14 +1412,11 @@ class MainWindow(QMainWindow):
         sb.setValue(sb.maximum())
 
     def _on_done(self, done_info: dict):
-        tps = done_info.get("tokens_per_sec", 0.0)
         elapsed = done_info.get("time_elapsed", 0.0)
-        toks = done_info.get("tokens_generated", 0)
         strategy = done_info.get("hardware_strategy", "")
         
         strat_note = f" | {strategy}" if strategy else ""
-        self.chat_display.append(f"<br><small style='color: #64748b;'>⚡ {toks} tokens in {elapsed}s ({tps:.1f} t/s){strat_note}</small><br>")
-        self.speed_lbl.setText(f"🚀 {tps:.1f} t/s")
+        self.chat_display.append(f"<br><small style='color: #475569;'>• Tactical Analysis Complete ({elapsed}s){strat_note}</small><br>")
         self.tier_badge.setText(self._get_idle_badge_text())
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
 

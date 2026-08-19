@@ -119,9 +119,9 @@ class UnifiedInferenceEngine:
                 import llama_cpp
                 from llama_cpp import Llama
                 
-                # Dedicated compute threads: Physical P-cores (max 6 to avoid E-core latency on Meteor Lake)
+                # Dedicated compute threads tuned for high-throughput prompt processing and generation
                 phys_cores = psutil.cpu_count(logical=False) or 4
-                threads = max(2, min(phys_cores, 6))
+                threads = max(4, min(phys_cores, 8))
                 
                 print(f"[A.U.R.A.] Initializing tactical neural model '{config.model_display_name}' from {model_file} ({threads} compute threads)...")
                 print(f"[A.U.R.A.] Hardware Topology: {self.detector.get_summary_string()}")
@@ -133,9 +133,9 @@ class UnifiedInferenceEngine:
                     "model_path": model_file,
                     "n_ctx": config.context_window,
                     "n_threads": threads,
-                    "n_threads_batch": threads,
-                    "n_batch": 512,
-                    "n_ubatch": 256,
+                    "n_threads_batch": max(threads, 6),
+                    "n_batch": 1024,
+                    "n_ubatch": 512,
                     "use_mmap": True,
                     "use_mlock": False,
                     "n_gpu_layers": 0,
@@ -254,9 +254,6 @@ class UnifiedInferenceEngine:
         )
 
         
-        coproc_target = hw_plan.get("coprocessor_target", "FULL_MESH")
-        self.coprocessor.execute(target_mode=coproc_target, iterations=6)
-
         yield {
             "type": "meta",
             "hardware_plan": hw_plan,
@@ -264,7 +261,6 @@ class UnifiedInferenceEngine:
             "hardware_summary": self.detector.get_summary_string()
         }
 
-        
         hw_tag = hw_plan.get("hw_tag", "*A.U.R.A. ACCELERATED*")
         tokens_generated = 0
         gen_start_time = None
@@ -294,16 +290,16 @@ class UnifiedInferenceEngine:
                 if hasattr(self.llm, "n_threads"):
                     try:
                         use_full_threads = is_turbo or (not self.detector.has_npu) or has_image or has_doc
-                        self.llm.n_threads = self.detector.cpu_threads if use_full_threads else min(4, self.detector.cpu_threads)
+                        self.llm.n_threads = self.detector.cpu_threads if use_full_threads else min(6, self.detector.cpu_threads)
                     except Exception:
                         pass
 
-                
                 stream = self.llm.create_chat_completion(
                     messages=messages,
                     max_tokens=config.max_new_tokens,
                     temperature=config.temperature,
                     top_p=config.top_p,
+                    repeat_penalty=1.1,
                     stream=True
                 )
                 

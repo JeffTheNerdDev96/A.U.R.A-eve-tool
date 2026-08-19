@@ -1,6 +1,6 @@
 """
 EVE Online Tactical Database, Comprehensive Combat Matrix & Domain Grounding Engine.
-Customized for A.U.R.A. (Adaptive Underworld Recon Array) — ver.0.1.1phi & Core.
+Customized for A.U.R.A. (Adaptive Underworld Recon Array) — ver.0.1.0-alpha2 & Core.
 Contains encyclopedic vessel dossiers, weapon tracking mathematics, capacitor warfare,
 abyssal deadspace environmental hazards, and electronic warfare matrices.
 Covers all standard empire, navy, pirate, and industrial vessels while excluding unobtainable AT ships.

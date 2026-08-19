@@ -1,5 +1,5 @@
 """
-A.U.R.A. Assist — Graphical Windows Installer (v.0.0.1alpha)
+A.U.R.A. Assist — Graphical Windows Installer (v0.1.0-alpha2)
 Angel Cartel Cybernetics Division
 """
 
@@ -221,7 +221,7 @@ class InstallWorker(QThread):
             uninst_script = f'''@echo off
 title A.U.R.A. Assist Uninstaller
 echo =========================================================
-echo === A.U.R.A. Assist v.0.0.1alpha Uninstaller ===
+echo === A.U.R.A. Assist v0.1.0-alpha2 Uninstaller ===
 echo =========================================================
 echo.
 set /p confirm="Are you sure you want to uninstall A.U.R.A. Assist from '%~dp0'? (Y/N): "
@@ -334,13 +334,13 @@ pause
 class AURAInstallerWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("A.U.R.A. Assist v.0.0.1alpha Setup — Angel Cartel Cybernetics")
+        self.setWindowTitle("A.U.R.A. Assist v0.1.0-alpha2 Setup — Angel Cartel Cybernetics")
         self.resize(760, 520)
         self.setMinimumSize(700, 480)
 
-        # Default install directory: C:\Program Files\A.U.R.A. v.0.0.1alpha or LocalAppData
+        # Default install directory: C:\Program Files\A.U.R.A. v0.1.0-alpha2 or LocalAppData
         user_local = os.environ.get("LOCALAPPDATA", "C:\\")
-        self.default_install_dir = os.path.join(user_local, "Programs", "A.U.R.A. v.0.0.1alpha")
+        self.default_install_dir = os.path.join(user_local, "Programs", "A.U.R.A. v0.1.0-alpha2")
         self.target_dir = self.default_install_dir
 
         self.worker: Optional[InstallWorker] = None
@@ -470,7 +470,7 @@ class AURAInstallerWindow(QMainWindow):
         title_lbl.setStyleSheet("font-size: 16px; color: #f8fafc;")
         sb_layout.addWidget(title_lbl)
 
-        ver_badge = QLabel("VERSION 0.0.1alpha")
+        ver_badge = QLabel("VERSION v0.1.0-alpha2")
         ver_badge.setStyleSheet("color: #38bdf8; background: #0c4a6e; border: 1px solid #0284c7; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;")
         sb_layout.addWidget(ver_badge)
 
@@ -548,7 +548,7 @@ class AURAInstallerWindow(QMainWindow):
 
         desc = QLabel(
             "This setup wizard will install <b>A.U.R.A. Assist (Adaptive Underworld Recon Array)</b> "
-            "version <code>v.0.0.1alpha</code> on your computer.<br><br>"
+            "version <code>v0.1.0-alpha2</code> on your computer.<br><br>"
             "A.U.R.A. is a dedicated, offline-first tactical intelligence co-pilot for EVE Online, powered by "
             "a local <b>Phi-3.5 Mini (3.8B Reasoning)</b> neural engine with automatic hardware acceleration."
         )
@@ -590,7 +590,7 @@ class AURAInstallerWindow(QMainWindow):
 
         desc = QLabel(
             "Setup will install A.U.R.A. Assist into the following folder. "
-            "A dedicated main directory named <code>A.U.R.A. v.0.0.1alpha</code> will be created."
+            "A dedicated main directory named <code>A.U.R.A. v0.1.0-alpha2</code> will be created."
         )
         desc.setWordWrap(True)
         desc.setStyleSheet("color: #cbd5e1;")
@@ -630,8 +630,8 @@ class AURAInstallerWindow(QMainWindow):
         btn_appdata.clicked.connect(lambda: self._set_preset_path(self.default_install_dir))
         p_layout.addWidget(btn_appdata)
 
-        btn_c = QPushButton("C:\\A.U.R.A. v.0.0.1alpha")
-        btn_c.clicked.connect(lambda: self._set_preset_path("C:\\A.U.R.A. v.0.0.1alpha"))
+        btn_c = QPushButton("C:\\A.U.R.A. v0.1.0-alpha2")
+        btn_c.clicked.connect(lambda: self._set_preset_path("C:\\A.U.R.A. v0.1.0-alpha2"))
         p_layout.addWidget(btn_c)
 
         layout.addWidget(preset_box)
@@ -715,7 +715,7 @@ class AURAInstallerWindow(QMainWindow):
         layout.addWidget(header)
 
         desc = QLabel(
-            "<b>A.U.R.A. Assist v.0.0.1alpha</b> has been successfully installed on your PC.<br><br>"
+            "<b>A.U.R.A. Assist v0.1.0-alpha2</b> has been successfully installed on your PC.<br><br>"
             "You can launch the tactical interface directly from your desktop or start menu."
         )
         desc.setWordWrap(True)
@@ -753,9 +753,9 @@ class AURAInstallerWindow(QMainWindow):
     def _browse_destination(self):
         folder = QFileDialog.getExistingDirectory(self, "Select Parent Installation Directory", os.path.dirname(self.path_edit.text()))
         if folder:
-            # Ensure it ends with A.U.R.A. v.0.0.1alpha
-            if not folder.rstrip("/\\").endswith("A.U.R.A. v.0.0.1alpha"):
-                folder = os.path.join(folder, "A.U.R.A. v.0.0.1alpha")
+            # Ensure it ends with A.U.R.A. v0.1.0-alpha2
+            if not folder.rstrip("/\\").endswith("A.U.R.A. v0.1.0-alpha2"):
+                folder = os.path.join(folder, "A.U.R.A. v0.1.0-alpha2")
             self.path_edit.setText(folder)
 
     def _set_preset_path(self, path: str):
@@ -779,8 +779,8 @@ class AURAInstallerWindow(QMainWindow):
                 QMessageBox.warning(self, "Invalid Path", "Please specify a valid installation directory.")
                 return
             # Ensure proper folder name
-            if not t_path.rstrip("/\\").endswith("A.U.R.A. v.0.0.1alpha"):
-                t_path = os.path.join(t_path, "A.U.R.A. v.0.0.1alpha")
+            if not t_path.rstrip("/\\").endswith("A.U.R.A. v0.1.0-alpha2"):
+                t_path = os.path.join(t_path, "A.U.R.A. v0.1.0-alpha2")
                 self.path_edit.setText(t_path)
             self.target_dir = t_path
             self.stack.setCurrentIndex(2)

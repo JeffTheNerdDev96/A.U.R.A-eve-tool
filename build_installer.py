@@ -15,7 +15,7 @@ PYTHON_EXE = r"c:\Local-Chatbot\venv_app\Scripts\python.exe"
 PYINSTALLER_EXE = r"c:\Local-Chatbot\venv_app\Scripts\pyinstaller.exe"
 
 print("=========================================================")
-print("=== BUILDING A.U.R.A. v.0.0.1alpha WINDOWS INSTALLER ===")
+print("=== BUILDING A.U.R.A. v0.1.0-alpha2 WINDOWS INSTALLER ===")
 print("=========================================================")
 
 # 1. Clean & prepare output directories
@@ -53,7 +53,7 @@ pyinstaller_cmd = [
     "--clean",
     "--onefile",
     "--windowed",
-    "--name=AURA_Setup_v0.0.1alpha",
+    "--name=AURA_Setup_v0.1.0-alpha2",
     f"--icon={icon_path}",
     f"--add-data={payload_zip_path};.",
     f"--add-data={icon_path};.",
@@ -88,6 +88,6 @@ if os.path.exists(src_model):
 shutil.rmtree(BUILD_TEMP_DIR, ignore_errors=True)
 
 print("\n=========================================================")
-print("=== A.U.R.A. v.0.0.1alpha INSTALLER READY! ===")
+print("=== A.U.R.A. v0.1.0-alpha2 INSTALLER READY! ===")
 print(f"=== Location: {INSTALLER_OUTPUT_DIR} ===")
 print("=========================================================")

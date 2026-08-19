@@ -8,167 +8,233 @@ from eve_data import lookup_ship
 
 
 class FittingParser:
-    """Parses EFT / in-game fitting blocks and provides structural analysis."""
+    """Parses EFT / in-game fitting blocks and provides structural slot analysis."""
 
-    _RE_HEADER = re.compile(r"\[(.*?),\s*(.*?)\]")
-    _RE_STRIP_CHARGE = re.compile(r",\s*\w+.*$")
+    _RE_HEADER = re.compile(r"^\[(.*?),\s*(.*?)\]")
+    _RE_CARGO = re.compile(r"^(.*?)\s*x\s*(\d+)$")
+    _RE_STRIP_CHARGE = re.compile(r",\s*[\w\s\-\'\.]+$")
 
     @staticmethod
     def parse(eft_text: str) -> Dict[str, Any]:
-        lines = [line.strip() for line in eft_text.strip().split("\n") if line.strip()]
-        if not lines:
+        raw_lines = [line.strip() for line in eft_text.split("\n")]
+        # Strip leading/trailing empty lines
+        while raw_lines and not raw_lines[0]:
+            raw_lines.pop(0)
+        while raw_lines and not raw_lines[-1]:
+            raw_lines.pop()
+
+        if not raw_lines:
             return {"error": "Empty fitting text"}
 
-        header_match = FittingParser._RE_HEADER.match(lines[0])
-        hull_name = header_match.group(1).strip() if header_match else lines[0].replace("[", "").replace("]", "")
+        header_match = FittingParser._RE_HEADER.match(raw_lines[0])
+        hull_name = header_match.group(1).strip() if header_match else raw_lines[0].replace("[", "").replace("]", "").split(",")[0].strip()
         fit_name = header_match.group(2).strip() if header_match else "Custom Fit"
 
         ship_info = lookup_ship(hull_name)
+        s_class = ship_info.get("class", "Frigate") if ship_info else "Frigate"
 
-        high_slots: List[str] = []
-        mid_slots: List[str] = []
+        # Split EFT text into distinct slot blocks separated by empty lines
+        blocks: List[List[str]] = []
+        current_block: List[str] = []
+
+        for line in raw_lines[1:]:
+            if not line:
+                if current_block:
+                    blocks.append(current_block)
+                    current_block = []
+            else:
+                if line.startswith("[") and line.endswith("]"):
+                    continue  # empty slot placeholder e.g. [Empty Low slot]
+                current_block.append(line)
+
+        if current_block:
+            blocks.append(current_block)
+
+        # Standard EFT block ordering:
+        # Block 0: Low Slots
+        # Block 1: Mid Slots
+        # Block 2: High Slots
+        # Block 3: Rig Slots
+        # Block 4: Subsystems (T3C) or Cargo/Drones
+        # Block 5+: Drones / Cargo
+
         low_slots: List[str] = []
+        mid_slots: List[str] = []
+        high_slots: List[str] = []
         rig_slots: List[str] = []
         subsystems: List[str] = []
-        drones_and_cargo: List[str] = []
+        cargo_items: List[str] = []
+        drones: List[str] = []
 
-        all_modules: List[str] = []
-        for line in lines[1:]:
-            # Ignore empty slot markers or cargo separators
-            if line.startswith("[") and line.endswith("]"):
-                continue
-            clean_item = FittingParser._RE_STRIP_CHARGE.sub("", line).strip() # strip charge/ammo
-            if not clean_item:
-                continue
-            all_modules.append(clean_item)
+        for block_idx, blk in enumerate(blocks):
+            # Check if this block is entirely cargo / ammo / drones
+            is_cargo_block = all(
+                FittingParser._RE_CARGO.match(l) or any(k in l.lower() for k in ["nanite repair paste", "crash booster", "drop booster", "hardshell", "exile booster", "synth booster"])
+                for l in blk
+            )
 
-        # Classify modules
+            if is_cargo_block:
+                for l in blk:
+                    if any(k in l.lower() for k in ["warrior", "acolyte", "hobgoblin", "hornet", "valkyrie", "hammerhead", "infiltrator", "vespa", "berserker", "ogre", "gecko", "curator", "garde", "bouncer", "warden"]):
+                        drones.append(l)
+                    else:
+                        cargo_items.append(l)
+                continue
+
+            if block_idx == 0:
+                low_slots = [FittingParser._clean_mod(l) for l in blk]
+            elif block_idx == 1:
+                mid_slots = [FittingParser._clean_mod(l) for l in blk]
+            elif block_idx == 2:
+                high_slots = [FittingParser._clean_mod(l) for l in blk]
+            elif block_idx == 3:
+                rig_slots = [FittingParser._clean_mod(l) for l in blk]
+            elif block_idx == 4:
+                if any("subsystem" in l.lower() or "offensive" in l.lower() or "defensive" in l.lower() or "propulsion" in l.lower() or "core" in l.lower() for l in blk):
+                    subsystems = [FittingParser._clean_mod(l) for l in blk]
+                else:
+                    for l in blk:
+                        if any(k in l.lower() for k in ["warrior", "acolyte", "hobgoblin", "hornet", "valkyrie", "hammerhead", "infiltrator", "vespa", "berserker", "ogre", "gecko", "curator", "garde", "bouncer", "warden"]):
+                            drones.append(l)
+                        else:
+                            cargo_items.append(l)
+            else:
+                for l in blk:
+                    if any(k in l.lower() for k in ["warrior", "acolyte", "hobgoblin", "hornet", "valkyrie", "hammerhead", "infiltrator", "vespa", "berserker", "ogre", "gecko", "curator", "garde", "bouncer", "warden"]):
+                        drones.append(l)
+                    else:
+                        cargo_items.append(l)
+
+        # Classify Capabilities
         tank_types = []
-        prop_type = "None"
+        prop_type = "None Fitted"
         tackle_mods = []
         cap_mods = []
-        weapon_type = "None / Drones"
+        weapons = []
 
-        for mod in all_modules:
-            mod_l = mod.lower()
+        # Analyze Highs
+        for m in high_slots:
+            ml = m.lower()
+            if any(k in ml for k in ["autocannon", "artillery"]):
+                weapons.append(m)
+            elif any(k in ml for k in ["blaster", "railgun"]):
+                weapons.append(m)
+            elif any(k in ml for k in ["laser", "beam", "pulse"]):
+                weapons.append(m)
+            elif any(k in ml for k in ["missile", "rocket", "torpedo", "heavy assault missile"]):
+                weapons.append(m)
+            elif "nosferatu" in ml:
+                cap_mods.append(m)
+            elif "neutralizer" in ml:
+                cap_mods.append(m)
 
-            # Tank identification
-            if any(k in mod_l for k in ["shield booster", "shield boost amplifier", "ancillary shield booster"]):
-                if "Active Shield" not in tank_types:
-                    tank_types.append("Active Shield")
-            elif any(k in mod_l for k in ["shield extender", "large shield extender", "medium shield extender"]):
-                if "Buffer Shield" not in tank_types:
-                    tank_types.append("Buffer Shield")
-            elif any(k in mod_l for k in ["armor repairer", "ancillary armor repairer"]):
-                if "Active Armor" not in tank_types:
-                    tank_types.append("Active Armor")
-            elif any(k in mod_l for k in ["armor plate", "1600mm", "800mm", "400mm", "steel plates"]):
-                if "Buffer Armor" not in tank_types:
-                    tank_types.append("Buffer Armor")
-            elif "damage control" in mod_l or "reinforced bulkheads" in mod_l:
-                if "Hull/Resist Reinforced" not in tank_types:
-                    tank_types.append("Hull/Resist Reinforced")
+        # Analyze Mids
+        for m in mid_slots:
+            ml = m.lower()
+            if "microwarpdrive" in ml or "5mn" in ml or "50mn" in ml or "500mn" in ml:
+                prop_type = m
+            elif "afterburner" in ml or "1mn" in ml or "10mn" in ml or "100mn" in ml:
+                prop_type = m
+            elif "micro jump drive" in ml or "mjd" in ml:
+                prop_type = m
 
-            # Propulsion
-            if "microwarpdrive" in mod_l or "500mn" in mod_l or "50mn" in mod_l or "5mn" in mod_l:
-                prop_type = "Microwarpdrive (MWD)"
-            elif "afterburner" in mod_l or "100mn" in mod_l or "10mn" in mod_l or "1mn" in mod_l:
-                prop_type = "Afterburner (AB)"
-            elif "micro jump drive" in mod_l:
-                prop_type = "Micro Jump Drive (MJD)"
+            if "scrambler" in ml:
+                tackle_mods.append(f"{m} (Scram <=10km — Disables MWD/MJD)")
+            elif "disruptor" in ml:
+                tackle_mods.append(f"{m} (Long Point <=28km — Disables Warp)")
+            elif "webifier" in ml:
+                tackle_mods.append(f"{m} (Stasis Webifier — Velocity Reduction)")
+            elif "grappler" in ml:
+                tackle_mods.append(f"{m} (Heavy Grappler)")
+            elif "shield booster" in ml or "ancillary shield booster" in ml:
+                tank_types.append(f"Active Shield ({m})")
+            elif "shield extender" in ml:
+                tank_types.append(f"Buffer Shield ({m})")
+            elif "cap booster" in ml:
+                cap_mods.append(f"Cap Booster ({m})")
+            elif "battery" in ml:
+                cap_mods.append(f"Cap Battery ({m})")
 
-            # Tackle
-            if "warp scrambler" in mod_l:
-                tackle_mods.append("Warp Scrambler (Shuts off MWD)")
-            elif "warp disruptor" in mod_l:
-                tackle_mods.append("Warp Disruptor (Long Point)")
-            elif "stasis webifier" in mod_l:
-                tackle_mods.append("Stasis Webifier (Speed Reduction)")
-            elif "stasis grappler" in mod_l:
-                tackle_mods.append("Stasis Grappler (Heavy Web)")
-            elif "warp bubble" in mod_l or "interdiction" in mod_l:
-                tackle_mods.append("Interdiction Bubble")
+        # Analyze Lows
+        for m in low_slots:
+            ml = m.lower()
+            if "armor repairer" in ml or "ancillary armor repairer" in ml:
+                tank_types.append(f"Active Armor ({m})")
+            elif "steel plates" in ml or "rolled tungsten" in ml or "armor plate" in ml or "200mm" in ml or "400mm" in ml or "800mm" in ml or "1600mm" in ml:
+                tank_types.append(f"Buffer Armor ({m})")
+            elif "damage control" in ml:
+                tank_types.append(f"Assault/Damage Control ({m})")
+            elif "coating" in ml or "membrane" in ml or "plating" in ml or "energized" in ml:
+                tank_types.append(f"Armor Resists ({m})")
 
-            # Capacitor
-            if "cap booster" in mod_l:
-                cap_mods.append("Capacitor Booster (Injectable)")
-            elif "battery" in mod_l:
-                cap_mods.append("Capacitor Battery (Neut Resistant)")
-            elif "nosferatu" in mod_l:
-                cap_mods.append("Energy Nosferatu (Cap Leech)")
-            elif "neutralizer" in mod_l:
-                cap_mods.append("Energy Neutralizer (Offensive Drain)")
+        # Aggregate counts of identical items
+        def format_item_list(items: List[str]) -> List[str]:
+            counts = {}
+            for item in items:
+                counts[item] = counts.get(item, 0) + 1
+            res = []
+            for item, cnt in counts.items():
+                res.append(f"{cnt}x {item}" if cnt > 1 else item)
+            return res
 
-            # Weapons
-            if any(k in mod_l for k in ["autocannon", "artillery"]):
-                weapon_type = "Projectile (Autocannon/Artillery)"
-            elif any(k in mod_l for k in ["blaster", "railgun"]):
-                weapon_type = "Hybrid (Blaster/Railgun)"
-            elif any(k in mod_l for k in ["pulse laser", "beam laser"]):
-                weapon_type = "Energy (Pulse/Beam Laser)"
-            elif any(k in mod_l for k in ["missile", "torpedo", "rocket", "heavy assault missile"]):
-                weapon_type = "Missiles / Rockets"
-            elif "disintegrator" in mod_l:
-                weapon_type = "Triglavian Entropic Disintegrator"
-            elif "vortron" in mod_l:
-                weapon_type = "EDENCOM Vorton Projector"
+        summary_lines = [
+            f"### 🛠️ Fitting Lab Analysis: `{hull_name}` ({fit_name})",
+            f"**Hull Class & Role:** `{s_class}` ({ship_info.get('faction', 'Empire') if ship_info else 'Standard'}) — *{ship_info.get('role', 'Combat Ship') if ship_info else 'Combat Ship'}*",
+            f"**Slot Summary:** `{len(high_slots)} Highs | {len(mid_slots)} Mids | {len(low_slots)} Lows | {len(rig_slots)} Rigs`",
+            "",
+            "#### 🧩 Fitted Module Layout:",
+            f"- 🔴 **High Slots ({len(high_slots)}):** " + (", ".join(format_item_list(high_slots)) if high_slots else "*None*"),
+            f"- 🔵 **Mid Slots ({len(mid_slots)}):** " + (", ".join(format_item_list(mid_slots)) if mid_slots else "*None*"),
+            f"- 🟡 **Low Slots ({len(low_slots)}):** " + (", ".join(format_item_list(low_slots)) if low_slots else "*None*"),
+            f"- ⚙️ **Rigs ({len(rig_slots)}):** " + (", ".join(format_item_list(rig_slots)) if rig_slots else "*None*"),
+        ]
 
-        primary_tank = " / ".join(tank_types) if tank_types else "Unspecified / Speed Tank"
+        if drones:
+            summary_lines.append(f"- 🐝 **Drone Bay:** " + ", ".join(format_item_list(drones)))
+        if cargo_items:
+            summary_lines.append(f"- 📦 **Ammunition & Cargo:** " + ", ".join(cargo_items[:6]))
 
-        summary_md = FittingParser._build_markdown_summary(
-            hull_name, fit_name, ship_info, primary_tank, prop_type, tackle_mods, cap_mods, weapon_type, len(all_modules)
-        )
+        summary_lines.extend([
+            "",
+            "#### 📊 Tactical Profile:",
+            f"- 🛡️ **Defense / Tank:** `{', '.join(tank_types) if tank_types else 'Speed Tank / Unshielded'}`",
+            f"- 🚀 **Propulsion:** `{prop_type}`",
+            f"- ⚔️ **Primary Weaponry:** `{', '.join(format_item_list(weapons)) if weapons else 'Drones / EWAR'}`",
+            f"- ⚓ **Tackle Package:** `{', '.join(tackle_mods) if tackle_mods else 'None Fitted (Fleet Dependent)'}`",
+            f"- ⚡ **Capacitor Susteinance:** `{', '.join(cap_mods) if cap_mods else 'Standard Cap Pool'}`"
+        ])
+
+        if ship_info:
+            summary_lines.extend([
+                "",
+                "#### 🛸 Verified Hull Database Dossier:",
+                f"- 🎯 **Optimal Combat Envelope:** `{ship_info.get('optimal_range', 'Standard')}`",
+                f"- 💡 **Tactical Combat Advisory:** *{ship_info.get('tactics', '')}*"
+            ])
 
         return {
             "hull_name": hull_name,
             "fit_name": fit_name,
             "ship_info": ship_info,
-            "primary_tank": primary_tank,
+            "ship_class": s_class,
+            "high_slots": high_slots,
+            "mid_slots": mid_slots,
+            "low_slots": low_slots,
+            "rig_slots": rig_slots,
+            "subsystems": subsystems,
+            "drones": drones,
+            "cargo_items": cargo_items,
+            "tank_types": tank_types,
             "prop_type": prop_type,
             "tackle_mods": tackle_mods,
             "cap_mods": cap_mods,
-            "weapon_type": weapon_type,
-            "module_count": len(all_modules),
-            "summary_md": summary_md,
+            "weapons": weapons,
+            "summary_md": "\n".join(summary_lines),
             "raw_text": eft_text
         }
 
     @staticmethod
-    def _build_markdown_summary(
-        hull: str,
-        fit_name: str,
-        ship_info: Optional[Dict[str, Any]],
-        tank: str,
-        prop: str,
-        tackle: List[str],
-        cap: List[str],
-        weapon: str,
-        module_count: int
-    ) -> str:
-        s_class = ship_info.get("class", "Vessel") if ship_info else "Vessel"
-        s_faction = ship_info.get("faction", "Empire/Standard") if ship_info else "Standard"
-        role = ship_info.get("role", "Combat Ship") if ship_info else "Combat Ship"
-        tactics = ship_info.get("tactics", "") if ship_info else ""
-        optimal = ship_info.get("optimal_range", "Standard") if ship_info else "Standard"
-
-        lines = [
-            f"### 🛠️ Fitting Lab Analysis: `{hull}` ({fit_name})",
-            f"**Class / Faction / Role:** `{s_class}` ({s_faction}) — *{role}*",
-            f"**Fitted Modules Extracted:** `{module_count}`",
-            "",
-            "#### 📊 Tactical Profile Analysis:",
-            f"- 🛡️ **Fitted Tank:** `{tank}`",
-            f"- 🚀 **Propulsion:** `{prop}`",
-            f"- ⚔️ **Weaponry:** `{weapon}`",
-            f"- ⚓ **Tackle Package:** `{', '.join(set(tackle)) if tackle else 'None Fitted'}`",
-            f"- ⚡ **Capacitor Resilience:** `{', '.join(set(cap)) if cap else 'Standard Cap Regen'}`"
-        ]
-
-        if ship_info:
-            lines.append("")
-            lines.append("#### 🛸 Verified Hull Database Dossier:")
-            lines.append(f"- 🎯 **Optimal Combat Envelope:** `{optimal}`")
-            lines.append(f"- 💡 **Tactical Combat Advisory:** *{tactics}*")
-
-        return "\n".join(lines)
+    def _clean_mod(line: str) -> str:
+        # Strip trailing charge / ammo after comma
+        return FittingParser._RE_STRIP_CHARGE.sub("", line).strip()
 
