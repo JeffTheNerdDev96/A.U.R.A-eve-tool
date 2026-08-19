@@ -18,7 +18,7 @@ from typing import List, Dict, Any, Optional
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QTextEdit, QPushButton, QLabel, QFrame, QProgressBar, QFileDialog,
+    QTextEdit, QLineEdit, QPushButton, QLabel, QFrame, QProgressBar, QFileDialog,
     QDialog, QComboBox, QSplitter, QCheckBox, QListWidget, QListWidgetItem
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
@@ -50,16 +50,33 @@ class WorkerThread(QThread):
         self.attachments = attachments
         self.turbo_mode = turbo_mode
         self.piloted_ship = piloted_ship
+        self._is_stopped = False
+
+    def stop(self):
+        """Immediately interrupts the active generation stream."""
+        self._is_stopped = True
 
     def run(self):
         try:
             for packet in self.engine.generate_stream(self.prompt, self.chat_history, self.attachments, turbo_mode=self.turbo_mode, piloted_ship=self.piloted_ship):
+                if self._is_stopped:
+                    break
                 if packet["type"] == "meta":
                     self.meta_received.emit(packet)
                 elif packet["type"] == "token":
                     self.token_received.emit(packet)
                 elif packet["type"] == "done":
                     self.done_received.emit(packet)
+            
+            if self._is_stopped:
+                self.done_received.emit({
+                    "type": "done",
+                    "tokens_generated": 0,
+                    "time_elapsed": 0.0,
+                    "tokens_per_sec": 0.0,
+                    "hardware_strategy": "Interrupted by Capsuleer",
+                    "stopped": True
+                })
         except Exception as e:
             self.error_received.emit(str(e))
 
@@ -766,6 +783,14 @@ class MainWindow(QMainWindow):
         self.send_btn.clicked.connect(self._send_message)
         input_h_layout.addWidget(self.send_btn)
 
+        self.stop_btn = QPushButton("⏹ Stop")
+        self.stop_btn.setFixedHeight(52)
+        self.stop_btn.setStyleSheet("background-color: #991b1b; color: #ffffff; border: 1px solid #ef4444; border-radius: 6px; font-weight: bold; padding: 8px 16px; font-size: 13.5px;")
+        self.stop_btn.setToolTip("Immediately interrupt active neural generation")
+        self.stop_btn.clicked.connect(self._stop_generation)
+        self.stop_btn.hide()
+        input_h_layout.addWidget(self.stop_btn)
+
         left_layout.addLayout(input_h_layout)
         main_splitter.addWidget(left_widget)
 
@@ -806,10 +831,29 @@ class MainWindow(QMainWindow):
         self.channel_filter_combo = QComboBox()
         self.channel_filter_combo.setFixedHeight(28)
         self.channel_filter_combo.setStyleSheet("font-size: 12px; background: #1e293b; color: #f8fafc; border: 1px solid #64748b; border-radius: 4px; padding: 2px 8px;")
-        self.channel_filter_combo.addItems(["All Channels", "Intel Only (*.intel)", "Alliance Only", "Corp Only", "Local Only"])
+        self.channel_filter_combo.addItems([
+            "Intel Channels (*.intel, *.imperium, *.horde, etc.)",
+            "Custom Channel Keywords...",
+            "All Channels",
+            "Alliance Only",
+            "Corp Only",
+            "Local Only"
+        ])
         self.channel_filter_combo.currentIndexChanged.connect(self._on_filter_changed)
         ctrl_layout.addWidget(self.channel_filter_combo, stretch=1)
         right_layout.addLayout(ctrl_layout)
+
+        # Custom Channel Pattern Input Field (e.g. imperium, delve, horde, standing)
+        custom_filter_layout = QHBoxLayout()
+        self.custom_channel_edit = QLineEdit()
+        self.custom_channel_edit.setFixedHeight(26)
+        self.custom_channel_edit.setStyleSheet("font-size: 11.5px; background: #0b101d; color: #f8fafc; border: 1px solid #334155; border-radius: 4px; padding: 2px 8px;")
+        self.custom_channel_edit.setPlaceholderText("Custom channel keywords (e.g. imperium, delve, horde, standing)")
+        self.custom_channel_edit.setText(config.custom_intel_channels)
+        self.custom_channel_edit.setToolTip("Enter custom channel names or suffixes (comma-separated). Live Radar will monitor any chat log matching these terms.")
+        self.custom_channel_edit.textChanged.connect(self._on_custom_filter_text_changed)
+        custom_filter_layout.addWidget(self.custom_channel_edit)
+        right_layout.addLayout(custom_filter_layout)
 
         # Auto-Response Checkbox (Off by default as requested)
         self.auto_response_cb = QCheckBox("⚡ Auto-Respond to Critical Threats")
@@ -1043,14 +1087,21 @@ class MainWindow(QMainWindow):
 
     def _on_filter_changed(self, idx: int):
         mapping = {
-            0: "all",
-            1: "intel",
-            2: "alliance",
-            3: "corp",
-            4: "local"
+            0: "intel",
+            1: "custom",
+            2: "all",
+            3: "alliance",
+            4: "corp",
+            5: "local"
         }
-        f_val = mapping.get(idx, "all")
+        f_val = mapping.get(idx, "intel")
         self.chat_monitor.set_channel_filter(f_val)
+        if f_val == "custom":
+            self.custom_channel_edit.setFocus()
+            self.custom_channel_edit.selectAll()
+
+    def _on_custom_filter_text_changed(self, text: str):
+        self.chat_monitor.set_custom_patterns(text)
 
     def _simulate_test_ping(self):
         """Simulates a live EVE Online intel ping for testing."""
@@ -1256,6 +1307,7 @@ class MainWindow(QMainWindow):
         self.chat_display.append(f"<small style='color: #94a3b8; font-family: monospace;'>[{ts}]</small> <b style='color: #f43f5e;'>A.U.R.A.:</b><br>")
         self.current_assistant_tokens = []
         self.send_btn.setEnabled(False)
+        self.stop_btn.show()
 
         self.worker = WorkerThread(
             self.engine,
@@ -1276,10 +1328,24 @@ class MainWindow(QMainWindow):
         self._refresh_attachment_chips()
         self.chat_history.append({"role": "user", "content": prompt})
 
+    def _stop_generation(self):
+        """Immediately halts the active neural inference stream."""
+        if self.worker is not None and self.worker.isRunning():
+            self.worker.stop()
+            self.stop_btn.hide()
+            self.send_btn.setEnabled(True)
+            self.progress_container.setVisible(False)
+            self.tier_badge.setText(self._get_idle_badge_text())
+            self.tier_badge.setStyleSheet(self._get_idle_badge_style())
+            self.chat_display.append("<br><small style='color: #f59e0b;'>⏹ <i>[Neural inference stopped by Capsuleer]</i></small><br>")
+            sb = self.chat_display.verticalScrollBar()
+            sb.setValue(sb.maximum())
+
     def _on_worker_error(self, err_msg: str):
         self.chat_display.append(f"<br><small style='color: #ef4444;'>⚠️ Tactical Compute Error: {err_msg}</small><br>")
         self.tier_badge.setText(self._get_idle_badge_text())
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
+        self.stop_btn.hide()
         self.send_btn.setEnabled(True)
         self.progress_container.setVisible(False)
         self._refresh_attachment_chips()
@@ -1431,6 +1497,7 @@ class MainWindow(QMainWindow):
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
 
         self.progress_container.setVisible(False)
+        self.stop_btn.hide()
         self.send_btn.setEnabled(True)
         sb = self.chat_display.verticalScrollBar()
         sb.setValue(sb.maximum())

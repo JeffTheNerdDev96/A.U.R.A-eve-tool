@@ -12,6 +12,14 @@ from PyQt6.QtCore import QThread, pyqtSignal, QObject
 from intel_parser import IntelParser
 
 
+from config import config
+
+DEFAULT_INTEL_PATTERNS = [
+    "intel", "imperium", "horde", "frt", "winter", "init", "brave", "snuff",
+    "dock", "standing", "recon", "defense", "scout", "pvp"
+]
+
+
 def find_default_chatlog_dir() -> str:
     """Finds the active EVE Online Chatlogs folder on Windows or Linux (Steam Proton / Wine)."""
     home = os.path.expanduser("~")
@@ -72,10 +80,11 @@ class LiveChatMonitor(QThread):
     active_channels_updated = pyqtSignal(list)  # List of channel names currently monitored
     status_updated = pyqtSignal(str, bool)      # Status text, is_active
 
-    def __init__(self, log_dir: Optional[str] = None, channel_filter: str = "all", poll_interval_ms: int = 400):
+    def __init__(self, log_dir: Optional[str] = None, channel_filter: str = "intel", custom_patterns: Optional[str] = None, poll_interval_ms: int = 400):
         super().__init__()
         self.log_dir = log_dir or find_default_chatlog_dir()
-        self.channel_filter = channel_filter.lower()  # 'all', 'intel', 'alliance', 'corp', 'local'
+        self.channel_filter = channel_filter.lower()  # 'all', 'intel', 'custom', 'alliance', 'corp', 'local'
+        self.custom_patterns: List[str] = [p.strip().lower() for p in (custom_patterns or config.custom_intel_channels).split(",") if p.strip()]
         self.poll_interval = poll_interval_ms / 1000.0
         self.running = False
         
@@ -85,18 +94,30 @@ class LiveChatMonitor(QThread):
         self.cached_files: List[str] = []
         self.last_dir_scan_time: float = 0.0
 
-
     def set_log_dir(self, new_dir: str):
         """Updates monitored directory and resets file offsets."""
         self.log_dir = os.path.abspath(new_dir)
         self.file_positions.clear()
         self.known_files.clear()
+        self.cached_files = []
+        self.last_dir_scan_time = 0.0
         self.status_updated.emit(f"Log directory set to: {self.log_dir}", self.running)
+
+    def set_custom_patterns(self, pattern_str: str):
+        """Updates custom channel keywords from user input (e.g. 'imperium, delve, horde')."""
+        self.custom_patterns = [p.strip().lower() for p in pattern_str.split(",") if p.strip()]
+        config.custom_intel_channels = pattern_str
+        self.file_positions.clear()
+        self.known_files.clear()
+        self.cached_files = []
+        self.last_dir_scan_time = 0.0
 
     def set_channel_filter(self, channel_filter: str):
         self.channel_filter = channel_filter.lower()
         self.file_positions.clear()
         self.known_files.clear()
+        self.cached_files = []
+        self.last_dir_scan_time = 0.0
 
     def stop(self):
         self.running = False
@@ -125,13 +146,24 @@ class LiveChatMonitor(QThread):
         if self.channel_filter == "all":
             return True
         elif self.channel_filter == "intel":
-            return "intel" in fname
+            # Matches standard .intel, .imperium, .horde, .frt, .init, etc., or user custom patterns
+            if any(pat in fname for pat in DEFAULT_INTEL_PATTERNS):
+                return True
+            if any(pat in fname for pat in self.custom_patterns):
+                return True
+            return False
+        elif self.channel_filter == "custom":
+            if not self.custom_patterns:
+                return True
+            return any(pat in fname for pat in self.custom_patterns)
         elif self.channel_filter == "alliance":
-            return "alliance" in fname or "intel" in fname
+            return "alliance" in fname or any(pat in fname for pat in DEFAULT_INTEL_PATTERNS)
         elif self.channel_filter == "corp":
             return "corp" in fname
         elif self.channel_filter == "local":
             return "local" in fname
+        elif any(pat in fname for pat in self.custom_patterns):
+            return True
         elif self.channel_filter in fname:
             return True
         return False

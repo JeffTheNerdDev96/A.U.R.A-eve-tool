@@ -37,6 +37,9 @@ class AppConfig:
         self.tier1_token_threshold = 150
         self.tier2_token_threshold = 600
 
+        # Live Intel Radar Settings
+        self.custom_intel_channels = "imperium, delve, horde, frt, winter, init, brave, snuff, standing"
+
         # Lore & System Personality Prompt with Deep EVE Tactical Grounding & Brevity Mandate
         self.aura_system_prompt = (
             "You are A.U.R.A. (Adaptive Underworld Recon Array), the elite tactical shipboard combat AI of the Angel Cartel in EVE Online. "

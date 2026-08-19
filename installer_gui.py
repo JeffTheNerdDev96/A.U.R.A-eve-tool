@@ -34,6 +34,35 @@ def get_free_space_gb(path: str) -> float:
     except Exception:
         return 999.0
 
+def get_accurate_os_name() -> str:
+    """Returns the authentic Windows OS distribution, edition, display version, and build number."""
+    import winreg
+    import platform
+    try:
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion") as key:
+            prod_name, _ = winreg.QueryValueEx(key, "ProductName")
+            try:
+                display_ver, _ = winreg.QueryValueEx(key, "DisplayVersion")
+            except Exception:
+                display_ver = ""
+            try:
+                build_num, _ = winreg.QueryValueEx(key, "CurrentBuild")
+            except Exception:
+                build_num = str(sys.getwindowsversion().build)
+            
+            # Windows 11 Registry override fix: builds >= 22000 are Windows 11
+            if int(build_num) >= 22000 and "10" in prod_name:
+                prod_name = prod_name.replace("Windows 10", "Windows 11")
+                
+            ver_parts = [prod_name]
+            if display_ver:
+                ver_parts.append(display_ver)
+            ver_parts.append(f"(Build {build_num}, {platform.machine()})")
+            return " ".join(ver_parts)
+    except Exception:
+        import platform
+        return f"{platform.system()} {platform.release()} ({platform.machine()})"
+
 def create_windows_shortcut(target_path: str, shortcut_path: str, icon_path: str = "", working_dir: str = "", description: str = "") -> bool:
     """Creates a Windows .lnk shortcut using native Windows Script Host (WScript.Shell)."""
     try:
@@ -566,8 +595,7 @@ class AURAInstallerWindow(QMainWindow):
         specs_title.setStyleSheet("color: #f43f5e; font-size: 13px;")
         specs_layout.addWidget(specs_title)
 
-        import platform
-        os_info = f"• OS: {platform.system()} {platform.release()} ({platform.machine()})"
+        os_info = f"• OS: {get_accurate_os_name()}"
         py_info = f"• Architecture: 64-bit Windows Standalone"
         space_info = f"• Free Storage: {get_free_space_gb('C:'):.1f} GB available (3.6 GB required)"
 
