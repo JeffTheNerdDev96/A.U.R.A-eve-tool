@@ -49,3 +49,11 @@ desktop.ini
 *.log
 logs/Chatlogs/
 logs/
+
+# PyInstaller & Standalone Distributions
+AURA_Standalone_Windows/
+A.U.R.A. Installer/
+build/
+dist/
+build_installer_temp/
+*.spec

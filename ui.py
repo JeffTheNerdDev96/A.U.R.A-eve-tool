@@ -853,24 +853,26 @@ class MainWindow(QMainWindow):
 
     def _update_turbo_btn_style(self):
         has_npu = self.engine.detector.has_npu
+        npu_vendor = self.engine.detector.npu_vendor
         has_gpu = self.engine.detector.has_gpu
+        gpu_vendor = self.engine.detector.gpu_vendor
         
         if has_npu:
             if self.turbo_btn.isChecked():
-                self.turbo_btn.setText("🚀 Turbo: ON (NPU+GPU+CPU)")
+                self.turbo_btn.setText(f"🚀 Turbo: ON ({npu_vendor} NPU+GPU+CPU)")
                 self.turbo_btn.setStyleSheet("color: #fed7aa; font-weight: bold; background: #431407; border: 1px solid #f97316; padding: 4px 12px; border-radius: 6px;")
                 self.turbo_btn.setToolTip("Turbo Mode Active: GPU & CPU acceleration enabled alongside NPU.")
             else:
-                self.turbo_btn.setText("⚡ Turbo: OFF (NPU Only)")
+                self.turbo_btn.setText(f"⚡ Turbo: OFF ({npu_vendor} NPU Only)")
                 self.turbo_btn.setStyleSheet("color: #94a3b8; font-weight: bold; background: #070a12; border: 1px solid #334155; padding: 4px 12px; border-radius: 6px;")
                 self.turbo_btn.setToolTip("Default Mode: Pure NPU processing (zero GPU/CPU overhead). Toggle ON for full GPU+CPU mesh.")
         elif has_gpu:
             if self.turbo_btn.isChecked():
-                self.turbo_btn.setText("🚀 Turbo: ON (GPU+CPU Max)")
+                self.turbo_btn.setText(f"🚀 Turbo: ON ({gpu_vendor} GPU+CPU Max)")
                 self.turbo_btn.setStyleSheet("color: #fed7aa; font-weight: bold; background: #431407; border: 1px solid #f97316; padding: 4px 12px; border-radius: 6px;")
                 self.turbo_btn.setToolTip("Turbo Mode Active: GPU acceleration and maximum CPU compute threads.")
             else:
-                self.turbo_btn.setText("⚡ Mode: GPU + CPU (Default)")
+                self.turbo_btn.setText(f"⚡ Mode: {gpu_vendor} GPU+CPU (Default)")
                 self.turbo_btn.setStyleSheet("color: #38bdf8; font-weight: bold; background: #0c4a6e; border: 1px solid #0284c7; padding: 4px 12px; border-radius: 6px;")
                 self.turbo_btn.setToolTip("Default Mode: GPU + CPU acceleration active (No NPU detected on system).")
         else:
@@ -901,7 +903,11 @@ class MainWindow(QMainWindow):
             self.piloted_ship_lbl.setStyleSheet("color: #67e8f9; background: #082f49; border: 1px solid #0284c7; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 13px;")
 
     def _get_idle_badge_text(self) -> str:
-        return "● Online"
+        if self.engine.detector.has_npu:
+            return f"● Online ({self.engine.detector.npu_vendor} NPU)"
+        elif self.engine.detector.has_gpu:
+            return f"● Online ({self.engine.detector.gpu_vendor} GPU+CPU)"
+        return "● Online (CPU)"
 
     def _get_idle_badge_style(self) -> str:
         return "color: #34d399; font-weight: bold; background: #064e3b; padding: 4px 12px; border-radius: 6px; border: 1px solid #10b981;"

@@ -71,7 +71,7 @@
  [],
  False,
  False,
- 1787159906,
+ 1787161543,
  [('runw.exe',
    'C:\\GIT-Projects\\Local-Chatbot-basecode\\venv_app\\Lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\runw.exe',
    'EXECUTABLE')],

@@ -1,22 +1,28 @@
 """
-Hardware Topology Detection & Dynamic NPU-Prioritized Resource Scaling Router.
-Configured for A.U.R.A. Assist (Adaptive Underworld Recon Array).
+Hardware Topology Detection & Dynamic Multi-Vendor Hardware Acceleration Router.
+Customized for A.U.R.A. Assist (Adaptive Underworld Recon Array).
 Supports:
-  - Intel NPU (Intel AI Boost, Meteor Lake / Lunar Lake / Arrow Lake via OpenVINO NPU-W / Level Zero)
-  - AMD NPU (AMD Ryzen AI, XDNA / Phoenix / Hawk Point / Strix Point via IPU / DirectML / ONNX)
-  - GPUs (Intel Arc / Iris Xe / iGPU, AMD Radeon, NVIDIA GeForce / RTX)
-  - Multi-threaded CPU Vector Compute
+  - Intel NPU (Intel AI Boost, Meteor Lake / Lunar Lake / Arrow Lake via OpenVINO NPU / Level Zero / PnP)
+  - AMD NPU (AMD Ryzen AI, XDNA / XDNA 2 / Phoenix / Hawk Point / Strix Point / Strix Halo via DirectML / IPU / PnP)
+  - Dedicated & Integrated GPUs:
+      * NVIDIA: GeForce RTX/GTX, Quadro, Titan, RTX Ada
+      * AMD: Radeon RX 6000/7000/8000 dGPUs, Radeon 680M/780M/890M/Vega iGPUs
+      * Intel: Arc A-Series / Battlemage dGPUs, Iris Xe / UHD / Arc Core Ultra iGPUs
+  - Multi-threaded CPU Vector Compute & Dynamic Multi-Compute Turbo Mesh
 """
 import os
 import sys
 import psutil
 import winreg
-from typing import Dict, Any, Optional
+from typing import Dict, List, Any, Optional
 from config import config
 
 
 class HardwareDetector:
-    """Discovers available compute hardware units on the host machine."""
+    """
+    Discovers and classifies available compute hardware units on the host machine.
+    Scans for Intel & AMD NPUs, Dedicated & Integrated GPUs, and CPU capabilities.
+    """
     def __init__(self):
         self.devices = self.scan_devices()
 
@@ -43,11 +49,13 @@ class HardwareDetector:
                 "threads": logical_threads,
                 "ram_gb": round(psutil.virtual_memory().total / (1024 ** 3), 1)
             },
+            "gpus": [],
             "gpu": {
                 "name": "GPU",
                 "available": False,
-                "device_name": "Integrated/Discrete GPU",
-                "vendor": "Generic"
+                "device_name": "No GPU Detected",
+                "vendor": "Generic",
+                "type": "None"
             },
             "npu": {
                 "name": "NPU",
@@ -60,13 +68,14 @@ class HardwareDetector:
             }
         }
 
-        # 2. Check OpenVINO Runtime Devices (Intel NPU, Intel/Arc GPU, CPU)
+        # 2. Check OpenVINO Runtime Devices (Intel NPU, Intel/Arc GPU, OpenVINO CPU)
         openvino_npu_found = False
         try:
             import openvino as ov
             core = ov.Core()
             available = core.available_devices
             
+            # Intel NPU Check via OpenVINO
             if "NPU" in available and config.enable_intel_npu:
                 npu_full_name = "Intel(R) AI Boost"
                 try:
@@ -76,20 +85,27 @@ class HardwareDetector:
                 devices["npu"]["available"] = True
                 devices["npu"]["vendor"] = "Intel"
                 devices["npu"]["device_name"] = npu_full_name
-                devices["npu"]["backend"] = "OpenVINO NPU-W (Direct)"
+                devices["npu"]["backend"] = "OpenVINO NPU (Level Zero)"
                 devices["npu"]["is_intel"] = True
+                devices["npu"]["is_amd"] = False
                 openvino_npu_found = True
 
-            if "GPU" in available:
-                gpu_full_name = "Intel Graphics"
-                try:
-                    gpu_full_name = core.get_property("GPU", "FULL_DEVICE_NAME")
-                except Exception:
-                    pass
-                devices["gpu"]["available"] = True
-                devices["gpu"]["device_name"] = gpu_full_name
-                if "intel" in gpu_full_name.lower():
-                    devices["gpu"]["vendor"] = "Intel"
+            # OpenVINO GPU checks
+            for dev in available:
+                if dev.startswith("GPU"):
+                    gpu_full_name = "Intel Graphics"
+                    try:
+                        gpu_full_name = core.get_property(dev, "FULL_DEVICE_NAME")
+                    except Exception:
+                        pass
+                    vendor = "Intel" if "intel" in gpu_full_name.lower() else "Generic"
+                    is_dgpu = any(k in gpu_full_name.lower() for k in ["arc", "battlemage", "dg2", "a770", "a750", "a580", "a380", "a310"])
+                    devices["gpus"].append({
+                        "device_name": gpu_full_name,
+                        "vendor": vendor,
+                        "type": "dGPU" if is_dgpu else "iGPU",
+                        "backend": f"OpenVINO ({dev})"
+                    })
         except Exception:
             pass
 
@@ -119,27 +135,27 @@ class HardwareDetector:
                                         
                                         desc_lower = desc.lower()
 
-                                        # AMD NPU Check (Ryzen AI / XDNA / IPU: VEN_1022 & DEV_1502 or DEV_17F0 or 'AMD IPU')
-                                        is_amd_pci = any(k in sub_lower for k in ["1022&dev_1502", "1022&dev_17f0", "amd_ipu", "ven_1022"])
-                                        is_amd_name = any(k in desc_lower for k in ["amd ipu", "amd npu", "ryzen ai", "xdna", "amd ai engine"])
+                                        # AMD Ryzen AI NPU Check (XDNA / XDNA 2 / IPU: VEN_1022 & DEV_1502 / DEV_17F0 / DEV_17F1 / DEV_14E4 / 'AMD IPU')
+                                        is_amd_pci = any(k in sub_lower for k in ["1022&dev_1502", "1022&dev_17f0", "1022&dev_17f1", "1022&dev_14e4", "amd_ipu", "ven_1022"])
+                                        is_amd_name = any(k in desc_lower for k in ["amd ipu", "amd npu", "ryzen ai", "xdna", "amd ai engine", "npu compute device"])
                                         
-                                        if (is_amd_pci and is_amd_name) and config.enable_amd_npu:
+                                        if (is_amd_pci or is_amd_name) and config.enable_amd_npu and not devices["npu"]["available"]:
                                             devices["npu"]["available"] = True
                                             devices["npu"]["vendor"] = "AMD"
                                             devices["npu"]["device_name"] = desc if desc else "AMD Ryzen AI (XDNA NPU)"
-                                            devices["npu"]["backend"] = "AMD Ryzen AI / DirectML NPU"
+                                            devices["npu"]["backend"] = "AMD Ryzen AI (XDNA / DirectML)"
                                             devices["npu"]["is_amd"] = True
                                             devices["npu"]["is_intel"] = False
 
-                                        # Intel NPU Check (if not already found via OpenVINO)
-                                        elif not openvino_npu_found and config.enable_intel_npu:
-                                            is_intel_pci = any(k in sub_lower for k in ["8086&dev_7d1d", "intel_npu", "intel_ipu"])
-                                            is_intel_name = any(k in desc_lower for k in ["ai boost", "intel npu", "intel neural"])
+                                        # Intel NPU Check (Fallback if OpenVINO didn't enumerate it)
+                                        elif not openvino_npu_found and config.enable_intel_npu and not devices["npu"]["available"]:
+                                            is_intel_pci = any(k in sub_lower for k in ["8086&dev_7d1d", "8086&dev_ad1d", "8086&dev_643e", "intel_npu", "intel_ipu"])
+                                            is_intel_name = any(k in desc_lower for k in ["ai boost", "intel npu", "intel neural", "intel ipu"])
                                             if is_intel_pci or is_intel_name:
                                                 devices["npu"]["available"] = True
                                                 devices["npu"]["vendor"] = "Intel"
                                                 devices["npu"]["device_name"] = desc if desc else "Intel(R) AI Boost NPU"
-                                                devices["npu"]["backend"] = "Intel NPU Driver"
+                                                devices["npu"]["backend"] = "Intel NPU Driver (Level Zero)"
                                                 devices["npu"]["is_intel"] = True
                                                 devices["npu"]["is_amd"] = False
                                 except Exception:
@@ -149,34 +165,64 @@ class HardwareDetector:
         except Exception:
             pass
 
-        # 4. Check Display Adapters in Registry
-        if not devices["gpu"]["available"]:
-            try:
-                g_key = r"SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}"
-                with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, g_key) as class_key:
-                    num_subkeys, _, _ = winreg.QueryInfoKey(class_key)
-                    for i in range(num_subkeys):
-                        sub_name = winreg.EnumKey(class_key, i)
-                        if not sub_name.isdigit():
-                            continue
-                        dev_path = rf"{g_key}\{sub_name}"
-                        try:
-                            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, dev_path) as dev_key:
+        # 4. Comprehensive Windows Display Adapter Enumeration (All NVIDIA, AMD, and Intel GPUs)
+        try:
+            g_key = r"SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}"
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, g_key) as class_key:
+                num_subkeys, _, _ = winreg.QueryInfoKey(class_key)
+                for i in range(num_subkeys):
+                    sub_name = winreg.EnumKey(class_key, i)
+                    if not sub_name.isdigit():
+                        continue
+                    dev_path = rf"{g_key}\{sub_name}"
+                    try:
+                        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, dev_path) as dev_key:
+                            try:
                                 name, _ = winreg.QueryValueEx(dev_key, "DriverDesc")
-                                if name and "basic" not in name.lower():
-                                    devices["gpu"]["available"] = True
-                                    devices["gpu"]["device_name"] = name
-                                    if "nvidia" in name.lower():
-                                        devices["gpu"]["vendor"] = "NVIDIA"
-                                    elif "amd" in name.lower() or "radeon" in name.lower():
-                                        devices["gpu"]["vendor"] = "AMD"
-                                    elif "intel" in name.lower():
-                                        devices["gpu"]["vendor"] = "Intel"
-                                    break
-                        except Exception:
-                            pass
-            except Exception:
-                pass
+                            except Exception:
+                                name = ""
+                            
+                            if name and "basic" not in name.lower() and "remote" not in name.lower():
+                                name_lower = name.lower()
+                                
+                                # Identify Vendor
+                                if "nvidia" in name_lower or "geforce" in name_lower or "quadro" in name_lower or "rtx" in name_lower:
+                                    vendor = "NVIDIA"
+                                    is_dgpu = True
+                                elif "amd" in name_lower or "radeon" in name_lower:
+                                    vendor = "AMD"
+                                    is_dgpu = any(k in name_lower for k in ["rx ", "xt", "pro ", "radeon vii", "firepro", "vega 56", "vega 64", "rx5", "rx6", "rx7", "rx8"])
+                                    if any(k in name_lower for k in ["680m", "780m", "890m", "graphics", "integrated"]):
+                                        is_dgpu = False
+                                elif "intel" in name_lower:
+                                    vendor = "Intel"
+                                    is_dgpu = any(k in name_lower for k in ["arc", "battlemage", "a770", "a750", "a580", "a380", "a310"])
+                                else:
+                                    vendor = "Generic"
+                                    is_dgpu = False
+
+                                # Deduplicate
+                                if not any(g["device_name"].lower() == name.lower() for g in devices["gpus"]):
+                                    devices["gpus"].append({
+                                        "device_name": name,
+                                        "vendor": vendor,
+                                        "type": "dGPU" if is_dgpu else "iGPU",
+                                        "backend": f"{vendor} DirectML / DXGI"
+                                    })
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+        # 5. Set Primary GPU (Prioritize Dedicated GPU over Integrated GPU)
+        if devices["gpus"]:
+            # Pick first dGPU if available, else first iGPU
+            d_gpus = [g for g in devices["gpus"] if g["type"] == "dGPU"]
+            selected_gpu = d_gpus[0] if d_gpus else devices["gpus"][0]
+            devices["gpu"]["available"] = True
+            devices["gpu"]["device_name"] = selected_gpu["device_name"]
+            devices["gpu"]["vendor"] = selected_gpu["vendor"]
+            devices["gpu"]["type"] = selected_gpu["type"]
 
         return devices
 
@@ -193,28 +239,70 @@ class HardwareDetector:
         return self.devices["npu"]["device_name"]
 
     @property
+    def npu_backend(self) -> str:
+        return self.devices["npu"]["backend"]
+
+    @property
+    def is_intel_npu(self) -> bool:
+        return self.devices["npu"].get("is_intel", False)
+
+    @property
+    def is_amd_npu(self) -> bool:
+        return self.devices["npu"].get("is_amd", False)
+
+    @property
     def has_gpu(self) -> bool:
         return self.devices["gpu"]["available"]
+
+    @property
+    def has_dgpu(self) -> bool:
+        return any(g.get("type") == "dGPU" for g in self.devices.get("gpus", []))
+
+    @property
+    def has_igpu(self) -> bool:
+        return any(g.get("type") == "iGPU" for g in self.devices.get("gpus", []))
 
     @property
     def gpu_name(self) -> str:
         return self.devices["gpu"]["device_name"]
 
     @property
+    def gpu_vendor(self) -> str:
+        return self.devices["gpu"]["vendor"]
+
+    @property
+    def all_gpus_summary(self) -> str:
+        if not self.devices.get("gpus"):
+            return "No GPU Detected"
+        return ", ".join([f"{g['device_name']} [{g['type']}]" for g in self.devices["gpus"]])
+
+    @property
     def cpu_threads(self) -> int:
         return self.devices["cpu"]["threads"]
 
+    @property
+    def cpu_name(self) -> str:
+        return self.devices["cpu"]["device_name"]
+
     def get_summary_string(self) -> str:
-        npu_part = f"{self.npu_name} ({self.npu_vendor})" if self.has_npu else "No NPU"
-        gpu_part = self.gpu_name if self.has_gpu else "No Dedicated GPU"
-        cpu_part = f"{self.devices['cpu']['device_name']} ({self.cpu_threads}T)"
+        if self.has_npu:
+            npu_part = f"{self.npu_name} ({self.npu_vendor} NPU)"
+        else:
+            npu_part = "No NPU (Auto Fallback: CPU + GPU)"
+            
+        if self.has_gpu:
+            gpu_part = f"{self.gpu_name} ({self.gpu_vendor})"
+        else:
+            gpu_part = "No Dedicated GPU"
+            
+        cpu_part = f"{self.cpu_name} ({self.cpu_threads}T)"
         return f"NPU: {npu_part} | GPU: {gpu_part} | CPU: {cpu_part}"
 
 
 class DynamicHardwareRouter:
     """
-    Calculates compute workload demand for A.U.R.A. and prioritizes the NPU,
-    scaling dynamically across GPU and CPU.
+    Calculates compute workload demand for A.U.R.A. and prioritizes dual-vendor NPUs (Intel & AMD),
+    scaling dynamically across Intel, AMD, and NVIDIA GPUs (dGPU & iGPU) and CPU.
     """
     def __init__(self, detector: HardwareDetector):
         self.detector = detector
@@ -231,15 +319,18 @@ class DynamicHardwareRouter:
         turbo_mode: bool = False
     ) -> Dict[str, Any]:
         """
-        Routes workload across compute hardware with strict user control:
+        Routes workload across compute hardware with strict user control and non-NPU fallback:
         1. File/Vision Upload Override: If files or screenshots are attached, IGNORE NPU-only mode and use ALL resources.
         2. Turbo Mode: If Turbo Mode is enabled by the user, allow GPU and CPU compute mesh alongside NPU.
-        3. Default Mode: Uses NPU ONLY for pure text and intel processing (zero GPU/CPU overhead).
+        3. Default Mode:
+           - On NPU hosts: Uses NPU ONLY for pure text and intel processing (zero GPU/CPU overhead).
+           - On Non-NPU hosts: Automatically fallback to GPU + CPU mesh mode.
         """
         has_npu = self.detector.has_npu
         npu_vendor = self.detector.npu_vendor
         has_gpu = self.detector.has_gpu
         gpu_name = self.detector.gpu_name
+        gpu_vendor = self.detector.gpu_vendor
         has_attachments = has_image or has_doc or attachment_count > 0
         is_turbo = turbo_mode or config.turbo_mode
 
@@ -250,42 +341,42 @@ class DynamicHardwareRouter:
             if has_npu and has_gpu:
                 return {
                     "tier_id": 3,
-                    "tier_name": "Full Compute Mesh (File/Vision Override: NPU + GPU + CPU)",
-                    "badge": "⚡ Full Mesh: NPU + GPU + CPU (File Accelerated)",
+                    "tier_name": f"Full Compute Mesh ({npu_vendor} NPU + {gpu_vendor} GPU + CPU)",
+                    "badge": f"⚡ Full Mesh: {npu_vendor} NPU + {gpu_vendor} GPU + CPU",
                     "color": "#f43f5e",
                     "bg_color": "#4c0519",
-                    "strategy": "NPU + GPU + CPU",
+                    "strategy": f"{npu_vendor} NPU + {gpu_vendor} GPU + CPU",
                     "short_tag": "NPU + GPU + CPU",
                     "coprocessor_target": "FULL_MESH",
-                    "hw_tag": "*NPU + GPU + CPU*",
+                    "hw_tag": f"*{npu_vendor} NPU + {gpu_vendor} GPU + CPU*",
                     "npu_vendor": npu_vendor,
                     "mode": "file_override"
                 }
             elif has_npu:
                 return {
                     "tier_id": 2,
-                    "tier_name": "NPU + CPU (File Accelerated)",
+                    "tier_name": f"{npu_vendor} NPU + CPU (File Accelerated)",
                     "badge": f"⚡ {npu_vendor} NPU + CPU (File Accelerated)",
                     "color": "#38bdf8",
                     "bg_color": "#0c4a6e",
-                    "strategy": "NPU + CPU",
+                    "strategy": f"{npu_vendor} NPU + CPU",
                     "short_tag": "NPU + CPU",
                     "coprocessor_target": "FULL_MESH",
-                    "hw_tag": "*NPU + CPU*",
+                    "hw_tag": f"*{npu_vendor} NPU + CPU*",
                     "npu_vendor": npu_vendor,
                     "mode": "file_override"
                 }
             elif has_gpu:
                 return {
                     "tier_id": 2,
-                    "tier_name": "GPU + CPU (File Accelerated)",
-                    "badge": f"⚡ GPU + CPU: {gpu_name} (File Accelerated)",
+                    "tier_name": f"{gpu_vendor} GPU + CPU (File Accelerated)",
+                    "badge": f"⚡ {gpu_name} + CPU",
                     "color": "#38bdf8",
                     "bg_color": "#0c4a6e",
-                    "strategy": "GPU + CPU",
+                    "strategy": f"{gpu_vendor} GPU + CPU",
                     "short_tag": "GPU + CPU",
                     "coprocessor_target": "GPU",
-                    "hw_tag": "*GPU + CPU*",
+                    "hw_tag": f"*{gpu_vendor} GPU + CPU*",
                     "npu_vendor": "None",
                     "mode": "file_override"
                 }
@@ -305,20 +396,20 @@ class DynamicHardwareRouter:
                 }
 
         # -------------------------------------------------------------
-        # 2. TURBO MODE (User Toggle ON -> GPU + CPU Support)
+        # 2. TURBO MODE (User Toggle ON -> Multi-Compute Mesh)
         # -------------------------------------------------------------
         if is_turbo:
             if has_npu and has_gpu:
                 return {
                     "tier_id": 3,
-                    "tier_name": "Turbo Mode: Full Mesh (NPU + GPU + CPU)",
-                    "badge": "🚀 Turbo Mesh: NPU + GPU + CPU",
+                    "tier_name": f"Turbo Mode: Full Mesh ({npu_vendor} NPU + {gpu_vendor} GPU + CPU)",
+                    "badge": f"🚀 Turbo Mesh: {npu_vendor} NPU + {gpu_vendor} GPU + CPU",
                     "color": "#f97316",
                     "bg_color": "#431407",
-                    "strategy": "NPU + GPU + CPU",
+                    "strategy": f"{npu_vendor} NPU + {gpu_vendor} GPU + CPU",
                     "short_tag": "NPU + GPU + CPU",
                     "coprocessor_target": "FULL_MESH",
-                    "hw_tag": "*NPU + GPU + CPU*",
+                    "hw_tag": f"*{npu_vendor} NPU + {gpu_vendor} GPU + CPU*",
                     "npu_vendor": npu_vendor,
                     "mode": "turbo"
                 }
@@ -329,24 +420,24 @@ class DynamicHardwareRouter:
                     "badge": f"🚀 Turbo: {npu_vendor} NPU + CPU",
                     "color": "#f97316",
                     "bg_color": "#431407",
-                    "strategy": "NPU + CPU",
+                    "strategy": f"{npu_vendor} NPU + CPU",
                     "short_tag": "NPU + CPU",
                     "coprocessor_target": "FULL_MESH",
-                    "hw_tag": "*NPU + CPU*",
+                    "hw_tag": f"*{npu_vendor} NPU + CPU*",
                     "npu_vendor": npu_vendor,
                     "mode": "turbo"
                 }
             elif has_gpu:
                 return {
                     "tier_id": 2,
-                    "tier_name": f"Turbo Mode: GPU + CPU ({gpu_name})",
-                    "badge": "🚀 Turbo: GPU + CPU",
+                    "tier_name": f"Turbo Mode: {gpu_name} + CPU Max Mesh",
+                    "badge": f"🚀 Turbo: {gpu_vendor} GPU + CPU",
                     "color": "#f97316",
                     "bg_color": "#431407",
-                    "strategy": "GPU + CPU",
+                    "strategy": f"{gpu_vendor} GPU + CPU",
                     "short_tag": "GPU + CPU",
                     "coprocessor_target": "GPU",
-                    "hw_tag": "*GPU + CPU*",
+                    "hw_tag": f"*{gpu_vendor} GPU + CPU*",
                     "npu_vendor": "None",
                     "mode": "turbo"
                 }
@@ -375,10 +466,10 @@ class DynamicHardwareRouter:
                 "badge": f"⚡ {npu_vendor} NPU Only",
                 "color": "#10b981",
                 "bg_color": "#064e3b",
-                "strategy": "NPU",
+                "strategy": f"{npu_vendor} NPU",
                 "short_tag": "NPU",
                 "coprocessor_target": "NPU",
-                "hw_tag": "*NPU*",
+                "hw_tag": f"*{npu_vendor} NPU*",
                 "npu_vendor": npu_vendor,
                 "mode": "default_npu"
             }
@@ -386,13 +477,13 @@ class DynamicHardwareRouter:
             return {
                 "tier_id": 2,
                 "tier_name": f"GPU + CPU Mesh Mode ({gpu_name})",
-                "badge": "⚡ GPU + CPU (Default Mode)",
+                "badge": f"⚡ {gpu_vendor} GPU + CPU (Default Mode)",
                 "color": "#38bdf8",
                 "bg_color": "#0c4a6e",
-                "strategy": "GPU + CPU",
+                "strategy": f"{gpu_vendor} GPU + CPU",
                 "short_tag": "GPU + CPU",
                 "coprocessor_target": "GPU",
-                "hw_tag": "*GPU + CPU*",
+                "hw_tag": f"*{gpu_vendor} GPU + CPU*",
                 "npu_vendor": "None",
                 "mode": "default_gpu_cpu"
             }
@@ -410,6 +501,3 @@ class DynamicHardwareRouter:
                 "npu_vendor": "None",
                 "mode": "default_cpu"
             }
-
-
-
