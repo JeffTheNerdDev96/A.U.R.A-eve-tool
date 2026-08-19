@@ -528,6 +528,31 @@ class MainWindow(QMainWindow):
             border: 1px solid #f43f5e;
             background-color: #0f172a;
         }
+        QScrollBar:vertical {
+            border: none;
+            background: transparent;
+            width: 7px;
+            margin: 0px;
+        }
+        QScrollBar::handle:vertical {
+            background: #334155;
+            min-height: 24px;
+            border-radius: 3px;
+        }
+        QScrollBar::handle:vertical:hover {
+            background: #f43f5e;
+        }
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            height: 0px;
+            background: none;
+        }
+        QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+            background: none;
+        }
+        QScrollBar:horizontal {
+            height: 0px;
+            background: none;
+        }
         QPushButton {
             background-color: #e11d48;
             color: #ffffff;
@@ -697,6 +722,8 @@ class MainWindow(QMainWindow):
         self.chat_display = QTextEdit()
         self.chat_display.setObjectName("ChatDisplay")
         self.chat_display.setReadOnly(True)
+        self.chat_display.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.chat_display.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         left_layout.addWidget(self.chat_display, stretch=1)
 
         # Attachment Bar Area
@@ -776,6 +803,8 @@ class MainWindow(QMainWindow):
         self.input_edit.setObjectName("InputEdit")
         self.input_edit.setPlaceholderText("Command A.U.R.A. or ask tactical engagement queries... (Press Send Command)")
         self.input_edit.setFixedHeight(52)
+        self.input_edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.input_edit.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         input_h_layout.addWidget(self.input_edit, stretch=1)
 
         self.send_btn = QPushButton("Send Command ➤")
@@ -865,6 +894,8 @@ class MainWindow(QMainWindow):
         # Real-time Intel Feed List Widget (Higher Legibility)
         self.intel_list = QListWidget()
         self.intel_list.setObjectName("LiveIntelList")
+        self.intel_list.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.intel_list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.intel_list.itemClicked.connect(self._on_intel_item_clicked)
         right_layout.addWidget(self.intel_list, stretch=1)
 
