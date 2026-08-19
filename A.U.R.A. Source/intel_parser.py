@@ -123,13 +123,14 @@ class IntelParser:
         if _MULTI_WORD_SHIP_PATTERN is not None and (" " in msg):
             for match in _MULTI_WORD_SHIP_PATTERN.finditer(msg):
                 matched_text = match.group(1).lower()
-                for s_name in _MULTI_WORD_SHIPS:
-                    if s_name.lower() == matched_text and s_name not in detected_ships:
-                        detected_ships.append(s_name)
-                        threat = SHIP_DATABASE[s_name].get("threat", "")
+                s_info = _FAST_SHIP_LOOKUP.get(matched_text)
+                if s_info:
+                    cname = s_info.get("canonical_name", matched_text)
+                    if cname not in detected_ships:
+                        detected_ships.append(cname)
+                        threat = s_info.get("threat", "")
                         if threat and threat not in _NOTABLE_THREATS:
                             threat_tags.append(threat)
-                        break
 
         # Fast single-pass word inspection
         i = 0

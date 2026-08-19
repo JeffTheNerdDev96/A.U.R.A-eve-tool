@@ -416,6 +416,13 @@ class MainWindow(QMainWindow):
         self.resize(1380, 880)
         self.setMinimumSize(1080, 680)
         
+        # 5-Minute Inactivity Auto-Purge & Standby Timer
+        self.idle_timeout_ms = 5 * 60 * 1000  # 5 minutes (300,000 ms)
+        self.idle_timer = QTimer(self)
+        self.idle_timer.setInterval(self.idle_timeout_ms)
+        self.idle_timer.timeout.connect(self._on_idle_timeout)
+        self.idle_timer.start()
+        
         # Set window icon
         icon_candidates = [
             os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_icon.ico"),
@@ -813,6 +820,7 @@ class MainWindow(QMainWindow):
         self.input_edit.setFixedHeight(52)
         self.input_edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.input_edit.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.input_edit.textChanged.connect(self._reset_idle_timer)
         input_h_layout.addWidget(self.input_edit, stretch=1)
 
         self.send_btn = QPushButton("Send Command ➤")
@@ -986,14 +994,18 @@ class MainWindow(QMainWindow):
             self.piloted_ship_lbl.setStyleSheet("color: #67e8f9; background: #082f49; border: 1px solid #0284c7; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 13px;")
 
     def _get_idle_badge_text(self) -> str:
-        if self.engine.detector.has_npu:
-            return f"● Online ({self.engine.detector.npu_vendor} NPU)"
-        elif self.engine.detector.has_gpu:
-            return f"● Online ({self.engine.detector.gpu_vendor} GPU+CPU)"
-        return "● Online (CPU)"
+        hw = self.engine.detector
+        target = f"{hw.npu_vendor} NPU" if hw.has_npu else (f"{hw.gpu_vendor} GPU+CPU" if hw.has_gpu else "CPU")
+        if self.engine.llm is not None:
+            return f"● Online ({target})"
+        else:
+            return f"⚡ Standby ({target} Ready)"
 
     def _get_idle_badge_style(self) -> str:
-        return "color: #34d399; font-weight: bold; background: #064e3b; padding: 4px 12px; border-radius: 6px; border: 1px solid #10b981;"
+        if self.engine.llm is not None:
+            return "color: #34d399; font-weight: bold; background: #064e3b; padding: 4px 12px; border-radius: 6px; border: 1px solid #10b981;"
+        else:
+            return "color: #38bdf8; font-weight: bold; background: #0c4a6e; padding: 4px 12px; border-radius: 6px; border: 1px solid #0284c7;"
 
     def _display_welcome(self):
         self._append_message("A.U.R.A.", (
@@ -1351,7 +1363,10 @@ class MainWindow(QMainWindow):
         self._append_message("Capsuleer", display_header)
         self.tier_badge.setText("● Thinking...")
         self.tier_badge.setStyleSheet("color: #fda4af; font-weight: bold; background: #4c0519; padding: 4px 12px; border-radius: 6px; border: 1px solid #e11d48;")
-        self.progress_status_lbl.setText("⚡ A.U.R.A. calculating tactical countermeasures...")
+        if self.engine.llm is None:
+            self.progress_status_lbl.setText("⚡ Arming Tactical Neural Core & Allocating Tensors...")
+        else:
+            self.progress_status_lbl.setText("⚡ A.U.R.A. calculating tactical countermeasures...")
         self.progress_container.setVisible(True)
 
         ts = self._get_timestamp_str()
@@ -1472,6 +1487,27 @@ class MainWindow(QMainWindow):
         else:
             self.context_lbl.setStyleSheet("color: #94a3b8; background: #070a12; border: 1px solid #334155; padding: 4px 10px; border-radius: 6px;")
 
+    def _reset_idle_timer(self):
+        """Resets the 5-minute inactivity timer on any user interaction."""
+        if hasattr(self, "idle_timer"):
+            self.idle_timer.start(self.idle_timeout_ms)
+
+    def _on_idle_timeout(self):
+        """Auto-purges memory and releases the neural model after 5 minutes of inactivity."""
+        if self.worker is not None and self.worker.isRunning():
+            self._reset_idle_timer()
+            return
+            
+        if self.engine.llm is not None:
+            self.engine.unload_model()
+            self.chat_history.clear()
+            self._update_context_display(0)
+            self.tier_badge.setText(self._get_idle_badge_text())
+            self.tier_badge.setStyleSheet(self._get_idle_badge_style())
+            self.chat_display.append("<br><small style='color: #64748b;'>💤 <i>[Idle Inactivity (5m): Neural core parked in Standby & memory purged. Auto-arms on next command.]</i></small><br>")
+            sb = self.chat_display.verticalScrollBar()
+            sb.setValue(sb.maximum())
+
     def _reset_memory(self):
         self.chat_history.clear()
         self.attachments.clear()
@@ -1479,9 +1515,12 @@ class MainWindow(QMainWindow):
         self.chat_display.clear()
         self._set_piloted_ship(None)
         self._display_welcome()
+        if self.engine.llm is not None:
+            self.engine.unload_model()
         self.tier_badge.setText(self._get_idle_badge_text())
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
         self._update_context_display(0)
+        self._reset_idle_timer()
 
     def _append_message(self, sender: str, text: str):
         color = "#38bdf8" if sender == "Capsuleer" else "#f43f5e"
@@ -1556,6 +1595,7 @@ class MainWindow(QMainWindow):
         full_reply = "".join(self.current_assistant_tokens)
         self.chat_history.append({"role": "assistant", "content": full_reply})
         self._update_context_display()
+        self._reset_idle_timer()
 
 
     def closeEvent(self, event):

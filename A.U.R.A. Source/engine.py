@@ -123,17 +123,43 @@ class UnifiedInferenceEngine:
     """
     Direct Neural Model Inference Engine customized for EVE Online Angel Cartel A.U.R.A.
     Powered by Microsoft Phi-3.5 Mini (3.8B Reasoning).
+    Features lazy on-demand initialization to ensure near-instant app boot and minimal standby RAM.
     """
-    def __init__(self):
+    def __init__(self, eager_load: bool = False):
         self.detector = HardwareDetector()
         self.router = DynamicHardwareRouter(self.detector)
         self.llm = None
+        self.is_loaded = False
         self.init_error = None
-        self._load_model()
         self.coprocessor = NeuralHardwareCoProcessor(self.detector)
+        if eager_load:
+            self._load_model()
         
+    @property
+    def is_online(self) -> bool:
+        return self.llm is not None or (find_model_file() is not None)
+
+    def ensure_model_loaded(self) -> bool:
+        """Arms the neural model into memory on demand if not already active."""
+        if self.llm is None and not self.is_loaded:
+            self._load_model()
+        return self.llm is not None
+
+    def unload_model(self):
+        """Releases the GGUF model and KV cache tensors from RAM/VRAM back to the OS."""
+        if self.llm is not None:
+            try:
+                del self.llm
+            except Exception:
+                pass
+            self.llm = None
+            self.is_loaded = False
+            import gc
+            gc.collect()
+            print("[A.U.R.A.] Neural Core unloaded. Standby memory reclaimed.")
+
     def _load_model(self):
-        """Loads the local GGUF model into memory with optimized memory mapping, KV cache quantization, and thread affinity."""
+        """Loads the local GGUF model into memory on-demand with optimized memory mapping and KV cache."""
         if getattr(sys, 'frozen', False):
             base_dir = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
             lib_path = os.path.join(base_dir, "llama_cpp", "lib", "llama.dll")
@@ -191,12 +217,15 @@ class UnifiedInferenceEngine:
                     llama_kwargs.pop("type_v", None)
                     self.llm = Llama(**llama_kwargs)
 
+                self.is_loaded = True
                 self.init_error = None
                 print(f"[A.U.R.A.] Tactical Neural Core '{config.model_display_name}' online & ready for combat!")
             except Exception as e:
+                self.is_loaded = False
                 self.init_error = str(e)
                 print(f"[A.U.R.A.] Error initializing Llama: {e}")
         else:
+            self.is_loaded = False
             self.init_error = f"Model file for Phi-3.5 Mini not found."
             print(f"[A.U.R.A.] {self.init_error}")
 

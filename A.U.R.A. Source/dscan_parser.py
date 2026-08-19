@@ -118,39 +118,43 @@ class DScanParser:
     def _parse_distance(text: str) -> tuple[str, str, Optional[float]]:
         """Parses distance string and returns (display_distance, category, km_val)."""
         clean = text.strip()
+        clean_l = clean.lower()
         
         # Check for AU
-        m_au = _RE_DIST_AU.search(clean)
-        if m_au:
-            try:
-                au_val = float(m_au.group(1).replace(",", ""))
-                return f"{au_val:.1f} AU", "Off-Grid / Warping (> 150 km / AU)", au_val * 149597870.7
-            except Exception:
-                return clean, "Off-Grid / Warping (> 150 km / AU)", None
+        if "au" in clean_l:
+            m_au = _RE_DIST_AU.search(clean)
+            if m_au:
+                try:
+                    au_val = float(m_au.group(1).replace(",", ""))
+                    return f"{au_val:.1f} AU", "Off-Grid / Warping (> 150 km / AU)", au_val * 149597870.7
+                except Exception:
+                    return clean, "Off-Grid / Warping (> 150 km / AU)", None
 
         # Check for km
-        m_km = _RE_DIST_KM.search(clean)
-        if m_km:
-            try:
-                km_val = float(m_km.group(1).replace(",", ""))
-                if km_val <= 20:
-                    return f"{km_val:,.0f} km", "Point Range (<= 20 km)", km_val
-                elif km_val <= 150:
-                    return f"{km_val:,.0f} km", "Grid Range (20 - 150 km)", km_val
-                else:
-                    return f"{km_val:,.0f} km", "Off-Grid / Warping (> 150 km / AU)", km_val
-            except Exception:
-                return clean, "Grid Range (20 - 150 km)", None
+        if "km" in clean_l:
+            m_km = _RE_DIST_KM.search(clean)
+            if m_km:
+                try:
+                    km_val = float(m_km.group(1).replace(",", ""))
+                    if km_val <= 20:
+                        return f"{km_val:,.0f} km", "Point Range (<= 20 km)", km_val
+                    elif km_val <= 150:
+                        return f"{km_val:,.0f} km", "Grid Range (20 - 150 km)", km_val
+                    else:
+                        return f"{km_val:,.0f} km", "Off-Grid / Warping (> 150 km / AU)", km_val
+                except Exception:
+                    return clean, "Grid Range (20 - 150 km)", None
 
         # Check for meters
-        m_m = _RE_DIST_M.search(clean)
-        if m_m and not _RE_DIST_KM.search(clean):
-            try:
-                m_val = float(m_m.group(1).replace(",", ""))
-                km_val = m_val / 1000.0
-                return f"{m_val:,.0f} m", "Point Range (<= 20 km)", km_val
-            except Exception:
-                return clean, "Point Range (<= 20 km)", None
+        if "m" in clean_l:
+            m_m = _RE_DIST_M.search(clean)
+            if m_m and "km" not in clean_l:
+                try:
+                    m_val = float(m_m.group(1).replace(",", ""))
+                    km_val = m_val / 1000.0
+                    return f"{m_val:,.0f} m", "Point Range (<= 20 km)", km_val
+                except Exception:
+                    return clean, "Point Range (<= 20 km)", None
 
         # Standard D-Scan unknown distance or dash (-)
         return "D-Scan Sphere (< 14.3 AU)", "D-Scan Sphere (< 14.3 AU)", None

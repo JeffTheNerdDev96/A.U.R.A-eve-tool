@@ -4008,6 +4008,8 @@ EVE_COMBAT_AXIOMS = """
    - Match weapon and module classes to hull faction and size (e.g. Minmatar hulls use Projectiles/HAMs, not Lasers; Cruisers/T3Cs cannot fit Battleship MJDs or Battleship weapons).
 """
 
+import functools
+
 _RE_CLEAN_ALPHANUM = re.compile(r"[^a-z0-9]")
 _RE_WORDS = re.compile(r"\b[A-Za-z0-9\-]+\b")
 _RE_OWN_SHIP = re.compile(
@@ -4036,13 +4038,20 @@ _FAST_MODULE_LOOKUP: Dict[str, Dict[str, Any]] = {}
 for _mk, _mv in MODULE_DATABASE.items():
     _mv_copy = dict(_mv)
     _mv_copy["canonical_name"] = _mk
-    _FAST_MODULE_LOOKUP[_mk.lower()] = _mv_copy
-    _clean_mk = _RE_CLEAN_ALPHANUM.sub("", _mk.lower())
+    _mk_l = _mk.lower()
+    _FAST_MODULE_LOOKUP[_mk_l] = _mv_copy
+    _clean_mk = _RE_CLEAN_ALPHANUM.sub("", _mk_l)
     _FAST_MODULE_LOOKUP[_clean_mk] = _mv_copy
+    for _suffix in [" ii", " i", " compact", " scoped", " enduring", " restrained", " tech ii", " tech 2", " tech 1"]:
+        if _mk_l.endswith(_suffix):
+            _base = _mk_l[:-len(_suffix)].strip()
+            _FAST_MODULE_LOOKUP[_base] = _mv_copy
+            _FAST_MODULE_LOOKUP[_RE_CLEAN_ALPHANUM.sub("", _base)] = _mv_copy
 
 
+@functools.lru_cache(maxsize=4096)
 def lookup_ship(name: str) -> Optional[Dict[str, Any]]:
-    """O(1) canonical ship retrieval by exact name, normalized name, or common combat shorthand."""
+    """O(1) canonical ship retrieval with C-level LRU caching."""
     if not name:
         return None
     raw_lower = name.strip().lower()
@@ -4052,8 +4061,9 @@ def lookup_ship(name: str) -> Optional[Dict[str, Any]]:
     return _FAST_SHIP_LOOKUP.get(clean)
 
 
+@functools.lru_cache(maxsize=4096)
 def lookup_module(name: str) -> Optional[Dict[str, Any]]:
-    """O(1) canonical module retrieval by exact or normalized module name."""
+    """O(1) canonical module retrieval with C-level LRU caching and fuzzy fallback."""
     if not name:
         return None
     raw_lower = name.strip().lower()

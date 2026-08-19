@@ -147,23 +147,25 @@ class DocumentParser:
         # 2. PDF
         elif ext == ".pdf":
             text = DocumentParser.parse_pdf(file_path)
+            word_est = max(1, len(text) // 6)
             return {
                 "filename": filename,
                 "path": file_path,
                 "type": "document",
                 "text": text,
-                "summary": f"PDF fleet doctrine ({len(text.split())} words)"
+                "summary": f"PDF fleet doctrine (~{word_est:,} words)"
             }
             
         # 3. Word DOCX
         elif ext in [".docx", ".doc"]:
             text = DocumentParser.parse_docx(file_path)
+            word_est = max(1, len(text) // 6)
             return {
                 "filename": filename,
                 "path": file_path,
                 "type": "document",
                 "text": text,
-                "summary": f"Word document ({len(text.split())} words)"
+                "summary": f"Word document (~{word_est:,} words)"
             }
             
         # 4. Text / EFT Fits / Logs / CSV
@@ -171,12 +173,13 @@ class DocumentParser:
             try:
                 with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
                     text = f.read()
+                word_est = max(1, len(text) // 6)
                 return {
                     "filename": filename,
                     "path": file_path,
                     "type": "document",
                     "text": text,
-                    "summary": f"Tactical text file ({len(text.split())} words)"
+                    "summary": f"Tactical text file (~{word_est:,} words)"
                 }
             except Exception as e:
                 return {

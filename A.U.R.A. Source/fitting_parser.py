@@ -224,5 +224,7 @@ class FittingParser:
     @staticmethod
     def _clean_mod(line: str) -> str:
         # Strip trailing charge / ammo after comma
-        return FittingParser._RE_STRIP_CHARGE.sub("", line).strip()
+        if "," in line:
+            return FittingParser._RE_STRIP_CHARGE.sub("", line).strip()
+        return line.strip()
 
