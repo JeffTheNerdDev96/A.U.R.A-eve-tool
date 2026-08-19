@@ -334,7 +334,7 @@ class UnifiedInferenceEngine:
                             "elapsed": round(now - (first_token_time or gen_start_time), 2)
                         }
             else:
-                msg = f"A.U.R.A. Core is currently offline: {self.init_error or 'Weights file not found.'}"
+                msg = f"A.U.R.A. Neural Core is offline: Neural weights (model_q4.gguf) not found in 'models/phi-3.5/'. Please place 'model_q4.gguf' into the 'models/phi-3.5/' folder (download from: https://huggingface.co/bartowski/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct-Q4_K_M.gguf)."
                 gen_start_time = time.time()
                 first_token_time = None
                 for w in msg.split(" "):

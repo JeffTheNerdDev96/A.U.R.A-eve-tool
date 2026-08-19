@@ -13,12 +13,25 @@ from intel_parser import IntelParser
 
 
 def find_default_chatlog_dir() -> str:
-    """Finds the active EVE Online Chatlogs folder on the system or creates a default."""
+    """Finds the active EVE Online Chatlogs folder on Windows or Linux (Steam Proton / Wine)."""
     home = os.path.expanduser("~")
+    user_name = os.environ.get("USER", os.environ.get("USERNAME", "steamuser"))
     candidates = [
+        # Windows Standard
         os.path.join(home, "Documents", "EVE", "logs", "Chatlogs"),
         os.path.join(home, "OneDrive", "Documents", "EVE", "logs", "Chatlogs"),
         os.path.join(home, "Saved Games", "EVE", "logs", "Chatlogs"),
+        # Linux Native / Home EVE
+        os.path.join(home, "EVE", "logs", "Chatlogs"),
+        os.path.join(home, ".eve", "logs", "Chatlogs"),
+        # Linux Steam Proton (EVE Online Steam App ID: 8500)
+        os.path.join(home, ".local", "share", "Steam", "steamapps", "compatdata", "8500", "pfx", "drive_c", "users", "steamuser", "Documents", "EVE", "logs", "Chatlogs"),
+        os.path.join(home, ".steam", "steam", "steamapps", "compatdata", "8500", "pfx", "drive_c", "users", "steamuser", "Documents", "EVE", "logs", "Chatlogs"),
+        os.path.join(home, ".var", "app", "com.valvesoftware.Steam", ".local", "share", "Steam", "steamapps", "compatdata", "8500", "pfx", "drive_c", "users", "steamuser", "Documents", "EVE", "logs", "Chatlogs"),
+        # Linux Wine / Lutris / Bottles prefixes
+        os.path.join(home, ".wine", "drive_c", "users", user_name, "Documents", "EVE", "logs", "Chatlogs"),
+        os.path.join(home, "Games", "eve-online", "drive_c", "users", user_name, "Documents", "EVE", "logs", "Chatlogs"),
+        # App local fallback
         os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs", "Chatlogs"),
     ]
     for c in candidates:

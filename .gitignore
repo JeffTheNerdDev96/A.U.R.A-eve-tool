@@ -1,0 +1,51 @@
+# ==============================================================================
+# Git Ignore Rules for A.U.R.A. EVE Tool
+# ==============================================================================
+
+# Neural Model Weights (Exceeds GitHub 100MB / 2GB limit)
+*.gguf
+*.bin
+*.onnx
+*.safetensors
+*.pt
+models/phi-3.5/*.gguf
+models/*/*.gguf
+**/models/*/*.gguf
+
+# Large Installer Executables (>100MB GitHub limit)
+A.U.R.A. Installer/*.exe
+*.exe
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Virtual Environments
+venv/
+venv_app/
+env/
+ENV/
+.venv/
+
+# PyInstaller / Build Artifacts
+build/
+dist/
+build_installer_temp/
+*.spec.bak
+
+# OS & IDE Files
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local Chat / Log Temp files
+*.log
+logs/Chatlogs/
+logs/

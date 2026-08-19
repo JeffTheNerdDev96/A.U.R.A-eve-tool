@@ -5,6 +5,7 @@ Angel Cartel Cybernetics Division
 
 import os
 import sys
+import ssl
 import shutil
 import zipfile
 import urllib.request
@@ -73,7 +74,12 @@ class InstallWorker(QThread):
     progress_updated = pyqtSignal(int, str)  # percent, status message
     install_finished = pyqtSignal(bool, str) # success, message
 
-    MODEL_URL = "https://huggingface.co/microsoft/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct-Q4_K_M.gguf"
+    # Verified public high-speed mirrors (No login or HF token required)
+    MODEL_MIRRORS = [
+        "https://huggingface.co/bartowski/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct-Q4_K_M.gguf",
+        "https://hf-mirror.com/bartowski/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct-Q4_K_M.gguf",
+        "https://huggingface.co/microsoft/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct-Q4_K_M.gguf"
+    ]
 
     def __init__(self, target_dir: str, create_desktop_shortcut: bool, create_start_menu_shortcut: bool, install_model: bool, parent=None):
         super().__init__(parent)
@@ -172,8 +178,22 @@ class InstallWorker(QThread):
                                 self.progress_updated.emit(pct, f"Installing neural model: {mb_copied:.0f} / {total_mb:.0f} MB ({pct}%)")
                     else:
                         self.progress_updated.emit(50, "Downloading Phi-3.5 Mini Reasoning Model (2.23 GB)...")
-                        # Download with progress
-                        self._download_with_progress(self.MODEL_URL, model_target_file)
+                        dl_ok = self._download_with_progress(model_target_file)
+                        if not dl_ok:
+                            # Create a manual instructions file so the user has immediate instructions
+                            instr_path = os.path.join(model_target_dir, "MODEL_SETUP_INSTRUCTIONS.txt")
+                            with open(instr_path, "w", encoding="utf-8") as f:
+                                f.write(
+                                    "A.U.R.A. Neural Model Setup:\n\n"
+                                    "The automated download was unable to reach the neural mirrors due to regional firewall/network restrictions.\n\n"
+                                    "Manual Download Steps:\n"
+                                    "1. Download 'Phi-3.5-mini-instruct-Q4_K_M.gguf' (2.23 GB) from:\n"
+                                    "   https://huggingface.co/bartowski/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct-Q4_K_M.gguf\n"
+                                    "2. Rename the file to: model_q4.gguf\n"
+                                    "3. Place it in this directory: " + model_target_dir + "\n\n"
+                                    "A.U.R.A. will automatically detect the weights and initialize on launch.\n"
+                                )
+                            self.progress_updated.emit(85, "⚠️ Model download restricted. Instructions placed in models folder.")
 
             # 3. Create Windows Shortcuts
             main_exe = os.path.join(self.target_dir, "AURA_Assist.exe")
@@ -229,32 +249,84 @@ pause
         except Exception as e:
             self.install_finished.emit(False, str(e))
 
-    def _download_with_progress(self, url: str, target_file: str):
-        """Downloads a remote file with progress tracking."""
-        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
-        with urllib.request.urlopen(req) as response, open(target_file, 'wb') as out_file:
-            total_length = response.getheader('content-length')
-            total_size = int(total_length) if total_length else 2390000000
-            downloaded = 0
-            start_time = time.time()
-            chunk_size = 1024 * 1024  # 1MB
+    def _download_with_progress(self, target_file: str) -> bool:
+        """Downloads the Phi-3.5 model with automatic multi-mirror failover, SSL fallback, and resume support."""
+        temp_file = target_file + ".download"
+        
+        for mirror_idx, url in enumerate(self.MODEL_MIRRORS):
+            mirror_name = "Primary Mirror (Bartowski)" if mirror_idx == 0 else f"Mirror #{mirror_idx + 1}"
+            self.progress_updated.emit(50, f"Connecting to {mirror_name}...")
             
-            while True:
-                chunk = response.read(chunk_size)
-                if not chunk:
-                    break
-                out_file.write(chunk)
-                downloaded += len(chunk)
+            try:
+                existing_bytes = 0
+                if os.path.exists(temp_file):
+                    existing_bytes = os.path.getsize(temp_file)
+                    
+                req_headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': '*/*'
+                }
+                if existing_bytes > 0:
+                    req_headers['Range'] = f'bytes={existing_bytes}-'
+                    
+                req = urllib.request.Request(url, headers=req_headers)
                 
-                elapsed = time.time() - start_time
-                speed = (downloaded / (1024 * 1024)) / max(0.1, elapsed)
-                pct = 50 + int((downloaded / total_size) * 35)
-                mb_down = downloaded / (1024 * 1024)
-                mb_total = total_size / (1024 * 1024)
-                self.progress_updated.emit(
-                    pct,
-                    f"Downloading Phi-3.5 model: {mb_down:.0f}/{mb_total:.0f} MB ({speed:.1f} MB/s) — {pct}%"
-                )
+                # Context with unverified SSL fallback if system cert store is broken/intercepted
+                ctx = ssl.create_default_context()
+                try:
+                    resp = urllib.request.urlopen(req, context=ctx, timeout=25)
+                except Exception:
+                    ctx = ssl._create_unverified_context()
+                    resp = urllib.request.urlopen(req, context=ctx, timeout=25)
+
+                with resp:
+                    if resp.status not in (200, 206):
+                        continue
+                        
+                    content_len = resp.getheader('content-length')
+                    total_size = (int(content_len) + existing_bytes) if content_len else 2393232672
+                    
+                    mode = 'ab' if (existing_bytes > 0 and resp.status == 206) else 'wb'
+                    if mode == 'wb':
+                        existing_bytes = 0
+                        
+                    downloaded = existing_bytes
+                    start_time = time.time()
+                    chunk_size = 1024 * 1024  # 1MB
+                    
+                    with open(temp_file, mode) as out_file:
+                        while True:
+                            chunk = resp.read(chunk_size)
+                            if not chunk:
+                                break
+                            out_file.write(chunk)
+                            downloaded += len(chunk)
+                            
+                            elapsed = time.time() - start_time
+                            speed = ((downloaded - existing_bytes) / (1024 * 1024)) / max(0.1, elapsed)
+                            pct = 50 + int((downloaded / total_size) * 35)
+                            mb_down = downloaded / (1024 * 1024)
+                            mb_total = total_size / (1024 * 1024)
+                            self.progress_updated.emit(
+                                pct,
+                                f"Downloading Phi-3.5: {mb_down:.0f}/{mb_total:.0f} MB ({speed:.1f} MB/s) — {pct}%"
+                            )
+
+                    # Verify final downloaded file
+                    if os.path.exists(temp_file) and os.path.getsize(temp_file) > 1_000_000_000:
+                        if os.path.exists(target_file):
+                            os.remove(target_file)
+                        os.rename(temp_file, target_file)
+                        return True
+            except Exception as e:
+                print(f"Mirror {url} failed: {e}")
+                time.sleep(1)
+                continue
+
+        # If all mirrors failed, clean temp
+        if os.path.exists(temp_file):
+            os.remove(temp_file)
+        return False
 
 
 # ---------------- Modern Angel Cartel Installer Window ----------------

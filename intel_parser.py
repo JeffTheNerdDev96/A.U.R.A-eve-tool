@@ -30,8 +30,16 @@ class IntelParser:
 
     # Pre-compiled regex patterns (compiled ONCE, reused on every call)
     SYS_PATTERN = re.compile(r"\b([A-Za-z0-9]{1,6}-[A-Za-z0-9]{1,6}|[A-Z][a-z]{2,14}(?:\s[A-Z][a-z]{2,14})?)\b")
-    COUNT_PATTERN = re.compile(r"(?:\+|\b)(\d+)\s*(?:x|hostiles?|reds?|pilots?|gang|man|fleet)?\b", re.IGNORECASE)
-    TIMESTAMP_PATTERN = re.compile(r"^\[\s*([\d\.\s:]+)\s*\]\s*([^>]+)>\s*(.*)$")
+    TIMESTAMP_PATTERN = re.compile(
+        r"^(?:\[\s*)?(\d{4}[\.\-\/]\d{2}[\.\-\/]\d{2}\s+\d{2}:\d{2}(?::\d{2})?|\d{2}:\d{2}(?::\d{2})?)(?:\s*\])?\s*([^>]+)>\s*(.*)$"
+    )
+    _COUNT_EXPLICIT_PLUS = re.compile(r"\+\s*(\d{1,3})\b")
+    _COUNT_PLUS_SUFFIX = re.compile(r"\b(\d{1,3})\s*\+")
+    _COUNT_WITH_KEYWORD = re.compile(
+        r"\b(\d{1,3})\s*(?:x|hostiles?|reds?|pilots?|gang|man|fleet|ships?)\b|\b(?:spike|plus|gang|fleet)\s*(\d{1,3})\b",
+        re.IGNORECASE
+    )
+    _COUNT_X_PREFIX = re.compile(r"\bx\s*(\d{1,3})\b", re.IGNORECASE)
     _RE_NV = re.compile(r"\b(nv|na|no\s*visual)\b")
     _RE_CLEAR = re.compile(r"\b(clr|clear|clean|safe|nil|none)\b")
     _RE_WORD_CLEAN = re.compile(r"[^\w\-]")
@@ -47,15 +55,36 @@ class IntelParser:
         "cloaked", "cloak", "probe", "probes", "combat", "fleet", "standing", "by"
     })
 
+    @staticmethod
+    def _extract_count(msg: str) -> int:
+        """Extracts authentic hostile fleet count, rejecting timestamps and years (e.g. 2026)."""
+        m = IntelParser._COUNT_EXPLICIT_PLUS.search(msg)
+        if m:
+            val = int(m.group(1))
+            if 1 <= val <= 500: return val
+        m = IntelParser._COUNT_PLUS_SUFFIX.search(msg)
+        if m:
+            val = int(m.group(1))
+            if 1 <= val <= 500: return val
+        m = IntelParser._COUNT_WITH_KEYWORD.search(msg)
+        if m:
+            val = int(m.group(1) or m.group(2))
+            if 1 <= val <= 500: return val
+        m = IntelParser._COUNT_X_PREFIX.search(msg)
+        if m:
+            val = int(m.group(1))
+            if 1 <= val <= 500: return val
+        return 0
 
     @staticmethod
     def parse_single_line(line: str, channel_name: str = "Intel") -> Optional[Dict[str, Any]]:
         """Parses a single live line from an EVE chat log file."""
-        clean_line = line.strip()
+        clean_line = line.strip("\ufeff\u200b\u200e\u200f\u00a0 \t\r\n")
         if not clean_line or clean_line.startswith("---") or "Channel Name:" in clean_line or "Listener:" in clean_line:
             return None
 
         timestamp = ""
+        time_str = ""
         speaker = "Unknown"
         msg = clean_line
 
@@ -64,6 +93,8 @@ class IntelParser:
             timestamp = m.group(1).strip()
             speaker = m.group(2).strip()
             msg = m.group(3).strip()
+            parts = timestamp.split()
+            time_str = parts[1] if len(parts) >= 2 else parts[0]
 
         msg_l = msg.lower()
 
@@ -75,13 +106,12 @@ class IntelParser:
                 s for s in sys_matches if s.lower() not in IntelParser.INTEL_KEYWORDS and not lookup_ship(s)
             ]
             if filtered_sys:
-                # Prefer system with hyphen/digit (e.g. 1DQ1-A, V-3YG7, Hed-GP, MWA-5Q, UM-SCG)
+                # Prefer system with hyphen/digit (e.g. 1DQ1-A, V-3YG7, Hed-GP, MWA-5Q, UM-SCG, 4YO-QK)
                 special_sys = [s for s in filtered_sys if "-" in s or any(char.isdigit() for char in s)]
                 found_system = special_sys[0] if special_sys else filtered_sys[0]
 
         # 2. Extract Hostile Count (+20, 20 hostiles, +5)
-        c_match = IntelParser.COUNT_PATTERN.search(msg)
-        est_count = int(c_match.group(1)) if c_match else 0
+        est_count = IntelParser._extract_count(msg)
 
         # 3. Identify Multi-Word Ship Hulls using single pre-compiled combined regex (O(1))
         detected_ships: List[str] = []
@@ -100,7 +130,6 @@ class IntelParser:
                         break
 
         # 4. Extract 2-Word and 1-Word Pilot / Character Names
-        # (e.g. "Fenrir Hammer", "John Doe", "LordMalor")
         detected_pilots: List[str] = []
         words_in_msg = msg.split()
         
@@ -143,7 +172,7 @@ class IntelParser:
                     detected_pilots.append(w)
             i += 1
 
-        # 5. Extract Tactical Status Flags (using pre-compiled regex for NV/clear)
+        # 5. Extract Tactical Status Flags
         status_flags: List[str] = []
         is_nv = bool(IntelParser._RE_NV.search(msg_l))
         is_explicit_clear = bool(IntelParser._RE_CLEAR.search(msg_l))
@@ -161,21 +190,28 @@ class IntelParser:
         if est_count >= 5 or "spike" in msg_l or "huge" in msg_l or "fleet" in msg_l:
             status_flags.append(f"FLEET SPIKE (+{est_count or 5} PILOTS)")
 
-        if is_nv:
+        if is_explicit_clear:
+            if not detected_ships:
+                detected_pilots.clear()
+                est_count = 0
+                status_flags = [f for f in status_flags if not f.startswith("FLEET SPIKE")]
+                status_flags.append("NO VISUAL / SYSTEM CLEAR")
+        elif is_nv:
             if detected_pilots or detected_ships or est_count > 0:
                 status_flags.append("UNLOCATED IN LOCAL (NO VISUAL / NV)")
             else:
                 status_flags.append("NO VISUAL / SYSTEM CLEAR")
-        elif is_explicit_clear and not detected_ships and not detected_pilots:
-            status_flags.append("NO VISUAL / SYSTEM CLEAR")
-
 
         # 6. Evaluate Threat Level
         threat_level = "LOW"
         threat_color = "#38bdf8"
         is_critical = False
 
-        if any(t in [THREAT_SUPER, THREAT_CAPITAL] for t in threat_tags) or "CYNO ACTIVE" in status_flags or est_count >= 10:
+        if "NO VISUAL / SYSTEM CLEAR" in status_flags:
+            threat_level = "GREEN (CLEAR)"
+            threat_color = "#34d399"
+            est_count = 0
+        elif any(t in [THREAT_SUPER, THREAT_CAPITAL] for t in threat_tags) or "CYNO ACTIVE" in status_flags or est_count >= 10:
             threat_level = "CRITICAL"
             threat_color = "#ff4d6d"
             is_critical = True
@@ -183,13 +219,9 @@ class IntelParser:
             threat_level = "HIGH"
             threat_color = "#f87171"
             is_critical = True
-        elif any(t in [THREAT_CYNO, THREAT_ECM] for t in threat_tags) or "FLEET SPIKE" in status_flags or detected_pilots or est_count >= 2:
+        elif any(t in [THREAT_CYNO, THREAT_ECM] for t in threat_tags) or any(f.startswith("FLEET SPIKE") for f in status_flags) or detected_pilots or est_count >= 2:
             threat_level = "MEDIUM"
             threat_color = "#facc15"
-        elif "NO VISUAL / SYSTEM CLEAR" in status_flags:
-            threat_level = "GREEN (CLEAR)"
-            threat_color = "#34d399"
-            est_count = 0
         elif detected_ships:
             threat_level = "LOW"
             threat_color = "#38bdf8"
@@ -198,6 +230,7 @@ class IntelParser:
 
         return {
             "timestamp": timestamp,
+            "time_str": time_str,
             "speaker": speaker,
             "system": found_system,
             "est_count": est_count,

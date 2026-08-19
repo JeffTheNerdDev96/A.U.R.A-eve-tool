@@ -30,6 +30,7 @@ from dscan_parser import DScanParser
 from fitting_parser import FittingParser
 from intel_parser import IntelParser
 from chat_monitor import LiveChatMonitor, find_default_chatlog_dir
+from eve_data import lookup_ship
 
 
 class WorkerThread(QThread):
@@ -932,11 +933,12 @@ class MainWindow(QMainWindow):
 
     def _handle_live_intel_line(self, parsed: dict):
         """Adds a parsed live intel line to the radar feed list with high-contrast tactical styling."""
-        ts = parsed.get("timestamp") or time.strftime("%H:%M:%S")
+        ts = parsed.get("time_str") or parsed.get("timestamp") or time.strftime("%H:%M:%S")
         sys_name = parsed.get("system", "Unknown")
         level = parsed.get("threat_level", "LOW")
         color = parsed.get("threat_color", "#38bdf8")
-        ships = ", ".join(parsed.get("ships", [])) or "Hostile presence"
+        is_clear = "NO VISUAL / SYSTEM CLEAR" in parsed.get("status_flags", [])
+        ships = ", ".join(parsed.get("ships", [])) or ("System Clear / No Visual" if is_clear else "Hostile presence")
         pilots = f" (Pilot: {', '.join(parsed.get('pilots', []))})" if parsed.get("pilots") else ""
         flags = " ".join([f"[{f}]" for f in parsed.get("status_flags", [])])
         ch = parsed.get("channel", "Intel")
@@ -1166,9 +1168,14 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def _handle_fit_submission(self, raw_text: str, parsed: dict, role: str):
-        summary_md = parsed["summary_md"]
-        hull = parsed["hull_name"]
-        fit_name = parsed["fit_name"]
+        if not parsed or "error" in parsed or not raw_text.strip():
+            self._append_message("Capsuleer", "🛠️ <b>Fitting Lab Review</b>: [Unrecognized Fitting Format]")
+            self.chat_display.append("<small style='color: #ef4444;'>⚠️ Unable to parse ship fitting. Please provide standard EFT / In-Game format (e.g. `[Hull, Fit Name]`).</small><br>")
+            return
+
+        summary_md = parsed.get("summary_md", "")
+        hull = parsed.get("hull_name", "Unknown Vessel")
+        fit_name = parsed.get("fit_name", "Custom Fit")
         
         prompt = (
             f"[FITTING LAB EVALUATION REQUEST]\n"
