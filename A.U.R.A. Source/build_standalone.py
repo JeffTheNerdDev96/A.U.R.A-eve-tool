@@ -7,21 +7,23 @@ if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding='utf-8')
     sys.stderr.reconfigure(encoding='utf-8')
 
-app_dir = r"C:\GIT-Projects\A.U.R.A-eve-tool"
-dest_dir = os.path.join(app_dir, "AURA_Standalone_Windows")
+source_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.dirname(source_dir)
+dest_dir = os.path.join(root_dir, "A.U.R.A Distro", "Standalone")
 phi_src = r"C:\GIT-Projects\Local-Chatbot-basecode\models\phi-3.5\model_q4.gguf"
-icon_src = os.path.join(app_dir, "app_icon.ico")
+icon_src = os.path.join(source_dir, "app_icon.ico")
 python_exe = r"C:\GIT-Projects\Local-Chatbot-basecode\venv_app\Scripts\python.exe"
 
 print("=========================================================")
 print("=== BUILDING DEDICATED PHI-3.5 A.U.R.A. STANDALONE ===")
-print(f"=== Working Directory: {app_dir} ===")
+print(f"=== Source Directory: {source_dir} ===")
+print(f"=== Output Directory: {dest_dir} ===")
 print("=========================================================")
 
 # 1. Clean previous build if exists
-build_temp = os.path.join(app_dir, "build")
-dist_temp = os.path.join(app_dir, "dist")
-spec_file = os.path.join(app_dir, "AURA_Assist.spec")
+build_temp = os.path.join(source_dir, "build")
+dist_temp = os.path.join(source_dir, "dist")
+spec_file = os.path.join(source_dir, "AURA_Assist.spec")
 
 for p in [build_temp, dist_temp, dest_dir]:
     if os.path.exists(p):
@@ -59,16 +61,16 @@ cmd = [
     "--collect-all", "openvino",
     "--collect-all", "winocr",
     "--noconfirm",
-    os.path.join(app_dir, "app.py")
+    os.path.join(source_dir, "app.py")
 ]
 
 print("\n[1] Executing PyInstaller...")
-res = subprocess.run(cmd, cwd=app_dir)
+res = subprocess.run(cmd, cwd=source_dir)
 if res.returncode != 0:
     print("❌ Build failed!")
     sys.exit(1)
 
-# 3. Assemble distribution into AURA_Standalone_Windows
+# 3. Assemble distribution into A.U.R.A Distro\Standalone
 print(f"\n[2] Assembling Standalone Package in: {dest_dir}")
 dist_out = os.path.join(dist_temp, "AURA_Assist")
 if os.path.exists(dist_out):
@@ -93,6 +95,16 @@ if os.path.exists(phi_src):
     print(f"  ✓ Phi-3.5 copied successfully! ({os.path.getsize(dest_phi)/(1024**3):.2f} GB)")
 else:
     print(f"⚠️ Neural weights not found at {phi_src}. User can download via installer.")
+
+# Clean temporary build folders
+for p in [build_temp, dist_temp]:
+    if os.path.exists(p):
+        shutil.rmtree(p, ignore_errors=True)
+if os.path.exists(spec_file):
+    try:
+        os.remove(spec_file)
+    except Exception:
+        pass
 
 print("\n=========================================================")
 print("=== DEDICATED PHI-3.5 STANDALONE PACKAGE READY! ===")

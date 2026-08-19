@@ -8,15 +8,17 @@ if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding='utf-8')
     sys.stderr.reconfigure(encoding='utf-8')
 
-PROJECT_DIR = r"C:\GIT-Projects\A.U.R.A-eve-tool"
-STANDALONE_DIR = os.path.join(PROJECT_DIR, "AURA_Standalone_Windows")
-INSTALLER_OUTPUT_DIR = os.path.join(PROJECT_DIR, "A.U.R.A. Installer")
-BUILD_TEMP_DIR = os.path.join(PROJECT_DIR, "build_installer_temp")
+SOURCE_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(SOURCE_DIR)
+STANDALONE_DIR = os.path.join(ROOT_DIR, "A.U.R.A Distro", "Standalone")
+INSTALLER_OUTPUT_DIR = os.path.join(ROOT_DIR, "A.U.R.A Distro", "Installer")
+BUILD_TEMP_DIR = os.path.join(SOURCE_DIR, "build_installer_temp")
 PYTHON_EXE = r"C:\GIT-Projects\Local-Chatbot-basecode\venv_app\Scripts\python.exe"
 
 print("=========================================================")
 print("=== BUILDING A.U.R.A. v0.1.0-alpha2 WINDOWS INSTALLER ===")
-print(f"=== Working Directory: {PROJECT_DIR} ===")
+print(f"=== Source Directory: {SOURCE_DIR} ===")
+print(f"=== Output Directory: {INSTALLER_OUTPUT_DIR} ===")
 print("=========================================================")
 
 # 1. Clean & prepare output directories
@@ -45,11 +47,8 @@ print(f"  [OK] Payload archive created successfully! ({zip_size_mb:.2f} MB)")
 # 3. Compile installer_gui.py with PyInstaller into single EXE
 print("\n[2] Compiling standalone graphical installer executable with PyInstaller...")
 
-icon_path = os.path.join(STANDALONE_DIR, "app_icon.ico")
-if not os.path.exists(icon_path):
-    icon_path = os.path.join(PROJECT_DIR, "app_icon.ico")
-
-installer_script = os.path.join(PROJECT_DIR, "installer_gui.py")
+icon_path = os.path.join(SOURCE_DIR, "app_icon.ico")
+installer_script = os.path.join(SOURCE_DIR, "installer_gui.py")
 
 pyinstaller_cmd = [
     PYTHON_EXE,
@@ -70,7 +69,7 @@ pyinstaller_cmd = [
 ]
 
 print(f"Executing PyInstaller on {installer_script}...")
-res = subprocess.run(pyinstaller_cmd, cwd=PROJECT_DIR)
+res = subprocess.run(pyinstaller_cmd, cwd=SOURCE_DIR)
 if res.returncode != 0:
     print("❌ PyInstaller failed!")
     sys.exit(1)
