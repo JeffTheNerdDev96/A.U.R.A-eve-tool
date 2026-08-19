@@ -10,6 +10,11 @@ import psutil
 import numpy as np
 from typing import Generator, Dict, List, Any, Optional
 
+if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if sys.stderr and hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
 from config import config
 from hardware import HardwareDetector, DynamicHardwareRouter
 from ingestion import DocumentParser, ImagePreprocessor
@@ -24,6 +29,7 @@ def find_model_file() -> Optional[str]:
         os.path.join(os.path.dirname(os.path.abspath(__file__)), "models", "phi-3.5", "model_q4.gguf"),
         os.path.join(os.getcwd(), "models", "phi-3.5", "model_q4.gguf"),
         r"C:\GIT-Projects\Local-Chatbot-basecode\models\phi-3.5\model_q4.gguf",
+        r"C:\GIT-Projects\A.U.R.A-eve-tool\A.U.R.A Distro\Standalone\models\phi-3.5\model_q4.gguf",
         r"C:\GIT-Projects\A.U.R.A-eve-tool\AURA_Standalone_Windows\models\phi-3.5\model_q4.gguf",
         r"C:\Local-Chatbot\models\phi-3.5\model_q4.gguf",
         os.path.expanduser(r"~\AppData\Local\Programs\A.U.R.A. v0.1.0-alpha2\models\phi-3.5\model_q4.gguf"),

@@ -416,10 +416,18 @@ class MainWindow(QMainWindow):
         self.resize(1380, 880)
         self.setMinimumSize(1080, 680)
         
-        icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "Local-With-Image", "app_icon.ico")
-
-        if os.path.exists(icon_path):
-            self.setWindowIcon(QIcon(icon_path))
+        # Set window icon
+        icon_candidates = [
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_icon.ico"),
+            os.path.join(getattr(sys, "_MEIPASS", ""), "app_icon.ico"),
+            os.path.join(os.path.dirname(sys.executable), "app_icon.ico"),
+            os.path.join(os.getcwd(), "app_icon.ico"),
+            r"C:\GIT-Projects\A.U.R.A-eve-tool\A.U.R.A. Source\app_icon.ico"
+        ]
+        for ip in icon_candidates:
+            if ip and os.path.exists(ip):
+                self.setWindowIcon(QIcon(ip))
+                break
             
         self.setStyleSheet(self._get_theme_stylesheet())
         self._init_ui()

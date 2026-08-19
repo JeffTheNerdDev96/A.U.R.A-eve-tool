@@ -51,9 +51,17 @@ logs/Chatlogs/
 logs/
 
 # PyInstaller & Standalone Distributions
+A.U.R.A Distro/
+**/A.U.R.A Distro/
 AURA_Standalone_Windows/
 A.U.R.A. Installer/
 build/
 dist/
 build_installer_temp/
 *.spec
+*.zip
+
+# Tooling Files
+A.U.R.A. Source/tools/
+**/tools/
+tools/
