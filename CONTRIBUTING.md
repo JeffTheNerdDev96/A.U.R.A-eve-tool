@@ -1,1 +1,2 @@
-Feel free to fork or develop it as you see fit. At this stage I am not accepting outside contributors on the main branch.
+Feel free to fork the project or experiment with it as you like. At this stage, I’m not accepting external contributions to the main branch.
+

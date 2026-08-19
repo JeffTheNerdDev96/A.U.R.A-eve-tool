@@ -6,16 +6,17 @@ import subprocess
 
 if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
 
-PROJECT_DIR = r"c:\Local-Chatbot\A.U.R.A. Assist"
+PROJECT_DIR = r"C:\GIT-Projects\A.U.R.A-eve-tool"
 STANDALONE_DIR = os.path.join(PROJECT_DIR, "AURA_Standalone_Windows")
 INSTALLER_OUTPUT_DIR = os.path.join(PROJECT_DIR, "A.U.R.A. Installer")
 BUILD_TEMP_DIR = os.path.join(PROJECT_DIR, "build_installer_temp")
-PYTHON_EXE = r"c:\Local-Chatbot\venv_app\Scripts\python.exe"
-PYINSTALLER_EXE = r"c:\Local-Chatbot\venv_app\Scripts\pyinstaller.exe"
+PYTHON_EXE = r"C:\GIT-Projects\Local-Chatbot-basecode\venv_app\Scripts\python.exe"
 
 print("=========================================================")
 print("=== BUILDING A.U.R.A. v0.1.0-alpha2 WINDOWS INSTALLER ===")
+print(f"=== Working Directory: {PROJECT_DIR} ===")
 print("=========================================================")
 
 # 1. Clean & prepare output directories
@@ -45,10 +46,15 @@ print(f"  [OK] Payload archive created successfully! ({zip_size_mb:.2f} MB)")
 print("\n[2] Compiling standalone graphical installer executable with PyInstaller...")
 
 icon_path = os.path.join(STANDALONE_DIR, "app_icon.ico")
+if not os.path.exists(icon_path):
+    icon_path = os.path.join(PROJECT_DIR, "app_icon.ico")
+
 installer_script = os.path.join(PROJECT_DIR, "installer_gui.py")
 
 pyinstaller_cmd = [
-    PYINSTALLER_EXE,
+    PYTHON_EXE,
+    "-m",
+    "PyInstaller",
     "--noconfirm",
     "--clean",
     "--onefile",
@@ -77,7 +83,7 @@ dest_model_file = os.path.join(dest_models_dir, "model_q4.gguf")
 
 src_model = os.path.join(STANDALONE_DIR, "models", "phi-3.5", "model_q4.gguf")
 if not os.path.exists(src_model):
-    src_model = r"c:\Local-Chatbot\models\phi-3.5\model_q4.gguf"
+    src_model = r"C:\GIT-Projects\Local-Chatbot-basecode\models\phi-3.5\model_q4.gguf"
 
 if os.path.exists(src_model):
     print(f"Copying Phi-3.5 GGUF ({os.path.getsize(src_model)/(1024*1024):.0f} MB) -> {dest_model_file}...")

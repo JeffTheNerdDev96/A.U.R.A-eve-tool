@@ -1412,11 +1412,13 @@ class MainWindow(QMainWindow):
         sb.setValue(sb.maximum())
 
     def _on_done(self, done_info: dict):
+        tps = done_info.get("tokens_per_sec", 0.0)
         elapsed = done_info.get("time_elapsed", 0.0)
+        toks = done_info.get("tokens_generated", 0)
         strategy = done_info.get("hardware_strategy", "")
         
         strat_note = f" | {strategy}" if strategy else ""
-        self.chat_display.append(f"<br><small style='color: #475569;'>• Tactical Analysis Complete ({elapsed}s){strat_note}</small><br>")
+        self.chat_display.append(f"<br><small style='color: #64748b;'>⚡ {toks} tokens in {elapsed}s ({tps:.1f} t/s){strat_note}</small><br>")
         self.tier_badge.setText(self._get_idle_badge_text())
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
 

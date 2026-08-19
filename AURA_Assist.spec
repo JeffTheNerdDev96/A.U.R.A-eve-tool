@@ -13,7 +13,7 @@ datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
 
 a = Analysis(
-    ['c:/Local-Chatbot/A.U.R.A. Assist/app.py'],
+    ['C:/GIT-Projects/A.U.R.A-eve-tool/app.py'],
     pathex=[],
     binaries=binaries,
     datas=datas,
@@ -43,7 +43,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['c:/Local-Chatbot/Local-With-Image/app_icon.ico'],
+    icon=['C:/GIT-Projects/A.U.R.A-eve-tool/app_icon.ico'],
 )
 coll = COLLECT(
     exe,

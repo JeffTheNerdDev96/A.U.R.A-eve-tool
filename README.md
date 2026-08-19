@@ -1,11 +1,13 @@
-# A.U.R.A-eve-tool
-Your all one in all eve tool.
+A.U.R.A — EVE Online AI‑Enhanced Utility
 
-Inspired by the work of others such as R.I.F.T., PYFA, and websites like DSCAN.INFO I wanted to make my all in one local too.
+Your all‑in‑one EVE tool.
 
-The AI part is something I have been trying to work on for other projects so I integrated AI into this to see how it goes to make a real AURA
-The code and UI has some hints to my favorite faction in Eve Online, I won't tell you which but its pretty obvious.
+Inspired by tools like R.I.F.T., PYFA, and sites such as DSCAN.INFO, I wanted to build a unified local utility that brings everything together in one place.
 
-Feel free to try it out and see if it works and give me any feedback or suggestions.
+The AI component comes from work I’ve been doing on other projects, so I integrated it here to experiment with creating a true “AURA‑like” assistant.
 
-This is still in the very early stages of development and not meant to replace any existing tools at this time. Just a fun side project.
+You may notice hints in the UI and code referencing my favorite EVE faction — I won’t say which one, but it’s pretty obvious.
+
+Feel free to try it out, see what works, and share any feedback or suggestions.
+
+This project is still in very early development and is not intended to replace existing tools at this time. It’s a fun side project exploring AI‑assisted gameplay utilities.
