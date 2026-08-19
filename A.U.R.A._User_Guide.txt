@@ -1,0 +1,87 @@
+===============================================================================
+       A.U.R.A. Assist — Adaptive Underworld Recon Array (v0.1.0-alpha2)
+                  Angel Cartel Cybernetics Division
+                       Author: JeffTheNerd92
+===============================================================================
+
+1. OVERVIEW & MISSION
+-------------------------------------------------------------------------------
+A.U.R.A. is an offline-first, tactical intelligence co-pilot designed for EVE 
+Online capsuleers. Powered by an onboard Phi-3.5 Mini (3.8B Reasoning) neural 
+engine, A.U.R.A. provides instant tactical analysis, directional scan fleet 
+threat ranking, ship fitting reviews, vision OCR, and real-time intel radar 
+monitoring with zero cloud latency or data transmission.
+
+
+2. HARDWARE COMPUTE & NEURAL ACCELERATION
+-------------------------------------------------------------------------------
+A.U.R.A. automatically discovers and orchestrates host compute topology:
+• NPU (Neural Processing Unit):
+  - Intel AI Boost (OpenVINO Level Zero)
+  - AMD Ryzen AI XDNA / XDNA 2 (DirectML & NPU Coprocessor)
+• GPU (Graphics Processing Unit):
+  - NVIDIA GeForce / RTX Dedicated GPUs
+  - AMD Radeon RX & Radeon 680M/780M/890M iGPUs
+  - Intel Arc Dedicated & Iris Xe / UHD Integrated Graphics
+• Multi-Threaded CPU Vector Mesh:
+  - Dynamically utilizes available physical cores and logical threads.
+
+COMPUTE STRATEGIES:
+• Default Mode (NPU-Exclusive): Zero gaming interference. Runs entirely on NPU
+  leaving your GPU and CPU 100% free for high-framerate EVE client rendering.
+• Non-NPU Fallback: Automatically routes workloads across GPU and CPU if no NPU 
+  is present.
+• Turbo Mode: Accessible via the top telemetry bar. Harnesses NPU + GPU + 
+  all CPU threads for accelerated token generation.
+
+
+3. COMBAT SYSTEMS & MODULES
+-------------------------------------------------------------------------------
+[ 🛰️ LIVE INTEL RADAR ]
+• Automatically detects active EVE Online chat logs in:
+  %USERPROFILE%\Documents\EVE\logs\Chatlogs
+• Filters coalition and alliance channels by default:
+  - The Imperium (*.imperium, delve, fareast, fountain)
+  - Pandemic Horde (*.horde, fade, kalevala)
+  - Fraternity & WinterCo (*.frt, *.winter)
+  - The Initiative (*.init)
+  - Brave Collective (*.brave), Snuffed Out (*.snuff), and military tags.
+• Custom Keywords: Input arbitrary custom channel suffixes or words in the 
+  keyword field to monitor specific corp or secret ops logs.
+• Threat Scoring: Instantly flags Cynos, Bubbles, Capital Spikes (Titans, 
+  Supercarriers, Dreadnoughts, FAX), and hostile scouts.
+• Auto-Response Matrix: Optional toggle to automatically calculate instant combat 
+  countermeasures upon detecting critical threats.
+
+[ 📡 D-SCAN FLEET ANALYZER ]
+• Paste raw in-game Directional Scan tables (Ctrl+A, Ctrl+C from EVE client).
+• Automatically parses hundreds of vessels in milliseconds (<3ms for 500 ships).
+• Generates a tactical fleet breakdown by hull class (Capitals, Battleships, 
+  Cruisers, Tacklers, Logistics, Interdictors).
+• Calculates effective threat rankings and counter-engagement strategies.
+
+[ 🛠️ FITTING LAB & DOCTRINE REVIEW ]
+• Paste standard in-game EFT format fits (e.g., [Wolf, Solo Brawl]).
+• Analyzes capacitor stability, active vs. buffer tank synergy, and engagement 
+  envelopes.
+• Strictly enforces hull-class module sizing rules (prevents hallucinations).
+• Recommends role-specific tactical refinements for Brawling, Kiting, Fleet Tackle,
+  FW Plexing, and Logistics.
+
+[ 🖼️ RECON VISION & ATTACHMENTS ]
+• Attach combat screenshots, killmail overviews, or tactical briefings.
+• High-speed hardware OCR extracts ship names, modules, and combat text.
+• Supported formats: PNG, JPG, JPEG, BMP, WEBP, PDF, DOCX, TXT, CSV.
+
+[ ⏹ INTERACTIVE INFERENCE CONTROL ]
+• Click the prominent '⏹ Stop' button at any time during neural generation 
+  to immediately halt token generation.
+
+
+4. CONTROLS & SHORTCUTS
+-------------------------------------------------------------------------------
+• Enter Command: Type your query in the bottom input box and click 'Send Command'.
+• Reset Tactical Buffer: Click 'Clear Chat' in the top bar to reset conversation.
+• Piloted Vessel Recognition: Simply type 'I am in a Vagabond' or 'Flying a Wolf'
+  and A.U.R.A. will ground all tactical advice relative to your vessel.
+===============================================================================

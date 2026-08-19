@@ -996,42 +996,10 @@ class MainWindow(QMainWindow):
         return "color: #34d399; font-weight: bold; background: #064e3b; padding: 4px 12px; border-radius: 6px; border: 1px solid #10b981;"
 
     def _display_welcome(self):
-        npu_desc = f"• ⚡ <b>NPU:</b> {self.engine.detector.npu_name} ({self.engine.detector.npu_vendor})\n" if self.engine.detector.has_npu else ""
-        gpu_desc = f"• 🎮 <b>GPU:</b> {self.engine.detector.gpu_name}\n" if self.engine.detector.has_gpu else ""
-        cpu_desc = f"• 💻 <b>CPU:</b> {self.engine.detector.devices['cpu']['device_name']} ({self.engine.detector.cpu_threads} Compute Threads)\n"
-        
-        if self.engine.detector.has_npu:
-            arch_desc = (
-                "<b>Engine Compute Architecture:</b>\n"
-                "• ⚡ <b>Default Strategy:</b> NPU-Exclusive (zero GPU/CPU overhead for standard tactical queries).\n"
-                "• 🚀 <b>Turbo Mode:</b> Toggle ON in the top bar to enable GPU + CPU multi-core mesh acceleration.\n"
-                "• 📁 <b>File/Vision Ingestion:</b> Image and document attachments automatically engage all compute resources.\n\n"
-            )
-        elif self.engine.detector.has_gpu:
-            arch_desc = (
-                "<b>Engine Compute Architecture:</b>\n"
-                "• 🚀 <b>Default Strategy:</b> GPU + CPU Mesh Compute (No NPU detected; automatically utilizing GPU & multi-threaded CPU acceleration).\n"
-                "• 📁 <b>File/Vision Ingestion:</b> Image and document attachments processed via GPU OCR and multi-core CPU.\n\n"
-            )
-        else:
-            arch_desc = (
-                "<b>Engine Compute Architecture:</b>\n"
-                "• 💻 <b>Default Strategy:</b> CPU Multi-Core Vector Compute (No NPU or dedicated GPU detected).\n"
-                "• 📁 <b>File/Vision Ingestion:</b> Image and document attachments processed via multi-core CPU.\n\n"
-            )
-
         self._append_message("A.U.R.A.", (
-            "☠️ <b>Adaptive Underworld Recon Array (A.U.R.A.) Online.</b>\n"
-            "<i>A.U.R.A. — Angel Cartel Cybernetics Division</i>\n\n"
-            "<b>Hardware Topology & Neural Core:</b>\n"
-            f"{npu_desc}{gpu_desc}{cpu_desc}\n"
-            f"{arch_desc}"
-            "<b>Combat Systems Operational:</b>\n"
-            "• 🛰️ <b>Live Intel Radar:</b> Tailing active EVE Online chat logs in real-time with automated threat decoding.\n"
-            "• 📡 <b>D-SCAN Analyzer:</b> Unified fleet threat breakdown, chat/intel log decoding, bubble/cyno detection, and range matrix.\n"
-            "• 🛠️ <b>Fitting Lab:</b> EFT in-game fit ingestion, capacitor/tank profiling, and role-based optimization.\n"
-            "• 🖼️ <b>Recon Vision:</b> Hardware OCR analysis of killmails, overview snips, and D-Scan screenshots.\n\n"
-            "Real-time intel stream is active on the right radar panel. Select an action or transmit your command."
+            "☠️ <b>A.U.R.A. Assist — Adaptive Underworld Recon Array</b>\n"
+            "<i>by JeffTheNerd92</i>\n\n"
+            "🛰️ <b>Live Intel Radar is active on the right panel.</b>"
         ))
 
 
