@@ -168,9 +168,9 @@ class UnifiedInferenceEngine:
 
 
 
-    def _build_contextual_prompt(self, prompt: str, attachments: List[Dict[str, Any]]) -> str:
+    def _build_contextual_prompt(self, prompt: str, attachments: List[Dict[str, Any]], piloted_ship: Optional[str] = None) -> str:
         """Injects verified EVE mechanics, ship dossiers, and attachments into the tactical prompt context."""
-        grounding = get_tactical_grounding(prompt, attachments)
+        grounding = get_tactical_grounding(prompt, attachments, piloted_ship=piloted_ship)
         
         attachment_blocks = []
         if attachments:
@@ -195,18 +195,30 @@ class UnifiedInferenceEngine:
 
 
     def _prune_context(self, history: List[Dict[str, str]], current_prompt: str, max_tokens: int = 1500) -> List[Dict[str, str]]:
-        total_words = len(current_prompt.split())
+        """Prunes oldest conversation turns to fit within token budget using fast byte-length heuristic."""
+        # Fast heuristic: ~4.5 chars per token for English text (avoids .split() allocation overhead)
+        def _est_tokens(text: str) -> int:
+            return max(1, len(text) // 4)
+        
+        total_tokens = _est_tokens(current_prompt)
+        msg_tokens = []
         for msg in history:
-            total_words += len(msg.get("content", "").split())
-            
+            t = _est_tokens(msg.get("content", ""))
+            msg_tokens.append(t)
+            total_tokens += t
+        
         pruned = list(history)
-        while pruned and (len(pruned) > 1) and (int(total_words * 1.3) > max_tokens):
-            dropped = pruned.pop(0)
-            total_words -= len(dropped.get("content", "").split())
-            if pruned and pruned[0].get("role") == "assistant":
-                dropped_asst = pruned.pop(0)
-                total_words -= len(dropped_asst.get("content", "").split())
-                
+        idx = 0
+        while pruned and len(pruned) > 1 and total_tokens > max_tokens:
+            total_tokens -= msg_tokens[idx]
+            pruned.pop(0)
+            idx += 1
+            # Drop paired assistant response if it was a user->assistant turn
+            if pruned and pruned[0].get("role") == "assistant" and len(pruned) > 1:
+                total_tokens -= msg_tokens[idx]
+                pruned.pop(0)
+                idx += 1
+        
         return pruned
 
     def generate_stream(
@@ -214,7 +226,8 @@ class UnifiedInferenceEngine:
         prompt: str,
         chat_history: List[Dict[str, str]] = None,
         attachments: List[Dict[str, Any]] = None,
-        turbo_mode: Optional[bool] = None
+        turbo_mode: Optional[bool] = None,
+        piloted_ship: Optional[str] = None
     ) -> Generator[Dict[str, Any], None, None]:
         """
         Streams A.U.R.A. response tokens with EVE tactical reasoning and dynamic NPU scaling.
@@ -226,7 +239,7 @@ class UnifiedInferenceEngine:
         has_image = any(att.get("type") == "image" for att in attachments)
         has_doc = any(att.get("type") == "document" for att in attachments)
         
-        full_user_prompt = self._build_contextual_prompt(prompt, attachments)
+        full_user_prompt = self._build_contextual_prompt(prompt, attachments, piloted_ship=piloted_ship)
         pruned_history = self._prune_context(chat_history, full_user_prompt)
         
         full_text = full_user_prompt + " ".join([m.get("content", "") for m in pruned_history])
@@ -298,13 +311,18 @@ class UnifiedInferenceEngine:
                     delta = chunk.get("choices", [{}])[0].get("delta", {})
                     token_text = delta.get("content", "")
                     if token_text:
-                        # Prevent echoing of context headers
-                        if any(header in token_text for header in ["[Tactical Grounding", "[Verified Tactical", "[EVE TACTICAL", "[EVE COMBAT", "[TACTICAL INTEL", "[COMBAT ROLE"]):
+                        # Prevent echoing of context headers or duplicate sections
+                        if any(header in token_text for header in [
+                            "[Tactical Grounding", "[Verified Tactical", "[EVE TACTICAL", "[EVE COMBAT",
+                            "[TACTICAL INTEL", "[COMBAT ROLE", "[ENGAGEMENT RANGE", "[EVADE ROUTES",
+                            "[TACKLE VULNERABILITIES", "[PILOTING", "[TACTICAL ENGAGEMENT"
+                        ]):
                             break
                         now = time.time()
                         if first_token_time is None:
                             first_token_time = now
                         clean_token = token_text.replace("**", "")
+
                         tokens_generated += 1
                         decode_elapsed = max(0.001, now - first_token_time)
                         current_tps = round(tokens_generated / decode_elapsed, 1) if tokens_generated > 1 else round(1.0 / max(0.05, now - gen_start_time), 1)

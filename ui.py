@@ -39,17 +39,18 @@ class WorkerThread(QThread):
     done_received = pyqtSignal(dict)
     error_received = pyqtSignal(str)
 
-    def __init__(self, engine: UnifiedInferenceEngine, prompt: str, chat_history: List[Dict[str, str]], attachments: List[Dict[str, Any]], turbo_mode: bool = False, parent=None):
+    def __init__(self, engine: UnifiedInferenceEngine, prompt: str, chat_history: List[Dict[str, str]], attachments: List[Dict[str, Any]], turbo_mode: bool = False, piloted_ship: Optional[str] = None, parent=None):
         super().__init__(parent)
         self.engine = engine
         self.prompt = prompt
         self.chat_history = chat_history
         self.attachments = attachments
         self.turbo_mode = turbo_mode
+        self.piloted_ship = piloted_ship
 
     def run(self):
         try:
-            for packet in self.engine.generate_stream(self.prompt, self.chat_history, self.attachments, turbo_mode=self.turbo_mode):
+            for packet in self.engine.generate_stream(self.prompt, self.chat_history, self.attachments, turbo_mode=self.turbo_mode, piloted_ship=self.piloted_ship):
                 if packet["type"] == "meta":
                     self.meta_received.emit(packet)
                 elif packet["type"] == "token":
@@ -362,6 +363,7 @@ class MainWindow(QMainWindow):
         self.chat_history: List[Dict[str, str]] = []
         self.attachments: List[Dict[str, Any]] = []
         self.current_assistant_tokens: List[str] = []
+        self.current_piloted_ship: Optional[str] = None
         self.worker: Optional[WorkerThread] = None
         self.switch_worker: Optional[ModelSwitchWorker] = None
         
@@ -378,8 +380,8 @@ class MainWindow(QMainWindow):
         npu_info = f" | {self.engine.detector.npu_vendor} NPU Core" if self.engine.detector.has_npu else ""
         # Full name preserved in window title bar as requested
         self.setWindowTitle(f"A.U.R.A. Assist — Adaptive Underworld Recon Array (Version 0.1.0){npu_info}")
-        self.resize(1280, 840)
-        self.setMinimumSize(960, 600)
+        self.resize(1380, 880)
+        self.setMinimumSize(1080, 680)
         
         icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "Local-With-Image", "app_icon.ico")
 
@@ -407,28 +409,28 @@ class MainWindow(QMainWindow):
             background-color: #070a12;
         }
         QWidget {
-            color: #f1f5f9;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: #f8fafc;
+            font-family: 'Segoe UI', -apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif;
             font-size: 14px;
         }
         QFrame#HardwarePanel {
-            background-color: #0f172a;
+            background-color: #0b0f19;
             border-radius: 8px;
             border: 1px solid #e11d48;
-            padding: 8px 12px;
+            padding: 8px 14px;
         }
         QComboBox#ModelSelectorCombo {
-            background-color: #0b0f19;
+            background-color: #0f172a;
             color: #fda4af;
             border: 1px solid #e11d48;
             border-radius: 6px;
-            padding: 4px 10px;
+            padding: 5px 12px;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 13px;
             min-width: 220px;
         }
         QComboBox#ModelSelectorCombo:hover {
-            border-color: #f43f5e;
+            border-color: #fb7185;
             background-color: #1e1b4b;
         }
         QComboBox#ModelSelectorCombo::drop-down {
@@ -441,124 +443,157 @@ class MainWindow(QMainWindow):
             selection-background-color: #e11d48;
             selection-color: #ffffff;
             border: 1px solid #e11d48;
-            padding: 4px;
+            padding: 6px;
+            font-size: 13px;
         }
 
         QFrame#LiveIntelPanel {
-            background-color: #0c1220;
+            background-color: #090e1a;
             border: 1px solid #0284c7;
             border-radius: 8px;
-            padding: 10px;
+            padding: 12px;
         }
         QListWidget#LiveIntelList {
-            background-color: #090d16;
+            background-color: #060911;
             border: 1px solid #1e293b;
             border-radius: 6px;
             color: #f8fafc;
-            font-size: 12px;
-            padding: 4px;
+            font-size: 13px;
+            padding: 6px;
         }
         QListWidget#LiveIntelList::item {
             border-bottom: 1px solid #1e293b;
-            padding: 6px;
-            border-radius: 4px;
+            padding: 8px 10px;
+            border-radius: 5px;
+            margin: 2px 0px;
         }
         QListWidget#LiveIntelList::item:hover {
-            background-color: #1e293b;
+            background-color: #131c2e;
         }
         QListWidget#LiveIntelList::item:selected {
             background-color: #1e1b4b;
-            border: 1px solid #e11d48;
+            border: 1px solid #f43f5e;
         }
         QTextEdit#ChatDisplay {
-            background-color: #090d16;
+            background-color: #070b14;
             border: 1px solid #1e293b;
             border-radius: 8px;
-            padding: 14px;
+            padding: 16px;
             color: #f8fafc;
-            line-height: 1.5;
+            font-size: 14.5px;
+            line-height: 1.6;
         }
         QTextEdit#InputEdit {
-            background-color: #0f172a;
+            background-color: #0b101d;
             border: 1px solid #334155;
             border-radius: 8px;
-            padding: 10px;
-            color: #f8fafc;
+            padding: 12px 14px;
+            color: #ffffff;
             font-size: 14px;
         }
         QTextEdit#InputEdit:focus {
-            border: 1px solid #e11d48;
+            border: 1px solid #f43f5e;
+            background-color: #0f172a;
         }
         QPushButton {
             background-color: #e11d48;
-            color: white;
+            color: #ffffff;
             border: none;
             border-radius: 6px;
-            padding: 8px 14px;
+            padding: 8px 16px;
             font-weight: bold;
-            font-size: 13px;
+            font-size: 13.5px;
         }
         QPushButton:hover {
+            background-color: #f43f5e;
+        }
+        QPushButton:pressed {
             background-color: #be123c;
         }
         QPushButton#ResetBtn {
-            background-color: #1e293b;
-            color: #cbd5e1;
+            background-color: #131d2e;
+            color: #e2e8f0;
             border: 1px solid #475569;
         }
         QPushButton#ResetBtn:hover {
             background-color: #e11d48;
-            color: white;
-            border: 1px solid #f43f5e;
+            color: #ffffff;
+            border: 1px solid #fb7185;
         }
         QPushButton#ToolBtnDScan {
             background-color: #1e1b4b;
             border: 1px solid #e11d48;
-            color: #fda4af;
+            color: #fecdd3;
+            font-weight: bold;
         }
         QPushButton#ToolBtnDScan:hover {
             background-color: #e11d48;
-            color: white;
+            color: #ffffff;
         }
         QPushButton#ToolBtnFit {
-            background-color: #451a03;
+            background-color: #3b1e08;
             border: 1px solid #f59e0b;
-            color: #fde68a;
+            color: #fef08a;
+            font-weight: bold;
         }
         QPushButton#ToolBtnFit:hover {
             background-color: #d97706;
-            color: white;
+            color: #ffffff;
         }
         QPushButton#ToolBtnIntel {
-            background-color: #082f49;
+            background-color: #0c2d48;
             border: 1px solid #0284c7;
-            color: #bae6fd;
+            color: #e0f2fe;
+            font-weight: bold;
         }
         QPushButton#ToolBtnIntel:hover {
             background-color: #0284c7;
-            color: white;
+            color: #ffffff;
         }
         QPushButton#AttachBtn {
-            background-color: #1e293b;
+            background-color: #131d2e;
             border: 1px solid #475569;
             color: #f1f5f9;
         }
         QPushButton#AttachBtn:hover {
-            background-color: #334155;
+            background-color: #1e293b;
             border: 1px solid #e11d48;
         }
         QCheckBox {
-            color: #cbd5e1;
-            font-size: 12px;
+            color: #e2e8f0;
+            font-size: 13px;
             font-weight: 500;
+        }
+        QCheckBox::indicator {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            border: 1px solid #64748b;
+            background-color: #0f172a;
         }
         QCheckBox::indicator:checked {
             background-color: #e11d48;
-            border: 1px solid #f43f5e;
+            border: 1px solid #fb7185;
         }
         QPushButton:disabled {
-            background-color: #334155;
+            background-color: #1e293b;
             color: #64748b;
+        }
+        QScrollBar:vertical {
+            background: #070a12;
+            width: 10px;
+            margin: 0px;
+        }
+        QScrollBar::handle:vertical {
+            background: #334155;
+            min-height: 24px;
+            border-radius: 5px;
+        }
+        QScrollBar::handle:vertical:hover {
+            background: #e11d48;
+        }
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            height: 0px;
         }
         """
 
@@ -581,6 +616,11 @@ class MainWindow(QMainWindow):
         self.reset_btn.setToolTip("Purge conversation memory and memory buffer")
         self.reset_btn.clicked.connect(self._reset_memory)
         hw_layout.addWidget(self.reset_btn)
+
+        self.piloted_ship_lbl = QLabel("🛸 Hull: Unspecified")
+        self.piloted_ship_lbl.setStyleSheet("color: #94a3b8; background: #070a12; border: 1px solid #334155; padding: 4px 10px; border-radius: 6px; font-size: 13px;")
+        self.piloted_ship_lbl.setToolTip("Active Capsuleer ship doctrine. State your ship (e.g. 'I am in a Loki') to tailor combat counter-play.")
+        hw_layout.addWidget(self.piloted_ship_lbl)
 
         self.context_lbl = QLabel(f"📊 Memory Buffer: 0 / {config.context_window} (0%)")
         self.context_lbl.setStyleSheet("color: #94a3b8; background: #070a12; border: 1px solid #334155; padding: 4px 10px; border-radius: 6px; font-size: 13px;")
@@ -616,7 +656,7 @@ class MainWindow(QMainWindow):
         
         # --- Left Panel: Tactical Comm Stream & Input ---
         left_widget = QWidget()
-        left_widget.setMinimumWidth(380)
+        left_widget.setMinimumWidth(500)
         left_layout = QVBoxLayout(left_widget)
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(8)
@@ -699,22 +739,23 @@ class MainWindow(QMainWindow):
         self.input_edit = QTextEdit()
         self.input_edit.setObjectName("InputEdit")
         self.input_edit.setPlaceholderText("Command A.U.R.A. or ask tactical engagement queries... (Press Send Command)")
-        self.input_edit.setFixedHeight(54)
+        self.input_edit.setFixedHeight(56)
         input_h_layout.addWidget(self.input_edit, stretch=1)
 
         self.send_btn = QPushButton("Send Command ➤")
-        self.send_btn.setFixedHeight(54)
+        self.send_btn.setFixedHeight(56)
         self.send_btn.clicked.connect(self._send_message)
         input_h_layout.addWidget(self.send_btn)
 
         left_layout.addLayout(input_h_layout)
         main_splitter.addWidget(left_widget)
 
-        # --- Right Panel: Live Intel Radar (Clean Header, no RIFT mode text) ---
+        # --- Right Panel: Live Intel Radar (Expanded Default Width) ---
         right_panel = QFrame()
         right_panel.setObjectName("LiveIntelPanel")
+        right_panel.setMinimumWidth(440)
         right_layout = QVBoxLayout(right_panel)
-        right_layout.setContentsMargins(8, 8, 8, 8)
+        right_layout.setContentsMargins(10, 10, 10, 10)
         right_layout.setSpacing(8)
 
         # Radar Header
@@ -731,34 +772,34 @@ class MainWindow(QMainWindow):
 
         # Active Channel Status
         self.active_channels_lbl = QLabel("Channels: Auto-Detecting active EVE chatlogs...")
-        self.active_channels_lbl.setStyleSheet("color: #cbd5e1; font-size: 11px;")
+        self.active_channels_lbl.setStyleSheet("color: #cbd5e1; font-size: 12px;")
         self.active_channels_lbl.setWordWrap(True)
         right_layout.addWidget(self.active_channels_lbl)
 
         # Directory / Filter Controls
         ctrl_layout = QHBoxLayout()
         self.folder_btn = QPushButton("📁 Log Folder")
-        self.folder_btn.setFixedHeight(26)
-        self.folder_btn.setStyleSheet("font-size: 11px; padding: 2px 8px; background: #1e293b; border: 1px solid #64748b; color: #f8fafc; font-weight: bold;")
+        self.folder_btn.setFixedHeight(28)
+        self.folder_btn.setStyleSheet("font-size: 12px; padding: 2px 10px; background: #1e293b; border: 1px solid #64748b; color: #f8fafc; font-weight: bold;")
         self.folder_btn.clicked.connect(self._browse_log_dir)
         ctrl_layout.addWidget(self.folder_btn)
 
         self.channel_filter_combo = QComboBox()
-        self.channel_filter_combo.setFixedHeight(26)
-        self.channel_filter_combo.setStyleSheet("font-size: 11px; background: #1e293b; color: #f8fafc; border: 1px solid #64748b; border-radius: 4px; padding: 2px 6px;")
+        self.channel_filter_combo.setFixedHeight(28)
+        self.channel_filter_combo.setStyleSheet("font-size: 12px; background: #1e293b; color: #f8fafc; border: 1px solid #64748b; border-radius: 4px; padding: 2px 8px;")
         self.channel_filter_combo.addItems(["All Channels", "Intel Only (*.intel)", "Alliance Only", "Corp Only", "Local Only"])
         self.channel_filter_combo.currentIndexChanged.connect(self._on_filter_changed)
         ctrl_layout.addWidget(self.channel_filter_combo, stretch=1)
         right_layout.addLayout(ctrl_layout)
 
-        # Auto-Response Checkbox
+        # Auto-Response Checkbox (Off by default as requested)
         self.auto_response_cb = QCheckBox("⚡ Auto-Respond to Critical Threats")
-        self.auto_response_cb.setChecked(True)
-        self.auto_response_cb.setStyleSheet("color: #f1f5f9; font-size: 12px; font-weight: 500;")
+        self.auto_response_cb.setChecked(False)
+        self.auto_response_cb.setStyleSheet("color: #e2e8f0; font-size: 12.5px; font-weight: 500; padding: 2px 0px;")
         self.auto_response_cb.setToolTip("When checked, A.U.R.A. automatically calculates combat countermeasures for Cynos, Bubbles, and Capital spikes in real time.")
         right_layout.addWidget(self.auto_response_cb)
 
-        # Real-time Intel Feed List Widget
+        # Real-time Intel Feed List Widget (Higher Legibility)
         self.intel_list = QListWidget()
         self.intel_list.setObjectName("LiveIntelList")
         self.intel_list.itemClicked.connect(self._on_intel_item_clicked)
@@ -767,14 +808,14 @@ class MainWindow(QMainWindow):
         # Feed Action Bar
         feed_actions = QHBoxLayout()
         self.clear_feed_btn = QPushButton("🧹 Clear Feed")
-        self.clear_feed_btn.setFixedHeight(26)
-        self.clear_feed_btn.setStyleSheet("font-size: 11px; padding: 2px 8px; background: #1e293b; border: 1px solid #64748b; color: #f8fafc; font-weight: bold;")
+        self.clear_feed_btn.setFixedHeight(28)
+        self.clear_feed_btn.setStyleSheet("font-size: 12px; padding: 2px 10px; background: #1e293b; border: 1px solid #64748b; color: #f8fafc; font-weight: bold;")
         self.clear_feed_btn.clicked.connect(self.intel_list.clear)
         feed_actions.addWidget(self.clear_feed_btn)
 
         self.test_ping_btn = QPushButton("🧪 Test Threat Ping")
-        self.test_ping_btn.setFixedHeight(26)
-        self.test_ping_btn.setStyleSheet("font-size: 11px; padding: 2px 8px; background: #0284c7; border: 1px solid #38bdf8; color: #ffffff; font-weight: bold;")
+        self.test_ping_btn.setFixedHeight(28)
+        self.test_ping_btn.setStyleSheet("font-size: 12px; padding: 2px 10px; background: #0284c7; border: 1px solid #38bdf8; color: #ffffff; font-weight: bold;")
         self.test_ping_btn.clicked.connect(self._simulate_test_ping)
         feed_actions.addWidget(self.test_ping_btn)
 
@@ -782,8 +823,9 @@ class MainWindow(QMainWindow):
         main_splitter.addWidget(right_panel)
 
 
-        # Splitter sizing (68% left, 32% right)
-        main_splitter.setStretchFactor(0, 7)
+        # Splitter sizing: Live Intel Radar starts larger by default (~43% width)
+        main_splitter.setSizes([740, 580])
+        main_splitter.setStretchFactor(0, 4)
         main_splitter.setStretchFactor(1, 3)
         main_layout.addWidget(main_splitter, stretch=1)
 
@@ -825,6 +867,19 @@ class MainWindow(QMainWindow):
     def _on_turbo_toggled(self, checked: bool):
         config.turbo_mode = checked
         self._update_turbo_btn_style()
+
+    def _set_piloted_ship(self, ship_name: Optional[str]):
+        """Updates the active piloted hull and top bar indicator for tailored combat calculations."""
+        if not ship_name:
+            self.current_piloted_ship = None
+            self.piloted_ship_lbl.setText("🛸 Hull: Unspecified")
+            self.piloted_ship_lbl.setStyleSheet("color: #94a3b8; background: #070a12; border: 1px solid #334155; padding: 4px 10px; border-radius: 6px; font-size: 13px;")
+        else:
+            info = lookup_ship(ship_name)
+            cname = info.get("canonical_name", ship_name) if info else ship_name
+            self.current_piloted_ship = cname
+            self.piloted_ship_lbl.setText(f"🛸 Hull: {cname}")
+            self.piloted_ship_lbl.setStyleSheet("color: #67e8f9; background: #082f49; border: 1px solid #0284c7; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 13px;")
 
     def _get_idle_badge_text(self) -> str:
         return "● Online"
@@ -876,22 +931,23 @@ class MainWindow(QMainWindow):
     # ---------------- Live Intel Log Monitoring & Real-time Alerts ----------------
 
     def _handle_live_intel_line(self, parsed: dict):
-        """Adds a parsed live intel line to the radar feed list."""
+        """Adds a parsed live intel line to the radar feed list with high-contrast tactical styling."""
         ts = parsed.get("timestamp") or time.strftime("%H:%M:%S")
         sys_name = parsed.get("system", "Unknown")
         level = parsed.get("threat_level", "LOW")
         color = parsed.get("threat_color", "#38bdf8")
         ships = ", ".join(parsed.get("ships", [])) or "Hostile presence"
+        pilots = f" (Pilot: {', '.join(parsed.get('pilots', []))})" if parsed.get("pilots") else ""
         flags = " ".join([f"[{f}]" for f in parsed.get("status_flags", [])])
         ch = parsed.get("channel", "Intel")
         
-        item_text = f"[{ts}] {sys_name} ({ch})\n• {ships} {flags} — {parsed.get('clean_msg', '')}"
+        item_text = f"[{ts}] {sys_name} ({ch})\n• {ships}{pilots} {flags}\n  \"{parsed.get('clean_msg', '')}\""
         item = QListWidgetItem(item_text)
         item.setForeground(QColor(color))
         item.setData(Qt.ItemDataRole.UserRole, parsed)
         
         self.intel_list.insertItem(0, item)
-        if self.intel_list.count() > 80:
+        if self.intel_list.count() > 100:
             self.intel_list.takeItem(self.intel_list.count() - 1)
 
     def _handle_live_critical_threat(self, parsed: dict):
@@ -906,21 +962,30 @@ class MainWindow(QMainWindow):
         self.last_auto_response_time = now
         sys_name = parsed.get("system", "Local Space")
         ships = ", ".join(parsed.get("ships", [])) or "Hostile Fleet"
+        pilots = ", ".join(parsed.get("pilots", []))
         flags = " | ".join(parsed.get("status_flags", []))
         raw = parsed.get("clean_msg", "")
         threat_level = parsed.get("threat_level", "CRITICAL")
+        count = parsed.get("est_count", 1)
         
-        alert_header = f"🚨 <b>CRITICAL THREAT INCOMING:</b> `{sys_name}` — *{ships}* `[{flags}]`"
+        target_summary = f"{ships} (+{count} hostiles)" if count >= 5 else (f"{ships} (Pilot: {pilots})" if pilots else ships)
+        alert_header = f"🚨 <b>CRITICAL THREAT INCOMING:</b> `{sys_name}` — *{target_summary}* `[{flags}]`"
+        
+        piloted_line = f"• Capsuleer Active Ship: `{self.current_piloted_ship}`\n" if self.current_piloted_ship else ""
+        piloted_directive = f"Evaluate this threat specifically for the Capsuleer flying a `{self.current_piloted_ship}` against {ships}. " if self.current_piloted_ship else ""
+        
         prompt = (
             f"[URGENT EVE ONLINE INTEL ALERT]\n"
             f"• Location: Solar System `{sys_name}`\n"
+            f"{piloted_line}"
             f"• Hostile Ships: {ships}\n"
+            f"• Target Pilots: {pilots or 'Unspecified'}\n"
+            f"• Estimated Count: {count} hostile(s)\n"
             f"• Tactical Indicators: {flags} ({threat_level} Threat)\n"
             f"• Raw Intel Line: \"{raw}\"\n\n"
             f"[TACTICAL DIRECTIVE]:\n"
-            f"Provide an immediate 2-to-3 bullet tactical counter-play advisory for capsuleers in or near `{sys_name}`. "
-            f"Explain the tactical danger (e.g. cyno ambush, bubble camp, or fleet spike), "
-            f"state immediate survival actions (hold gate cloak, align to celestial, burn away), and counter-engagement advice."
+            f"{piloted_directive}Provide an immediate 2-to-3 bullet tactical counter-play advisory against {ships}. "
+            f"Detail specific threat mechanics, immediate survival/positioning steps, and recommended tackle/weapon countermeasures."
         )
         self._execute_tactical_prompt(prompt, alert_header)
 
@@ -966,8 +1031,9 @@ class MainWindow(QMainWindow):
         sample_pings = [
             f"[ {time.strftime('%H:%M:%S')} ] ScoutAlpha > V-3YG7 +5 Loki Cynabal gate bubbled",
             f"[ {time.strftime('%H:%M:%S')} ] DefenseAnchor > 1DQ1-A red dreadnought Naglfar on beacon",
-            f"[ {time.strftime('%H:%M:%S')} ] ScoutBeta > Amamake spike 12 hostiles Machariel Sabre",
-            f"[ {time.strftime('%H:%M:%S')} ] ScoutGamma > Hed-GP Falcon Arazu cyno lit on outgate"
+            f"[ {time.strftime('%H:%M:%S')} ] ScoutBeta > Amamake +20 hostiles Machariel Sabre fleet spike",
+            f"[ {time.strftime('%H:%M:%S')} ] ScoutGamma > Hed-GP Falcon Arazu cyno lit on outgate",
+            f"[ {time.strftime('%H:%M:%S')} ] ScoutDelta > MWA-5Q Fenrir Hammer nv"
         ]
         import random
         ping = random.choice(sample_pings)
@@ -985,20 +1051,65 @@ class MainWindow(QMainWindow):
         sys_name = parsed.get("system", "Target System")
         raw = parsed.get("clean_msg", "")
         ships = ", ".join(parsed.get("ships", [])) or "Hostile elements"
+        pilots = ", ".join(parsed.get("pilots", []))
         flags = " | ".join(parsed.get("status_flags", []))
         threat_level = parsed.get("threat_level", "ALERT")
+        count = parsed.get("est_count", 0)
         
+        is_clear = ("NO VISUAL / SYSTEM CLEAR" in flags) or (threat_level == "GREEN (CLEAR)")
+        if is_clear and not parsed.get("ships") and not pilots:
+            prompt = (
+                f"[LIVE INTEL STATUS ASSESSMENT]\n"
+                f"• Location: Solar System `{sys_name}`\n"
+                f"• Status: NO VISUAL / REPORTED CLEAR (Zero hostile combat vessels logged)\n"
+                f"• Intel Feed: \"{raw}\"\n\n"
+                f"[DIRECTIVE FOR A.U.R.A.]:\n"
+                f"Confirm that `{sys_name}` is reported clear with no hostiles detected. Advise standard scouting vigilance (maintain 14.3 AU D-Scan, check local member list, and monitor gate perches)."
+            )
+            self._execute_tactical_prompt(prompt, f"🛰️ <b>Intel Ping Query:</b> `{sys_name}` (Reported Clear)")
+            return
+
+        is_unlocated = ("UNLOCATED IN LOCAL" in flags) or ("NO VISUAL / NV" in flags)
+        if is_unlocated:
+            target_desc = f"Pilot: {pilots}" if pilots else (f"Ship: {ships}" if ships != "Hostile elements" else "Hostile in local")
+            piloted_line = f"• Capsuleer Active Ship: `{self.current_piloted_ship}`\n" if self.current_piloted_ship else ""
+            prompt = (
+                f"[LIVE INTEL THREAT ASSESSMENT — UNLOCATED HOSTILE IN LOCAL]\n"
+                f"• Location: Solar System `{sys_name}`\n"
+                f"{piloted_line}"
+                f"• Target in Local: {target_desc}\n"
+                f"• Status: NO VISUAL (Target confirmed in local chat, but not spotted on grid or D-Scan yet; possible cloaked scout, safe-spot camper, or docked)\n"
+                f"• Tactical Indicators: {flags} ({threat_level} Threat)\n"
+                f"• Intel Feed: \"{raw}\"\n\n"
+                f"[DIRECTIVE FOR A.U.R.A.]:\n"
+                f"Provide a concise 2-to-3 bullet tactical counter-play advisory for capsuleers in or near `{sys_name}`. "
+                f"Warn that {target_desc} is in local but unlocated (NV). Advise holding cloak/perch, scanning celestial brackets with 14.3 AU 360° D-Scan, and preparing for combat probes or sudden gate decloaks."
+            )
+            self._execute_tactical_prompt(prompt, f"🛰️ <b>Intel Ping Query:</b> `{sys_name}` ({target_desc} - NV)")
+            return
+
+        count_desc = f" (+{count} hostiles)" if count >= 5 else ""
+        header_desc = f"{ships}{count_desc}" if not pilots else f"{ships} (Pilot: {pilots}){count_desc}"
+        
+        piloted_line = f"• Capsuleer Active Ship: `{self.current_piloted_ship}`\n" if self.current_piloted_ship else ""
+        piloted_directive = f"Evaluate this engagement specifically from the perspective of the Capsuleer flying a `{self.current_piloted_ship}` against {ships}. " if self.current_piloted_ship else ""
+
         prompt = (
             f"[LIVE INTEL THREAT ASSESSMENT]\n"
             f"• Location: Solar System `{sys_name}`\n"
+            f"{piloted_line}"
             f"• Hostiles Logged: {ships}\n"
+            f"• Target Pilots: {pilots or 'Unspecified'}\n"
+            f"• Estimated Count: {count} hostile(s)\n"
             f"• Tactical Indicators: {flags} ({threat_level} Threat)\n"
             f"• Intel Feed: \"{raw}\"\n\n"
-            f"[DIRECTIVE FOR A.U.R.A.]:\n"
-            f"Provide a concise 2-to-3 bullet tactical counter-play advisory for capsuleers in or near `{sys_name}`. "
-            f"Explain the exact danger of this hostile composition, whether to hold cloak/burn away/warp, and high-priority counters."
+            f"[TACTICAL COMBAT DIRECTIVE]:\n"
+            f"{piloted_directive}Provide a direct 2-to-3 bullet tactical counter-play assessment. "
+            f"Detail how the {self.current_piloted_ship or 'Capsuleer'} matches up against {ships}, specify primary target focus and tackle/EWAR counters, and advise whether to engage or disengage."
         )
-        self._execute_tactical_prompt(prompt, f"🛰️ <b>Intel Ping Query:</b> `{sys_name}` ({ships})")
+        self._execute_tactical_prompt(prompt, f"🛰️ <b>Intel Ping Query:</b> `{sys_name}` ({header_desc})")
+
+
 
 
     # ---------------- Tool Dialog Callbacks ----------------
@@ -1071,10 +1182,12 @@ class MainWindow(QMainWindow):
             f"Provide a structured 3 to 4 bullet assessment:\n"
             f"1. Role Compatibility: Detail how suitable this fit is for {role}.\n"
             f"2. Capacitor & Tank: Evaluate capacitor resilience and tank survival specifically when performing {role}.\n"
-            f"3. Recommended Module Swaps: Suggest 1-2 concrete module replacements to optimize this ship for {role}.\n"
-            f"4. Piloting & Range Envelope: State the exact engagement range and flight tactics for {role}."
+            f"3. Recommended Module Swaps: Suggest 1-2 concrete, authentic EVE module replacements (using valid module names: e.g. Heavy Capacitor Booster, Large Cap Battery, Large Shield Extender, Shield Boost Amplifier, 1600mm Steel Plates, Micro Jump Drive, Warp Disruptor; never invent fake names like Cap Regen II).\n"
+            f"4. Piloting & Range Envelope: State the exact engagement range and flight tactics for {role} (Note: Battleships kite using Micro Jump Drive 100km repositioning and Cruise/Artillery/Beam projection; Stasis Webifiers are strictly defensive peeling inside 10km, not for >40km kiting)."
         )
+        self._set_piloted_ship(hull)
         self._execute_tactical_prompt(prompt, f"🛠️ <b>Fitting Lab Review</b>: `{hull}` ({role})")
+
 
 
     def _get_timestamp_str(self) -> str:
@@ -1096,7 +1209,15 @@ class MainWindow(QMainWindow):
         self.current_assistant_tokens = []
         self.send_btn.setEnabled(False)
 
-        self.worker = WorkerThread(self.engine, prompt, list(self.chat_history), list(self.attachments), turbo_mode=config.turbo_mode, parent=self)
+        self.worker = WorkerThread(
+            self.engine,
+            prompt,
+            list(self.chat_history),
+            list(self.attachments),
+            turbo_mode=config.turbo_mode,
+            piloted_ship=self.current_piloted_ship,
+            parent=self
+        )
         self.worker.meta_received.connect(self._on_meta)
         self.worker.token_received.connect(self._on_token)
         self.worker.done_received.connect(self._on_done)
@@ -1169,10 +1290,9 @@ class MainWindow(QMainWindow):
             self._refresh_attachment_chips()
 
     def _calculate_context_tokens(self) -> int:
-        total_words = 0
-        for msg in self.chat_history:
-            total_words += len(msg.get("content", "").split())
-        return int(total_words * 1.3)
+        """Fast token estimate using byte-length heuristic (avoids .split() allocations on UI thread)."""
+        total_chars = sum(len(msg.get("content", "")) for msg in self.chat_history)
+        return total_chars // 4  # ~4 chars per token for English text
 
     def _update_context_display(self, current_tokens: int = None):
         if current_tokens is None:
@@ -1192,6 +1312,7 @@ class MainWindow(QMainWindow):
         self.attachments.clear()
         self._refresh_attachment_chips()
         self.chat_display.clear()
+        self._set_piloted_ship(None)
         self._display_welcome()
         self.tier_badge.setText(self._get_idle_badge_text())
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
@@ -1211,6 +1332,18 @@ class MainWindow(QMainWindow):
             return
         if not prompt:
             prompt = "Analyze the attached tactical intelligence and recommend an optimal combat response."
+
+        # Detect if Capsuleer is stating their own piloted vessel
+        m_ship = re.search(
+            r"\b(?:i am in a|i'm in a|flying a|piloting a|my ship is a?|in a)\s+([A-Za-z0-9\-\s]+?)(?:\s+and|\s+with|\s+need|\s+looking|\s+waiting|\s*\.|\s*,|\s*$)",
+            prompt,
+            re.IGNORECASE
+        )
+        if m_ship:
+            cand = m_ship.group(1).strip()
+            s_res = lookup_ship(cand)
+            if s_res:
+                self._set_piloted_ship(s_res.get("canonical_name", cand))
 
         display_msg = prompt
         if self.attachments:

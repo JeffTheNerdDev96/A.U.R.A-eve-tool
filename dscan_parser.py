@@ -12,6 +12,19 @@ from eve_data import (
     THREAT_CAPITAL, THREAT_SUPER, THREAT_LOGI, THREAT_PIRATE, THREAT_T2_COMBAT
 )
 
+_RE_QTY_PREFIX = re.compile(r"^(\d+)\s*[xX*]\s*(.+)$")
+_RE_QTY_SUFFIX = re.compile(r"^(.*?)\s+[xX*]\s*(\d+)$")
+_RE_QTY_LEADING = re.compile(r"^(\d+)\s+([A-Za-z].+)$")
+_RE_TAB_SPLIT = re.compile(r"\t+|\s{2,}")
+_RE_DELIM_SPLIT = re.compile(r"[\t,;|]+")
+_RE_DIST_AU = re.compile(r"([\d\.,]+)\s*au\b", re.IGNORECASE)
+_RE_DIST_KM = re.compile(r"([\d\.,]+)\s*km\b", re.IGNORECASE)
+_RE_DIST_M = re.compile(r"([\d\.,]+)\s*m\b", re.IGNORECASE)
+_RE_CHAT_TIME = re.compile(r"^\d{1,2}:\d{2}")
+
+_SORTED_HULLS_BY_LENGTH = sorted(SHIP_DATABASE.keys(), key=len, reverse=True)
+_SHIP_SUBSTR_PATTERN = re.compile(r"\b(" + "|".join(re.escape(h.lower()) for h in _SORTED_HULLS_BY_LENGTH) + r")\b")
+
 
 class DScanParser:
     """Parses raw in-game D-Scan clipboard data into tactical breakdowns."""
@@ -23,7 +36,7 @@ class DScanParser:
         count = 1
         
         # Match '5x Sabre' or '5x'
-        m1 = re.match(r"^(\d+)\s*[xX*]\s*(.+)$", clean)
+        m1 = _RE_QTY_PREFIX.match(clean)
         if m1:
             try:
                 count = max(1, int(m1.group(1)))
@@ -33,7 +46,7 @@ class DScanParser:
             return count, clean
             
         # Match 'Sabre x5' or 'Sabre 5x'
-        m2 = re.search(r"^(.*?)\s+[xX*]\s*(\d+)$", clean)
+        m2 = _RE_QTY_SUFFIX.search(clean)
         if m2:
             try:
                 count = max(1, int(m2.group(2)))
@@ -43,7 +56,7 @@ class DScanParser:
             return count, clean
             
         # Match leading number e.g. '5 Sabre'
-        m3 = re.match(r"^(\d+)\s+([A-Za-z].+)$", clean)
+        m3 = _RE_QTY_LEADING.match(clean)
         if m3:
             try:
                 potential_count = int(m3.group(1))
@@ -65,7 +78,7 @@ class DScanParser:
             return info.get("canonical_name", text), info
             
         # 2. Check parts split by tab or multiple spaces
-        parts = [p.strip() for p in re.split(r"\t+|\s{2,}", text) if p.strip()]
+        parts = [p.strip() for p in _RE_TAB_SPLIT.split(text) if p.strip()]
         for p in parts:
             if p.isdigit() or any(u in p.lower() for u in ["km", "au", "m", "-"]):
                 continue
@@ -74,19 +87,20 @@ class DScanParser:
                 return info.get("canonical_name", p), info
 
         # 3. Check individual tokens
-        words = [w.strip() for w in re.split(r"[\t,;|]+", text) if w.strip()]
+        words = [w.strip() for w in _RE_DELIM_SPLIT.split(text) if w.strip()]
         for w in words:
             info = lookup_ship(w)
             if info:
                 return info.get("canonical_name", w), info
 
         # 4. Search for known ship names inside the string (longest first)
-        sorted_hulls = sorted(SHIP_DATABASE.keys(), key=len, reverse=True)
         text_lower = text.lower()
-        for hull in sorted_hulls:
-            pattern = r"\b" + re.escape(hull.lower()) + r"\b"
-            if re.search(pattern, text_lower):
-                return hull, SHIP_DATABASE[hull]
+        match = _SHIP_SUBSTR_PATTERN.search(text_lower)
+        if match:
+            matched_lower = match.group(1)
+            for hull in _SORTED_HULLS_BY_LENGTH:
+                if hull.lower() == matched_lower:
+                    return hull, SHIP_DATABASE[hull]
 
         return None
 
@@ -96,7 +110,7 @@ class DScanParser:
         clean = text.strip()
         
         # Check for AU
-        m_au = re.search(r"([\d\.,]+)\s*au\b", clean, re.IGNORECASE)
+        m_au = _RE_DIST_AU.search(clean)
         if m_au:
             try:
                 au_val = float(m_au.group(1).replace(",", ""))
@@ -105,7 +119,7 @@ class DScanParser:
                 return clean, "Off-Grid / Warping (> 150 km / AU)", None
 
         # Check for km
-        m_km = re.search(r"([\d\.,]+)\s*km\b", clean, re.IGNORECASE)
+        m_km = _RE_DIST_KM.search(clean)
         if m_km:
             try:
                 km_val = float(m_km.group(1).replace(",", ""))
@@ -119,8 +133,8 @@ class DScanParser:
                 return clean, "Grid Range (20 - 150 km)", None
 
         # Check for meters
-        m_m = re.search(r"([\d\.,]+)\s*m\b", clean, re.IGNORECASE)
-        if m_m and not re.search(r"[\d\.,]+\s*km\b", clean, re.IGNORECASE):
+        m_m = _RE_DIST_M.search(clean)
+        if m_m and not _RE_DIST_KM.search(clean):
             try:
                 m_val = float(m_m.group(1).replace(",", ""))
                 km_val = m_val / 1000.0
@@ -288,8 +302,8 @@ class DScanParser:
         
         raw_lines = [l.strip() for l in raw_text.strip().split("\n") if l.strip()]
         
-        chat_lines = [l for l in raw_lines if (l.startswith("[") or ">" in l or re.match(r"^\d{1,2}:\d{2}", l))]
-        dscan_lines = [l for l in raw_lines if not (l.startswith("[") or ">" in l or re.match(r"^\d{1,2}:\d{2}", l))]
+        chat_lines = [l for l in raw_lines if (l.startswith("[") or ">" in l or _RE_CHAT_TIME.match(l))]
+        dscan_lines = [l for l in raw_lines if not (l.startswith("[") or ">" in l or _RE_CHAT_TIME.match(l))]
         
         dscan_res = DScanParser.parse("\n".join(dscan_lines)) if dscan_lines else {"total_ships": 0, "summary_md": "", "threat_level": "LOW", "threat_color": "#38bdf8"}
         intel_res = IntelParser.parse("\n".join(chat_lines)) if chat_lines else {"total_reports": 0, "summary_md": ""}

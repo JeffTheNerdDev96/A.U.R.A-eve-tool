@@ -35,7 +35,7 @@ def decode_log_bytes(raw_bytes: bytes) -> str:
     for enc in ["utf-16-le", "utf-16", "utf-8-sig", "utf-8", "cp1252", "latin-1"]:
         try:
             return raw_bytes.decode(enc)
-        except Exception:
+        except (UnicodeDecodeError, LookupError):
             continue
     return raw_bytes.decode("utf-8", errors="ignore")
 
@@ -137,7 +137,7 @@ class LiveChatMonitor(QThread):
         files = glob.glob(pattern)
         matched = [f for f in files if self._matches_filter(f)]
         # Sort by mtime descending
-        matched.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+        matched.sort(key=os.path.getmtime, reverse=True)
         self.cached_files = matched[:20]  # Watch top 20 most recent channels
         self.last_dir_scan_time = now
         return self.cached_files

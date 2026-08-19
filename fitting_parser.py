@@ -10,13 +10,16 @@ from eve_data import lookup_ship
 class FittingParser:
     """Parses EFT / in-game fitting blocks and provides structural analysis."""
 
+    _RE_HEADER = re.compile(r"\[(.*?),\s*(.*?)\]")
+    _RE_STRIP_CHARGE = re.compile(r",\s*\w+.*$")
+
     @staticmethod
     def parse(eft_text: str) -> Dict[str, Any]:
         lines = [line.strip() for line in eft_text.strip().split("\n") if line.strip()]
         if not lines:
             return {"error": "Empty fitting text"}
 
-        header_match = re.match(r"\[(.*?),\s*(.*?)\]", lines[0])
+        header_match = FittingParser._RE_HEADER.match(lines[0])
         hull_name = header_match.group(1).strip() if header_match else lines[0].replace("[", "").replace("]", "")
         fit_name = header_match.group(2).strip() if header_match else "Custom Fit"
 
@@ -34,7 +37,7 @@ class FittingParser:
             # Ignore empty slot markers or cargo separators
             if line.startswith("[") and line.endswith("]"):
                 continue
-            clean_item = re.sub(r",\s*\w+.*$", "", line).strip() # strip charge/ammo
+            clean_item = FittingParser._RE_STRIP_CHARGE.sub("", line).strip() # strip charge/ammo
             if not clean_item:
                 continue
             all_modules.append(clean_item)
