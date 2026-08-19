@@ -12,6 +12,8 @@ Integrated Tactical Tools:
 import sys
 import os
 import time
+import re
+import json
 from typing import List, Dict, Any, Optional
 
 from PyQt6.QtWidgets import (
@@ -1270,11 +1272,11 @@ class MainWindow(QMainWindow):
 
     def _on_worker_error(self, err_msg: str):
         self.chat_display.append(f"<br><small style='color: #ef4444;'>⚠️ Tactical Compute Error: {err_msg}</small><br>")
+        self.tier_badge.setText(self._get_idle_badge_text())
+        self.tier_badge.setStyleSheet(self._get_idle_badge_style())
         self.send_btn.setEnabled(True)
         self.progress_container.setVisible(False)
-
         self._refresh_attachment_chips()
-        self.chat_history.append({"role": "user", "content": prompt})
 
     # ---------------- Standard Chat & Telemetry ----------------
 

@@ -23,7 +23,13 @@ def find_model_file() -> Optional[str]:
         os.path.join(os.path.dirname(sys.executable), "models", "phi-3.5", "model_q4.gguf"),
         os.path.join(os.path.dirname(os.path.abspath(__file__)), "models", "phi-3.5", "model_q4.gguf"),
         os.path.join(os.getcwd(), "models", "phi-3.5", "model_q4.gguf"),
+        r"C:\GIT-Projects\Local-Chatbot-basecode\models\phi-3.5\model_q4.gguf",
+        r"C:\GIT-Projects\A.U.R.A-eve-tool\AURA_Standalone_Windows\models\phi-3.5\model_q4.gguf",
         r"C:\Local-Chatbot\models\phi-3.5\model_q4.gguf",
+        os.path.expanduser(r"~\AppData\Local\Programs\A.U.R.A. v0.1.0-alpha2\models\phi-3.5\model_q4.gguf"),
+        os.path.expanduser(r"~\AppData\Local\Programs\A.U.R.A. v.0.0.1alpha\models\phi-3.5\model_q4.gguf"),
+        r"C:\Program Files\A.U.R.A. v0.1.0-alpha2\models\phi-3.5\model_q4.gguf",
+        r"C:\A.U.R.A. v0.1.0-alpha2\models\phi-3.5\model_q4.gguf",
     ]
     for p in candidates:
         if os.path.exists(p) and os.path.getsize(p) > 100000000:
