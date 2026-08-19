@@ -22,7 +22,7 @@ from PyQt6.QtWidgets import (
     QDialog, QComboBox, QSplitter, QCheckBox, QListWidget, QListWidgetItem
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
-from PyQt6.QtGui import QIcon, QTextCursor, QFont, QColor
+from PyQt6.QtGui import QIcon, QTextCursor, QFont, QColor, QBrush
 
 from config import config
 from hardware import HardwareDetector, DynamicHardwareRouter
@@ -495,21 +495,21 @@ class MainWindow(QMainWindow):
             padding: 12px;
         }
         QListWidget#LiveIntelList {
-            background-color: #060911;
+            background-color: #050811;
             border: 1px solid #1e293b;
             border-radius: 6px;
             color: #f8fafc;
             font-size: 13px;
-            padding: 6px;
+            padding: 4px;
         }
         QListWidget#LiveIntelList::item {
-            border-bottom: 1px solid #1e293b;
+            border: 1px solid #1e293b;
             padding: 8px 10px;
-            border-radius: 5px;
-            margin: 2px 0px;
+            border-radius: 6px;
+            margin: 3px 2px;
         }
         QListWidget#LiveIntelList::item:hover {
-            background-color: #131c2e;
+            border: 1px solid #38bdf8;
         }
         QListWidget#LiveIntelList::item:selected {
             background-color: #1e1b4b;
@@ -1007,24 +1007,68 @@ class MainWindow(QMainWindow):
     # ---------------- Live Intel Log Monitoring & Real-time Alerts ----------------
 
     def _handle_live_intel_line(self, parsed: dict):
-        """Adds a parsed live intel line to the radar feed list with high-contrast tactical styling."""
+        """Adds a parsed live intel line to the radar feed list with high-contrast tactical styling for dual-monitor visibility."""
         ts = parsed.get("time_str") or parsed.get("timestamp") or time.strftime("%H:%M:%S")
-        sys_name = parsed.get("system", "Unknown")
-        level = parsed.get("threat_level", "LOW")
-        color = parsed.get("threat_color", "#38bdf8")
-        is_clear = "NO VISUAL / SYSTEM CLEAR" in parsed.get("status_flags", [])
-        ships = ", ".join(parsed.get("ships", [])) or ("System Clear / No Visual" if is_clear else "Hostile presence")
-        pilots = f" (Pilot: {', '.join(parsed.get('pilots', []))})" if parsed.get("pilots") else ""
-        flags = " ".join([f"[{f}]" for f in parsed.get("status_flags", [])])
+        sys_name = (parsed.get("system") or "Unknown Space").upper()
+        level = (parsed.get("threat_level") or "LOW").upper()
+        flags = parsed.get("status_flags", [])
+        is_clear = (level == "CLEAR" or "SYSTEM CLEAR" in flags)
         ch = parsed.get("channel", "Intel")
+        raw_msg = parsed.get("clean_msg", "").strip()
+
+        # Threat badges and high-contrast color highlights
+        level_map = {
+            "CRITICAL": ("🚨 CRITICAL", "#f43f5e", "#2a0a10"),
+            "HIGH":     ("⚠️ HIGH",     "#fb923c", "#281206"),
+            "MEDIUM":   ("🔥 MEDIUM",   "#facc15", "#221c04"),
+            "INFO":     ("ℹ️ INFO",     "#38bdf8", "#081426"),
+            "LOW":      ("ℹ️ INFO",     "#38bdf8", "#081426"),
+            "CLEAR":    ("✓ CLEAR",     "#34d399", "#042018")
+        }
+
+        if is_clear:
+            tag, fg_color, bg_color = level_map["CLEAR"]
+            status_text = "System Clear"
+        else:
+            tag, fg_color, bg_color = level_map.get(level, level_map["INFO"])
+            ships_list = parsed.get("ships", [])
+            count = parsed.get("est_count", 0)
+            if ships_list:
+                ships_desc = ", ".join(ships_list)
+                if count > len(ships_list):
+                    ships_desc += f" (+{count} total)"
+            elif count > 0:
+                ships_desc = f"{count} Hostile(s)"
+            elif "NO VISUAL / NV" in flags or "UNLOCATED IN LOCAL (NO VISUAL / NV)" in flags:
+                ships_desc = "No Visual / NV"
+            else:
+                ships_desc = "Hostile Activity"
+
+            pilots = f" | Pilot: {', '.join(parsed.get('pilots', []))}" if parsed.get("pilots") else ""
+            status_text = f"{ships_desc}{pilots}"
+
+        # Clean tactical indicator flags
+        flag_pills = " ".join([f"[{f}]" for f in flags if f != "NO VISUAL / SYSTEM CLEAR"])
+        if flag_pills:
+            status_text += f"  {flag_pills}"
+
+        header = f"[{ts}]  {sys_name}  ·  {tag}  ·  [{ch}]"
+        detail_line = f"  • {status_text}"
+        quote_line = f"  💬 \"{raw_msg}\"" if raw_msg else ""
+
+        card_text = f"{header}\n{detail_line}\n{quote_line}" if quote_line else f"{header}\n{detail_line}"
+
+        item = QListWidgetItem(card_text)
+        item.setForeground(QBrush(QColor(fg_color)))
+        item.setBackground(QBrush(QColor(bg_color)))
         
-        item_text = f"[{ts}] {sys_name} ({ch})\n• {ships}{pilots} {flags}\n  \"{parsed.get('clean_msg', '')}\""
-        item = QListWidgetItem(item_text)
-        item.setForeground(QColor(color))
+        radar_font = QFont("Consolas", 10)
+        radar_font.setStyleHint(QFont.StyleHint.Monospace)
+        item.setFont(radar_font)
         item.setData(Qt.ItemDataRole.UserRole, parsed)
-        
+
         self.intel_list.insertItem(0, item)
-        if self.intel_list.count() > 100:
+        if self.intel_list.count() > 120:
             self.intel_list.takeItem(self.intel_list.count() - 1)
 
     def _handle_live_critical_threat(self, parsed: dict):

@@ -29,6 +29,8 @@ _RE_COUNT_WITH_KEYWORD = re.compile(
     re.IGNORECASE
 )
 _RE_COUNT_X_PREFIX = re.compile(r"\bx\s*(\d{1,3})\b", re.IGNORECASE)
+_RE_NV = re.compile(r"\b(?:nv|na|no\s*visual|novisual)\b", re.IGNORECASE)
+_RE_CLEAR = re.compile(r"\b(?:clear|clr)\b", re.IGNORECASE)
 
 
 class IntelParser:
@@ -42,7 +44,10 @@ class IntelParser:
         "nv", "na", "no", "visual", "nil", "none", "safe", "v", "status", "elements",
         "presence", "report", "reported", "check", "eyes", "scout", "plus", "gang", "camp",
         "dscan", "d-scan", "pass", "passed", "heading", "towards", "from", "at", "holding",
-        "cloaked", "cloak", "probe", "probes", "combat", "fleet", "standing", "by", "and"
+        "cloaked", "cloak", "probe", "probes", "combat", "fleet", "standing", "by", "and",
+        "dreadnought", "dread", "dreads", "carrier", "carriers", "supercarrier", "super",
+        "supers", "titan", "titans", "fax", "battleship", "cruiser", "frigate", "destroyer",
+        "hac", "dictor", "hictor", "interdictor", "recon", "logi", "tackle", "hauler"
     })
 
     @staticmethod
@@ -167,19 +172,36 @@ class IntelParser:
                 i += 1
                 continue
 
-            # Check if next word forms a 2-word pilot name
-            if i + 1 < num_words:
-                next_w = words_in_msg[i+1].strip(_STRIP_CHARS)
-                next_lower = next_w.lower()
-                if (next_w and next_lower not in IntelParser.INTEL_KEYWORDS and 
-                    not next_w.isdigit() and next_w != found_system and next_w != speaker):
-                    if next_lower not in _FAST_SHIP_LOOKUP:
+            # Check if token is a valid pilot candidate
+            if (
+                len(w) > 2 
+                and not w.isdigit() 
+                and not w.startswith("+") 
+                and not w.startswith("-") 
+                and not any(c.isdigit() for c in w)
+                and w != found_system 
+                and w != speaker 
+                and w_lower not in IntelParser.INTEL_KEYWORDS 
+                and w_lower not in _FAST_SHIP_LOOKUP
+            ):
+                # Check if next word forms a 2-word pilot name
+                if i + 1 < num_words:
+                    next_w = words_in_msg[i+1].strip(_STRIP_CHARS)
+                    next_lower = next_w.lower()
+                    if (
+                        len(next_w) > 1
+                        and next_lower not in IntelParser.INTEL_KEYWORDS
+                        and next_lower not in _FAST_SHIP_LOOKUP
+                        and not next_w.isdigit()
+                        and not any(c.isdigit() for c in next_w)
+                        and next_w != found_system
+                        and next_w != speaker
+                    ):
                         detected_pilots.append(f"{w} {next_w}")
                         i += 2
                         continue
 
-            # Standalone unlocated pilot handle
-            if len(w) > 2 and not w.isdigit() and w != found_system and w != speaker:
+                # Standalone unlocated pilot handle
                 detected_pilots.append(w)
             i += 1
 
@@ -188,8 +210,8 @@ class IntelParser:
 
         # 3. Extract Tactical Status Flags (fast boolean expressions)
         status_flags: List[str] = []
-        is_nv = ("nv" in msg_l or "na" in msg_l or "no visual" in msg_l or "novisual" in msg_l)
-        is_explicit_clear = ("clr" in msg_l or "clear" in msg_l or "clean" in msg_l or "safe" in msg_l or "nil" in msg_l)
+        is_nv = bool(_RE_NV.search(msg))
+        is_explicit_clear = bool(_RE_CLEAR.search(msg))
 
         if "cyno" in msg_l:
             status_flags.append("CYNO ACTIVE")
@@ -204,43 +226,70 @@ class IntelParser:
         if est_count >= 5 or "spike" in msg_l or "huge" in msg_l or "fleet" in msg_l:
             status_flags.append(f"FLEET SPIKE (+{est_count or 5} PILOTS)")
 
-        if is_explicit_clear:
-            if not detected_ships:
-                detected_pilots.clear()
-                est_count = 0
-                status_flags = [f for f in status_flags if not f.startswith("FLEET SPIKE")]
-                status_flags.append("NO VISUAL / SYSTEM CLEAR")
+        if is_explicit_clear and not detected_ships:
+            detected_pilots.clear()
+            est_count = 0
+            status_flags = [f for f in status_flags if not f.startswith("FLEET SPIKE")]
+            status_flags.append("SYSTEM CLEAR")
         elif is_nv:
             if detected_pilots or detected_ships or est_count > 0:
                 status_flags.append("UNLOCATED IN LOCAL (NO VISUAL / NV)")
             else:
-                status_flags.append("NO VISUAL / SYSTEM CLEAR")
+                status_flags.append("NO VISUAL / NV")
 
-        # 4. Evaluate Threat Level
-        threat_level = "LOW"
-        threat_color = "#38bdf8"
+        # 4. Evaluate Ship Classes
+        has_capital = any(
+            t in [THREAT_SUPER, THREAT_CAPITAL] for t in threat_tags
+        ) or any(
+            SHIP_DATABASE.get(s, {}).get("class") in ["Titan", "Supercarrier", "Dreadnought", "Force Auxiliary", "Carrier", "Freighter", "Jump Freighter", "Industrial Command"]
+            for s in detected_ships
+        ) or any(
+            k in msg_l for k in ["titan", "super", "supercarrier", "dread", "dreadnought", "carrier", "fax", "rorqual", "hel", "nyx", "wyvern", "aeon", "avatar", "erebus", "ragnarok", "leviathan", "naglfar", "moros", "revelation", "phoenix", "nidhoggur", "archon", "thanatos", "chimera", "lif", "apostle", "minokawa", "ninazu"]
+        )
+
+        has_battleship = any(
+            t == THREAT_MARAUDER for t in threat_tags
+        ) or any(
+            SHIP_DATABASE.get(s, {}).get("class") in ["Battleship", "Marauder", "Black Ops"]
+            for s in detected_ships
+        ) or any(
+            k in msg_l for k in ["battleship", "battleships", "bs", "marauder", "blops", "machariel", "rokh", "megathron", "tempest", "raven", "abaddon", "nightmare", "bhaalgorn", "vindicator", "barghest", "praxis", "paladin", "kronos", "golem", "vargur", "panther", "widow", "sin", "redeemer"]
+        )
+
+        total_effective_count = max(est_count, len(detected_pilots), len(detected_ships))
+
+        # 5. Evaluate Threat Level
+        # - CRITICAL: Any capital class vessels reported, or fleets greater than 20 players
+        # - HIGH: 10 to 20 players, or battleship fleet
+        # - MEDIUM: Less than 10 players or battlecruiser/smaller
+        # - INFO: nv/no visual or less than 3 in system
+        # - CLEAR: only if word 'clear' / 'clr' is explicitly used
         is_critical = False
 
-        if "NO VISUAL / SYSTEM CLEAR" in status_flags:
-            threat_level = "GREEN (CLEAR)"
+        if "SYSTEM CLEAR" in status_flags:
+            threat_level = "CLEAR"
             threat_color = "#34d399"
             est_count = 0
-        elif any(t in [THREAT_SUPER, THREAT_CAPITAL] for t in threat_tags) or "CYNO ACTIVE" in status_flags or est_count >= 10:
+        elif has_capital or total_effective_count > 20 or "CYNO ACTIVE" in status_flags:
             threat_level = "CRITICAL"
-            threat_color = "#ff4d6d"
+            threat_color = "#f43f5e"
             is_critical = True
-        elif any(t in [THREAT_BUBBLE, THREAT_MARAUDER] for t in threat_tags) or "WARP BUBBLE ON GRID" in status_flags or est_count >= 5:
+        elif has_battleship or (10 <= total_effective_count <= 20) or "WARP BUBBLE ON GRID" in status_flags:
             threat_level = "HIGH"
-            threat_color = "#f87171"
+            threat_color = "#fb923c"
             is_critical = True
-        elif any(t in [THREAT_CYNO, THREAT_ECM] for t in threat_tags) or any(f.startswith("FLEET SPIKE") for f in status_flags) or detected_pilots or est_count >= 2:
+        elif (3 <= total_effective_count < 10) or (detected_ships and not is_nv) or "CLOAKED" in status_flags:
             threat_level = "MEDIUM"
             threat_color = "#facc15"
-        elif detected_ships:
-            threat_level = "LOW"
+        elif is_nv or (total_effective_count < 3 and not detected_ships and not detected_pilots):
+            threat_level = "INFO"
             threat_color = "#38bdf8"
-            if est_count == 0:
-                est_count = len(detected_ships)
+        elif detected_ships or detected_pilots:
+            threat_level = "MEDIUM"
+            threat_color = "#facc15"
+        else:
+            threat_level = "INFO"
+            threat_color = "#38bdf8"
 
         return {
             "timestamp": timestamp,

@@ -1,11 +1,21 @@
 @echo off
 setlocal
-
 set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8
+title A.U.R.A. Assist — Tactical Recon Array
 
-title A.U.R.A. Assist - Adaptive Underworld Recon Array (Angel Cartel)
+cls
+echo ===================================================================
+echo   ☠️  A.U.R.A. ASSIST — TACTICAL RECON ARRAY
+echo   Angel Cartel Cybernetics Division  ^|  by JeffTheNerd92
+echo ===================================================================
+echo [!] Initializing Neural Core ^& Live Intel Stream...
+echo.
 
-echo [Launch] Initializing A.U.R.A. Tactical Core (Angel Cartel)...
 "C:\GIT-Projects\Local-Chatbot-basecode\venv_app\Scripts\python.exe" "%~dp0app.py"
-pause
+
+if %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo [!] Application exited with code %ERRORLEVEL%.
+    pause
+)

@@ -32,8 +32,10 @@ def find_model_file() -> Optional[str]:
         r"C:\GIT-Projects\A.U.R.A-eve-tool\A.U.R.A Distro\Standalone\models\phi-3.5\model_q4.gguf",
         r"C:\GIT-Projects\A.U.R.A-eve-tool\AURA_Standalone_Windows\models\phi-3.5\model_q4.gguf",
         r"C:\Local-Chatbot\models\phi-3.5\model_q4.gguf",
+        os.path.expanduser(r"~\AppData\Local\Programs\A.U.R.A. v0.1.1-alpha3\models\phi-3.5\model_q4.gguf"),
         os.path.expanduser(r"~\AppData\Local\Programs\A.U.R.A. v0.1.0-alpha2\models\phi-3.5\model_q4.gguf"),
-        os.path.expanduser(r"~\AppData\Local\Programs\A.U.R.A. v.0.0.1alpha\models\phi-3.5\model_q4.gguf"),
+        r"C:\Program Files\A.U.R.A. v0.1.1-alpha3\models\phi-3.5\model_q4.gguf",
+        r"C:\A.U.R.A. v0.1.1-alpha3\models\phi-3.5\model_q4.gguf",
         r"C:\Program Files\A.U.R.A. v0.1.0-alpha2\models\phi-3.5\model_q4.gguf",
         r"C:\A.U.R.A. v0.1.0-alpha2\models\phi-3.5\model_q4.gguf",
     ]

@@ -1,5 +1,5 @@
 ===============================================================================
-       A.U.R.A. Assist — Adaptive Underworld Recon Array (v0.1.0-alpha2)
+       A.U.R.A. Assist — Adaptive Underworld Recon Array (v0.1.1-alpha3)
                   Angel Cartel Cybernetics Division
                        Author: JeffTheNerd92
 ===============================================================================
@@ -37,9 +37,17 @@ COMPUTE STRATEGIES:
 
 3. COMBAT SYSTEMS & MODULES
 -------------------------------------------------------------------------------
-[ 🛰️ LIVE INTEL RADAR ]
+[ 🛰️ LIVE INTEL RADAR & THREAT TIERS ]
 • Automatically detects active EVE Online chat logs in:
   %USERPROFILE%\Documents\EVE\logs\Chatlogs
+• Threat Level Hierarchy & Rules:
+  - 🚨 CRITICAL: Any capital class vessel (Titan, Supercarrier, Dreadnought, FAX,
+    Carrier, Rorqual, Freighter), active Cynos, or fleets > 20 players.
+  - ⚠️ HIGH: 10 to 20 players, or Battleship class fleets (Machariels, Rokhs,
+    Megathrons, Marauders, Black Ops), and warp bubbles on grid.
+  - 🔥 MEDIUM: Less than 10 players, or Battlecruiser / Cruiser / Frigate gangs.
+  - ℹ️ INFO: No visual reports (nv / na) or less than 3 in system.
+  - ✓ CLEAR: Explicitly stated only when the keyword 'clear' / 'clr' is reported.
 • Filters coalition and alliance channels by default:
   - The Imperium (*.imperium, delve, fareast, fountain)
   - Pandemic Horde (*.horde, fade, kalevala)
@@ -48,8 +56,6 @@ COMPUTE STRATEGIES:
   - Brave Collective (*.brave), Snuffed Out (*.snuff), and military tags.
 • Custom Keywords: Input arbitrary custom channel suffixes or words in the 
   keyword field to monitor specific corp or secret ops logs.
-• Threat Scoring: Instantly flags Cynos, Bubbles, Capital Spikes (Titans, 
-  Supercarriers, Dreadnoughts, FAX), and hostile scouts.
 • Auto-Response Matrix: Optional toggle to automatically calculate instant combat 
   countermeasures upon detecting critical threats.
 
