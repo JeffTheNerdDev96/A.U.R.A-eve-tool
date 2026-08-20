@@ -1,6 +1,6 @@
 """
 EVE Online Tactical Database, Comprehensive Combat Matrix & Domain Grounding Engine.
-Customized for A.U.R.A. (Adaptive Underworld Recon Array) — ver.0.1.1-alpha3 & Core.
+Customized for A.U.R.A. (Adaptive Underworld Recon Array) — ver.0.1.2-alpha4 & Core.
 Contains encyclopedic vessel dossiers (350+ hulls), module matrix (250+ modules),
 subsystems, weapon tracking mathematics, capacitor warfare, and tactical grounding.
 Covers all standard empire, navy, pirate, faction, industrial, capital, and T3 vessels.
@@ -4013,9 +4013,33 @@ import functools
 _RE_CLEAN_ALPHANUM = re.compile(r"[^a-z0-9]")
 _RE_WORDS = re.compile(r"\b[A-Za-z0-9\-]+\b")
 _RE_OWN_SHIP = re.compile(
-    r"\b(?:i am in a|i'm in a|flying a|piloting a|my ship is a?|in a)\s+([A-Za-z0-9\-\s]+?)(?:\s+and|\s+with|\s+need|\s+looking|\s+waiting|\s*\.|\s*,|\s*$)",
+    r"\b(?:i am in an?|i'm in an?|flying an?|piloting an?|my ship is an?|in an?)\s+([A-Za-z0-9\-\s]+?)(?:\s+and|\s+with|\s+need|\s+looking|\s+waiting|\s+fighting|\s+vs|\s+against|\s*\.|\s*,|\s*$)",
     re.IGNORECASE
 )
+
+# Common EVE Online Shorthand Combat Aliases
+_COMMON_SHIP_ALIASES: Dict[str, str] = {
+    "slicer": "Imperial Navy Slicer",
+    "in slicer": "Imperial Navy Slicer",
+    "hookbill": "Caldari Navy Hookbill",
+    "comet": "Federation Navy Comet",
+    "firetail": "Republic Fleet Firetail",
+    "omen navy": "Omen Navy Issue",
+    "stabber fleet": "Stabber Fleet Issue",
+    "scythe fleet": "Scythe Fleet Issue",
+    "caracal navy": "Caracal Navy Issue",
+    "drake navy": "Drake Navy Issue",
+    "exequror navy": "Exequror Navy Issue",
+    "vexor navy": "Vexor Navy Issue",
+    "brutix navy": "Brutix Navy Issue",
+    "megathron navy": "Megathron Navy Issue",
+    "tempest fleet": "Tempest Fleet Issue",
+    "typhoon fleet": "Typhoon Fleet Issue",
+    "bhaal": "Bhaalgorn",
+    "vindi": "Vindicator",
+    "macha": "Machariel",
+    "rattle": "Rattlesnake"
+}
 
 # Fast Normalized Lookup Tables & Pre-Rendered Dossiers for Sub-Microsecond Resolution
 _FAST_SHIP_LOOKUP: Dict[str, Dict[str, Any]] = {}
@@ -4031,6 +4055,12 @@ for _k, _v in SHIP_DATABASE.items():
     _clean_k = _RE_CLEAN_ALPHANUM.sub("", _k.lower())
     _FAST_SHIP_LOOKUP[_clean_k] = _v_copy
 
+for _alias, _target in _COMMON_SHIP_ALIASES.items():
+    if _target in SHIP_DATABASE:
+        _tgt_data = _FAST_SHIP_LOOKUP[_target.lower()]
+        _FAST_SHIP_LOOKUP[_alias.lower()] = _tgt_data
+        _FAST_SHIP_LOOKUP[_RE_CLEAN_ALPHANUM.sub("", _alias.lower())] = _tgt_data
+
 _MULTI_WORD_SHIPS = [(_k, _v, _k.lower()) for _k, _v in SHIP_DATABASE.items() if " " in _k]
 _ROLE_DOCTRINES_LOWER = [(_rk.lower(), _rdoc) for _rk, _rdoc in ROLE_DOCTRINES.items()]
 
@@ -4042,6 +4072,32 @@ for _mk, _mv in MODULE_DATABASE.items():
     _FAST_MODULE_LOOKUP[_mk_l] = _mv_copy
     _clean_mk = _RE_CLEAN_ALPHANUM.sub("", _mk_l)
     _FAST_MODULE_LOOKUP[_clean_mk] = _mv_copy
+    
+    if "/" in _mk_l:
+        parts = [p.strip() for p in _mk_l.split("/")]
+        last_part = parts[-1]
+        last_words = last_part.split()
+        if len(last_words) > 1:
+            base_noun = " ".join(last_words[1:])
+            for p in parts:
+                variant_full = p if base_noun in p else f"{p} {base_noun}"
+                _FAST_MODULE_LOOKUP[variant_full] = _mv_copy
+                _FAST_MODULE_LOOKUP[_RE_CLEAN_ALPHANUM.sub("", variant_full)] = _mv_copy
+                for _suffix in [" ii", " i", " compact", " scoped", " enduring", " restrained", " tech ii", " tech 2"]:
+                    _FAST_MODULE_LOOKUP[f"{variant_full}{_suffix}"] = _mv_copy
+                    _FAST_MODULE_LOOKUP[_RE_CLEAN_ALPHANUM.sub("", f"{variant_full}{_suffix}")] = _mv_copy
+
+    if "(" in _mk_l:
+        _base = _mk_l.split("(")[0].strip()
+        _FAST_MODULE_LOOKUP[_base] = _mv_copy
+        _FAST_MODULE_LOOKUP[_RE_CLEAN_ALPHANUM.sub("", _base)] = _mv_copy
+        _paren_content = _mk_l.split("(")[1].split(")")[0]
+        for _token in _paren_content.split("/"):
+            _t = _token.strip()
+            if len(_t) >= 2:
+                _FAST_MODULE_LOOKUP[_t] = _mv_copy
+                _FAST_MODULE_LOOKUP[_RE_CLEAN_ALPHANUM.sub("", _t)] = _mv_copy
+                
     for _suffix in [" ii", " i", " compact", " scoped", " enduring", " restrained", " tech ii", " tech 2", " tech 1"]:
         if _mk_l.endswith(_suffix):
             _base = _mk_l[:-len(_suffix)].strip()
@@ -4073,7 +4129,8 @@ def lookup_module(name: str) -> Optional[Dict[str, Any]]:
     if clean in _FAST_MODULE_LOOKUP:
         return _FAST_MODULE_LOOKUP[clean]
     for mk, mv in MODULE_DATABASE.items():
-        if mk.lower() in raw_lower or raw_lower in mk.lower():
+        base_name = mk.split("(")[0].strip().lower()
+        if base_name in raw_lower or raw_lower in base_name:
             return mv
     return None
 
