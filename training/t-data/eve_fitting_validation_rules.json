@@ -1,0 +1,17 @@
+{
+  "anti_dual_tank": {
+    "rule": "Never fit both Shield Extenders/Boosters and Armor Plates/Repairers simultaneously.",
+    "rationale": "Shield modules bloom signature radius by 25%, maximizing damage taken on armor, while armor plates add mass and slow velocity, reducing shield agility."
+  },
+  "module_hull_sizing": {
+    "rule": "Never fit oversized or undersized weapons/modules outside hull class boundaries.",
+    "boundaries": {
+      "Frigates / Destroyers": "Small weapons (125-280mm / Rockets / Light Missiles), 1MN AB / 5MN MWD, 200-400mm Plates, Small Extenders.",
+      "Cruisers / Battlecruisers": "Medium weapons (425mm / Heavy Missiles / HAMs), 10MN AB / 50MN MWD, 800-1600mm Plates, Large Extenders.",
+      "Battleships / Marauders": "Large weapons (800-1400mm / Torpedoes / Cruise), 100MN AB / 500MN MWD / MJD, 1600mm+ Plates, X-Large Shield Boosters."
+    }
+  },
+  "turret_and_launcher_hardpoint_cap": {
+    "rule": "Total fitted turrets cannot exceed hull Turret Hardpoints; total fitted launchers cannot exceed hull Launcher Hardpoints."
+  }
+}

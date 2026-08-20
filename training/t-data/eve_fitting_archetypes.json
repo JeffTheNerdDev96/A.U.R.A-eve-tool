@@ -1,0 +1,26 @@
+[
+  {
+    "hull": "Wolf",
+    "doctrine": "Solo SAAR Armor Brawler",
+    "role": "Assault Frigate Close Quarters",
+    "eft": "[Wolf, Solo SAAR Armor Brawler]\nSmall Ancillary Armor Repairer, Nanite Repair Paste\nDamage Control II\nGyrostabilizer II\nAssault Damage Control II\nMultispectrum Energized Membrane II\n\n1MN Afterburner II\nWarp Scrambler II\nStasis Webifier II\n\n200mm Autocannon II, Republic Fleet EMP S\n200mm Autocannon II, Republic Fleet EMP S\n200mm Autocannon II, Republic Fleet EMP S\n200mm Autocannon II, Republic Fleet EMP S\nSmall Energy Neutralizer II\n\nSmall Auxiliary Nano Pump II\nSmall Projectile Burst Aerator II\n"
+  },
+  {
+    "hull": "Cynabal",
+    "doctrine": "Nano Skirmish Kiter",
+    "role": "Cruiser Long-Range Autocannon Kiter",
+    "eft": "[Cynabal, Nano Skirmish Kiter]\nGyrostabilizer II\nGyrostabilizer II\nGyrostabilizer II\nNanofiber Internal Structure II\nDamage Control II\n\n50MN Microwarpdrive II\nLarge Shield Extender II\nLarge Shield Extender II\nWarp Disruptor II\nMulti-Spectrum Shield Hardener\n\n425mm AutoCannon II, Republic Fleet Phased Plasma M\n425mm AutoCannon II, Republic Fleet Phased Plasma M\n425mm AutoCannon II, Republic Fleet Phased Plasma M\n425mm AutoCannon II, Republic Fleet Phased Plasma M\nSmall Energy Neutralizer II\n\nMedium Core Defense Field Extender II\nMedium Core Defense Field Extender II\nMedium Projectile Collision Accelerator II\n\nWarrior II x5\nAcolyte II x5\n"
+  },
+  {
+    "hull": "Loki",
+    "doctrine": "100MN Heavy Armor Web Brawler",
+    "role": "Modular T3C Covert Combat",
+    "eft": "[Loki, 100MN Heavy Armor Web Brawler]\n1600mm Steel Plates II\nDamage Control II\nCentii A-Type Small Armor Repairer\nMultispectrum Energized Membrane II\nMultispectrum Energized Membrane II\nReactive Armor Hardener\n\n100MN Afterburner II\nWarp Scrambler II\nStasis Webifier II\nStasis Webifier II\nRepublic Fleet Medium Cap Battery\n\nHeavy Assault Missile Launcher II, Caldari Navy Mjolnir Heavy Assault Missile\nHeavy Assault Missile Launcher II, Caldari Navy Mjolnir Heavy Assault Missile\nHeavy Assault Missile Launcher II, Caldari Navy Mjolnir Heavy Assault Missile\nHeavy Assault Missile Launcher II, Caldari Navy Mjolnir Heavy Assault Missile\nHeavy Assault Missile Launcher II, Caldari Navy Mjolnir Heavy Assault Missile\nCovert Ops Cloaking Device II\n\nMedium Trimark Armor Pump II\nMedium Trimark Armor Pump II\nMedium Auxiliary Nano Pump II\n\nLoki Core - Immobility Drivers\nLoki Defensive - Covert Reconfiguration\nLoki Offensive - Launcher Efficiency Configuration\nLoki Propulsion - Intercalated Nanofibers\n\nAcolyte II x5\nWarrior II x5\n"
+  },
+  {
+    "hull": "Gila",
+    "doctrine": "Abyssal Deadspace & Combat Cruiser",
+    "role": "Passive Shield Heavy Drone / Missile",
+    "eft": "[Gila, Abyssal Deadspace Passive Shield]\nShield Power Relay II\nShield Power Relay II\nDrone Damage Amplifier II\n\n10MN Afterburner II\nLarge Shield Extender II\nLarge Shield Extender II\nMultispectrum Shield Hardener\nEM Shield Hardener II\nThermal Shield Hardener II\n\nRapid Light Missile Launcher II, Caldari Navy Scourge Light Missile\nRapid Light Missile Launcher II, Caldari Navy Scourge Light Missile\nRapid Light Missile Launcher II, Caldari Navy Scourge Light Missile\nRapid Light Missile Launcher II, Caldari Navy Scourge Light Missile\nSmall Energy Neutralizer II\n\nMedium Core Defense Field Purger II\nMedium Core Defense Field Purger II\nMedium Core Defense Field Purger II\n\nHammerhead II x2\nValkyrie II x2\n"
+  }
+]

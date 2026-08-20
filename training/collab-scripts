@@ -1,0 +1,227 @@
+# =======================================================================
+# THIS IS FOR CLOUD MODEL TRAINING NOT RUN LOCALLY
+# 1. MOUNT DRIVE & BUILD CONVERSION TOOLCHAIN
+# =======================================================================
+from google.colab import drive
+drive.mount('/content/drive/')
+
+# Install Unsloth and training dependencies
+!pip install --upgrade --no-cache-dir "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
+!pip install --no-deps trl peft accelerate bitsandbytes datasets
+
+# Install CMake and build llama.cpp quantizer (RAM-safe 2 threads)
+!apt-get install -y cmake
+!rm -rf llama.cpp
+!git clone https://github.com/ggerganov/llama.cpp
+!cd llama.cpp && pip install -r requirements.txt
+!cd llama.cpp && cmake -B build && cmake --build build --config Release -j 2 --target llama-quantize
+
+# =======================================================================
+# 2. LOAD PHI-4-MINI-INSTRUCT & CONFIGURE QLORA
+# =======================================================================
+from unsloth import FastLanguageModel
+from unsloth.chat_templates import get_chat_template
+import torch
+import gc
+
+max_seq_length = 2048
+load_in_4bit = True
+
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name = "unsloth/Phi-4-mini-instruct",
+    max_seq_length = max_seq_length,
+    dtype = None,
+    load_in_4bit = load_in_4bit,
+)
+
+# Apply Phi-4 chat template
+tokenizer = get_chat_template(
+    tokenizer,
+    chat_template = "phi-4",
+)
+
+# Attach PEFT / LoRA target modules
+model = FastLanguageModel.get_peft_model(
+    model,
+    r = 16,
+    target_modules = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+    lora_alpha = 16,
+    lora_dropout = 0,
+    bias = "none",
+    use_gradient_checkpointing = "unsloth",
+    random_state = 3407,
+)
+
+# =======================================================================
+# 3. LOAD & PARSE ALL TRAINING DATASETS
+# =======================================================================
+import os
+import glob
+import json
+from datasets import Dataset
+
+data_dir = "/content/drive/MyDrive/AURA/DATA"
+all_samples = []
+
+system_prompt = (
+    "You are A.U.R.A. (Adaptive Underworld Recon Array), the elite tactical shipboard "
+    "combat AI of the Angel Cartel in EVE Online. Provide concise, high-impact tactical advice."
+)
+
+for file_path in glob.glob(os.path.join(data_dir, "*.*")):
+    fname = os.path.basename(file_path).lower()
+    
+    if fname.endswith(".jsonl"):
+        with open(file_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    item = json.loads(line.strip())
+                    if "messages" in item:
+                        all_samples.append({"messages": item["messages"]})
+                        
+    elif fname.endswith(".json"):
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            
+        if isinstance(data, list):
+            for entry in data:
+                if "messages" in entry:
+                    all_samples.append({"messages": entry["messages"]})
+                elif "name" in entry and "ship_class" in entry:
+                    user_q = f"Tactical analysis and profile for {entry['name']} ({entry.get('ship_class', 'Vessel')})?"
+                    asst_a = (
+                        f"• Hull: {entry['name']} | Class: {entry.get('ship_class')} | Faction: {entry.get('faction')}\n"
+                        f"• Role: {entry.get('role')} | Threat: {entry.get('threat_rating')}\n"
+                        f"• Tank Doctrine: {entry.get('tank_doctrine')}\n"
+                        f"• Engagement Range: {entry.get('optimal_engagement_range')}\n"
+                        f"• Tactical Combat Notes: {entry.get('tactical_combat_notes')}"
+                    )
+                    all_samples.append({"messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_q},
+                        {"role": "assistant", "content": asst_a}
+                    ]})
+                elif "name" in entry and "category" in entry:
+                    user_q = f"Explain module specifications and tactical use for: {entry['name']}"
+                    asst_a = (
+                        f"• Module: {entry['name']} ({entry.get('category')})\n"
+                        f"• Slot: {entry.get('slot_type')} | Size: {entry.get('size_class')}\n"
+                        f"• Fitting: {entry.get('powergrid_mw')} MW PG, {entry.get('cpu_tf')} TF CPU\n"
+                        f"• Tactical Doctrine: {entry.get('role_and_tactics')}"
+                    )
+                    all_samples.append({"messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_q},
+                        {"role": "assistant", "content": asst_a}
+                    ]})
+                elif "hull" in entry and "eft" in entry:
+                    user_q = f"Provide standard doctrine EFT fitting for {entry['hull']} ({entry.get('doctrine')})"
+                    asst_a = f"• Role: {entry.get('role')}\n• EFT Fit:\n{entry.get('eft')}"
+                    all_samples.append({"messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_q},
+                        {"role": "assistant", "content": asst_a}
+                    ]})
+                elif "name" in entry and "region" in entry:
+                    user_q = f"Intel report on solar system: {entry['name']}"
+                    asst_a = (
+                        f"• System: {entry['name']} | Region: {entry.get('region')} ({entry.get('constellation')})\n"
+                        f"• Security Status: {entry.get('sec')} (TrueSec: {entry.get('truesec')})\n"
+                        f"• Classification: {entry.get('class')} | Faction: {entry.get('faction')}"
+                    )
+                    all_samples.append({"messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_q},
+                        {"role": "assistant", "content": asst_a}
+                    ]})
+
+dataset = Dataset.from_list(all_samples)
+print(f"Total processed samples: {len(dataset)}")
+
+def formatting_prompts_func(examples):
+    convos = examples["messages"]
+    texts = [tokenizer.apply_chat_template(convo, tokenize=False, add_generation_prompt=False) for convo in convos]
+    return {"text": texts}
+
+dataset = dataset.map(formatting_prompts_func, batched=True)
+
+# =======================================================================
+# 4. FINE-TUNE MODEL
+# =======================================================================
+from trl import SFTTrainer
+from transformers import TrainingArguments
+from unsloth import is_bfloat16_supported
+
+trainer = SFTTrainer(
+    model = model,
+    tokenizer = tokenizer,
+    train_dataset = dataset,
+    dataset_text_field = "text",
+    max_seq_length = max_seq_length,
+    dataset_num_proc = 2,
+    packing = False,
+    args = TrainingArguments(
+        per_device_train_batch_size = 2,
+        gradient_accumulation_steps = 4,
+        warmup_steps = 5,
+        num_train_epochs = 3,
+        learning_rate = 2e-4,
+        fp16 = not is_bfloat16_supported(),
+        bf16 = is_bfloat16_supported(),
+        logging_steps = 10,
+        optim = "adamw_8bit",
+        weight_decay = 0.01,
+        lr_scheduler_type = "linear",
+        seed = 3407,
+        output_dir = "/content/drive/MyDrive/AURA/model-tuned/checkpoints",
+    ),
+)
+
+trainer.train()
+
+# =======================================================================
+# 5. PHASE 1: MERGE LORA WEIGHTS INTO BASE PHI-4-MINI
+# =======================================================================
+print("Merging LoRA adapters into full base model...")
+lora_dir = "/content/drive/MyDrive/AURA/model-tuned/lora_adapters"
+merged_dir = "/content/drive/MyDrive/AURA/model-tuned/merged_16bit"
+
+# Save standalone LoRA adapters
+model.save_pretrained(lora_dir)
+tokenizer.save_pretrained(lora_dir)
+
+# Merge LoRA weights directly into the base Phi-4-mini weights
+model.save_pretrained_merged(merged_dir, tokenizer, save_method="merged_16bit")
+
+# =======================================================================
+# 6. SYSTEM MEMORY PURGE (PREVENTS COLAB RAM CRASHES)
+# =======================================================================
+for var in ['model', 'tokenizer', 'trainer', 'dataset', 'all_samples']:
+    if var in globals():
+        del globals()[var]
+
+gc.collect()
+torch.cuda.empty_cache()
+print("PyTorch and Python heap RAM successfully flushed.")
+
+# =======================================================================
+# 7. PHASE 1: CONVERT TO GGUF & QUANTIZE TO Q4_K_M (model_q4.gguf)
+# =======================================================================
+f16_gguf = "/content/drive/MyDrive/AURA/model-tuned/AURA-Eve-F16.gguf"
+q4_gguf = "/content/drive/MyDrive/AURA/model-tuned/model_q4.gguf"
+
+# Convert merged 16-bit weights to intermediate F16 GGUF
+!python llama.cpp/convert_hf_to_gguf.py {merged_dir} \
+    --outfile {f16_gguf} \
+    --outtype f16 \
+    --vocab-type bpe
+
+# Quantize to Q4_K_M (~2.2 - 2.4 GB)
+!./llama.cpp/build/bin/llama-quantize {f16_gguf} {q4_gguf} q4_k_m
+
+# Remove large 7.5GB temporary F16 file to preserve Google Drive storage
+if os.path.exists(f16_gguf):
+    os.remove(f16_gguf)
+    print(f"Removed temporary F16 binary: {f16_gguf}")
+
+print(f"\nPhase 1 Complete! Quantized binary ready for download at:\n{q4_gguf}")
