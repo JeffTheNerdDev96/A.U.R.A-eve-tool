@@ -10,6 +10,7 @@
 *.pt
 models/
 **/models/
+**/training/
 
 # 2. Local Builds, Distro Packages & Installers
 A.U.R.A Distro/
