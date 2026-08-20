@@ -68,8 +68,11 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 echo [+] Launching A.U.R.A. Interface...
-if defined PYTHONW_EXE (
-    start "" "%PYTHONW_EXE%" "%SCRIPT_DIR%app.py"
+if exist "%SCRIPT_DIR%A.U.R.A.exe" (
+    start "" /d "%SCRIPT_DIR%" "%SCRIPT_DIR%A.U.R.A.exe"
+    exit /b 0
+) else if defined PYTHONW_EXE (
+    start "" /d "%SCRIPT_DIR%" "%PYTHONW_EXE%" "%SCRIPT_DIR%app.py"
     exit /b 0
 ) else (
     "%PYTHON_EXE%" "%SCRIPT_DIR%app.py"
