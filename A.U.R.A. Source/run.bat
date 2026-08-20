@@ -7,7 +7,7 @@ title A.U.R.A. Assist — Tactical Recon Array
 cls
 echo ===================================================================
 echo   ☠️  A.U.R.A. ASSIST — TACTICAL RECON ARRAY
-echo   Angel Cartel Cybernetics Division  ^|  by JeffTheNerd92
+echo   Angel Cartel Cybernetics Division  ^|  by JeffTheNerdDev96
 echo ===================================================================
 echo [!] Initializing Neural Core ^& Live Intel Stream...
 echo.

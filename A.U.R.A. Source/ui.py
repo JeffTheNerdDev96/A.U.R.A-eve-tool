@@ -1010,7 +1010,7 @@ class MainWindow(QMainWindow):
     def _display_welcome(self):
         self._append_message("A.U.R.A.", (
             "☠️ <b>A.U.R.A. Assist — Adaptive Underworld Recon Array</b>\n"
-            "<i>by JeffTheNerd92</i>\n\n"
+            "<i>by JeffTheNerdDev96</i>\n\n"
             "🛰️ <b>Live Intel Radar is active on the right panel.</b>"
         ))
 

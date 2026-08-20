@@ -1,7 +1,7 @@
 ===============================================================================
        A.U.R.A. Assist — Adaptive Underworld Recon Array (v0.1.2-alpha4)
                   Angel Cartel Cybernetics Division
-                       Author: JeffTheNerd92
+                       Author: JeffTheNerdDev96
 ===============================================================================
 
 1. OVERVIEW & MISSION
