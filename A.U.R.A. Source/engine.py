@@ -26,7 +26,7 @@ _PATH_RESOLVED: bool = False
 
 
 def find_model_file() -> Optional[str]:
-    """Scans candidate paths to locate the Phi-3.5 Mini model_q4.gguf file with caching."""
+    """Scans candidate paths to locate the Phi-4 Mini model_q4.gguf file with caching."""
     global _CACHED_MODEL_PATH, _PATH_RESOLVED
     if _PATH_RESOLVED and _CACHED_MODEL_PATH and os.path.exists(_CACHED_MODEL_PATH):
         return _CACHED_MODEL_PATH
@@ -35,21 +35,22 @@ def find_model_file() -> Optional[str]:
     root_dir = os.path.dirname(source_dir)
     
     candidates = [
-        os.path.join(source_dir, "models", "phi-3.5", "model_q4.gguf"),
-        os.path.join(root_dir, "models", "phi-3.5", "model_q4.gguf"),
-        os.path.join(root_dir, "A.U.R.A Distro", "Standalone", "models", "phi-3.5", "model_q4.gguf"),
-        os.path.join(root_dir, "A.U.R.A Distro", "Installer", "models", "phi-3.5", "model_q4.gguf"),
-        os.path.join(os.path.dirname(sys.executable), "models", "phi-3.5", "model_q4.gguf"),
-        os.path.join(os.getcwd(), "models", "phi-3.5", "model_q4.gguf"),
-        os.path.expanduser(r"~\AppData\Local\Programs\A.U.R.A. v0.1.2-alpha4\models\phi-3.5\model_q4.gguf"),
-        os.path.expanduser(r"~\AppData\Local\Programs\A.U.R.A. v0.1.1-alpha3\models\phi-3.5\model_q4.gguf"),
-        os.path.expanduser(r"~\AppData\Local\Programs\A.U.R.A. v0.1.0-alpha2\models\phi-3.5\model_q4.gguf"),
-        r"C:\Program Files\A.U.R.A. v0.1.2-alpha4\models\phi-3.5\model_q4.gguf",
-        r"C:\A.U.R.A. v0.1.2-alpha4\models\phi-3.5\model_q4.gguf",
-        r"C:\Program Files\A.U.R.A. v0.1.1-alpha3\models\phi-3.5\model_q4.gguf",
-        r"C:\A.U.R.A. v0.1.1-alpha3\models\phi-3.5\model_q4.gguf",
-        r"C:\Program Files\A.U.R.A. v0.1.0-alpha2\models\phi-3.5\model_q4.gguf",
-        r"C:\A.U.R.A. v0.1.0-alpha2\models\phi-3.5\model_q4.gguf",
+        os.path.join(source_dir, "models", "phi-4-mini", "model_q4.gguf"),
+        os.path.join(root_dir, "models", "phi-4-mini", "model_q4.gguf"),
+        os.path.join(root_dir, "A.U.R.A Distro", "Installer", "models", "phi-4-mini", "model_q4.gguf"),
+        os.path.join(os.path.dirname(sys.executable), "models", "phi-4-mini", "model_q4.gguf"),
+        os.path.join(os.getcwd(), "models", "phi-4-mini", "model_q4.gguf"),
+        os.path.expanduser(r"~\AppData\Local\Programs\A.U.R.A. v0.1.3-alpha5\models\phi-4-mini\model_q4.gguf"),
+        os.path.join(source_dir, "models", "phi-4-mini", "model_q4.gguf"),
+        os.path.join(root_dir, "models", "phi-4-mini", "model_q4.gguf"),
+        os.path.join(root_dir, "A.U.R.A Distro", "Installer", "models", "phi-4-mini", "model_q4.gguf"),
+        os.path.join(os.path.dirname(sys.executable), "models", "phi-4-mini", "model_q4.gguf"),
+        os.path.join(os.getcwd(), "models", "phi-4-mini", "model_q4.gguf"),
+        os.path.expanduser(r"~\AppData\Local\Programs\A.U.R.A. v0.1.3-alpha5\models\phi-4-mini\model_q4.gguf"),
+        r"C:\A.U.R.A. v0.1.3-alpha5\models\phi-4-mini\model_q4.gguf",
+        r"C:\A.U.R.A. v0.1.3-alpha5\models\phi-4-mini\model_q4.gguf",
+        os.path.join(source_dir, "models", "Phi-4-mini-instruct", "model_q4.gguf"),
+        os.path.join(root_dir, "models", "Phi-4-mini-instruct", "model_q4.gguf"),
     ]
     for p in candidates:
         if os.path.exists(p) and os.path.getsize(p) > 100000000:
@@ -125,7 +126,7 @@ class NeuralHardwareCoProcessor:
 class UnifiedInferenceEngine:
     """
     Direct Neural Model Inference Engine customized for EVE Online Angel Cartel A.U.R.A.
-    Powered by Microsoft Phi-3.5 Mini (3.8B Reasoning).
+    Powered by Microsoft Phi-4 Mini (3.8B Reasoning Core).
     Features lazy on-demand initialization to ensure near-instant app boot and minimal standby RAM.
     """
     def __init__(self, eager_load: bool = False):
@@ -176,28 +177,26 @@ class UnifiedInferenceEngine:
                 import llama_cpp
                 from llama_cpp import Llama
                 
-                # Dedicated compute threads tuned for high-throughput prompt processing and generation
-                phys_cores = psutil.cpu_count(logical=False) or 4
-                threads = max(4, min(phys_cores, 8))
+                # Multi-Hardware Mesh Parallel Workload Allocation:
+                # Fully utilizes all PC resources: NPU co-processor + GPU VRAM layers + all CPU vector threads
+                total_threads = psutil.cpu_count(logical=True) or 4
+                gpu_layers = 33 if self.detector.has_gpu else 0
+                threads = max(4, total_threads)
+                threads_batch = max(6, total_threads)
                 
-                print(f"[A.U.R.A.] Initializing tactical neural model '{config.model_display_name}' from {model_file} ({threads} compute threads)...")
+                print(f"[A.U.R.A.] Initializing tactical neural model '{config.model_display_name}' from {model_file} ({threads} compute threads, {gpu_layers} GPU layers)...")
                 print(f"[A.U.R.A.] Hardware Topology: {self.detector.get_summary_string()}")
                 
                 type_k = getattr(llama_cpp, "GGML_TYPE_Q8_0", getattr(llama_cpp, "GGML_TYPE_F16", None))
                 type_v = getattr(llama_cpp, "GGML_TYPE_Q8_0", getattr(llama_cpp, "GGML_TYPE_F16", None))
                 
-                # Compute layers offload: Offload to dedicated GPU if present and Turbo/dGPU enabled
-                gpu_layers = 0
-                if self.detector.has_dgpu and not self.detector.has_npu:
-                    gpu_layers = 33  # Fully offload Phi-3.5 Mini to Dedicated GPU
-                
                 llama_kwargs = {
                     "model_path": model_file,
                     "n_ctx": config.context_window,
                     "n_threads": threads,
-                    "n_threads_batch": max(threads, 6),
-                    "n_batch": 1024,
-                    "n_ubatch": 512,
+                    "n_threads_batch": threads_batch,
+                    "n_batch": 512,
+                    "n_ubatch": 256,
                     "use_mmap": True,
                     "use_mlock": False,
                     "n_gpu_layers": gpu_layers,
@@ -229,7 +228,7 @@ class UnifiedInferenceEngine:
                 print(f"[A.U.R.A.] Error initializing Llama: {e}")
         else:
             self.is_loaded = False
-            self.init_error = f"Model file for Phi-3.5 Mini not found."
+            self.init_error = f"Model file for Phi-4 Mini not found."
             print(f"[A.U.R.A.] {self.init_error}")
 
 
@@ -293,15 +292,13 @@ class UnifiedInferenceEngine:
         prompt: str,
         chat_history: List[Dict[str, str]] = None,
         attachments: List[Dict[str, Any]] = None,
-        turbo_mode: Optional[bool] = None,
         piloted_ship: Optional[str] = None
     ) -> Generator[Dict[str, Any], None, None]:
         """
-        Streams A.U.R.A. response tokens with EVE tactical reasoning and dynamic NPU scaling.
+        Streams A.U.R.A. response tokens with EVE tactical reasoning and dynamic hardware scaling.
         """
         chat_history = chat_history or []
         attachments = attachments or []
-        is_turbo = config.turbo_mode if turbo_mode is None else turbo_mode
         
         has_image = any(att.get("type") == "image" for att in attachments)
         has_doc = any(att.get("type") == "document" for att in attachments)
@@ -316,8 +313,7 @@ class UnifiedInferenceEngine:
             token_count=token_estimate,
             has_image=has_image,
             has_doc=has_doc,
-            attachment_count=len(attachments),
-            turbo_mode=is_turbo
+            attachment_count=len(attachments)
         )
 
         
@@ -353,20 +349,25 @@ class UnifiedInferenceEngine:
                 gen_start_time = time.time()
                 first_token_time = None
                 
-                # Dynamic thread allocation: Full threads in Turbo mode or when host has no NPU
+                # Dynamic Full Compute Mesh: Maximize parallel workloads across all CPU cores + NPU co-processor + GPU
                 if hasattr(self.llm, "n_threads"):
                     try:
-                        use_full_threads = is_turbo or (not self.detector.has_npu) or has_image or has_doc
-                        self.llm.n_threads = self.detector.cpu_threads if use_full_threads else min(6, self.detector.cpu_threads)
+                        self.llm.n_threads = self.detector.cpu_threads
                     except Exception:
                         pass
+                
+                # Asynchronous parallel NPU co-processor dispatch
+                if self.coprocessor and self.detector.has_npu:
+                    import threading
+                    threading.Thread(target=self.coprocessor.execute, args=("FULL_MESH", 2), daemon=True).start()
 
                 stream = self.llm.create_chat_completion(
                     messages=messages,
                     max_tokens=config.max_new_tokens,
                     temperature=config.temperature,
                     top_p=config.top_p,
-                    repeat_penalty=1.1,
+                    repeat_penalty=1.12,
+                    stop=["<|im_end|>", "<|end|>", "<|eot_id|>", "<|end_of_text|>", "<|im_start|>"],
                     stream=True
                 )
                 
@@ -374,11 +375,13 @@ class UnifiedInferenceEngine:
                     delta = chunk.get("choices", [{}])[0].get("delta", {})
                     token_text = delta.get("content", "")
                     if token_text:
-                        # Prevent echoing of context headers or duplicate sections
-                        if any(header in token_text for header in [
+                        if any(st in token_text for st in ["<|im_end|>", "<|end|>", "<|eot_id|>", "<|end_of_text|>", "<|im_start|>"]):
+                            break
+                        # Prevent echoing of secondary mock context headers after generating content
+                        if tokens_generated > 20 and any(header in token_text for header in [
                             "[Tactical Grounding", "[Verified Tactical", "[EVE TACTICAL", "[EVE COMBAT",
                             "[TACTICAL INTEL", "[COMBAT ROLE", "[ENGAGEMENT RANGE", "[EVADE ROUTES",
-                            "[TACKLE VULNERABILITIES", "[PILOTING", "[TACTICAL ENGAGEMENT"
+                            "[TACKLE VULNERABILITIES", "[PILOTING", "[TACTICAL ENGAGEMENT", "[CAPSULEER"
                         ]):
                             break
                         now = time.time()
@@ -397,7 +400,7 @@ class UnifiedInferenceEngine:
                             "elapsed": round(now - (first_token_time or gen_start_time), 2)
                         }
             else:
-                msg = f"A.U.R.A. Neural Core is offline: Neural weights (model_q4.gguf) not found in 'models/phi-3.5/'. Please place 'model_q4.gguf' into the 'models/phi-3.5/' folder (download from: https://huggingface.co/bartowski/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct-Q4_K_M.gguf)."
+                msg = f"A.U.R.A. Neural Core is offline: Neural weights (model_q4.gguf) not found in 'models/{config.model_folder}/'. Please verify that 'model_q4.gguf' is located in 'models/{config.model_folder}/'."
                 gen_start_time = time.time()
                 first_token_time = None
                 for w in msg.split(" "):
@@ -416,25 +419,24 @@ class UnifiedInferenceEngine:
                     }
         except Exception as e:
             err_msg = f"Error during tactical calculation: {e}"
-            yield {"type": "token", "text": err_msg, "tokens_generated": 1, "current_tps": 0.0, "elapsed": 0.1}
+            print(f"[A.U.R.A. Engine Error]: {e}")
+            import traceback
+            traceback.print_exc()
+            yield {
+                "type": "token",
+                "text": err_msg,
+                "tokens_generated": 1,
+                "current_tps": 0.0,
+                "elapsed": 0.1
+            }
 
         total_decode_time = max(0.01, time.time() - (first_token_time or gen_start_time or overall_start))
-
         final_tps = round(tokens_generated / total_decode_time, 1) if tokens_generated > 0 else 0.0
-
-        yield {
-            "type": "token",
-            "text": f"\n\n{hw_tag}",
-            "tokens_generated": tokens_generated,
-            "current_tps": final_tps,
-            "elapsed": round(total_decode_time, 2)
-        }
 
         yield {
             "type": "done",
             "tokens_generated": tokens_generated,
             "time_elapsed": round(total_decode_time, 2),
-            "tokens_per_sec": final_tps,
-            "hardware_strategy": hw_plan.get("short_tag", "NPU")
+            "tokens_per_sec": final_tps
         }
 

@@ -1,6 +1,6 @@
 """
 EVE Online Tactical Database, Comprehensive Combat Matrix & Domain Grounding Engine.
-Customized for A.U.R.A. (Adaptive Underworld Recon Array) — ver.0.1.2-alpha4 & Core.
+Customized for A.U.R.A. (Adaptive Underworld Recon Array) — ver.0.1.3-alpha5 & Core.
 Contains encyclopedic vessel dossiers (350+ hulls), module matrix (250+ modules),
 subsystems, weapon tracking mathematics, capacitor warfare, and tactical grounding.
 Covers all standard empire, navy, pirate, faction, industrial, capital, and T3 vessels.
@@ -32,7 +32,21 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer / Active",
         "speed": "Extreme (4.5-5.5 km/s MWD)",
         "optimal_range": "0-12 km (Autocannons)",
-        "tactics": "Extreme warp speed and agility. Fly with high transversal against larger guns. Vulnerable to dual webs and scramblers."
+        "tactics": "Extreme warp speed and sub-warp agility. Keep transversal high against heavier turrets. Counter with dual webs, warp scrambler, or fast combat drones.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 1,
+        "weapon_type": "Small Projectile (Autocannons)",
+        "bonuses": [
+            "25% Small Projectile damage per lvl",
+            "25% Small Projectile falloff per lvl",
+            "Role: 50% warp speed & warp acceleration",
+            "Role: 100% afterburner speed bonus"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Dramiel [Frigate | Angel Cartel]\n  - Combat Role: Pirate Interceptor / Tackler\n  - Weapon System: Small Projectile (Autocannons)\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 2 | Launchers: 1)\n  - Key Bonuses: 25% Small Projectile damage per lvl | 25% Small Projectile falloff per lvl | Role: 50% warp speed & warp acceleration\n  - Defense Profile: Shield Buffer / Active | Speed: Extreme (4.5-5.5 km/s MWD)\n  - Weapon Optimal: 0-12 km (Autocannons)\n  - Tactical Counter-Play: Extreme warp speed and sub-warp agility. Keep transversal high against heavier turrets. Counter with dual webs, warp scrambler, or fast combat drones."
     },
     "Mekubal": {
         "class": "Destroyer",
@@ -42,7 +56,20 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Extreme (3.8-4.5 km/s)",
         "optimal_range": "8-20 km (Autocannons)",
-        "tactics": "High-speed destroyer with extreme projectile alpha. Shreds frigates and light tackle before they close range."
+        "tactics": "Extreme speed destroyer. Shreds light tackle before they close range. Keep distance outside 10 km.",
+        "high_slots": 6,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 5,
+        "launcher_hardpoints": 1,
+        "weapon_type": "Small Projectile (200mm Autocannons)",
+        "bonuses": [
+            "25% Small Projectile damage per lvl",
+            "25% Small Projectile falloff per lvl",
+            "Role: 50% warp speed & acceleration"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Mekubal [Destroyer | Angel Cartel]\n  - Combat Role: Pirate Destroyer / Frigate Hunter\n  - Weapon System: Small Projectile (200mm Autocannons)\n  - Slot Layout: Highs: 6 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 5 | Launchers: 1)\n  - Key Bonuses: 25% Small Projectile damage per lvl | 25% Small Projectile falloff per lvl | Role: 50% warp speed & acceleration\n  - Defense Profile: Shield Buffer | Speed: Extreme (3.8-4.5 km/s)\n  - Weapon Optimal: 8-20 km (Autocannons)\n  - Tactical Counter-Play: Extreme speed destroyer. Shreds light tackle before they close range. Keep distance outside 10 km."
     },
     "Cynabal": {
         "class": "Cruiser",
@@ -52,7 +79,20 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer / Active",
         "speed": "Extreme (2.2-3.0 km/s MWD)",
         "optimal_range": "15-28 km (425mm Autocannons / Barrage)",
-        "tactics": "Premier nano kiter. Fast align and warp acceleration. Keep range 20-25 km, kite away from scrams/webs, apply tracking-disruptive transversal against heavy turrets."
+        "tactics": "Premier nano kiter. Fast align and warp speed. Maintain 20-25 km range with Barrage, kite away from scrams/webs, apply tracking-disruptive transversal against heavy turrets.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 1,
+        "weapon_type": "Medium Projectile (425mm Autocannons / Barrage)",
+        "bonuses": [
+            "25% Medium Projectile damage per lvl",
+            "25% Medium Projectile falloff per lvl",
+            "Role: 50% warp speed & warp acceleration"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Cynabal [Cruiser | Angel Cartel]\n  - Combat Role: Nano Skirmisher / Fleet Cruiser\n  - Weapon System: Medium Projectile (425mm Autocannons / Barrage)\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 1)\n  - Key Bonuses: 25% Medium Projectile damage per lvl | 25% Medium Projectile falloff per lvl | Role: 50% warp speed & warp acceleration\n  - Defense Profile: Shield Buffer / Active | Speed: Extreme (2.2-3.0 km/s MWD)\n  - Weapon Optimal: 15-28 km (425mm Autocannons / Barrage)\n  - Tactical Counter-Play: Premier nano kiter. Fast align and warp speed. Maintain 20-25 km range with Barrage, kite away from scrams/webs, apply tracking-disruptive transversal against heavy turrets."
     },
     "Khizriel": {
         "class": "Battlecruiser",
@@ -62,7 +102,20 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Fast (1.8-2.4 km/s)",
         "optimal_range": "20-50 km",
-        "tactics": "Heavy projectile alpha with high mobility. Fast align and warp speed allow repositioning across grid effortlessly."
+        "tactics": "Heavy projectile alpha with high mobility. Overheat MWD to dictate engagement range.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 5,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Medium Projectile (720mm Artillery / 425mm AC)",
+        "bonuses": [
+            "25% Medium Projectile damage per lvl",
+            "25% Medium Projectile falloff per lvl",
+            "Role: 50% warp speed"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Khizriel [Battlecruiser | Angel Cartel]\n  - Combat Role: Heavy Skirmish Battlecruiser\n  - Weapon System: Medium Projectile (720mm Artillery / 425mm AC)\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 5 | Launchers: 2)\n  - Key Bonuses: 25% Medium Projectile damage per lvl | 25% Medium Projectile falloff per lvl | Role: 50% warp speed\n  - Defense Profile: Shield Buffer | Speed: Fast (1.8-2.4 km/s)\n  - Weapon Optimal: 20-50 km\n  - Tactical Counter-Play: Heavy projectile alpha with high mobility. Overheat MWD to dictate engagement range."
     },
     "Machariel": {
         "class": "Battleship",
@@ -72,7 +125,20 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer / Armor",
         "speed": "Very Fast (1.5-2.0 km/s MWD)",
         "optimal_range": "15-40 km (800mm AC) or 70-130 km (1400mm Artillery)",
-        "tactics": "Cruiser-like sub-warp agility. Immense alpha with Artillery or heavy mobile DPS with Autocannons. Retain transversal against dreads."
+        "tactics": "Cruiser-like agility on a battleship hull. Devastating alpha with 1400mm Artillery or sustained DPS with 800mm AC. Maintain transversal against dreadnoughts and sniper battleships.",
+        "high_slots": 8,
+        "mid_slots": 4,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 0,
+        "weapon_type": "Large Projectile (800mm Autocannons / 1400mm Artillery)",
+        "bonuses": [
+            "25% Large Projectile damage per lvl",
+            "25% Large Projectile falloff per lvl",
+            "Role: 50% warp speed & warp acceleration"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Machariel [Battleship | Angel Cartel]\n  - Combat Role: Fast Battleship / Fleet Anchor\n  - Weapon System: Large Projectile (800mm Autocannons / 1400mm Artillery)\n  - Slot Layout: Highs: 8 | Mids: 4 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 0)\n  - Key Bonuses: 25% Large Projectile damage per lvl | 25% Large Projectile falloff per lvl | Role: 50% warp speed & warp acceleration\n  - Defense Profile: Shield Buffer / Armor | Speed: Very Fast (1.5-2.0 km/s MWD)\n  - Weapon Optimal: 15-40 km (800mm AC) or 70-130 km (1400mm Artillery)\n  - Tactical Counter-Play: Cruiser-like agility on a battleship hull. Devastating alpha with 1400mm Artillery or sustained DPS with 800mm AC. Maintain transversal against dreadnoughts and sniper battleships."
     },
     "Azariel": {
         "class": "Titan",
@@ -82,7 +148,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Fast for Titan",
         "optimal_range": "Omni Capital Range",
-        "tactics": "Angel Cartel supercapital with devastating projectile alpha strike and Titan doomsday weapon."
+        "tactics": "Angel Cartel supercapital with devastating projectile alpha strike and Titan doomsday weapon.",
+        "high_slots": 8,
+        "mid_slots": 7,
+        "low_slots": 8,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "Omni Capital Range",
+        "bonuses": [
+            "Pirate Supercapital Titan"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Azariel [Titan | Angel Cartel]\n  - Combat Role: Pirate Supercapital Titan\n  - Weapon System: Omni Capital Range\n  - Slot Layout: Highs: 8 | Mids: 7 | Lows: 8 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Pirate Supercapital Titan\n  - Defense Profile: Shield Buffer | Speed: Fast for Titan\n  - Weapon Optimal: Omni Capital Range\n  - Tactical Counter-Play: Angel Cartel supercapital with devastating projectile alpha strike and Titan doomsday weapon."
     },
     "Worm": {
         "class": "Frigate",
@@ -92,7 +169,20 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer / Passive (300% Drone Bonus)",
         "speed": "Moderate",
         "optimal_range": "0-40 km",
-        "tactics": "Extreme drone HP and damage (1 drone deals damage of 4). Kill drones or kite outside lock range."
+        "tactics": "Extreme drone HP and damage (1 drone deals damage of 4). Kill light drones or kite outside 45 km lock range. Counter with smartbombs or defanging.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 2,
+        "rig_slots": 3,
+        "turret_hardpoints": 0,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Light Drones & Light Missiles",
+        "bonuses": [
+            "300% Light Drone HP and damage",
+            "10% Light Missile kinetic/thermal damage per lvl",
+            "4% all shield resists per lvl"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Worm [Frigate | Guristas]\n  - Combat Role: Heavy Drone / Missile Frigate\n  - Weapon System: Light Drones & Light Missiles\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 2 | Rigs: 3 (Turrets: 0 | Launchers: 2)\n  - Key Bonuses: 300% Light Drone HP and damage | 10% Light Missile kinetic/thermal damage per lvl | 4% all shield resists per lvl\n  - Defense Profile: Shield Buffer / Passive (300% Drone Bonus) | Speed: Moderate\n  - Weapon Optimal: 0-40 km\n  - Tactical Counter-Play: Extreme drone HP and damage (1 drone deals damage of 4). Kill light drones or kite outside 45 km lock range. Counter with smartbombs or defanging."
     },
     "Mamba": {
         "class": "Destroyer",
@@ -102,7 +192,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Fast",
         "optimal_range": "20-45 km",
-        "tactics": "Fast missile and light drone destroyer with strong shield tank."
+        "tactics": "Fast missile and light drone destroyer with strong shield tank.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "20-45 km",
+        "bonuses": [
+            "Pirate Missile Destroyer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Mamba [Destroyer | Guristas]\n  - Combat Role: Pirate Missile Destroyer\n  - Weapon System: 20-45 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: Pirate Missile Destroyer\n  - Defense Profile: Shield Buffer | Speed: Fast\n  - Weapon Optimal: 20-45 km\n  - Tactical Counter-Play: Fast missile and light drone destroyer with strong shield tank."
     },
     "Gila": {
         "class": "Cruiser",
@@ -112,7 +213,20 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Passive / Active Shield (500% Drone Bonus)",
         "speed": "Moderate (1.6-2.0 km/s)",
         "optimal_range": "0-60 km",
-        "tactics": "Abyssal king. 2 Medium drones deliver damage and HP of 10. Heavy shield buffer. Counter by destroying drones or heavy cap neuts."
+        "tactics": "Immense drone damage (2 drones deal damage of 10) plus RLML burst. Heavy shield buffer. Counter by defanging drones, heavy capacitor neutralizers, or out-ranging 60 km drone control.",
+        "high_slots": 5,
+        "mid_slots": 6,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 0,
+        "launcher_hardpoints": 4,
+        "weapon_type": "Medium Drones & Rapid Light Missiles (RLML)",
+        "bonuses": [
+            "500% Medium Drone HP and damage",
+            "10% RLML/HAM/Heavy Missile kinetic/thermal damage per lvl",
+            "4% all shield resists per lvl"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Gila [Cruiser | Guristas]\n  - Combat Role: Drone / Missile Combat Cruiser\n  - Weapon System: Medium Drones & Rapid Light Missiles (RLML)\n  - Slot Layout: Highs: 5 | Mids: 6 | Lows: 3 | Rigs: 3 (Turrets: 0 | Launchers: 4)\n  - Key Bonuses: 500% Medium Drone HP and damage | 10% RLML/HAM/Heavy Missile kinetic/thermal damage per lvl | 4% all shield resists per lvl\n  - Defense Profile: Passive / Active Shield (500% Drone Bonus) | Speed: Moderate (1.6-2.0 km/s)\n  - Weapon Optimal: 0-60 km\n  - Tactical Counter-Play: Immense drone damage (2 drones deal damage of 10) plus RLML burst. Heavy shield buffer. Counter by defanging drones, heavy capacitor neutralizers, or out-ranging 60 km drone control."
     },
     "Alligator": {
         "class": "Battlecruiser",
@@ -122,7 +236,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Moderate",
         "optimal_range": "30-70 km",
-        "tactics": "Heavy drone and heavy assault missile platform with massive shield reserves."
+        "tactics": "Heavy drone and heavy assault missile platform with massive shield reserves.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "30-70 km",
+        "bonuses": [
+            "Heavy Drone / Missile Battlecruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Alligator [Battlecruiser | Guristas]\n  - Combat Role: Heavy Drone / Missile Battlecruiser\n  - Weapon System: 30-70 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Heavy Drone / Missile Battlecruiser\n  - Defense Profile: Shield Buffer | Speed: Moderate\n  - Weapon Optimal: 30-70 km\n  - Tactical Counter-Play: Heavy drone and heavy assault missile platform with massive shield reserves."
     },
     "Rattlesnake": {
         "class": "Battleship",
@@ -132,7 +257,20 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Passive / Active Shield",
         "speed": "Slow",
         "optimal_range": "20-80 km",
-        "tactics": "Massive passive shield recharge and heavy drone DPS. Cap neuts have low impact on passive shield regen."
+        "tactics": "Massive passive shield recharge and heavy drone DPS. Cap neuts have minimal effect on passive regen. Counter with coordinated fleet alpha or heavy kinetic/thermal missile disruption.",
+        "high_slots": 6,
+        "mid_slots": 7,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 0,
+        "launcher_hardpoints": 5,
+        "weapon_type": "Heavy/Sentry Drones & Cruise/Torpedo Missiles",
+        "bonuses": [
+            "275% Heavy/Sentry Drone HP and damage",
+            "10% Cruise/Torpedo kinetic/thermal damage per lvl",
+            "4% all shield resists per lvl"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Rattlesnake [Battleship | Guristas]\n  - Combat Role: Heavy Drone / Cruise Battleship\n  - Weapon System: Heavy/Sentry Drones & Cruise/Torpedo Missiles\n  - Slot Layout: Highs: 6 | Mids: 7 | Lows: 6 | Rigs: 3 (Turrets: 0 | Launchers: 5)\n  - Key Bonuses: 275% Heavy/Sentry Drone HP and damage | 10% Cruise/Torpedo kinetic/thermal damage per lvl | 4% all shield resists per lvl\n  - Defense Profile: Passive / Active Shield | Speed: Slow\n  - Weapon Optimal: 20-80 km\n  - Tactical Counter-Play: Massive passive shield recharge and heavy drone DPS. Cap neuts have minimal effect on passive regen. Counter with coordinated fleet alpha or heavy kinetic/thermal missile disruption."
     },
     "Loggerhead": {
         "class": "Force Auxiliary",
@@ -142,7 +280,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Active",
         "speed": "Capital",
         "optimal_range": "Fleet Remote Shield",
-        "tactics": "Guristas pirate capital shield logistics ship."
+        "tactics": "Guristas pirate capital shield logistics ship.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Fleet Remote Shield",
+        "bonuses": [
+            "Pirate Shield FAX"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Loggerhead [Force Auxiliary | Guristas]\n  - Combat Role: Pirate Shield FAX\n  - Weapon System: Fleet Remote Shield\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Pirate Shield FAX\n  - Defense Profile: Shield Active | Speed: Capital\n  - Weapon Optimal: Fleet Remote Shield\n  - Tactical Counter-Play: Guristas pirate capital shield logistics ship."
     },
     "Caiman": {
         "class": "Dreadnought",
@@ -152,7 +301,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Active",
         "speed": "Capital",
         "optimal_range": "Capital Grid",
-        "tactics": "Guristas pirate dreadnought with capital kinetic/thermal missile launchers."
+        "tactics": "Guristas pirate dreadnought with capital kinetic/thermal missile launchers.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Capital Grid",
+        "bonuses": [
+            "Pirate Missile / Drone Dread"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Caiman [Dreadnought | Guristas]\n  - Combat Role: Pirate Missile / Drone Dread\n  - Weapon System: Capital Grid\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Pirate Missile / Drone Dread\n  - Defense Profile: Shield Active | Speed: Capital\n  - Weapon Optimal: Capital Grid\n  - Tactical Counter-Play: Guristas pirate dreadnought with capital kinetic/thermal missile launchers."
     },
     "Komodo": {
         "class": "Titan",
@@ -162,7 +322,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Supercapital",
         "optimal_range": "Omni Grid",
-        "tactics": "Guristas pirate supercapital Titan with extreme missile burst and supercapital drones."
+        "tactics": "Guristas pirate supercapital Titan with extreme missile burst and supercapital drones.",
+        "high_slots": 8,
+        "mid_slots": 7,
+        "low_slots": 8,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "Omni Grid",
+        "bonuses": [
+            "Guristas Supercapital Titan"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Komodo [Titan | Guristas]\n  - Combat Role: Guristas Supercapital Titan\n  - Weapon System: Omni Grid\n  - Slot Layout: Highs: 8 | Mids: 7 | Lows: 8 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Guristas Supercapital Titan\n  - Defense Profile: Shield Buffer | Speed: Supercapital\n  - Weapon Optimal: Omni Grid\n  - Tactical Counter-Play: Guristas pirate supercapital Titan with extreme missile burst and supercapital drones."
     },
     "Cruor": {
         "class": "Frigate",
@@ -172,7 +343,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Moderate",
         "optimal_range": "0-15 km",
-        "tactics": "Heavy webs and NOS that drains cap even when ship cap is full. Keep distance outside 15 km."
+        "tactics": "Heavy webs and NOS that drains cap even when ship cap is full. Keep distance outside 15 km.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Web / NOS Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Cruor [Frigate | Blood Raiders]\n  - Combat Role: Web / NOS Frigate\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Web / NOS Frigate\n  - Defense Profile: Armor | Speed: Moderate\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Heavy webs and NOS that drains cap even when ship cap is full. Keep distance outside 15 km."
     },
     "Ashimmu": {
         "class": "Cruiser",
@@ -182,7 +364,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Moderate",
         "optimal_range": "0-25 km",
-        "tactics": "90% webs and severe energy neut drain. Eliminates enemy capacitor in seconds."
+        "tactics": "90% webs and severe energy neut drain. Eliminates enemy capacitor in seconds.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-25 km",
+        "bonuses": [
+            "Heavy Web / NOS Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Ashimmu [Cruiser | Blood Raiders]\n  - Combat Role: Heavy Web / NOS Cruiser\n  - Weapon System: 0-25 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Heavy Web / NOS Cruiser\n  - Defense Profile: Armor | Speed: Moderate\n  - Weapon Optimal: 0-25 km\n  - Tactical Counter-Play: 90% webs and severe energy neut drain. Eliminates enemy capacitor in seconds."
     },
     "Bhaalgorn": {
         "class": "Battleship",
@@ -192,7 +385,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Slow",
         "optimal_range": "0-40 km",
-        "tactics": "Fleet flagship neut. Heavy energy neutralizers drain 3000+ GJ per cycle at up to 40 km."
+        "tactics": "Fleet flagship neut. Heavy energy neutralizers drain 3000+ GJ per cycle at up to 40 km.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "0-40 km",
+        "bonuses": [
+            "Fleet Cap Drain / Heavy Web"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Bhaalgorn [Battleship | Blood Raiders]\n  - Combat Role: Fleet Cap Drain / Heavy Web\n  - Weapon System: 0-40 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Fleet Cap Drain / Heavy Web\n  - Defense Profile: Armor | Speed: Slow\n  - Weapon Optimal: 0-40 km\n  - Tactical Counter-Play: Fleet flagship neut. Heavy energy neutralizers drain 3000+ GJ per cycle at up to 40 km."
     },
     "Dagon": {
         "class": "Force Auxiliary",
@@ -202,7 +406,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Active",
         "speed": "Capital",
         "optimal_range": "Fleet Remote Armor",
-        "tactics": "Blood Raider capital armor remote repair ship."
+        "tactics": "Blood Raider capital armor remote repair ship.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Fleet Remote Armor",
+        "bonuses": [
+            "Pirate Armor FAX"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Dagon [Force Auxiliary | Blood Raiders]\n  - Combat Role: Pirate Armor FAX\n  - Weapon System: Fleet Remote Armor\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Pirate Armor FAX\n  - Defense Profile: Armor Active | Speed: Capital\n  - Weapon Optimal: Fleet Remote Armor\n  - Tactical Counter-Play: Blood Raider capital armor remote repair ship."
     },
     "Chemosh": {
         "class": "Dreadnought",
@@ -212,7 +427,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Active",
         "speed": "Capital",
         "optimal_range": "Capital Grid",
-        "tactics": "Blood Raider pirate dreadnought with capital energy neutralizers."
+        "tactics": "Blood Raider pirate dreadnought with capital energy neutralizers.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Capital Grid",
+        "bonuses": [
+            "Pirate Cap Drain Dread"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Chemosh [Dreadnought | Blood Raiders]\n  - Combat Role: Pirate Cap Drain Dread\n  - Weapon System: Capital Grid\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Pirate Cap Drain Dread\n  - Defense Profile: Armor Active | Speed: Capital\n  - Weapon Optimal: Capital Grid\n  - Tactical Counter-Play: Blood Raider pirate dreadnought with capital energy neutralizers."
     },
     "Molok": {
         "class": "Titan",
@@ -222,7 +448,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Supercapital",
         "optimal_range": "Omni Grid",
-        "tactics": "Blood Raider pirate supercapital Titan with massive neut drain."
+        "tactics": "Blood Raider pirate supercapital Titan with massive neut drain.",
+        "high_slots": 8,
+        "mid_slots": 7,
+        "low_slots": 8,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "Omni Grid",
+        "bonuses": [
+            "Blood Raider Supercapital"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Molok [Titan | Blood Raiders]\n  - Combat Role: Blood Raider Supercapital\n  - Weapon System: Omni Grid\n  - Slot Layout: Highs: 8 | Mids: 7 | Lows: 8 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Blood Raider Supercapital\n  - Defense Profile: Armor Buffer | Speed: Supercapital\n  - Weapon Optimal: Omni Grid\n  - Tactical Counter-Play: Blood Raider pirate supercapital Titan with massive neut drain."
     },
     "Daredevil": {
         "class": "Frigate",
@@ -232,7 +469,19 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Fast",
         "optimal_range": "0-8 km",
-        "tactics": "90% stasis web stops targets dead. Massive close-range blaster DPS. Do not let it close inside 10km."
+        "tactics": "90% stasis web stops targets dead. Massive close-range blaster DPS. Do not let it close inside 10km. Apply Tracking Disruptors or kite with speed outside 12 km.",
+        "high_slots": 3,
+        "mid_slots": 3,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 0,
+        "weapon_type": "Small Hybrid (Neutron/Ion Blasters)",
+        "bonuses": [
+            "100% Small Hybrid Turret damage per lvl",
+            "Role: 90% Stasis Webifier effectiveness (10% per lvl)"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Daredevil [Frigate | Serpentis]\n  - Combat Role: 90% Web Blaster Frigate\n  - Weapon System: Small Hybrid (Neutron/Ion Blasters)\n  - Slot Layout: Highs: 3 | Mids: 3 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 0)\n  - Key Bonuses: 100% Small Hybrid Turret damage per lvl | Role: 90% Stasis Webifier effectiveness (10% per lvl)\n  - Defense Profile: Armor | Speed: Fast\n  - Weapon Optimal: 0-8 km\n  - Tactical Counter-Play: 90% stasis web stops targets dead. Massive close-range blaster DPS. Do not let it close inside 10km. Apply Tracking Disruptors or kite with speed outside 12 km."
     },
     "Vigilant": {
         "class": "Cruiser",
@@ -242,7 +491,19 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Fast",
         "optimal_range": "0-15 km",
-        "tactics": "90% webifier with 1000+ DPS medium blasters. Overheat propulsion and stay outside 18 km."
+        "tactics": "90% web with 1000+ DPS blasters. Overheat propulsion, maintain range outside 18 km, apply Tracking Disruptors.",
+        "high_slots": 5,
+        "mid_slots": 4,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 0,
+        "weapon_type": "Medium Hybrid (Heavy Neutron Blasters)",
+        "bonuses": [
+            "100% Medium Hybrid Turret damage per lvl",
+            "Role: 90% Stasis Webifier effectiveness"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Vigilant [Cruiser | Serpentis]\n  - Combat Role: 90% Web Blaster Cruiser\n  - Weapon System: Medium Hybrid (Heavy Neutron Blasters)\n  - Slot Layout: Highs: 5 | Mids: 4 | Lows: 6 | Rigs: 3 (Turrets: 4 | Launchers: 0)\n  - Key Bonuses: 100% Medium Hybrid Turret damage per lvl | Role: 90% Stasis Webifier effectiveness\n  - Defense Profile: Armor | Speed: Fast\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: 90% web with 1000+ DPS blasters. Overheat propulsion, maintain range outside 18 km, apply Tracking Disruptors."
     },
     "Vindicator": {
         "class": "Battleship",
@@ -252,7 +513,19 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Moderate",
         "optimal_range": "0-20 km",
-        "tactics": "2000+ DPS close range. Webifier locks targets down for massive neutron blaster application."
+        "tactics": "2000+ DPS close range. Web locks targets down for massive neutron application. Maintain distance outside 20 km or tracking-disrupt heavily.",
+        "high_slots": 8,
+        "mid_slots": 5,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 8,
+        "launcher_hardpoints": 0,
+        "weapon_type": "Large Hybrid (Neutron Blaster Cannons)",
+        "bonuses": [
+            "37.5% Large Hybrid Turret damage per lvl",
+            "Role: 90% Stasis Webifier effectiveness"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Vindicator [Battleship | Serpentis]\n  - Combat Role: 90% Web Blaster Battleship\n  - Weapon System: Large Hybrid (Neutron Blaster Cannons)\n  - Slot Layout: Highs: 8 | Mids: 5 | Lows: 7 | Rigs: 3 (Turrets: 8 | Launchers: 0)\n  - Key Bonuses: 37.5% Large Hybrid Turret damage per lvl | Role: 90% Stasis Webifier effectiveness\n  - Defense Profile: Armor | Speed: Moderate\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: 2000+ DPS close range. Web locks targets down for massive neutron application. Maintain distance outside 20 km or tracking-disrupt heavily."
     },
     "Vehement": {
         "class": "Dreadnought",
@@ -262,7 +535,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Active",
         "speed": "Capital",
         "optimal_range": "0-30 km",
-        "tactics": "Serpentis pirate dreadnought with capital blasters and 90% webifiers."
+        "tactics": "Serpentis pirate dreadnought with capital blasters and 90% webifiers.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "0-30 km",
+        "bonuses": [
+            "Pirate Blaster / Web Dread"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Vehement [Dreadnought | Serpentis]\n  - Combat Role: Pirate Blaster / Web Dread\n  - Weapon System: 0-30 km\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Pirate Blaster / Web Dread\n  - Defense Profile: Armor Active | Speed: Capital\n  - Weapon Optimal: 0-30 km\n  - Tactical Counter-Play: Serpentis pirate dreadnought with capital blasters and 90% webifiers."
     },
     "Vanquisher": {
         "class": "Titan",
@@ -272,7 +556,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Supercapital",
         "optimal_range": "Omni Grid",
-        "tactics": "Serpentis pirate supercapital Titan with 90% web and blaster power."
+        "tactics": "Serpentis pirate supercapital Titan with 90% web and blaster power.",
+        "high_slots": 8,
+        "mid_slots": 7,
+        "low_slots": 8,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "Omni Grid",
+        "bonuses": [
+            "Serpentis Supercapital"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Vanquisher [Titan | Serpentis]\n  - Combat Role: Serpentis Supercapital\n  - Weapon System: Omni Grid\n  - Slot Layout: Highs: 8 | Mids: 7 | Lows: 8 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Serpentis Supercapital\n  - Defense Profile: Armor Buffer | Speed: Supercapital\n  - Weapon Optimal: Omni Grid\n  - Tactical Counter-Play: Serpentis pirate supercapital Titan with 90% web and blaster power."
     },
     "Succubus": {
         "class": "Frigate",
@@ -282,7 +577,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Extreme AB (2.5+ km/s)",
         "optimal_range": "0-15 km",
-        "tactics": "Huge Afterburner speed bonus (immune to warp scrambler MWD shutoff). High transversal pulse lasers."
+        "tactics": "Huge Afterburner speed bonus (immune to warp scrambler MWD shutoff). High transversal pulse lasers.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "AB Speed Laser Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Succubus [Frigate | Sansha's Nation]\n  - Combat Role: AB Speed Laser Frigate\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: AB Speed Laser Frigate\n  - Defense Profile: Shield | Speed: Extreme AB (2.5+ km/s)\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Huge Afterburner speed bonus (immune to warp scrambler MWD shutoff). High transversal pulse lasers."
     },
     "Phantasm": {
         "class": "Cruiser",
@@ -292,7 +598,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer / Active",
         "speed": "Extreme AB (2.0+ km/s)",
         "optimal_range": "15-35 km",
-        "tactics": "Runs 100MN Afterburner with cruiser-grade agility. Unscrammable speed tank. Hit with tracking disruptors or heavy webs."
+        "tactics": "Runs 100MN Afterburner with cruiser-grade agility. Unscrammable speed tank. Hit with tracking disruptors or heavy webs.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "15-35 km",
+        "bonuses": [
+            "100MN AB Laser Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Phantasm [Cruiser | Sansha's Nation]\n  - Combat Role: 100MN AB Laser Cruiser\n  - Weapon System: 15-35 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: 100MN AB Laser Cruiser\n  - Defense Profile: Shield Buffer / Active | Speed: Extreme AB (2.0+ km/s)\n  - Weapon Optimal: 15-35 km\n  - Tactical Counter-Play: Runs 100MN Afterburner with cruiser-grade agility. Unscrammable speed tank. Hit with tracking disruptors or heavy webs."
     },
     "Nightmare": {
         "class": "Battleship",
@@ -302,7 +619,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Fast AB (1.5+ km/s)",
         "optimal_range": "30-80 km",
-        "tactics": "High-mobility beam/pulse laser battleship. Applies instant EM/Thermal damage with large energy turrets."
+        "tactics": "High-mobility beam/pulse laser battleship. Applies instant EM/Thermal damage with large energy turrets.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "30-80 km",
+        "bonuses": [
+            "Fast Laser Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Nightmare [Battleship | Sansha's Nation]\n  - Combat Role: Fast Laser Battleship\n  - Weapon System: 30-80 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Fast Laser Battleship\n  - Defense Profile: Shield Buffer | Speed: Fast AB (1.5+ km/s)\n  - Weapon Optimal: 30-80 km\n  - Tactical Counter-Play: High-mobility beam/pulse laser battleship. Applies instant EM/Thermal damage with large energy turrets."
     },
     "Revenant": {
         "class": "Supercarrier",
@@ -312,7 +640,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Supercapital",
         "optimal_range": "Omni Grid",
-        "tactics": "Sansha pirate supercarrier with immense fighter strike damage."
+        "tactics": "Sansha pirate supercarrier with immense fighter strike damage.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Omni Grid",
+        "bonuses": [
+            "Pirate Supercarrier"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Revenant [Supercarrier | Sansha's Nation]\n  - Combat Role: Pirate Supercarrier\n  - Weapon System: Omni Grid\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Pirate Supercarrier\n  - Defense Profile: Shield Buffer | Speed: Supercapital\n  - Weapon Optimal: Omni Grid\n  - Tactical Counter-Play: Sansha pirate supercarrier with immense fighter strike damage."
     },
     "Astero": {
         "class": "Frigate",
@@ -322,7 +661,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer / Dual Rep",
         "speed": "Fast",
         "optimal_range": "0-15 km",
-        "tactics": "Covert cloaking exploration frigate with vicious light drone combat capability. Often dual-repaired."
+        "tactics": "Covert cloaking exploration frigate with vicious light drone combat capability. Often dual-repaired.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Covert Ops / Drone Scout"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Astero [Frigate | Sisters of EVE]\n  - Combat Role: Covert Ops / Drone Scout\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Covert Ops / Drone Scout\n  - Defense Profile: Armor Buffer / Dual Rep | Speed: Fast\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Covert cloaking exploration frigate with vicious light drone combat capability. Often dual-repaired."
     },
     "Stratios": {
         "class": "Cruiser",
@@ -332,7 +682,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer / Dual Rep",
         "speed": "Moderate",
         "optimal_range": "0-30 km",
-        "tactics": "Covert cloaking cruiser. Can fit covert cyno, heavy neuts, and full flight of heavy/sentry drones."
+        "tactics": "Covert cloaking cruiser. Can fit covert cyno, heavy neuts, and full flight of heavy/sentry drones.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-30 km",
+        "bonuses": [
+            "Covert Ops / Drone Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Stratios [Cruiser | Sisters of EVE]\n  - Combat Role: Covert Ops / Drone Brawler\n  - Weapon System: 0-30 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Covert Ops / Drone Brawler\n  - Defense Profile: Armor Buffer / Dual Rep | Speed: Moderate\n  - Weapon Optimal: 0-30 km\n  - Tactical Counter-Play: Covert cloaking cruiser. Can fit covert cyno, heavy neuts, and full flight of heavy/sentry drones."
     },
     "Nestor": {
         "class": "Battleship",
@@ -342,7 +703,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Slow",
         "optimal_range": "0-20 km",
-        "tactics": "Sub-capital remote armor repair flagship. Very low mass allows mass-efficient wormhole transit."
+        "tactics": "Sub-capital remote armor repair flagship. Very low mass allows mass-efficient wormhole transit.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Remote Rep / Wormhole Core"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Nestor [Battleship | Sisters of EVE]\n  - Combat Role: Remote Rep / Wormhole Core\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Remote Rep / Wormhole Core\n  - Defense Profile: Armor Buffer | Speed: Slow\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Sub-capital remote armor repair flagship. Very low mass allows mass-efficient wormhole transit."
     },
     "Garmur": {
         "class": "Frigate",
@@ -352,7 +724,21 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Extreme (5.0+ km/s)",
         "optimal_range": "30-40 km",
-        "tactics": "Projects 35+ km warp disruptor point at extreme speed. Counter with sensor dampeners, rapid light missiles, or light combat drones."
+        "tactics": "Projects 35+ km point at 5+ km/s. Counter with Missile Guidance Disruptors (Range script), Sensor Dampeners (Targeting range script), Rapid Light Missiles, or light combat drones. NOT tracking disruptors.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 0,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Light Missiles / Rockets",
+        "bonuses": [
+            "10% Light Missile/Rocket damage per lvl",
+            "10% Light Missile/Rocket velocity per lvl",
+            "Role: 100% Warp Scrambler and Warp Disruptor optimal range",
+            "Role: 50% Stasis Webifier optimal range"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Garmur [Frigate | Mordu's Legion]\n  - Combat Role: Long-Range Point Kiter\n  - Weapon System: Light Missiles / Rockets\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 0 | Launchers: 3)\n  - Key Bonuses: 10% Light Missile/Rocket damage per lvl | 10% Light Missile/Rocket velocity per lvl | Role: 100% Warp Scrambler and Warp Disruptor optimal range\n  - Defense Profile: Shield | Speed: Extreme (5.0+ km/s)\n  - Weapon Optimal: 30-40 km\n  - Tactical Counter-Play: Projects 35+ km point at 5+ km/s. Counter with Missile Guidance Disruptors (Range script), Sensor Dampeners (Targeting range script), Rapid Light Missiles, or light combat drones. NOT tracking disruptors."
     },
     "Orthrus": {
         "class": "Cruiser",
@@ -362,7 +748,21 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Extreme (3.0+ km/s)",
         "optimal_range": "35-50 km",
-        "tactics": "45+ km point and 25 km web range with rapid light missiles. Counter with heavy projection snipers or long-range dampeners."
+        "tactics": "Fast 45+ km point and 25 km web with Rapid Light Missiles. Counter with Missile Guidance Disruptors (Velocity/Range scripts), Sensor Dampeners to break lock, or slingshotting inside scram range to exploit the 35s RLML reload cycle. NOT Tracking Disruptors.",
+        "high_slots": 6,
+        "mid_slots": 5,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 0,
+        "launcher_hardpoints": 5,
+        "weapon_type": "Rapid Light Missiles / Heavy Missiles (RLML/HAM)",
+        "bonuses": [
+            "10% Light, HAM & Heavy Missile damage per lvl",
+            "10% Light, HAM & Heavy Missile velocity per lvl",
+            "Role: 100% Warp Scrambler and Warp Disruptor optimal range",
+            "Role: 50% Stasis Webifier optimal range"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Orthrus [Cruiser | Mordu's Legion]\n  - Combat Role: Long-Range Point & Web Kiter\n  - Weapon System: Rapid Light Missiles / Heavy Missiles (RLML/HAM)\n  - Slot Layout: Highs: 6 | Mids: 5 | Lows: 4 | Rigs: 3 (Turrets: 0 | Launchers: 5)\n  - Key Bonuses: 10% Light, HAM & Heavy Missile damage per lvl | 10% Light, HAM & Heavy Missile velocity per lvl | Role: 100% Warp Scrambler and Warp Disruptor optimal range\n  - Defense Profile: Shield | Speed: Extreme (3.0+ km/s)\n  - Weapon Optimal: 35-50 km\n  - Tactical Counter-Play: Fast 45+ km point and 25 km web with Rapid Light Missiles. Counter with Missile Guidance Disruptors (Velocity/Range scripts), Sensor Dampeners to break lock, or slingshotting inside scram range to exploit the 35s RLML reload cycle. NOT Tracking Disruptors."
     },
     "Barghest": {
         "class": "Battleship",
@@ -372,7 +772,20 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Fast",
         "optimal_range": "50-100 km",
-        "tactics": "Extreme missile velocity and 60+ km point range. High alpha cruise missiles."
+        "tactics": "Extreme missile velocity and 60+ km point range. High alpha cruise missiles. Counter with Missile Guidance Disruptors, firewalls, and signature radius reduction.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 0,
+        "launcher_hardpoints": 6,
+        "weapon_type": "Cruise Missiles / Torpedoes / Heavy Missiles",
+        "bonuses": [
+            "10% Missile damage per lvl",
+            "10% Missile velocity per lvl",
+            "Role: 100% Warp Scrambler and Warp Disruptor optimal range"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Barghest [Battleship | Mordu's Legion]\n  - Combat Role: Heavy Point / Cruise Battleship\n  - Weapon System: Cruise Missiles / Torpedoes / Heavy Missiles\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 0 | Launchers: 6)\n  - Key Bonuses: 10% Missile damage per lvl | 10% Missile velocity per lvl | Role: 100% Warp Scrambler and Warp Disruptor optimal range\n  - Defense Profile: Shield | Speed: Fast\n  - Weapon Optimal: 50-100 km\n  - Tactical Counter-Play: Extreme missile velocity and 60+ km point range. High alpha cruise missiles. Counter with Missile Guidance Disruptors, firewalls, and signature radius reduction."
     },
     "Damavik": {
         "class": "Frigate",
@@ -382,7 +795,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Fast",
         "optimal_range": "5-18 km",
-        "tactics": "Entropic disintegrator damage ramps up continuously over time. Break lock or kill quickly before spool reaches maximum."
+        "tactics": "Entropic disintegrator damage ramps up continuously over time. Break lock or kill quickly before spool reaches maximum.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "5-18 km",
+        "bonuses": [
+            "Spooling Disintegrator Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Damavik [Frigate | Triglavian]\n  - Combat Role: Spooling Disintegrator Frigate\n  - Weapon System: 5-18 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Spooling Disintegrator Frigate\n  - Defense Profile: Armor | Speed: Fast\n  - Weapon Optimal: 5-18 km\n  - Tactical Counter-Play: Entropic disintegrator damage ramps up continuously over time. Break lock or kill quickly before spool reaches maximum."
     },
     "Kikimora": {
         "class": "Destroyer",
@@ -392,7 +816,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Shield",
         "speed": "Extreme (3.5+ km/s)",
         "optimal_range": "15-40 km",
-        "tactics": "Extreme sub-warp speed with spooling light disintegrator. Strikes from 35km with heavy tracking."
+        "tactics": "Extreme sub-warp speed with spooling light disintegrator. Strikes from 35km with heavy tracking.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "15-40 km",
+        "bonuses": [
+            "Long-Range Disintegrator Destroyer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Kikimora [Destroyer | Triglavian]\n  - Combat Role: Long-Range Disintegrator Destroyer\n  - Weapon System: 15-40 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: Long-Range Disintegrator Destroyer\n  - Defense Profile: Armor / Shield | Speed: Extreme (3.5+ km/s)\n  - Weapon Optimal: 15-40 km\n  - Tactical Counter-Play: Extreme sub-warp speed with spooling light disintegrator. Strikes from 35km with heavy tracking."
     },
     "Vedmak": {
         "class": "Cruiser",
@@ -402,7 +837,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Fast (2.2-2.8 km/s)",
         "optimal_range": "10-35 km",
-        "tactics": "High sub-warp speed with continuous spooling thermal/explosive damage. Disengage if fight extends past 60 seconds."
+        "tactics": "High sub-warp speed with continuous spooling thermal/explosive damage. Disengage if fight extends past 60 seconds.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "10-35 km",
+        "bonuses": [
+            "Spooling Disintegrator Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Vedmak [Cruiser | Triglavian]\n  - Combat Role: Spooling Disintegrator Cruiser\n  - Weapon System: 10-35 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Spooling Disintegrator Cruiser\n  - Defense Profile: Armor | Speed: Fast (2.2-2.8 km/s)\n  - Weapon Optimal: 10-35 km\n  - Tactical Counter-Play: High sub-warp speed with continuous spooling thermal/explosive damage. Disengage if fight extends past 60 seconds."
     },
     "Rodiva": {
         "class": "Cruiser",
@@ -412,7 +858,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Fast",
         "optimal_range": "Remote Rep Range",
-        "tactics": "Triglavian logistics cruiser with spooling remote armor repairers."
+        "tactics": "Triglavian logistics cruiser with spooling remote armor repairers.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "Remote Rep Range",
+        "bonuses": [
+            "Spooling Remote Armor Rep"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Rodiva [Cruiser | Triglavian]\n  - Combat Role: Spooling Remote Armor Rep\n  - Weapon System: Remote Rep Range\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Spooling Remote Armor Rep\n  - Defense Profile: Armor | Speed: Fast\n  - Weapon Optimal: Remote Rep Range\n  - Tactical Counter-Play: Triglavian logistics cruiser with spooling remote armor repairers."
     },
     "Drekavac": {
         "class": "Battlecruiser",
@@ -422,7 +879,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Moderate",
         "optimal_range": "15-45 km",
-        "tactics": "Heavy armor tank and massive max-spool disintegrator DPS."
+        "tactics": "Heavy armor tank and massive max-spool disintegrator DPS.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "15-45 km",
+        "bonuses": [
+            "Heavy Disintegrator / Armor Links"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Drekavac [Battlecruiser | Triglavian]\n  - Combat Role: Heavy Disintegrator / Armor Links\n  - Weapon System: 15-45 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Heavy Disintegrator / Armor Links\n  - Defense Profile: Armor | Speed: Moderate\n  - Weapon Optimal: 15-45 km\n  - Tactical Counter-Play: Heavy armor tank and massive max-spool disintegrator DPS."
     },
     "Leshak": {
         "class": "Battleship",
@@ -432,7 +900,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Moderate",
         "optimal_range": "20-60 km",
-        "tactics": "Spools to over 3500 DPS. Lethal to capitals, POS structures, and stationary targets."
+        "tactics": "Spools to over 3500 DPS. Lethal to capitals, POS structures, and stationary targets.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "20-60 km",
+        "bonuses": [
+            "Capital / Structure Buster"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Leshak [Battleship | Triglavian]\n  - Combat Role: Capital / Structure Buster\n  - Weapon System: 20-60 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Capital / Structure Buster\n  - Defense Profile: Armor | Speed: Moderate\n  - Weapon Optimal: 20-60 km\n  - Tactical Counter-Play: Spools to over 3500 DPS. Lethal to capitals, POS structures, and stationary targets."
     },
     "Ikitursa": {
         "class": "Heavy Assault Cruiser",
@@ -442,7 +921,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Fast",
         "optimal_range": "10-35 km",
-        "tactics": "T2 assault damage controls and huge spooling DPS make it formidable in small gang engagements."
+        "tactics": "T2 assault damage controls and huge spooling DPS make it formidable in small gang engagements.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 2,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "10-35 km",
+        "bonuses": [
+            "HAC Disintegrator Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Ikitursa [Heavy Assault Cruiser | Triglavian]\n  - Combat Role: HAC Disintegrator Brawler\n  - Weapon System: 10-35 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 2 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: HAC Disintegrator Brawler\n  - Defense Profile: Armor | Speed: Fast\n  - Weapon Optimal: 10-35 km\n  - Tactical Counter-Play: T2 assault damage controls and huge spooling DPS make it formidable in small gang engagements."
     },
     "Zarmazd": {
         "class": "Logistics Cruiser",
@@ -452,7 +942,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Fast",
         "optimal_range": "Remote Rep Range",
-        "tactics": "T2 Triglavian logistics cruiser with extreme ramping armor repairs."
+        "tactics": "T2 Triglavian logistics cruiser with extreme ramping armor repairs.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 2,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "Remote Rep Range",
+        "bonuses": [
+            "T2 Spooling Remote Armor"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Zarmazd [Logistics Cruiser | Triglavian]\n  - Combat Role: T2 Spooling Remote Armor\n  - Weapon System: Remote Rep Range\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 2 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: T2 Spooling Remote Armor\n  - Defense Profile: Armor | Speed: Fast\n  - Weapon Optimal: Remote Rep Range\n  - Tactical Counter-Play: T2 Triglavian logistics cruiser with extreme ramping armor repairs."
     },
     "Zirnitra": {
         "class": "Dreadnought",
@@ -462,7 +963,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Active",
         "speed": "Capital",
         "optimal_range": "Capital Grid",
-        "tactics": "Triglavian dreadnought with capital spooling disintegrator."
+        "tactics": "Triglavian dreadnought with capital spooling disintegrator.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Capital Grid",
+        "bonuses": [
+            "Capital Disintegrator Siege"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Zirnitra [Dreadnought | Triglavian]\n  - Combat Role: Capital Disintegrator Siege\n  - Weapon System: Capital Grid\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Capital Disintegrator Siege\n  - Defense Profile: Armor Active | Speed: Capital\n  - Weapon Optimal: Capital Grid\n  - Tactical Counter-Play: Triglavian dreadnought with capital spooling disintegrator."
     },
     "Skybreaker": {
         "class": "Frigate",
@@ -472,7 +984,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Moderate",
         "optimal_range": "0-15 km",
-        "tactics": "Vorton projector arcs lightning damage to up to 5 nearby hostile targets."
+        "tactics": "Vorton projector arcs lightning damage to up to 5 nearby hostile targets.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Vortron Arcing Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Skybreaker [Frigate | EDENCOM]\n  - Combat Role: Vortron Arcing Frigate\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Vortron Arcing Frigate\n  - Defense Profile: Shield | Speed: Moderate\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Vorton projector arcs lightning damage to up to 5 nearby hostile targets."
     },
     "Stormbringer": {
         "class": "Cruiser",
@@ -482,7 +1005,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Moderate",
         "optimal_range": "15-35 km",
-        "tactics": "Medium vorton projector arcs heavy EM/Kinetic damage across fleet clusters."
+        "tactics": "Medium vorton projector arcs heavy EM/Kinetic damage across fleet clusters.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "15-35 km",
+        "bonuses": [
+            "Vortron Arcing Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Stormbringer [Cruiser | EDENCOM]\n  - Combat Role: Vortron Arcing Cruiser\n  - Weapon System: 15-35 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Vortron Arcing Cruiser\n  - Defense Profile: Shield | Speed: Moderate\n  - Weapon Optimal: 15-35 km\n  - Tactical Counter-Play: Medium vorton projector arcs heavy EM/Kinetic damage across fleet clusters."
     },
     "Thunderchild": {
         "class": "Battleship",
@@ -492,7 +1026,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Slow",
         "optimal_range": "30-70 km",
-        "tactics": "Large vorton projector chains massive damage across 10 linked enemy ships."
+        "tactics": "Large vorton projector chains massive damage across 10 linked enemy ships.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "30-70 km",
+        "bonuses": [
+            "Heavy Vortron Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Thunderchild [Battleship | EDENCOM]\n  - Combat Role: Heavy Vortron Battleship\n  - Weapon System: 30-70 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Heavy Vortron Battleship\n  - Defense Profile: Shield Buffer | Speed: Slow\n  - Weapon Optimal: 30-70 km\n  - Tactical Counter-Play: Large vorton projector chains massive damage across 10 linked enemy ships."
     },
     "Apotheosis": {
         "class": "Frigate",
@@ -502,7 +1047,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield/Armor Omni",
         "speed": "Fast",
         "optimal_range": "0-15 km",
-        "tactics": "SOCT frigate with universal weapon and scan bonuses."
+        "tactics": "SOCT frigate with universal weapon and scan bonuses.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Special Shuttle / Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Apotheosis [Frigate | Society of Conscious Thought]\n  - Combat Role: Special Shuttle / Frigate\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Special Shuttle / Frigate\n  - Defense Profile: Shield/Armor Omni | Speed: Fast\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: SOCT frigate with universal weapon and scan bonuses."
     },
     "Sunesis": {
         "class": "Destroyer",
@@ -512,7 +1068,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield / Armor Buffer",
         "speed": "Fast (<2s align)",
         "optimal_range": "0-25 km",
-        "tactics": "Sub-2s align hauler and combatant with universal weapon bonuses."
+        "tactics": "Sub-2s align hauler and combatant with universal weapon bonuses.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-25 km",
+        "bonuses": [
+            "Insta-Align Multi-Role Destroyer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Sunesis [Destroyer | Society of Conscious Thought]\n  - Combat Role: Insta-Align Multi-Role Destroyer\n  - Weapon System: 0-25 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: Insta-Align Multi-Role Destroyer\n  - Defense Profile: Shield / Armor Buffer | Speed: Fast (<2s align)\n  - Weapon Optimal: 0-25 km\n  - Tactical Counter-Play: Sub-2s align hauler and combatant with universal weapon bonuses."
     },
     "Gnosis": {
         "class": "Battlecruiser",
@@ -522,7 +1089,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield / Armor / Hull Buffer",
         "speed": "Moderate",
         "optimal_range": "0-50 km",
-        "tactics": "Universal weapon and tank bonuses. Highly adaptable to any combat role."
+        "tactics": "Universal weapon and tank bonuses. Highly adaptable to any combat role.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "0-50 km",
+        "bonuses": [
+            "Multi-Role Combat / Exploration BC"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Gnosis [Battlecruiser | Society of Conscious Thought]\n  - Combat Role: Multi-Role Combat / Exploration BC\n  - Weapon System: 0-50 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Multi-Role Combat / Exploration BC\n  - Defense Profile: Shield / Armor / Hull Buffer | Speed: Moderate\n  - Weapon Optimal: 0-50 km\n  - Tactical Counter-Play: Universal weapon and tank bonuses. Highly adaptable to any combat role."
     },
     "Praxis": {
         "class": "Battleship",
@@ -532,7 +1110,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield / Armor / Hull Buffer",
         "speed": "Slow",
         "optimal_range": "0-80 km",
-        "tactics": "Massive slot layout and universal bonus for lasers, hybrids, projectiles, missiles, and drones."
+        "tactics": "Massive slot layout and universal bonus for lasers, hybrids, projectiles, missiles, and drones.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "0-80 km",
+        "bonuses": [
+            "Multi-Role Line Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Praxis [Battleship | Society of Conscious Thought]\n  - Combat Role: Multi-Role Line Battleship\n  - Weapon System: 0-80 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Multi-Role Line Battleship\n  - Defense Profile: Shield / Armor / Hull Buffer | Speed: Slow\n  - Weapon Optimal: 0-80 km\n  - Tactical Counter-Play: Massive slot layout and universal bonus for lasers, hybrids, projectiles, missiles, and drones."
     },
     "Pacifier": {
         "class": "Frigate",
@@ -542,7 +1131,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield / Armor",
         "speed": "Extreme (4.5+ km/s)",
         "optimal_range": "0-20 km",
-        "tactics": "CONCORD covert ops frigate with extreme warp speed and combat versatility."
+        "tactics": "CONCORD covert ops frigate with extreme warp speed and combat versatility.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Covert Ops / Fast Interceptor"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Pacifier [Frigate | CONCORD]\n  - Combat Role: Covert Ops / Fast Interceptor\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Covert Ops / Fast Interceptor\n  - Defense Profile: Shield / Armor | Speed: Extreme (4.5+ km/s)\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: CONCORD covert ops frigate with extreme warp speed and combat versatility."
     },
     "Enforcer": {
         "class": "Cruiser",
@@ -552,7 +1152,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield / Armor",
         "speed": "Fast",
         "optimal_range": "0-35 km",
-        "tactics": "CONCORD covert cruiser with massive security status bonus and omni damage."
+        "tactics": "CONCORD covert cruiser with massive security status bonus and omni damage.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-35 km",
+        "bonuses": [
+            "Covert Combat Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Enforcer [Cruiser | CONCORD]\n  - Combat Role: Covert Combat Cruiser\n  - Weapon System: 0-35 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Covert Combat Cruiser\n  - Defense Profile: Shield / Armor | Speed: Fast\n  - Weapon Optimal: 0-35 km\n  - Tactical Counter-Play: CONCORD covert cruiser with massive security status bonus and omni damage."
     },
     "Marshal": {
         "class": "Battleship",
@@ -562,7 +1173,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active Shield / Armor",
         "speed": "Moderate",
         "optimal_range": "0-60 km",
-        "tactics": "CONCORD Black Ops battleship with immense active repair and covert jump portal capability."
+        "tactics": "CONCORD Black Ops battleship with immense active repair and covert jump portal capability.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "0-60 km",
+        "bonuses": [
+            "Covert Black Ops Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Marshal [Battleship | CONCORD]\n  - Combat Role: Covert Black Ops Battleship\n  - Weapon System: 0-60 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Covert Black Ops Battleship\n  - Defense Profile: Active Shield / Armor | Speed: Moderate\n  - Weapon Optimal: 0-60 km\n  - Tactical Counter-Play: CONCORD Black Ops battleship with immense active repair and covert jump portal capability."
     },
     "Monitor": {
         "class": "Cruiser",
@@ -572,7 +1194,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Omni Buffer (1M+ EHP)",
         "speed": "Fast",
         "optimal_range": "0 km",
-        "tactics": "Fleet Commander flag cruiser with over 1 million EHP and 0 DPS output. Ignore and kill the fleet."
+        "tactics": "Fleet Commander flag cruiser with over 1 million EHP and 0 DPS output. Ignore and kill the fleet.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Flag Cruiser / Invulnerable FC"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Monitor [Cruiser | CONCORD]\n  - Combat Role: Flag Cruiser / Invulnerable FC\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Flag Cruiser / Invulnerable FC\n  - Defense Profile: Immense Omni Buffer (1M+ EHP) | Speed: Fast\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Fleet Commander flag cruiser with over 1 million EHP and 0 DPS output. Ignore and kill the fleet."
     },
     "Condor": {
         "class": "Frigate",
@@ -582,7 +1215,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Fast",
         "optimal_range": "20-35 km",
-        "tactics": "Light missile kiter with kinetic missile bonus."
+        "tactics": "Light missile kiter with kinetic missile bonus.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "20-35 km",
+        "bonuses": [
+            "Missile Kiter / Light Tackle"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Condor [Frigate | Caldari]\n  - Combat Role: Missile Kiter / Light Tackle\n  - Weapon System: 20-35 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Missile Kiter / Light Tackle\n  - Defense Profile: Shield | Speed: Fast\n  - Weapon Optimal: 20-35 km\n  - Tactical Counter-Play: Light missile kiter with kinetic missile bonus."
     },
     "Kestrel": {
         "class": "Frigate",
@@ -592,7 +1236,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer / Active",
         "speed": "Moderate",
         "optimal_range": "0-25 km",
-        "tactics": "4 missile launchers with all 4 damage types."
+        "tactics": "4 missile launchers with all 4 damage types.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-25 km",
+        "bonuses": [
+            "Missile / Rocket Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Kestrel [Frigate | Caldari]\n  - Combat Role: Missile / Rocket Brawler\n  - Weapon System: 0-25 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Missile / Rocket Brawler\n  - Defense Profile: Shield Buffer / Active | Speed: Moderate\n  - Weapon Optimal: 0-25 km\n  - Tactical Counter-Play: 4 missile launchers with all 4 damage types."
     },
     "Merlin": {
         "class": "Frigate",
@@ -602,7 +1257,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer / Dual MASB",
         "speed": "Moderate",
         "optimal_range": "0-10 km",
-        "tactics": "Strong shield resistance bonus; high blaster DPS."
+        "tactics": "Strong shield resistance bonus; high blaster DPS.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-10 km",
+        "bonuses": [
+            "Blaster / Rail Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Merlin [Frigate | Caldari]\n  - Combat Role: Blaster / Rail Brawler\n  - Weapon System: 0-10 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Blaster / Rail Brawler\n  - Defense Profile: Shield Buffer / Dual MASB | Speed: Moderate\n  - Weapon Optimal: 0-10 km\n  - Tactical Counter-Play: Strong shield resistance bonus; high blaster DPS."
     },
     "Heron": {
         "class": "Frigate",
@@ -612,7 +1278,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Moderate",
         "optimal_range": "0-15 km",
-        "tactics": "Scanning frigate often bait-tanked with rockets."
+        "tactics": "Scanning frigate often bait-tanked with rockets.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Exploration / Light Drone"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Heron [Frigate | Caldari]\n  - Combat Role: Exploration / Light Drone\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Exploration / Light Drone\n  - Defense Profile: Shield Buffer | Speed: Moderate\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Scanning frigate often bait-tanked with rockets."
     },
     "Bantam": {
         "class": "Frigate",
@@ -622,7 +1299,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Moderate",
         "optimal_range": "Remote Shield",
-        "tactics": "T1 frigate shield logistics."
+        "tactics": "T1 frigate shield logistics.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Remote Shield",
+        "bonuses": [
+            "Shield Logistics Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Bantam [Frigate | Caldari]\n  - Combat Role: Shield Logistics Frigate\n  - Weapon System: Remote Shield\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Shield Logistics Frigate\n  - Defense Profile: Shield | Speed: Moderate\n  - Weapon Optimal: Remote Shield\n  - Tactical Counter-Play: T1 frigate shield logistics."
     },
     "Griffin": {
         "class": "Frigate",
@@ -632,7 +1320,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin Shield",
         "speed": "Moderate",
         "optimal_range": "30-60 km",
-        "tactics": "Long-range ECM jammers break target locks. Primary immediately."
+        "tactics": "Long-range ECM jammers break target locks. Primary immediately.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "30-60 km",
+        "bonuses": [
+            "ECM Jamming Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Griffin [Frigate | Caldari]\n  - Combat Role: ECM Jamming Frigate\n  - Weapon System: 30-60 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: ECM Jamming Frigate\n  - Defense Profile: Paper Thin Shield | Speed: Moderate\n  - Weapon Optimal: 30-60 km\n  - Tactical Counter-Play: Long-range ECM jammers break target locks. Primary immediately."
     },
     "Caldari Navy Hookbill": {
         "class": "Faction Frigate",
@@ -642,7 +1341,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer / Active",
         "speed": "Fast",
         "optimal_range": "0-25 km",
-        "tactics": "5 mid slots allow dual webs + scram + MSE. Deadly 1v1 rocket brawler."
+        "tactics": "5 mid slots allow dual webs + scram + MSE. Deadly 1v1 rocket brawler.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-25 km",
+        "bonuses": [
+            "Dual Web Rocket / Missile Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Caldari Navy Hookbill [Faction Frigate | Caldari (Navy)]\n  - Combat Role: Dual Web Rocket / Missile Brawler\n  - Weapon System: 0-25 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Dual Web Rocket / Missile Brawler\n  - Defense Profile: Shield Buffer / Active | Speed: Fast\n  - Weapon Optimal: 0-25 km\n  - Tactical Counter-Play: 5 mid slots allow dual webs + scram + MSE. Deadly 1v1 rocket brawler."
     },
     "Griffin Navy Issue": {
         "class": "Faction Frigate",
@@ -652,7 +1362,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Fast",
         "optimal_range": "0-15 km",
-        "tactics": "Strong hybrid turret DPS and ECM burst tackle capability."
+        "tactics": "Strong hybrid turret DPS and ECM burst tackle capability.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Combat ECM / Hybrid Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Griffin Navy Issue [Faction Frigate | Caldari (Navy)]\n  - Combat Role: Combat ECM / Hybrid Brawler\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Combat ECM / Hybrid Brawler\n  - Defense Profile: Shield | Speed: Fast\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Strong hybrid turret DPS and ECM burst tackle capability."
     },
     "Heron Navy Issue": {
         "class": "Faction Frigate",
@@ -662,7 +1383,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer / Dual MASB",
         "speed": "Fast",
         "optimal_range": "0-20 km",
-        "tactics": "Faction combat exploration frigate with heavy rocket DPS."
+        "tactics": "Faction combat exploration frigate with heavy rocket DPS.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Combat Explorer / Rocket Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Heron Navy Issue [Faction Frigate | Caldari (Navy)]\n  - Combat Role: Combat Explorer / Rocket Brawler\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Combat Explorer / Rocket Brawler\n  - Defense Profile: Shield Buffer / Dual MASB | Speed: Fast\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Faction combat exploration frigate with heavy rocket DPS."
     },
     "Buzzard": {
         "class": "Covert Ops",
@@ -672,7 +1404,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Cloaked",
         "optimal_range": "Covert",
-        "tactics": "Covert cloaking scout. Potential Covert Cyno beacon."
+        "tactics": "Covert cloaking scout. Potential Covert Cyno beacon.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Covert",
+        "bonuses": [
+            "Stealth Scout / Cyno"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Buzzard [Covert Ops | Caldari]\n  - Combat Role: Stealth Scout / Cyno\n  - Weapon System: Covert\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Stealth Scout / Cyno\n  - Defense Profile: Paper Thin | Speed: Cloaked\n  - Weapon Optimal: Covert\n  - Tactical Counter-Play: Covert cloaking scout. Potential Covert Cyno beacon."
     },
     "Manticore": {
         "class": "Stealth Bomber",
@@ -682,7 +1425,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Cloaked",
         "optimal_range": "30-60 km",
-        "tactics": "Kinetic bombs and torpedoes from cloak."
+        "tactics": "Kinetic bombs and torpedoes from cloak.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "30-60 km",
+        "bonuses": [
+            "Covert Torpedo / Bomb Bomber"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Manticore [Stealth Bomber | Caldari]\n  - Combat Role: Covert Torpedo / Bomb Bomber\n  - Weapon System: 30-60 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Covert Torpedo / Bomb Bomber\n  - Defense Profile: Paper Thin | Speed: Cloaked\n  - Weapon Optimal: 30-60 km\n  - Tactical Counter-Play: Kinetic bombs and torpedoes from cloak."
     },
     "Harpy": {
         "class": "Assault Frigate",
@@ -692,7 +1446,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer + ADC",
         "speed": "Fast",
         "optimal_range": "10-40 km",
-        "tactics": "Assault Damage Control and long-range railguns make it formidable."
+        "tactics": "Assault Damage Control and long-range railguns make it formidable.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 2,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "10-40 km",
+        "bonuses": [
+            "Rail Sniper / ADC Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Harpy [Assault Frigate | Caldari]\n  - Combat Role: Rail Sniper / ADC Brawler\n  - Weapon System: 10-40 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 2 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Rail Sniper / ADC Brawler\n  - Defense Profile: Shield Buffer + ADC | Speed: Fast\n  - Weapon Optimal: 10-40 km\n  - Tactical Counter-Play: Assault Damage Control and long-range railguns make it formidable."
     },
     "Hawk": {
         "class": "Assault Frigate",
@@ -702,7 +1467,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Dual MASB Active + ADC",
         "speed": "Moderate",
         "optimal_range": "0-20 km",
-        "tactics": "Extreme active shield tank. Breaks under sustained neuts or alphastrike."
+        "tactics": "Extreme active shield tank. Breaks under sustained neuts or alphastrike.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 2,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Dual MASB Rocket Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Hawk [Assault Frigate | Caldari]\n  - Combat Role: Dual MASB Rocket Brawler\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 2 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Dual MASB Rocket Brawler\n  - Defense Profile: Dual MASB Active + ADC | Speed: Moderate\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Extreme active shield tank. Breaks under sustained neuts or alphastrike."
     },
     "Kitsune": {
         "class": "Electronic Attack Ship",
@@ -712,7 +1488,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Fast",
         "optimal_range": "50-100 km",
-        "tactics": "Massive ECM jamming range. Jams out entire wings from 80 km."
+        "tactics": "Massive ECM jamming range. Jams out entire wings from 80 km.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "50-100 km",
+        "bonuses": [
+            "Long-Range Fleet ECM"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Kitsune [Electronic Attack Ship | Caldari]\n  - Combat Role: Long-Range Fleet ECM\n  - Weapon System: 50-100 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Long-Range Fleet ECM\n  - Defense Profile: Paper Thin | Speed: Fast\n  - Weapon Optimal: 50-100 km\n  - Tactical Counter-Play: Massive ECM jamming range. Jams out entire wings from 80 km."
     },
     "Crow": {
         "class": "Interceptor",
@@ -722,7 +1509,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Extreme (4.5+ km/s)",
         "optimal_range": "25-45 km",
-        "tactics": "Fast nullified missile kiter."
+        "tactics": "Fast nullified missile kiter.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "25-45 km",
+        "bonuses": [
+            "Long-Range Light Missile Kiter"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Crow [Interceptor | Caldari]\n  - Combat Role: Long-Range Light Missile Kiter\n  - Weapon System: 25-45 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Long-Range Light Missile Kiter\n  - Defense Profile: Shield | Speed: Extreme (4.5+ km/s)\n  - Weapon Optimal: 25-45 km\n  - Tactical Counter-Play: Fast nullified missile kiter."
     },
     "Raptor": {
         "class": "Interceptor",
@@ -732,7 +1530,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Extreme (4.5+ km/s)",
         "optimal_range": "0-15 km",
-        "tactics": "Fast combat tackle interceptor with high hybrid DPS."
+        "tactics": "Fast combat tackle interceptor with high hybrid DPS.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Fleet Tackle / Hybrid Interceptor"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Raptor [Interceptor | Caldari]\n  - Combat Role: Fleet Tackle / Hybrid Interceptor\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Fleet Tackle / Hybrid Interceptor\n  - Defense Profile: Shield | Speed: Extreme (4.5+ km/s)\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Fast combat tackle interceptor with high hybrid DPS."
     },
     "Kirin": {
         "class": "Logistics Frigate",
@@ -742,7 +1551,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Fast",
         "optimal_range": "Remote Shield",
-        "tactics": "Assault-tier remote shield repair frigate."
+        "tactics": "Assault-tier remote shield repair frigate.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Remote Shield",
+        "bonuses": [
+            "T2 Shield Logistics Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Kirin [Logistics Frigate | Caldari]\n  - Combat Role: T2 Shield Logistics Frigate\n  - Weapon System: Remote Shield\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: T2 Shield Logistics Frigate\n  - Defense Profile: Shield | Speed: Fast\n  - Weapon Optimal: Remote Shield\n  - Tactical Counter-Play: Assault-tier remote shield repair frigate."
     },
     "Cormorant": {
         "class": "Destroyer",
@@ -752,7 +1572,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Moderate",
         "optimal_range": "30-70 km (Rails) / 0-10 km (Blasters)",
-        "tactics": "8 hybrid turrets with optimal range bonus. Lethal fleet sniper doctrine."
+        "tactics": "8 hybrid turrets with optimal range bonus. Lethal fleet sniper doctrine.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "30-70 km (Rails) / 0-10 km (Blasters)",
+        "bonuses": [
+            "Rail Sniper / Blaster Destroyer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Cormorant [Destroyer | Caldari]\n  - Combat Role: Rail Sniper / Blaster Destroyer\n  - Weapon System: 30-70 km (Rails) / 0-10 km (Blasters)\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: Rail Sniper / Blaster Destroyer\n  - Defense Profile: Shield Buffer | Speed: Moderate\n  - Weapon Optimal: 30-70 km (Rails) / 0-10 km (Blasters)\n  - Tactical Counter-Play: 8 hybrid turrets with optimal range bonus. Lethal fleet sniper doctrine."
     },
     "Corax": {
         "class": "Destroyer",
@@ -762,7 +1593,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Slow",
         "optimal_range": "20-50 km",
-        "tactics": "7 missile launchers with kinetic bonus."
+        "tactics": "7 missile launchers with kinetic bonus.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "20-50 km",
+        "bonuses": [
+            "Light Missile / Rocket Destroyer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Corax [Destroyer | Caldari]\n  - Combat Role: Light Missile / Rocket Destroyer\n  - Weapon System: 20-50 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: Light Missile / Rocket Destroyer\n  - Defense Profile: Shield Buffer | Speed: Slow\n  - Weapon Optimal: 20-50 km\n  - Tactical Counter-Play: 7 missile launchers with kinetic bonus."
     },
     "Cormorant Navy Issue": {
         "class": "Faction Destroyer",
@@ -772,7 +1614,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Fast",
         "optimal_range": "40-90 km",
-        "tactics": "Extreme railgun range and tracking."
+        "tactics": "Extreme railgun range and tracking.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "40-90 km",
+        "bonuses": [
+            "Navy Rail Sniper Destroyer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Cormorant Navy Issue [Faction Destroyer | Caldari (Navy)]\n  - Combat Role: Navy Rail Sniper Destroyer\n  - Weapon System: 40-90 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: Navy Rail Sniper Destroyer\n  - Defense Profile: Shield Buffer | Speed: Fast\n  - Weapon Optimal: 40-90 km\n  - Tactical Counter-Play: Extreme railgun range and tracking."
     },
     "Flycatcher": {
         "class": "Interdictor",
@@ -782,7 +1635,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Fast (2.8+ km/s)",
         "optimal_range": "0-20 km",
-        "tactics": "Deploys 20km warp disruption bubbles on gates. Primary target."
+        "tactics": "Deploys 20km warp disruption bubbles on gates. Primary target.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Shield Warp Bubble Launcher"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Flycatcher [Interdictor | Caldari]\n  - Combat Role: Shield Warp Bubble Launcher\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Shield Warp Bubble Launcher\n  - Defense Profile: Shield Buffer | Speed: Fast (2.8+ km/s)\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Deploys 20km warp disruption bubbles on gates. Primary target."
     },
     "Stork": {
         "class": "Command Destroyer",
@@ -792,7 +1656,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Fast",
         "optimal_range": "0-20 km",
-        "tactics": "Spools 100km Micro Jump Field to kidnap ships on grid."
+        "tactics": "Spools 100km Micro Jump Field to kidnap ships on grid.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 2,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Micro Jump Field / Shield Skiff"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Stork [Command Destroyer | Caldari]\n  - Combat Role: Micro Jump Field / Shield Skiff\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 2 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: Micro Jump Field / Shield Skiff\n  - Defense Profile: Shield Buffer | Speed: Fast\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Spools 100km Micro Jump Field to kidnap ships on grid."
     },
     "Jackdaw": {
         "class": "Tactical Destroyer",
@@ -802,7 +1677,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active / Passive Shield",
         "speed": "Variable (Prop/Sharpshooter/Defensive)",
         "optimal_range": "20-60 km",
-        "tactics": "Switches between Defensive (+resist), Propulsion (+speed), and Sharpshooter (+range/damage). High threat."
+        "tactics": "Switches between Defensive (+resist), Propulsion (+speed), and Sharpshooter (+range/damage). High threat.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "20-60 km",
+        "bonuses": [
+            "T3 Mode-Switching Missile Destroyer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Jackdaw [Tactical Destroyer | Caldari]\n  - Combat Role: T3 Mode-Switching Missile Destroyer\n  - Weapon System: 20-60 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: T3 Mode-Switching Missile Destroyer\n  - Defense Profile: Active / Passive Shield | Speed: Variable (Prop/Sharpshooter/Defensive)\n  - Weapon Optimal: 20-60 km\n  - Tactical Counter-Play: Switches between Defensive (+resist), Propulsion (+speed), and Sharpshooter (+range/damage). High threat."
     },
     "Caracal": {
         "class": "Cruiser",
@@ -812,7 +1698,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Moderate (1.8-2.2 km/s)",
         "optimal_range": "30-65 km",
-        "tactics": "Rapid Light Missile (RLML) anti-frigate platform. High burst, 35s reload."
+        "tactics": "Rapid Light Missile (RLML) anti-frigate platform. High burst, 35s reload.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "30-65 km",
+        "bonuses": [
+            "Rapid Light / Heavy Missile Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Caracal [Cruiser | Caldari]\n  - Combat Role: Rapid Light / Heavy Missile Cruiser\n  - Weapon System: 30-65 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Rapid Light / Heavy Missile Cruiser\n  - Defense Profile: Shield Buffer | Speed: Moderate (1.8-2.2 km/s)\n  - Weapon Optimal: 30-65 km\n  - Tactical Counter-Play: Rapid Light Missile (RLML) anti-frigate platform. High burst, 35s reload."
     },
     "Moa": {
         "class": "Cruiser",
@@ -822,7 +1719,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Heavy Shield Buffer",
         "speed": "Slow",
         "optimal_range": "0-15 km / 30-60 km",
-        "tactics": "Strong shield resistance bonus; standard line fleet brawler/sniper."
+        "tactics": "Strong shield resistance bonus; standard line fleet brawler/sniper.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-15 km / 30-60 km",
+        "bonuses": [
+            "Rail / Blaster Fleet Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Moa [Cruiser | Caldari]\n  - Combat Role: Rail / Blaster Fleet Cruiser\n  - Weapon System: 0-15 km / 30-60 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Rail / Blaster Fleet Cruiser\n  - Defense Profile: Heavy Shield Buffer | Speed: Slow\n  - Weapon Optimal: 0-15 km / 30-60 km\n  - Tactical Counter-Play: Strong shield resistance bonus; standard line fleet brawler/sniper."
     },
     "Osprey": {
         "class": "Cruiser",
@@ -832,7 +1740,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Moderate",
         "optimal_range": "Remote Shield (Cap Transfer)",
-        "tactics": "Cap-chain shield logistics cruiser. Break cap chain to collapse fleet reps."
+        "tactics": "Cap-chain shield logistics cruiser. Break cap chain to collapse fleet reps.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "Remote Shield (Cap Transfer)",
+        "bonuses": [
+            "Shield Logistics Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Osprey [Cruiser | Caldari]\n  - Combat Role: Shield Logistics Cruiser\n  - Weapon System: Remote Shield (Cap Transfer)\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Shield Logistics Cruiser\n  - Defense Profile: Shield | Speed: Moderate\n  - Weapon Optimal: Remote Shield (Cap Transfer)\n  - Tactical Counter-Play: Cap-chain shield logistics cruiser. Break cap chain to collapse fleet reps."
     },
     "Blackbird": {
         "class": "Cruiser",
@@ -842,7 +1761,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Moderate",
         "optimal_range": "50-100 km",
-        "tactics": "Cruiser ECM platform. Jamming disrupts target locks across the grid."
+        "tactics": "Cruiser ECM platform. Jamming disrupts target locks across the grid.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "50-100 km",
+        "bonuses": [
+            "Fleet ECM Jammer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Blackbird [Cruiser | Caldari]\n  - Combat Role: Fleet ECM Jammer\n  - Weapon System: 50-100 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Fleet ECM Jammer\n  - Defense Profile: Shield Buffer | Speed: Moderate\n  - Weapon Optimal: 50-100 km\n  - Tactical Counter-Play: Cruiser ECM platform. Jamming disrupts target locks across the grid."
     },
     "Caracal Navy Issue": {
         "class": "Faction Cruiser",
@@ -852,7 +1782,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Fast",
         "optimal_range": "30-75 km",
-        "tactics": "Heavier shield buffer and missile velocity than standard Caracal."
+        "tactics": "Heavier shield buffer and missile velocity than standard Caracal.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "30-75 km",
+        "bonuses": [
+            "Heavy Missile / Rapid Light Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Caracal Navy Issue [Faction Cruiser | Caldari (Navy)]\n  - Combat Role: Heavy Missile / Rapid Light Cruiser\n  - Weapon System: 30-75 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Heavy Missile / Rapid Light Cruiser\n  - Defense Profile: Shield Buffer | Speed: Fast\n  - Weapon Optimal: 30-75 km\n  - Tactical Counter-Play: Heavier shield buffer and missile velocity than standard Caracal."
     },
     "Osprey Navy Issue": {
         "class": "Faction Cruiser",
@@ -862,7 +1803,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Fast (2.4+ km/s)",
         "optimal_range": "30-60 km",
-        "tactics": "High-speed nano missile kiter."
+        "tactics": "High-speed nano missile kiter.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "30-60 km",
+        "bonuses": [
+            "Fast Missile Kiter"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Osprey Navy Issue [Faction Cruiser | Caldari (Navy)]\n  - Combat Role: Fast Missile Kiter\n  - Weapon System: 30-60 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Fast Missile Kiter\n  - Defense Profile: Shield Buffer | Speed: Fast (2.4+ km/s)\n  - Weapon Optimal: 30-60 km\n  - Tactical Counter-Play: High-speed nano missile kiter."
     },
     "Cerberus": {
         "class": "Heavy Assault Cruiser",
@@ -872,7 +1824,20 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer + ADC",
         "speed": "Fast",
         "optimal_range": "50-100 km",
-        "tactics": "Extreme missile velocity and range. Striking with HAC ADC survivability."
+        "tactics": "Sniper missile HAC. Extreme missile projection (80-120 km). Counter with Missile Guidance Disruptors (Velocity script), signature reduction, and speed.",
+        "high_slots": 6,
+        "mid_slots": 5,
+        "low_slots": 4,
+        "rig_slots": 2,
+        "turret_hardpoints": 0,
+        "launcher_hardpoints": 6,
+        "weapon_type": "Heavy Assault Missiles / Heavy Missiles / RLML",
+        "bonuses": [
+            "5% HAM/Heavy Missile kinetic damage per lvl",
+            "10% missile velocity per lvl",
+            "Role: 50% missile flight time bonus"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Cerberus [Heavy Assault Cruiser | Caldari]\n  - Combat Role: HAC Heavy Missile Sniper\n  - Weapon System: Heavy Assault Missiles / Heavy Missiles / RLML\n  - Slot Layout: Highs: 6 | Mids: 5 | Lows: 4 | Rigs: 2 (Turrets: 0 | Launchers: 6)\n  - Key Bonuses: 5% HAM/Heavy Missile kinetic damage per lvl | 10% missile velocity per lvl | Role: 50% missile flight time bonus\n  - Defense Profile: Shield Buffer + ADC | Speed: Fast\n  - Weapon Optimal: 50-100 km\n  - Tactical Counter-Play: Sniper missile HAC. Extreme missile projection (80-120 km). Counter with Missile Guidance Disruptors (Velocity script), signature reduction, and speed."
     },
     "Eagle": {
         "class": "Heavy Assault Cruiser",
@@ -882,7 +1847,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer + ADC",
         "speed": "Moderate",
         "optimal_range": "60-120 km",
-        "tactics": "High-resist HAC rail sniper with extreme projection."
+        "tactics": "High-resist HAC rail sniper with extreme projection.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 2,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "60-120 km",
+        "bonuses": [
+            "HAC Rail Sniper"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Eagle [Heavy Assault Cruiser | Caldari]\n  - Combat Role: HAC Rail Sniper\n  - Weapon System: 60-120 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 2 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: HAC Rail Sniper\n  - Defense Profile: Shield Buffer + ADC | Speed: Moderate\n  - Weapon Optimal: 60-120 km\n  - Tactical Counter-Play: High-resist HAC rail sniper with extreme projection."
     },
     "Broadsword": {
         "class": "Heavy Interdiction Cruiser",
@@ -892,7 +1868,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Shield Buffer",
         "speed": "Moderate",
         "optimal_range": "0-20 km (Bubble) / Infinite Scram",
-        "tactics": "Projects focused infinite warp scrambler or 20km mobile bubble."
+        "tactics": "Projects focused infinite warp scrambler or 20km mobile bubble.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 2,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-20 km (Bubble) / Infinite Scram",
+        "bonuses": [
+            "Warp Disruption Field Generator"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Broadsword [Heavy Interdiction Cruiser | Minmatar]\n  - Combat Role: Warp Disruption Field Generator\n  - Weapon System: 0-20 km (Bubble) / Infinite Scram\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 2 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Warp Disruption Field Generator\n  - Defense Profile: Immense Shield Buffer | Speed: Moderate\n  - Weapon Optimal: 0-20 km (Bubble) / Infinite Scram\n  - Tactical Counter-Play: Projects focused infinite warp scrambler or 20km mobile bubble."
     },
     "Falcon": {
         "class": "Force Recon",
@@ -902,7 +1889,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Cloaked",
         "optimal_range": "50-100 km",
-        "tactics": "Uncloaks to jam targets and light Covert Cyno. Top priority target."
+        "tactics": "Uncloaks to jam targets and light Covert Cyno. Top priority target.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "50-100 km",
+        "bonuses": [
+            "Covert Cloak / ECM / Cyno"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Falcon [Force Recon | Caldari]\n  - Combat Role: Covert Cloak / ECM / Cyno\n  - Weapon System: 50-100 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Covert Cloak / ECM / Cyno\n  - Defense Profile: Paper Thin | Speed: Cloaked\n  - Weapon Optimal: 50-100 km\n  - Tactical Counter-Play: Uncloaks to jam targets and light Covert Cyno. Top priority target."
     },
     "Rook": {
         "class": "Combat Recon",
@@ -912,7 +1910,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Moderate",
         "optimal_range": "50-90 km",
-        "tactics": "Invisible to Directional Scan. Heavy ECM jammer and missile DPS."
+        "tactics": "Invisible to Directional Scan. Heavy ECM jammer and missile DPS.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "50-90 km",
+        "bonuses": [
+            "D-Scan Immune ECM Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Rook [Combat Recon | Caldari]\n  - Combat Role: D-Scan Immune ECM Cruiser\n  - Weapon System: 50-90 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: D-Scan Immune ECM Cruiser\n  - Defense Profile: Shield Buffer | Speed: Moderate\n  - Weapon Optimal: 50-90 km\n  - Tactical Counter-Play: Invisible to Directional Scan. Heavy ECM jammer and missile DPS."
     },
     "Basilisk": {
         "class": "Logistics Cruiser",
@@ -922,7 +1931,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Moderate",
         "optimal_range": "Remote Shield (Cap Transfer)",
-        "tactics": "Premier T2 shield logistics. Maintain cap chain with second Basilisk."
+        "tactics": "Premier T2 shield logistics. Maintain cap chain with second Basilisk.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 2,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "Remote Shield (Cap Transfer)",
+        "bonuses": [
+            "T2 Cap-Chain Shield Logistics"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Basilisk [Logistics Cruiser | Caldari]\n  - Combat Role: T2 Cap-Chain Shield Logistics\n  - Weapon System: Remote Shield (Cap Transfer)\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 2 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: T2 Cap-Chain Shield Logistics\n  - Defense Profile: Shield | Speed: Moderate\n  - Weapon Optimal: Remote Shield (Cap Transfer)\n  - Tactical Counter-Play: Premier T2 shield logistics. Maintain cap chain with second Basilisk."
     },
     "Tengu": {
         "class": "Strategic Cruiser",
@@ -932,7 +1952,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer / Active",
         "speed": "Fast (1.8-2.5 km/s)",
         "optimal_range": "30-90 km",
-        "tactics": "Highly customizable. Can fit covert cloak, interdiction nullification, heavy missile DPS, or 100MN AB."
+        "tactics": "Highly customizable. Can fit covert cloak, interdiction nullification, heavy missile DPS, or 100MN AB.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "30-90 km",
+        "bonuses": [
+            "Modular T3C (Missile / Rail / Cloak)"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Tengu [Strategic Cruiser | Caldari]\n  - Combat Role: Modular T3C (Missile / Rail / Cloak)\n  - Weapon System: 30-90 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Modular T3C (Missile / Rail / Cloak)\n  - Defense Profile: Shield Buffer / Active | Speed: Fast (1.8-2.5 km/s)\n  - Weapon Optimal: 30-90 km\n  - Tactical Counter-Play: Highly customizable. Can fit covert cloak, interdiction nullification, heavy missile DPS, or 100MN AB."
     },
     "Drake": {
         "class": "Battlecruiser",
@@ -942,7 +1973,19 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Massive Shield Buffer / Passive",
         "speed": "Slow",
         "optimal_range": "30-70 km",
-        "tactics": "Classic heavy missile battlecruiser with huge passive shield buffer."
+        "tactics": "Heavy shield buffer battlecruiser. Counter with EM/Thermal damage and Missile Guidance Disruptors.",
+        "high_slots": 7,
+        "mid_slots": 6,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 0,
+        "launcher_hardpoints": 6,
+        "weapon_type": "Heavy Missiles / Heavy Assault Missiles",
+        "bonuses": [
+            "4% all shield resists per lvl",
+            "10% Heavy Missile kinetic damage per lvl"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Drake [Battlecruiser | Caldari]\n  - Combat Role: Heavy Missile Fleet BC\n  - Weapon System: Heavy Missiles / Heavy Assault Missiles\n  - Slot Layout: Highs: 7 | Mids: 6 | Lows: 4 | Rigs: 3 (Turrets: 0 | Launchers: 6)\n  - Key Bonuses: 4% all shield resists per lvl | 10% Heavy Missile kinetic damage per lvl\n  - Defense Profile: Massive Shield Buffer / Passive | Speed: Slow\n  - Weapon Optimal: 30-70 km\n  - Tactical Counter-Play: Heavy shield buffer battlecruiser. Counter with EM/Thermal damage and Missile Guidance Disruptors."
     },
     "Ferox": {
         "class": "Battlecruiser",
@@ -952,7 +1995,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Slow",
         "optimal_range": "40-100 km",
-        "tactics": "Line fleet railgun anchor with extreme optimal range."
+        "tactics": "Line fleet railgun anchor with extreme optimal range.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "40-100 km",
+        "bonuses": [
+            "Rail Sniper / Fleet Anchor"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Ferox [Battlecruiser | Caldari]\n  - Combat Role: Rail Sniper / Fleet Anchor\n  - Weapon System: 40-100 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Rail Sniper / Fleet Anchor\n  - Defense Profile: Shield Buffer | Speed: Slow\n  - Weapon Optimal: 40-100 km\n  - Tactical Counter-Play: Line fleet railgun anchor with extreme optimal range."
     },
     "Naga": {
         "class": "Attack Battlecruiser",
@@ -962,7 +2016,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin Shield",
         "speed": "Moderate",
         "optimal_range": "80-150 km",
-        "tactics": "Large Battleship Railguns on BC hull. Massive alpha at extreme range."
+        "tactics": "Large Battleship Railguns on BC hull. Massive alpha at extreme range.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "80-150 km",
+        "bonuses": [
+            "Battleship-Gun Rail Sniper"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Naga [Attack Battlecruiser | Caldari]\n  - Combat Role: Battleship-Gun Rail Sniper\n  - Weapon System: 80-150 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Battleship-Gun Rail Sniper\n  - Defense Profile: Paper Thin Shield | Speed: Moderate\n  - Weapon Optimal: 80-150 km\n  - Tactical Counter-Play: Large Battleship Railguns on BC hull. Massive alpha at extreme range."
     },
     "Drake Navy Issue": {
         "class": "Faction Battlecruiser",
@@ -972,7 +2037,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Moderate",
         "optimal_range": "35-80 km",
-        "tactics": "Higher missile application and mobility than standard Drake."
+        "tactics": "Higher missile application and mobility than standard Drake.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "35-80 km",
+        "bonuses": [
+            "Heavy Missile / Shield BC"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Drake Navy Issue [Faction Battlecruiser | Caldari (Navy)]\n  - Combat Role: Heavy Missile / Shield BC\n  - Weapon System: 35-80 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Heavy Missile / Shield BC\n  - Defense Profile: Shield Buffer | Speed: Moderate\n  - Weapon Optimal: 35-80 km\n  - Tactical Counter-Play: Higher missile application and mobility than standard Drake."
     },
     "Ferox Navy Issue": {
         "class": "Faction Battlecruiser",
@@ -982,7 +2058,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Heavy Shield Buffer",
         "speed": "Moderate",
         "optimal_range": "20-80 km",
-        "tactics": "Enhanced hybrid turret tracking and shield reserves."
+        "tactics": "Enhanced hybrid turret tracking and shield reserves.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "20-80 km",
+        "bonuses": [
+            "Hybrid Brawler / Sniper"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Ferox Navy Issue [Faction Battlecruiser | Caldari (Navy)]\n  - Combat Role: Hybrid Brawler / Sniper\n  - Weapon System: 20-80 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Hybrid Brawler / Sniper\n  - Defense Profile: Heavy Shield Buffer | Speed: Moderate\n  - Weapon Optimal: 20-80 km\n  - Tactical Counter-Play: Enhanced hybrid turret tracking and shield reserves."
     },
     "Nighthawk": {
         "class": "Command Ship",
@@ -992,7 +2079,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Shield Buffer",
         "speed": "Slow",
         "optimal_range": "20-50 km",
-        "tactics": "Provides Fleet Shield Bursts and launches heavy assault missiles."
+        "tactics": "Provides Fleet Shield Bursts and launches heavy assault missiles.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "20-50 km",
+        "bonuses": [
+            "Shield Fleet Command / HAM"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Nighthawk [Command Ship | Caldari]\n  - Combat Role: Shield Fleet Command / HAM\n  - Weapon System: 20-50 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Shield Fleet Command / HAM\n  - Defense Profile: Immense Shield Buffer | Speed: Slow\n  - Weapon Optimal: 20-50 km\n  - Tactical Counter-Play: Provides Fleet Shield Bursts and launches heavy assault missiles."
     },
     "Vulture": {
         "class": "Command Ship",
@@ -1002,7 +2100,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Shield Buffer",
         "speed": "Slow",
         "optimal_range": "60-140 km",
-        "tactics": "Provides Fleet Information / Shield Bursts with long-range railguns."
+        "tactics": "Provides Fleet Information / Shield Bursts with long-range railguns.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "60-140 km",
+        "bonuses": [
+            "Shield Fleet Command / Rail Sniper"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Vulture [Command Ship | Caldari]\n  - Combat Role: Shield Fleet Command / Rail Sniper\n  - Weapon System: 60-140 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Shield Fleet Command / Rail Sniper\n  - Defense Profile: Immense Shield Buffer | Speed: Slow\n  - Weapon Optimal: 60-140 km\n  - Tactical Counter-Play: Provides Fleet Information / Shield Bursts with long-range railguns."
     },
     "Raven": {
         "class": "Battleship",
@@ -1012,7 +2121,19 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer / Active",
         "speed": "Slow",
         "optimal_range": "40-120 km (Cruise) / 15-35 km (Torp)",
-        "tactics": "Classic missile battleship with high rate of fire."
+        "tactics": "Standard missile battleship. Counter with Missile Guidance Disruptors and high transversal speed.",
+        "high_slots": 7,
+        "mid_slots": 7,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 0,
+        "launcher_hardpoints": 6,
+        "weapon_type": "Cruise Missiles / Torpedoes",
+        "bonuses": [
+            "5% Cruise/Torpedo rate of fire per lvl",
+            "10% Cruise/Torpedo max velocity per lvl"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Raven [Battleship | Caldari]\n  - Combat Role: Cruise / Torpedo Battleship\n  - Weapon System: Cruise Missiles / Torpedoes\n  - Slot Layout: Highs: 7 | Mids: 7 | Lows: 5 | Rigs: 3 (Turrets: 0 | Launchers: 6)\n  - Key Bonuses: 5% Cruise/Torpedo rate of fire per lvl | 10% Cruise/Torpedo max velocity per lvl\n  - Defense Profile: Shield Buffer / Active | Speed: Slow\n  - Weapon Optimal: 40-120 km (Cruise) / 15-35 km (Torp)\n  - Tactical Counter-Play: Standard missile battleship. Counter with Missile Guidance Disruptors and high transversal speed."
     },
     "Rokh": {
         "class": "Battleship",
@@ -1022,7 +2143,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Slow",
         "optimal_range": "80-160 km",
-        "tactics": "8 large railguns with optimal range bonus. Strikes from 150 km."
+        "tactics": "8 large railguns with optimal range bonus. Strikes from 150 km.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "80-160 km",
+        "bonuses": [
+            "Rail Sniper Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Rokh [Battleship | Caldari]\n  - Combat Role: Rail Sniper Battleship\n  - Weapon System: 80-160 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Rail Sniper Battleship\n  - Defense Profile: Shield Buffer | Speed: Slow\n  - Weapon Optimal: 80-160 km\n  - Tactical Counter-Play: 8 large railguns with optimal range bonus. Strikes from 150 km."
     },
     "Scorpion": {
         "class": "Battleship",
@@ -1032,7 +2164,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Slow",
         "optimal_range": "60-120 km",
-        "tactics": "Massive ECM jamming strength across all racial sensor types."
+        "tactics": "Massive ECM jamming strength across all racial sensor types.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "60-120 km",
+        "bonuses": [
+            "Fleet ECM Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Scorpion [Battleship | Caldari]\n  - Combat Role: Fleet ECM Battleship\n  - Weapon System: 60-120 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Fleet ECM Battleship\n  - Defense Profile: Shield Buffer | Speed: Slow\n  - Weapon Optimal: 60-120 km\n  - Tactical Counter-Play: Massive ECM jamming strength across all racial sensor types."
     },
     "Raven Navy Issue": {
         "class": "Faction Battleship",
@@ -1042,7 +2185,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Slow",
         "optimal_range": "40-140 km",
-        "tactics": "8 launcher hardpoints with superior missile application."
+        "tactics": "8 launcher hardpoints with superior missile application.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "40-140 km",
+        "bonuses": [
+            "Cruise / Torp Navy Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Raven Navy Issue [Faction Battleship | Caldari (Navy)]\n  - Combat Role: Cruise / Torp Navy Battleship\n  - Weapon System: 40-140 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Cruise / Torp Navy Battleship\n  - Defense Profile: Shield Buffer | Speed: Slow\n  - Weapon Optimal: 40-140 km\n  - Tactical Counter-Play: 8 launcher hardpoints with superior missile application."
     },
     "Scorpion Navy Issue": {
         "class": "Faction Battleship",
@@ -1052,7 +2206,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Shield Buffer",
         "speed": "Slow",
         "optimal_range": "30-80 km",
-        "tactics": "Trading ECM for massive shield buffer and missile DPS."
+        "tactics": "Trading ECM for massive shield buffer and missile DPS.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "30-80 km",
+        "bonuses": [
+            "Heavy Shield / Missile Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Scorpion Navy Issue [Faction Battleship | Caldari (Navy)]\n  - Combat Role: Heavy Shield / Missile Brawler\n  - Weapon System: 30-80 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Heavy Shield / Missile Brawler\n  - Defense Profile: Immense Shield Buffer | Speed: Slow\n  - Weapon Optimal: 30-80 km\n  - Tactical Counter-Play: Trading ECM for massive shield buffer and missile DPS."
     },
     "Golem": {
         "class": "Marauder",
@@ -1062,7 +2227,20 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active Shield (Bastion Mode)",
         "speed": "Immobile in Bastion",
         "optimal_range": "30-100 km",
-        "tactics": "Bastion Mode doubles shield repairs and grants EWAR immunity. Apply neuts."
+        "tactics": "Marauder with 100% Bastion shield boost. Immune to electronic warfare while in Bastion. Counter with sustained capital neuts, coordinated dreadnought alpha, or wait for Bastion cycle to expire.",
+        "high_slots": 8,
+        "mid_slots": 7,
+        "low_slots": 4,
+        "rig_slots": 2,
+        "turret_hardpoints": 0,
+        "launcher_hardpoints": 4,
+        "weapon_type": "Cruise Missiles / Torpedoes (Bastion Siege)",
+        "bonuses": [
+            "100% Torpedo/Cruise damage bonus",
+            "10% Torpedo/Cruise velocity per lvl",
+            "Role: Bastion module grants 100% shield boost amount and total EWAR immunity"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Golem [Marauder | Caldari]\n  - Combat Role: Bastion Torpedo / Cruise Marauder\n  - Weapon System: Cruise Missiles / Torpedoes (Bastion Siege)\n  - Slot Layout: Highs: 8 | Mids: 7 | Lows: 4 | Rigs: 2 (Turrets: 0 | Launchers: 4)\n  - Key Bonuses: 100% Torpedo/Cruise damage bonus | 10% Torpedo/Cruise velocity per lvl | Role: Bastion module grants 100% shield boost amount and total EWAR immunity\n  - Defense Profile: Active Shield (Bastion Mode) | Speed: Immobile in Bastion\n  - Weapon Optimal: 30-100 km\n  - Tactical Counter-Play: Marauder with 100% Bastion shield boost. Immune to electronic warfare while in Bastion. Counter with sustained capital neuts, coordinated dreadnought alpha, or wait for Bastion cycle to expire."
     },
     "Widow": {
         "class": "Black Ops",
@@ -1072,7 +2250,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer / Active",
         "speed": "Slow (Covert Jump)",
         "optimal_range": "40-90 km",
-        "tactics": "Bridges covert fleets; fires missiles and ECM jammers."
+        "tactics": "Bridges covert fleets; fires missiles and ECM jammers.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "40-90 km",
+        "bonuses": [
+            "Covert Jump / ECM Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Widow [Black Ops | Caldari]\n  - Combat Role: Covert Jump / ECM Battleship\n  - Weapon System: 40-90 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Covert Jump / ECM Battleship\n  - Defense Profile: Shield Buffer / Active | Speed: Slow (Covert Jump)\n  - Weapon Optimal: 40-90 km\n  - Tactical Counter-Play: Bridges covert fleets; fires missiles and ECM jammers."
     },
     "Phoenix": {
         "class": "Dreadnought",
@@ -1082,7 +2271,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active Shield (Siege)",
         "speed": "Capital",
         "optimal_range": "Capital Grid",
-        "tactics": "Siege dreadnought with capital missile launchers."
+        "tactics": "Siege dreadnought with capital missile launchers.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Capital Grid",
+        "bonuses": [
+            "Capital Torpedo / Cruise Dread"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Phoenix [Dreadnought | Caldari]\n  - Combat Role: Capital Torpedo / Cruise Dread\n  - Weapon System: Capital Grid\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Capital Torpedo / Cruise Dread\n  - Defense Profile: Active Shield (Siege) | Speed: Capital\n  - Weapon Optimal: Capital Grid\n  - Tactical Counter-Play: Siege dreadnought with capital missile launchers."
     },
     "Phoenix Navy Issue": {
         "class": "Faction Dreadnought",
@@ -1092,7 +2292,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Active",
         "speed": "Capital",
         "optimal_range": "Capital Grid",
-        "tactics": "High-application capital missile dreadnought."
+        "tactics": "High-application capital missile dreadnought.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Capital Grid",
+        "bonuses": [
+            "Navy Capital Missile Dread"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Phoenix Navy Issue [Faction Dreadnought | Caldari (Navy)]\n  - Combat Role: Navy Capital Missile Dread\n  - Weapon System: Capital Grid\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Navy Capital Missile Dread\n  - Defense Profile: Shield Active | Speed: Capital\n  - Weapon Optimal: Capital Grid\n  - Tactical Counter-Play: High-application capital missile dreadnought."
     },
     "Karura": {
         "class": "Lancer Dreadnought",
@@ -1102,7 +2313,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Active",
         "speed": "Capital",
         "optimal_range": "Lancer Beam",
-        "tactics": "Fires disruptive capital lance disabling cynos and warp."
+        "tactics": "Fires disruptive capital lance disabling cynos and warp.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Lancer Beam",
+        "bonuses": [
+            "Disruptive Lancer Dread"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Karura [Lancer Dreadnought | Caldari]\n  - Combat Role: Disruptive Lancer Dread\n  - Weapon System: Lancer Beam\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Disruptive Lancer Dread\n  - Defense Profile: Shield Active | Speed: Capital\n  - Weapon Optimal: Lancer Beam\n  - Tactical Counter-Play: Fires disruptive capital lance disabling cynos and warp."
     },
     "Chimera": {
         "class": "Carrier",
@@ -1112,7 +2334,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Capital",
         "optimal_range": "Fighter Range",
-        "tactics": "Launches light and support fighter squadrons."
+        "tactics": "Launches light and support fighter squadrons.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Fighter Range",
+        "bonuses": [
+            "Capital Fighter Carrier"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Chimera [Carrier | Caldari]\n  - Combat Role: Capital Fighter Carrier\n  - Weapon System: Fighter Range\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Capital Fighter Carrier\n  - Defense Profile: Shield Buffer | Speed: Capital\n  - Weapon Optimal: Fighter Range\n  - Tactical Counter-Play: Launches light and support fighter squadrons."
     },
     "Wyvern": {
         "class": "Supercarrier",
@@ -1122,7 +2355,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Supercapital",
         "optimal_range": "Omni Grid",
-        "tactics": "Supercapital fighter bomber strikes and burst projectors."
+        "tactics": "Supercapital fighter bomber strikes and burst projectors.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Omni Grid",
+        "bonuses": [
+            "Supercapital Heavy Carrier"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Wyvern [Supercarrier | Caldari]\n  - Combat Role: Supercapital Heavy Carrier\n  - Weapon System: Omni Grid\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Supercapital Heavy Carrier\n  - Defense Profile: Shield Buffer | Speed: Supercapital\n  - Weapon Optimal: Omni Grid\n  - Tactical Counter-Play: Supercapital fighter bomber strikes and burst projectors."
     },
     "Minokawa": {
         "class": "Force Auxiliary",
@@ -1132,7 +2376,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active Shield (Triage)",
         "speed": "Capital",
         "optimal_range": "Remote Shield",
-        "tactics": "Capital remote shield repair ship."
+        "tactics": "Capital remote shield repair ship.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Remote Shield",
+        "bonuses": [
+            "Capital Shield FAX"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Minokawa [Force Auxiliary | Caldari]\n  - Combat Role: Capital Shield FAX\n  - Weapon System: Remote Shield\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Capital Shield FAX\n  - Defense Profile: Active Shield (Triage) | Speed: Capital\n  - Weapon Optimal: Remote Shield\n  - Tactical Counter-Play: Capital remote shield repair ship."
     },
     "Leviathan": {
         "class": "Titan",
@@ -1142,7 +2397,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Supercapital",
         "optimal_range": "Omni Grid",
-        "tactics": "Doomsday missile titan with fleet shield burst."
+        "tactics": "Doomsday missile titan with fleet shield burst.",
+        "high_slots": 8,
+        "mid_slots": 7,
+        "low_slots": 8,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "Omni Grid",
+        "bonuses": [
+            "Supercapital Missile Titan"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Leviathan [Titan | Caldari]\n  - Combat Role: Supercapital Missile Titan\n  - Weapon System: Omni Grid\n  - Slot Layout: Highs: 8 | Mids: 7 | Lows: 8 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Supercapital Missile Titan\n  - Defense Profile: Shield Buffer | Speed: Supercapital\n  - Weapon Optimal: Omni Grid\n  - Tactical Counter-Play: Doomsday missile titan with fleet shield burst."
     },
     "Badger": {
         "class": "Industrial",
@@ -1152,7 +2418,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Slow",
         "optimal_range": "0 km",
-        "tactics": "T1 industrial transport."
+        "tactics": "T1 industrial transport.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Standard Hauler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Badger [Industrial | Caldari]\n  - Combat Role: Standard Hauler\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Standard Hauler\n  - Defense Profile: Paper Thin | Speed: Slow\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: T1 industrial transport."
     },
     "Tayra": {
         "class": "Industrial",
@@ -1162,7 +2439,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Slow",
         "optimal_range": "0 km",
-        "tactics": "Large cargo capacity hauler."
+        "tactics": "Large cargo capacity hauler.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "High-Capacity Hauler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Tayra [Industrial | Caldari]\n  - Combat Role: High-Capacity Hauler\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: High-Capacity Hauler\n  - Defense Profile: Paper Thin | Speed: Slow\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Large cargo capacity hauler."
     },
     "Crane": {
         "class": "Blockade Runner",
@@ -1172,7 +2460,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Cloaked Shield",
         "speed": "Fast (<3s align)",
         "optimal_range": "0 km",
-        "tactics": "Covert cloaking, cargo-scanned immune hauler."
+        "tactics": "Covert cloaking, cargo-scanned immune hauler.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Covert Fast Hauler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Crane [Blockade Runner | Caldari]\n  - Combat Role: Covert Fast Hauler\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Covert Fast Hauler\n  - Defense Profile: Cloaked Shield | Speed: Fast (<3s align)\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Covert cloaking, cargo-scanned immune hauler."
     },
     "Bustard": {
         "class": "Deep Space Transport",
@@ -1182,7 +2481,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Shield Buffer (+2 Warp Core)",
         "speed": "Slow",
         "optimal_range": "0 km",
-        "tactics": "+2 native warp core strength and Fleet Hangar."
+        "tactics": "+2 native warp core strength and Fleet Hangar.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Heavy Shield DST"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Bustard [Deep Space Transport | Caldari]\n  - Combat Role: Heavy Shield DST\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Heavy Shield DST\n  - Defense Profile: Immense Shield Buffer (+2 Warp Core) | Speed: Slow\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: +2 native warp core strength and Fleet Hangar."
     },
     "Charon": {
         "class": "Freighter",
@@ -1192,7 +2502,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Buffer",
         "speed": "Extremely Slow",
         "optimal_range": "0 km",
-        "tactics": "Massive cargo freighter."
+        "tactics": "Massive cargo freighter.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Standard Sub-Capital Freighter"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Charon [Freighter | Caldari]\n  - Combat Role: Standard Sub-Capital Freighter\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Standard Sub-Capital Freighter\n  - Defense Profile: Buffer | Speed: Extremely Slow\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Massive cargo freighter."
     },
     "Rhea": {
         "class": "Jump Freighter",
@@ -1202,7 +2523,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Jump Drive",
         "optimal_range": "0 km",
-        "tactics": "Jump drive cargo hauler for nullsec logistics."
+        "tactics": "Jump drive cargo hauler for nullsec logistics.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Capital Jump Freighter"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Rhea [Jump Freighter | Caldari]\n  - Combat Role: Capital Jump Freighter\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Capital Jump Freighter\n  - Defense Profile: Shield Buffer | Speed: Jump Drive\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Jump drive cargo hauler for nullsec logistics."
     },
     "Atron": {
         "class": "Frigate",
@@ -1212,7 +2544,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Shield",
         "speed": "Extreme (4.5+ km/s)",
         "optimal_range": "0-8 km",
-        "tactics": "High-speed light tackle with close-range blaster DPS."
+        "tactics": "High-speed light tackle with close-range blaster DPS.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-8 km",
+        "bonuses": [
+            "Fast Tackle / Blaster Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Atron [Frigate | Gallente]\n  - Combat Role: Fast Tackle / Blaster Frigate\n  - Weapon System: 0-8 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Fast Tackle / Blaster Frigate\n  - Defense Profile: Armor / Shield | Speed: Extreme (4.5+ km/s)\n  - Weapon Optimal: 0-8 km\n  - Tactical Counter-Play: High-speed light tackle with close-range blaster DPS."
     },
     "Tristan": {
         "class": "Frigate",
@@ -1222,7 +2565,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Shield / Hull",
         "speed": "Fast",
         "optimal_range": "0-30 km",
-        "tactics": "Versatile drone frigate. Can fly neutralizer brawl or long-range kite."
+        "tactics": "Versatile drone frigate. Can fly neutralizer brawl or long-range kite.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-30 km",
+        "bonuses": [
+            "Drone Kiter / Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Tristan [Frigate | Gallente]\n  - Combat Role: Drone Kiter / Brawler\n  - Weapon System: 0-30 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Drone Kiter / Brawler\n  - Defense Profile: Armor / Shield / Hull | Speed: Fast\n  - Weapon Optimal: 0-30 km\n  - Tactical Counter-Play: Versatile drone frigate. Can fly neutralizer brawl or long-range kite."
     },
     "Incursus": {
         "class": "Frigate",
@@ -1232,7 +2586,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Dual Rep Active Armor",
         "speed": "Moderate",
         "optimal_range": "0-8 km",
-        "tactics": "Immense active armor repair bonus with close-range blasters."
+        "tactics": "Immense active armor repair bonus with close-range blasters.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-8 km",
+        "bonuses": [
+            "Active Armor Blaster Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Incursus [Frigate | Gallente]\n  - Combat Role: Active Armor Blaster Brawler\n  - Weapon System: 0-8 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Active Armor Blaster Brawler\n  - Defense Profile: Dual Rep Active Armor | Speed: Moderate\n  - Weapon Optimal: 0-8 km\n  - Tactical Counter-Play: Immense active armor repair bonus with close-range blasters."
     },
     "Imicus": {
         "class": "Frigate",
@@ -1242,7 +2607,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Moderate",
         "optimal_range": "0-15 km",
-        "tactics": "Scanning and exploration frigate."
+        "tactics": "Scanning and exploration frigate.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Exploration / Light Drone"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Imicus [Frigate | Gallente]\n  - Combat Role: Exploration / Light Drone\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Exploration / Light Drone\n  - Defense Profile: Armor | Speed: Moderate\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Scanning and exploration frigate."
     },
     "Navitas": {
         "class": "Frigate",
@@ -1252,7 +2628,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Moderate",
         "optimal_range": "Remote Armor",
-        "tactics": "T1 frigate armor logistics."
+        "tactics": "T1 frigate armor logistics.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Remote Armor",
+        "bonuses": [
+            "Armor Logistics Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Navitas [Frigate | Gallente]\n  - Combat Role: Armor Logistics Frigate\n  - Weapon System: Remote Armor\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Armor Logistics Frigate\n  - Defense Profile: Armor | Speed: Moderate\n  - Weapon Optimal: Remote Armor\n  - Tactical Counter-Play: T1 frigate armor logistics."
     },
     "Maulus": {
         "class": "Frigate",
@@ -1262,7 +2649,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Fast",
         "optimal_range": "30-70 km",
-        "tactics": "Sensor dampeners reduce enemy lock range and scan resolution."
+        "tactics": "Sensor dampeners reduce enemy lock range and scan resolution.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "30-70 km",
+        "bonuses": [
+            "Remote Sensor Dampener"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Maulus [Frigate | Gallente]\n  - Combat Role: Remote Sensor Dampener\n  - Weapon System: 30-70 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Remote Sensor Dampener\n  - Defense Profile: Paper Thin | Speed: Fast\n  - Weapon Optimal: 30-70 km\n  - Tactical Counter-Play: Sensor dampeners reduce enemy lock range and scan resolution."
     },
     "Federation Navy Comet": {
         "class": "Faction Frigate",
@@ -1272,7 +2670,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Hull Buffer",
         "speed": "Fast",
         "optimal_range": "0-15 km",
-        "tactics": "Extreme hybrid DPS and drone assistance."
+        "tactics": "Extreme hybrid DPS and drone assistance.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Heavy Blaster / Rail Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Federation Navy Comet [Faction Frigate | Gallente (Navy)]\n  - Combat Role: Heavy Blaster / Rail Brawler\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Heavy Blaster / Rail Brawler\n  - Defense Profile: Armor / Hull Buffer | Speed: Fast\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Extreme hybrid DPS and drone assistance."
     },
     "Maulus Navy Issue": {
         "class": "Faction Frigate",
@@ -1282,7 +2691,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Fast",
         "optimal_range": "0-15 km",
-        "tactics": "Damps enemy lock range while applying strong hybrid DPS."
+        "tactics": "Damps enemy lock range while applying strong hybrid DPS.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Combat Dampener / Scram Kiter"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Maulus Navy Issue [Faction Frigate | Gallente (Navy)]\n  - Combat Role: Combat Dampener / Scram Kiter\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Combat Dampener / Scram Kiter\n  - Defense Profile: Armor | Speed: Fast\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Damps enemy lock range while applying strong hybrid DPS."
     },
     "Imicus Navy Issue": {
         "class": "Faction Frigate",
@@ -1292,7 +2712,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Fast",
         "optimal_range": "0-20 km",
-        "tactics": "Exploration combat frigate with increased drone bay."
+        "tactics": "Exploration combat frigate with increased drone bay.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Combat Explorer / Heavy Drone"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Imicus Navy Issue [Faction Frigate | Gallente (Navy)]\n  - Combat Role: Combat Explorer / Heavy Drone\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Combat Explorer / Heavy Drone\n  - Defense Profile: Armor Buffer | Speed: Fast\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Exploration combat frigate with increased drone bay."
     },
     "Helios": {
         "class": "Covert Ops",
@@ -1302,7 +2733,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Cloaked",
         "optimal_range": "Covert",
-        "tactics": "Covert cloaking scout frigate."
+        "tactics": "Covert cloaking scout frigate.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Covert",
+        "bonuses": [
+            "Stealth Scout / Cyno"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Helios [Covert Ops | Gallente]\n  - Combat Role: Stealth Scout / Cyno\n  - Weapon System: Covert\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Stealth Scout / Cyno\n  - Defense Profile: Paper Thin | Speed: Cloaked\n  - Weapon Optimal: Covert\n  - Tactical Counter-Play: Covert cloaking scout frigate."
     },
     "Nemesis": {
         "class": "Stealth Bomber",
@@ -1312,7 +2754,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Cloaked",
         "optimal_range": "30-60 km",
-        "tactics": "Thermal bombs and torpedoes from cloak."
+        "tactics": "Thermal bombs and torpedoes from cloak.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "30-60 km",
+        "bonuses": [
+            "Covert Torpedo / Bomb Bomber"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Nemesis [Stealth Bomber | Gallente]\n  - Combat Role: Covert Torpedo / Bomb Bomber\n  - Weapon System: 30-60 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Covert Torpedo / Bomb Bomber\n  - Defense Profile: Paper Thin | Speed: Cloaked\n  - Weapon Optimal: 30-60 km\n  - Tactical Counter-Play: Thermal bombs and torpedoes from cloak."
     },
     "Ishkur": {
         "class": "Assault Frigate",
@@ -1322,7 +2775,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer / Active + ADC",
         "speed": "Fast",
         "optimal_range": "0-20 km",
-        "tactics": "Assault Damage Control and drone bay for flexible engagement."
+        "tactics": "Assault Damage Control and drone bay for flexible engagement.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 2,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Drone / Blaster Assault Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Ishkur [Assault Frigate | Gallente]\n  - Combat Role: Drone / Blaster Assault Frigate\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 2 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Drone / Blaster Assault Frigate\n  - Defense Profile: Armor Buffer / Active + ADC | Speed: Fast\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Assault Damage Control and drone bay for flexible engagement."
     },
     "Enyo": {
         "class": "Assault Frigate",
@@ -1332,7 +2796,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer + ADC",
         "speed": "Fast",
         "optimal_range": "0-8 km",
-        "tactics": "Devastating close-range blaster DPS with ADC."
+        "tactics": "Devastating close-range blaster DPS with ADC.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 2,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-8 km",
+        "bonuses": [
+            "High DPS Blaster Assault"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Enyo [Assault Frigate | Gallente]\n  - Combat Role: High DPS Blaster Assault\n  - Weapon System: 0-8 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 2 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: High DPS Blaster Assault\n  - Defense Profile: Armor Buffer + ADC | Speed: Fast\n  - Weapon Optimal: 0-8 km\n  - Tactical Counter-Play: Devastating close-range blaster DPS with ADC."
     },
     "Keres": {
         "class": "Electronic Attack Ship",
@@ -1342,7 +2817,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Fast (4.0+ km/s)",
         "optimal_range": "30-60 km",
-        "tactics": "Projects long-range warp disruptor (35km+) and severe dampeners."
+        "tactics": "Projects long-range warp disruptor (35km+) and severe dampeners.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "30-60 km",
+        "bonuses": [
+            "Long-Range Dampener / Point"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Keres [Electronic Attack Ship | Gallente]\n  - Combat Role: Long-Range Dampener / Point\n  - Weapon System: 30-60 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Long-Range Dampener / Point\n  - Defense Profile: Paper Thin | Speed: Fast (4.0+ km/s)\n  - Weapon Optimal: 30-60 km\n  - Tactical Counter-Play: Projects long-range warp disruptor (35km+) and severe dampeners."
     },
     "Ares": {
         "class": "Interceptor",
@@ -1352,7 +2838,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Shield",
         "speed": "Extreme (4.8+ km/s)",
         "optimal_range": "0-15 km",
-        "tactics": "Nullified fast tackle interceptor."
+        "tactics": "Nullified fast tackle interceptor.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Fast Fleet Tackler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Ares [Interceptor | Gallente]\n  - Combat Role: Fast Fleet Tackler\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Fast Fleet Tackler\n  - Defense Profile: Armor / Shield | Speed: Extreme (4.8+ km/s)\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Nullified fast tackle interceptor."
     },
     "Taranis": {
         "class": "Interceptor",
@@ -1362,7 +2859,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Extreme (4.5+ km/s)",
         "optimal_range": "0-8 km",
-        "tactics": "High-DPS combat interceptor with blasters and drones."
+        "tactics": "High-DPS combat interceptor with blasters and drones.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-8 km",
+        "bonuses": [
+            "Combat Blaster Interceptor"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Taranis [Interceptor | Gallente]\n  - Combat Role: Combat Blaster Interceptor\n  - Weapon System: 0-8 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Combat Blaster Interceptor\n  - Defense Profile: Armor | Speed: Extreme (4.5+ km/s)\n  - Weapon Optimal: 0-8 km\n  - Tactical Counter-Play: High-DPS combat interceptor with blasters and drones."
     },
     "Thalia": {
         "class": "Logistics Frigate",
@@ -1372,7 +2880,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Fast",
         "optimal_range": "Remote Armor",
-        "tactics": "Assault-tier remote armor repair frigate."
+        "tactics": "Assault-tier remote armor repair frigate.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Remote Armor",
+        "bonuses": [
+            "T2 Armor Logistics Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Thalia [Logistics Frigate | Gallente]\n  - Combat Role: T2 Armor Logistics Frigate\n  - Weapon System: Remote Armor\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: T2 Armor Logistics Frigate\n  - Defense Profile: Armor | Speed: Fast\n  - Weapon Optimal: Remote Armor\n  - Tactical Counter-Play: Assault-tier remote armor repair frigate."
     },
     "Catalyst": {
         "class": "Destroyer",
@@ -1382,7 +2901,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Hull Buffer",
         "speed": "Moderate",
         "optimal_range": "0-8 km (Blasters) / 20-50 km (Rails)",
-        "tactics": "8 hybrid turrets deliver over 600+ DPS close range. Premier suicide gank hull."
+        "tactics": "8 hybrid turrets deliver over 600+ DPS close range. Premier suicide gank hull.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-8 km (Blasters) / 20-50 km (Rails)",
+        "bonuses": [
+            "High DPS Blaster Ganker / Destroyer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Catalyst [Destroyer | Gallente]\n  - Combat Role: High DPS Blaster Ganker / Destroyer\n  - Weapon System: 0-8 km (Blasters) / 20-50 km (Rails)\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: High DPS Blaster Ganker / Destroyer\n  - Defense Profile: Armor / Hull Buffer | Speed: Moderate\n  - Weapon Optimal: 0-8 km (Blasters) / 20-50 km (Rails)\n  - Tactical Counter-Play: 8 hybrid turrets deliver over 600+ DPS close range. Premier suicide gank hull."
     },
     "Algos": {
         "class": "Destroyer",
@@ -1392,7 +2922,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Moderate",
         "optimal_range": "0-30 km",
-        "tactics": "Full flight of light drones with hybrid turrets."
+        "tactics": "Full flight of light drones with hybrid turrets.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-30 km",
+        "bonuses": [
+            "Drone / Rail Destroyer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Algos [Destroyer | Gallente]\n  - Combat Role: Drone / Rail Destroyer\n  - Weapon System: 0-30 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: Drone / Rail Destroyer\n  - Defense Profile: Armor Buffer | Speed: Moderate\n  - Weapon Optimal: 0-30 km\n  - Tactical Counter-Play: Full flight of light drones with hybrid turrets."
     },
     "Catalyst Navy Issue": {
         "class": "Faction Destroyer",
@@ -1402,7 +2943,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Hull Buffer",
         "speed": "Fast",
         "optimal_range": "0-15 km",
-        "tactics": "Enhanced tracking and armor plate mass reduction."
+        "tactics": "Enhanced tracking and armor plate mass reduction.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Navy Blaster / Rail Destroyer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Catalyst Navy Issue [Faction Destroyer | Gallente (Navy)]\n  - Combat Role: Navy Blaster / Rail Destroyer\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: Navy Blaster / Rail Destroyer\n  - Defense Profile: Armor / Hull Buffer | Speed: Fast\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Enhanced tracking and armor plate mass reduction."
     },
     "Eris": {
         "class": "Interdictor",
@@ -1412,7 +2964,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Fast (2.8+ km/s)",
         "optimal_range": "0-15 km",
-        "tactics": "Deploys 20km warp disruption bubbles on gates."
+        "tactics": "Deploys 20km warp disruption bubbles on gates.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Armor Warp Bubble Launcher"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Eris [Interdictor | Gallente]\n  - Combat Role: Armor Warp Bubble Launcher\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Armor Warp Bubble Launcher\n  - Defense Profile: Armor Buffer | Speed: Fast (2.8+ km/s)\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Deploys 20km warp disruption bubbles on gates."
     },
     "Magus": {
         "class": "Command Destroyer",
@@ -1422,7 +2985,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Fast",
         "optimal_range": "0-20 km",
-        "tactics": "Spools 100km Micro Jump Field to kidnap ships on grid."
+        "tactics": "Spools 100km Micro Jump Field to kidnap ships on grid.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 2,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Micro Jump Field / Armor Skiff"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Magus [Command Destroyer | Gallente]\n  - Combat Role: Micro Jump Field / Armor Skiff\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 2 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: Micro Jump Field / Armor Skiff\n  - Defense Profile: Armor Buffer | Speed: Fast\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Spools 100km Micro Jump Field to kidnap ships on grid."
     },
     "Hecate": {
         "class": "Tactical Destroyer",
@@ -1432,7 +3006,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active / Passive Armor / Hull",
         "speed": "Variable (Prop/Sharpshooter/Defensive)",
         "optimal_range": "0-15 km",
-        "tactics": "Switches between Propulsion, Sharpshooter (1000+ DPS blasters), and Defensive modes."
+        "tactics": "Switches between Propulsion, Sharpshooter (1000+ DPS blasters), and Defensive modes.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "T3 Mode-Switching Blaster Destroyer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Hecate [Tactical Destroyer | Gallente]\n  - Combat Role: T3 Mode-Switching Blaster Destroyer\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: T3 Mode-Switching Blaster Destroyer\n  - Defense Profile: Active / Passive Armor / Hull | Speed: Variable (Prop/Sharpshooter/Defensive)\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Switches between Propulsion, Sharpshooter (1000+ DPS blasters), and Defensive modes."
     },
     "Thorax": {
         "class": "Cruiser",
@@ -1442,7 +3027,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Shield Buffer",
         "speed": "Fast (2.0+ km/s)",
         "optimal_range": "0-15 km",
-        "tactics": "Fast attack cruiser with high blaster DPS and medium drones."
+        "tactics": "Fast attack cruiser with high blaster DPS and medium drones.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Blaster / Rail Fleet Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Thorax [Cruiser | Gallente]\n  - Combat Role: Blaster / Rail Fleet Cruiser\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Blaster / Rail Fleet Cruiser\n  - Defense Profile: Armor / Shield Buffer | Speed: Fast (2.0+ km/s)\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Fast attack cruiser with high blaster DPS and medium drones."
     },
     "Vexor": {
         "class": "Cruiser",
@@ -1452,7 +3048,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer / Active / Hull",
         "speed": "Moderate",
         "optimal_range": "0-50 km",
-        "tactics": "Heavy drone cruiser capable of fielding full heavy drone flights."
+        "tactics": "Heavy drone cruiser capable of fielding full heavy drone flights.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-50 km",
+        "bonuses": [
+            "Heavy Drone / Armor Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Vexor [Cruiser | Gallente]\n  - Combat Role: Heavy Drone / Armor Cruiser\n  - Weapon System: 0-50 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Heavy Drone / Armor Cruiser\n  - Defense Profile: Armor Buffer / Active / Hull | Speed: Moderate\n  - Weapon Optimal: 0-50 km\n  - Tactical Counter-Play: Heavy drone cruiser capable of fielding full heavy drone flights."
     },
     "Exequror": {
         "class": "Cruiser",
@@ -1462,7 +3069,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Fast",
         "optimal_range": "Remote Armor",
-        "tactics": "Direct remote armor repair cruiser. High sub-warp mobility."
+        "tactics": "Direct remote armor repair cruiser. High sub-warp mobility.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "Remote Armor",
+        "bonuses": [
+            "Armor Logistics Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Exequror [Cruiser | Gallente]\n  - Combat Role: Armor Logistics Cruiser\n  - Weapon System: Remote Armor\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Armor Logistics Cruiser\n  - Defense Profile: Armor | Speed: Fast\n  - Weapon Optimal: Remote Armor\n  - Tactical Counter-Play: Direct remote armor repair cruiser. High sub-warp mobility."
     },
     "Celestis": {
         "class": "Cruiser",
@@ -1472,7 +3090,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Moderate",
         "optimal_range": "40-90 km",
-        "tactics": "Dampens enemy targeting range and scan resolution across grid."
+        "tactics": "Dampens enemy targeting range and scan resolution across grid.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "40-90 km",
+        "bonuses": [
+            "Remote Sensor Dampener Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Celestis [Cruiser | Gallente]\n  - Combat Role: Remote Sensor Dampener Cruiser\n  - Weapon System: 40-90 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Remote Sensor Dampener Cruiser\n  - Defense Profile: Armor Buffer | Speed: Moderate\n  - Weapon Optimal: 40-90 km\n  - Tactical Counter-Play: Dampens enemy targeting range and scan resolution across grid."
     },
     "Vexor Navy Issue": {
         "class": "Faction Cruiser",
@@ -1482,7 +3111,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer / Shield",
         "speed": "Fast",
         "optimal_range": "0-50 km",
-        "tactics": "Enhanced hybrid turret tracking and heavy drone application."
+        "tactics": "Enhanced hybrid turret tracking and heavy drone application.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-50 km",
+        "bonuses": [
+            "Heavy Drone / Hybrid Combat Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Vexor Navy Issue [Faction Cruiser | Gallente (Navy)]\n  - Combat Role: Heavy Drone / Hybrid Combat Cruiser\n  - Weapon System: 0-50 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Heavy Drone / Hybrid Combat Cruiser\n  - Defense Profile: Armor Buffer / Shield | Speed: Fast\n  - Weapon Optimal: 0-50 km\n  - Tactical Counter-Play: Enhanced hybrid turret tracking and heavy drone application."
     },
     "Exequror Navy Issue": {
         "class": "Faction Cruiser",
@@ -1492,7 +3132,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Fast (2.2+ km/s)",
         "optimal_range": "0-20 km",
-        "tactics": "Pure combat hybrid cruiser with extreme DPS."
+        "tactics": "Pure combat hybrid cruiser with extreme DPS.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Heavy Hybrid Combat Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Exequror Navy Issue [Faction Cruiser | Gallente (Navy)]\n  - Combat Role: Heavy Hybrid Combat Cruiser\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Heavy Hybrid Combat Cruiser\n  - Defense Profile: Armor Buffer | Speed: Fast (2.2+ km/s)\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Pure combat hybrid cruiser with extreme DPS."
     },
     "Deimos": {
         "class": "Heavy Assault Cruiser",
@@ -1502,7 +3153,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active Armor + ADC",
         "speed": "Fast",
         "optimal_range": "0-15 km",
-        "tactics": "Massive active armor repair bonus and ADC survivability."
+        "tactics": "Massive active armor repair bonus and ADC survivability.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 2,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "HAC Active Armor Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Deimos [Heavy Assault Cruiser | Gallente]\n  - Combat Role: HAC Active Armor Brawler\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 2 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: HAC Active Armor Brawler\n  - Defense Profile: Active Armor + ADC | Speed: Fast\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Massive active armor repair bonus and ADC survivability."
     },
     "Ishtar": {
         "class": "Heavy Assault Cruiser",
@@ -1512,7 +3174,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Shield Buffer + ADC",
         "speed": "Moderate",
         "optimal_range": "0-80 km",
-        "tactics": "Premier nullsec ratting and fleet heavy drone cruiser. Long drone control range."
+        "tactics": "Premier nullsec ratting and fleet heavy drone cruiser. Long drone control range.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 2,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-80 km",
+        "bonuses": [
+            "HAC Heavy Drone Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Ishtar [Heavy Assault Cruiser | Gallente]\n  - Combat Role: HAC Heavy Drone Cruiser\n  - Weapon System: 0-80 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 2 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: HAC Heavy Drone Cruiser\n  - Defense Profile: Armor / Shield Buffer + ADC | Speed: Moderate\n  - Weapon Optimal: 0-80 km\n  - Tactical Counter-Play: Premier nullsec ratting and fleet heavy drone cruiser. Long drone control range."
     },
     "Phobos": {
         "class": "Heavy Interdiction Cruiser",
@@ -1522,7 +3195,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Armor Buffer",
         "speed": "Moderate",
         "optimal_range": "0-20 km (Bubble) / Infinite Scram",
-        "tactics": "Heavy armor HIC projecting focused infinite points or mobile bubbles."
+        "tactics": "Heavy armor HIC projecting focused infinite points or mobile bubbles.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 2,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-20 km (Bubble) / Infinite Scram",
+        "bonuses": [
+            "Warp Disruption Field Generator"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Phobos [Heavy Interdiction Cruiser | Gallente]\n  - Combat Role: Warp Disruption Field Generator\n  - Weapon System: 0-20 km (Bubble) / Infinite Scram\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 2 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Warp Disruption Field Generator\n  - Defense Profile: Immense Armor Buffer | Speed: Moderate\n  - Weapon Optimal: 0-20 km (Bubble) / Infinite Scram\n  - Tactical Counter-Play: Heavy armor HIC projecting focused infinite points or mobile bubbles."
     },
     "Arazu": {
         "class": "Force Recon",
@@ -1532,7 +3216,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Cloaked",
         "optimal_range": "0-40 km",
-        "tactics": "Uncloaks to apply 40km warp disruptor / scrambler and light Covert Cyno."
+        "tactics": "Uncloaks to apply 40km warp disruptor / scrambler and light Covert Cyno.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-40 km",
+        "bonuses": [
+            "Covert Cloak / 40km Scram / Cyno"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Arazu [Force Recon | Gallente]\n  - Combat Role: Covert Cloak / 40km Scram / Cyno\n  - Weapon System: 0-40 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Covert Cloak / 40km Scram / Cyno\n  - Defense Profile: Paper Thin | Speed: Cloaked\n  - Weapon Optimal: 0-40 km\n  - Tactical Counter-Play: Uncloaks to apply 40km warp disruptor / scrambler and light Covert Cyno."
     },
     "Lachesis": {
         "class": "Combat Recon",
@@ -1542,7 +3237,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Shield Buffer",
         "speed": "Moderate",
         "optimal_range": "40-70 km",
-        "tactics": "Invisible to D-Scan. Applies 50km+ point and heavy dampeners."
+        "tactics": "Invisible to D-Scan. Applies 50km+ point and heavy dampeners.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "40-70 km",
+        "bonuses": [
+            "D-Scan Immune Long Point & Damp"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Lachesis [Combat Recon | Gallente]\n  - Combat Role: D-Scan Immune Long Point & Damp\n  - Weapon System: 40-70 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: D-Scan Immune Long Point & Damp\n  - Defense Profile: Armor / Shield Buffer | Speed: Moderate\n  - Weapon Optimal: 40-70 km\n  - Tactical Counter-Play: Invisible to D-Scan. Applies 50km+ point and heavy dampeners."
     },
     "Oneiros": {
         "class": "Logistics Cruiser",
@@ -1552,7 +3258,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Fast",
         "optimal_range": "Remote Armor",
-        "tactics": "Self-sufficient armor logistics cruiser (no cap chain required)."
+        "tactics": "Self-sufficient armor logistics cruiser (no cap chain required).",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 2,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "Remote Armor",
+        "bonuses": [
+            "T2 Solo Armor Logistics"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Oneiros [Logistics Cruiser | Gallente]\n  - Combat Role: T2 Solo Armor Logistics\n  - Weapon System: Remote Armor\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 2 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: T2 Solo Armor Logistics\n  - Defense Profile: Armor | Speed: Fast\n  - Weapon Optimal: Remote Armor\n  - Tactical Counter-Play: Self-sufficient armor logistics cruiser (no cap chain required)."
     },
     "Proteus": {
         "class": "Strategic Cruiser",
@@ -1562,7 +3279,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer / Active",
         "speed": "Fast (1.6-2.2 km/s)",
         "optimal_range": "0-25 km",
-        "tactics": "Highly customizable. Can fit covert cloak, interdiction nullification, heavy blasters, or 90% webifiers."
+        "tactics": "Highly customizable. Can fit covert cloak, interdiction nullification, heavy blasters, or 90% webifiers.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-25 km",
+        "bonuses": [
+            "Modular T3C (Blaster / Drone / Cloak)"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Proteus [Strategic Cruiser | Gallente]\n  - Combat Role: Modular T3C (Blaster / Drone / Cloak)\n  - Weapon System: 0-25 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Modular T3C (Blaster / Drone / Cloak)\n  - Defense Profile: Armor Buffer / Active | Speed: Fast (1.6-2.2 km/s)\n  - Weapon Optimal: 0-25 km\n  - Tactical Counter-Play: Highly customizable. Can fit covert cloak, interdiction nullification, heavy blasters, or 90% webifiers."
     },
     "Brutix": {
         "class": "Battlecruiser",
@@ -1572,7 +3300,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer / Active",
         "speed": "Moderate",
         "optimal_range": "0-20 km (Blaster) / 40-80 km (Rail)",
-        "tactics": "High hybrid turret DPS and armor repair bonus."
+        "tactics": "High hybrid turret DPS and armor repair bonus.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "0-20 km (Blaster) / 40-80 km (Rail)",
+        "bonuses": [
+            "Blaster / Rail Brawler BC"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Brutix [Battlecruiser | Gallente]\n  - Combat Role: Blaster / Rail Brawler BC\n  - Weapon System: 0-20 km (Blaster) / 40-80 km (Rail)\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Blaster / Rail Brawler BC\n  - Defense Profile: Armor Buffer / Active | Speed: Moderate\n  - Weapon Optimal: 0-20 km (Blaster) / 40-80 km (Rail)\n  - Tactical Counter-Play: High hybrid turret DPS and armor repair bonus."
     },
     "Myrmidon": {
         "class": "Battlecruiser",
@@ -1582,7 +3321,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Triple Rep Active Armor",
         "speed": "Slow",
         "optimal_range": "0-50 km",
-        "tactics": "Extreme active armor tank bonus with full heavy drone flights."
+        "tactics": "Extreme active armor tank bonus with full heavy drone flights.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "0-50 km",
+        "bonuses": [
+            "Triple Active Armor Drone BC"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Myrmidon [Battlecruiser | Gallente]\n  - Combat Role: Triple Active Armor Drone BC\n  - Weapon System: 0-50 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Triple Active Armor Drone BC\n  - Defense Profile: Triple Rep Active Armor | Speed: Slow\n  - Weapon Optimal: 0-50 km\n  - Tactical Counter-Play: Extreme active armor tank bonus with full heavy drone flights."
     },
     "Talos": {
         "class": "Attack Battlecruiser",
@@ -1592,7 +3342,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin Shield/Armor",
         "speed": "Fast (1.8+ km/s)",
         "optimal_range": "0-20 km (Blasters) / 80-140 km (Rails)",
-        "tactics": "Large Battleship Neutron Blasters or Railguns on BC hull. Massive DPS."
+        "tactics": "Large Battleship Neutron Blasters or Railguns on BC hull. Massive DPS.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "0-20 km (Blasters) / 80-140 km (Rails)",
+        "bonuses": [
+            "Battleship-Gun Blaster / Rail Sniper"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Talos [Attack Battlecruiser | Gallente]\n  - Combat Role: Battleship-Gun Blaster / Rail Sniper\n  - Weapon System: 0-20 km (Blasters) / 80-140 km (Rails)\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Battleship-Gun Blaster / Rail Sniper\n  - Defense Profile: Paper Thin Shield/Armor | Speed: Fast (1.8+ km/s)\n  - Weapon Optimal: 0-20 km (Blasters) / 80-140 km (Rails)\n  - Tactical Counter-Play: Large Battleship Neutron Blasters or Railguns on BC hull. Massive DPS."
     },
     "Brutix Navy Issue": {
         "class": "Faction Battlecruiser",
@@ -1602,7 +3363,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Fast",
         "optimal_range": "0-25 km",
-        "tactics": "Superior armor buffer and hybrid tracking."
+        "tactics": "Superior armor buffer and hybrid tracking.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "0-25 km",
+        "bonuses": [
+            "Navy Hybrid Brawler BC"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Brutix Navy Issue [Faction Battlecruiser | Gallente (Navy)]\n  - Combat Role: Navy Hybrid Brawler BC\n  - Weapon System: 0-25 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Navy Hybrid Brawler BC\n  - Defense Profile: Armor Buffer | Speed: Fast\n  - Weapon Optimal: 0-25 km\n  - Tactical Counter-Play: Superior armor buffer and hybrid tracking."
     },
     "Myrmidon Navy Issue": {
         "class": "Faction Battlecruiser",
@@ -1612,7 +3384,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Moderate",
         "optimal_range": "0-40 km",
-        "tactics": "Stasis webifier range bonus and heavy drone application."
+        "tactics": "Stasis webifier range bonus and heavy drone application.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "0-40 km",
+        "bonuses": [
+            "Heavy Web / Drone BC"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Myrmidon Navy Issue [Faction Battlecruiser | Gallente (Navy)]\n  - Combat Role: Heavy Web / Drone BC\n  - Weapon System: 0-40 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Heavy Web / Drone BC\n  - Defense Profile: Armor Buffer | Speed: Moderate\n  - Weapon Optimal: 0-40 km\n  - Tactical Counter-Play: Stasis webifier range bonus and heavy drone application."
     },
     "Astarte": {
         "class": "Command Ship",
@@ -1622,7 +3405,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Armor Buffer",
         "speed": "Slow",
         "optimal_range": "0-20 km",
-        "tactics": "Provides Fleet Armor Bursts and deals immense close-range blaster DPS."
+        "tactics": "Provides Fleet Armor Bursts and deals immense close-range blaster DPS.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Armor Fleet Command / Blaster Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Astarte [Command Ship | Gallente]\n  - Combat Role: Armor Fleet Command / Blaster Brawler\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Armor Fleet Command / Blaster Brawler\n  - Defense Profile: Immense Armor Buffer | Speed: Slow\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Provides Fleet Armor Bursts and deals immense close-range blaster DPS."
     },
     "Eos": {
         "class": "Command Ship",
@@ -1632,7 +3426,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Armor Buffer / Active",
         "speed": "Slow",
         "optimal_range": "0-60 km",
-        "tactics": "Provides Fleet Armor / Skirmish Bursts with full heavy drone flights."
+        "tactics": "Provides Fleet Armor / Skirmish Bursts with full heavy drone flights.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-60 km",
+        "bonuses": [
+            "Armor Fleet Command / Heavy Drone"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Eos [Command Ship | Gallente]\n  - Combat Role: Armor Fleet Command / Heavy Drone\n  - Weapon System: 0-60 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Armor Fleet Command / Heavy Drone\n  - Defense Profile: Immense Armor Buffer / Active | Speed: Slow\n  - Weapon Optimal: 0-60 km\n  - Tactical Counter-Play: Provides Fleet Armor / Skirmish Bursts with full heavy drone flights."
     },
     "Megathron": {
         "class": "Battleship",
@@ -1642,7 +3447,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Slow",
         "optimal_range": "0-25 km (Blasters) / 50-100 km (Rails)",
-        "tactics": "Classic hybrid line battleship with high rate of fire and tracking."
+        "tactics": "Classic hybrid line battleship with high rate of fire and tracking.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "0-25 km (Blasters) / 50-100 km (Rails)",
+        "bonuses": [
+            "Hybrid Brawler / Fleet Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Megathron [Battleship | Gallente]\n  - Combat Role: Hybrid Brawler / Fleet Battleship\n  - Weapon System: 0-25 km (Blasters) / 50-100 km (Rails)\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Hybrid Brawler / Fleet Battleship\n  - Defense Profile: Armor Buffer | Speed: Slow\n  - Weapon Optimal: 0-25 km (Blasters) / 50-100 km (Rails)\n  - Tactical Counter-Play: Classic hybrid line battleship with high rate of fire and tracking."
     },
     "Dominix": {
         "class": "Battleship",
@@ -1652,7 +3468,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer / Active / Hull",
         "speed": "Slow",
         "optimal_range": "0-80 km",
-        "tactics": "Heavy drone and heavy neutralizer platform. Cap drain collapses active tanks."
+        "tactics": "Heavy drone and heavy neutralizer platform. Cap drain collapses active tanks.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "0-80 km",
+        "bonuses": [
+            "Drone / Cap Neutralizer Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Dominix [Battleship | Gallente]\n  - Combat Role: Drone / Cap Neutralizer Battleship\n  - Weapon System: 0-80 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Drone / Cap Neutralizer Battleship\n  - Defense Profile: Armor Buffer / Active / Hull | Speed: Slow\n  - Weapon Optimal: 0-80 km\n  - Tactical Counter-Play: Heavy drone and heavy neutralizer platform. Cap drain collapses active tanks."
     },
     "Hyperion": {
         "class": "Battleship",
@@ -1662,7 +3489,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Dual / Triple Large Rep Active Armor",
         "speed": "Slow",
         "optimal_range": "0-25 km",
-        "tactics": "Massive active armor repair bonus. Extremely difficult to break without heavy neuts."
+        "tactics": "Massive active armor repair bonus. Extremely difficult to break without heavy neuts.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "0-25 km",
+        "bonuses": [
+            "Active Armor Blaster Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Hyperion [Battleship | Gallente]\n  - Combat Role: Active Armor Blaster Brawler\n  - Weapon System: 0-25 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Active Armor Blaster Brawler\n  - Defense Profile: Dual / Triple Large Rep Active Armor | Speed: Slow\n  - Weapon Optimal: 0-25 km\n  - Tactical Counter-Play: Massive active armor repair bonus. Extremely difficult to break without heavy neuts."
     },
     "Megathron Navy Issue": {
         "class": "Faction Battleship",
@@ -1672,7 +3510,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Slow",
         "optimal_range": "0-30 km / 60-120 km",
-        "tactics": "Higher tracking and armor buffer than standard Megathron."
+        "tactics": "Higher tracking and armor buffer than standard Megathron.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "0-30 km / 60-120 km",
+        "bonuses": [
+            "Navy Hybrid Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Megathron Navy Issue [Faction Battleship | Gallente (Navy)]\n  - Combat Role: Navy Hybrid Battleship\n  - Weapon System: 0-30 km / 60-120 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Navy Hybrid Battleship\n  - Defense Profile: Armor Buffer | Speed: Slow\n  - Weapon Optimal: 0-30 km / 60-120 km\n  - Tactical Counter-Play: Higher tracking and armor buffer than standard Megathron."
     },
     "Dominix Navy Issue": {
         "class": "Faction Battleship",
@@ -1682,7 +3531,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Slow",
         "optimal_range": "0-80 km",
-        "tactics": "Dual hybrid turret and drone damage bonuses."
+        "tactics": "Dual hybrid turret and drone damage bonuses.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "0-80 km",
+        "bonuses": [
+            "Navy Hybrid / Drone Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Dominix Navy Issue [Faction Battleship | Gallente (Navy)]\n  - Combat Role: Navy Hybrid / Drone Battleship\n  - Weapon System: 0-80 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Navy Hybrid / Drone Battleship\n  - Defense Profile: Armor Buffer | Speed: Slow\n  - Weapon Optimal: 0-80 km\n  - Tactical Counter-Play: Dual hybrid turret and drone damage bonuses."
     },
     "Kronos": {
         "class": "Marauder",
@@ -1692,7 +3552,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active Armor (Bastion Mode)",
         "speed": "Immobile in Bastion",
         "optimal_range": "0-30 km (Blasters) / 60-120 km (Rails)",
-        "tactics": "Bastion Mode doubles armor reps and yields 3000+ DPS with Void L."
+        "tactics": "Bastion Mode doubles armor reps and yields 3000+ DPS with Void L.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-30 km (Blasters) / 60-120 km (Rails)",
+        "bonuses": [
+            "Bastion Blaster / Rail Marauder"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Kronos [Marauder | Gallente]\n  - Combat Role: Bastion Blaster / Rail Marauder\n  - Weapon System: 0-30 km (Blasters) / 60-120 km (Rails)\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Bastion Blaster / Rail Marauder\n  - Defense Profile: Active Armor (Bastion Mode) | Speed: Immobile in Bastion\n  - Weapon Optimal: 0-30 km (Blasters) / 60-120 km (Rails)\n  - Tactical Counter-Play: Bastion Mode doubles armor reps and yields 3000+ DPS with Void L."
     },
     "Sin": {
         "class": "Black Ops",
@@ -1702,7 +3573,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer / Active",
         "speed": "Slow (Covert Jump)",
         "optimal_range": "0-60 km",
-        "tactics": "Bridges covert fleets; applies heavy energy neutralizers and heavy drones."
+        "tactics": "Bridges covert fleets; applies heavy energy neutralizers and heavy drones.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-60 km",
+        "bonuses": [
+            "Covert Jump / Drone / Neut Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Sin [Black Ops | Gallente]\n  - Combat Role: Covert Jump / Drone / Neut Battleship\n  - Weapon System: 0-60 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Covert Jump / Drone / Neut Battleship\n  - Defense Profile: Armor Buffer / Active | Speed: Slow (Covert Jump)\n  - Weapon Optimal: 0-60 km\n  - Tactical Counter-Play: Bridges covert fleets; applies heavy energy neutralizers and heavy drones."
     },
     "Moros": {
         "class": "Dreadnought",
@@ -1712,7 +3594,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active Armor (Siege)",
         "speed": "Capital",
         "optimal_range": "Capital Grid",
-        "tactics": "Siege dreadnought with massive capital hybrid DPS."
+        "tactics": "Siege dreadnought with massive capital hybrid DPS.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Capital Grid",
+        "bonuses": [
+            "Capital Blaster / Rail Dread"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Moros [Dreadnought | Gallente]\n  - Combat Role: Capital Blaster / Rail Dread\n  - Weapon System: Capital Grid\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Capital Blaster / Rail Dread\n  - Defense Profile: Active Armor (Siege) | Speed: Capital\n  - Weapon Optimal: Capital Grid\n  - Tactical Counter-Play: Siege dreadnought with massive capital hybrid DPS."
     },
     "Moros Navy Issue": {
         "class": "Faction Dreadnought",
@@ -1722,7 +3615,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Active",
         "speed": "Capital",
         "optimal_range": "Capital Grid",
-        "tactics": "Enhanced hybrid turret tracking and armor buffer."
+        "tactics": "Enhanced hybrid turret tracking and armor buffer.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Capital Grid",
+        "bonuses": [
+            "Navy Capital Hybrid Dread"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Moros Navy Issue [Faction Dreadnought | Gallente (Navy)]\n  - Combat Role: Navy Capital Hybrid Dread\n  - Weapon System: Capital Grid\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Navy Capital Hybrid Dread\n  - Defense Profile: Armor Active | Speed: Capital\n  - Weapon Optimal: Capital Grid\n  - Tactical Counter-Play: Enhanced hybrid turret tracking and armor buffer."
     },
     "Hubris": {
         "class": "Lancer Dreadnought",
@@ -1732,7 +3636,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Active",
         "speed": "Capital",
         "optimal_range": "Lancer Beam",
-        "tactics": "Fires disruptive capital lance disabling cynos and warp."
+        "tactics": "Fires disruptive capital lance disabling cynos and warp.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Lancer Beam",
+        "bonuses": [
+            "Disruptive Lancer Dread"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Hubris [Lancer Dreadnought | Gallente]\n  - Combat Role: Disruptive Lancer Dread\n  - Weapon System: Lancer Beam\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Disruptive Lancer Dread\n  - Defense Profile: Armor Active | Speed: Capital\n  - Weapon Optimal: Lancer Beam\n  - Tactical Counter-Play: Fires disruptive capital lance disabling cynos and warp."
     },
     "Thanatos": {
         "class": "Carrier",
@@ -1742,7 +3657,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Capital",
         "optimal_range": "Fighter Range",
-        "tactics": "Carrier with fighter damage and fighter navigation bonuses."
+        "tactics": "Carrier with fighter damage and fighter navigation bonuses.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Fighter Range",
+        "bonuses": [
+            "Capital Fighter Carrier"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Thanatos [Carrier | Gallente]\n  - Combat Role: Capital Fighter Carrier\n  - Weapon System: Fighter Range\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Capital Fighter Carrier\n  - Defense Profile: Armor Buffer | Speed: Capital\n  - Weapon Optimal: Fighter Range\n  - Tactical Counter-Play: Carrier with fighter damage and fighter navigation bonuses."
     },
     "Nyx": {
         "class": "Supercarrier",
@@ -1752,7 +3678,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Supercapital",
         "optimal_range": "Omni Grid",
-        "tactics": "Supercapital with devastating heavy fighter strike wings."
+        "tactics": "Supercapital with devastating heavy fighter strike wings.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Omni Grid",
+        "bonuses": [
+            "Supercapital Heavy Carrier"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Nyx [Supercarrier | Gallente]\n  - Combat Role: Supercapital Heavy Carrier\n  - Weapon System: Omni Grid\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Supercapital Heavy Carrier\n  - Defense Profile: Armor Buffer | Speed: Supercapital\n  - Weapon Optimal: Omni Grid\n  - Tactical Counter-Play: Supercapital with devastating heavy fighter strike wings."
     },
     "Ninazu": {
         "class": "Force Auxiliary",
@@ -1762,7 +3699,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active Armor (Triage)",
         "speed": "Capital",
         "optimal_range": "Remote Armor",
-        "tactics": "Capital remote armor repair ship with massive burst reps."
+        "tactics": "Capital remote armor repair ship with massive burst reps.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Remote Armor",
+        "bonuses": [
+            "Capital Armor FAX"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Ninazu [Force Auxiliary | Gallente]\n  - Combat Role: Capital Armor FAX\n  - Weapon System: Remote Armor\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Capital Armor FAX\n  - Defense Profile: Active Armor (Triage) | Speed: Capital\n  - Weapon Optimal: Remote Armor\n  - Tactical Counter-Play: Capital remote armor repair ship with massive burst reps."
     },
     "Erebus": {
         "class": "Titan",
@@ -1772,7 +3720,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Supercapital",
         "optimal_range": "Omni Grid",
-        "tactics": "Doomsday hybrid titan with fleet armor burst."
+        "tactics": "Doomsday hybrid titan with fleet armor burst.",
+        "high_slots": 8,
+        "mid_slots": 7,
+        "low_slots": 8,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "Omni Grid",
+        "bonuses": [
+            "Supercapital Doomsday Titan"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Erebus [Titan | Gallente]\n  - Combat Role: Supercapital Doomsday Titan\n  - Weapon System: Omni Grid\n  - Slot Layout: Highs: 8 | Mids: 7 | Lows: 8 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Supercapital Doomsday Titan\n  - Defense Profile: Armor Buffer | Speed: Supercapital\n  - Weapon Optimal: Omni Grid\n  - Tactical Counter-Play: Doomsday hybrid titan with fleet armor burst."
     },
     "Iteron Mark V": {
         "class": "Industrial",
@@ -1782,7 +3741,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Slow",
         "optimal_range": "0 km",
-        "tactics": "Classic high-capacity T1 industrial."
+        "tactics": "Classic high-capacity T1 industrial.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "High-Capacity Hauler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Iteron Mark V [Industrial | Gallente]\n  - Combat Role: High-Capacity Hauler\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: High-Capacity Hauler\n  - Defense Profile: Paper Thin | Speed: Slow\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Classic high-capacity T1 industrial."
     },
     "Epithal": {
         "class": "Industrial",
@@ -1792,7 +3762,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Slow",
         "optimal_range": "0 km",
-        "tactics": "Specialized Planetary Commodities cargo bay."
+        "tactics": "Specialized Planetary Commodities cargo bay.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Planetary Industry Hauler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Epithal [Industrial | Gallente]\n  - Combat Role: Planetary Industry Hauler\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Planetary Industry Hauler\n  - Defense Profile: Paper Thin | Speed: Slow\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Specialized Planetary Commodities cargo bay."
     },
     "Miasmos": {
         "class": "Industrial",
@@ -1802,7 +3783,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Slow",
         "optimal_range": "0 km",
-        "tactics": "Specialized Mineral/Ore cargo bay."
+        "tactics": "Specialized Mineral/Ore cargo bay.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Mineral & Ore Hauler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Miasmos [Industrial | Gallente]\n  - Combat Role: Mineral & Ore Hauler\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Mineral & Ore Hauler\n  - Defense Profile: Paper Thin | Speed: Slow\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Specialized Mineral/Ore cargo bay."
     },
     "Kryos": {
         "class": "Industrial",
@@ -1812,7 +3804,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Slow",
         "optimal_range": "0 km",
-        "tactics": "Specialized Ice/Isotope cargo bay."
+        "tactics": "Specialized Ice/Isotope cargo bay.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Ice Product Hauler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Kryos [Industrial | Gallente]\n  - Combat Role: Ice Product Hauler\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Ice Product Hauler\n  - Defense Profile: Paper Thin | Speed: Slow\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Specialized Ice/Isotope cargo bay."
     },
     "Viator": {
         "class": "Blockade Runner",
@@ -1822,7 +3825,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Cloaked Armor",
         "speed": "Fast (<3s align)",
         "optimal_range": "0 km",
-        "tactics": "Covert cloaking, cargo-scanned immune hauler."
+        "tactics": "Covert cloaking, cargo-scanned immune hauler.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Covert Fast Hauler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Viator [Blockade Runner | Gallente]\n  - Combat Role: Covert Fast Hauler\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Covert Fast Hauler\n  - Defense Profile: Cloaked Armor | Speed: Fast (<3s align)\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Covert cloaking, cargo-scanned immune hauler."
     },
     "Occator": {
         "class": "Deep Space Transport",
@@ -1832,7 +3846,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Armor Buffer (+2 Warp Core)",
         "speed": "Slow",
         "optimal_range": "0 km",
-        "tactics": "+2 native warp core strength and Fleet Hangar."
+        "tactics": "+2 native warp core strength and Fleet Hangar.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Heavy Armor DST"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Occator [Deep Space Transport | Gallente]\n  - Combat Role: Heavy Armor DST\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Heavy Armor DST\n  - Defense Profile: Immense Armor Buffer (+2 Warp Core) | Speed: Slow\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: +2 native warp core strength and Fleet Hangar."
     },
     "Obelisk": {
         "class": "Freighter",
@@ -1842,7 +3867,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Buffer",
         "speed": "Extremely Slow",
         "optimal_range": "0 km",
-        "tactics": "Massive cargo freighter."
+        "tactics": "Massive cargo freighter.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Standard Sub-Capital Freighter"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Obelisk [Freighter | Gallente]\n  - Combat Role: Standard Sub-Capital Freighter\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Standard Sub-Capital Freighter\n  - Defense Profile: Buffer | Speed: Extremely Slow\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Massive cargo freighter."
     },
     "Anshar": {
         "class": "Jump Freighter",
@@ -1852,7 +3888,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Jump Drive",
         "optimal_range": "0 km",
-        "tactics": "Jump drive cargo hauler for nullsec logistics."
+        "tactics": "Jump drive cargo hauler for nullsec logistics.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Capital Jump Freighter"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Anshar [Jump Freighter | Gallente]\n  - Combat Role: Capital Jump Freighter\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Capital Jump Freighter\n  - Defense Profile: Armor Buffer | Speed: Jump Drive\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Jump drive cargo hauler for nullsec logistics."
     },
     "Executioner": {
         "class": "Frigate",
@@ -1862,7 +3909,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Shield",
         "speed": "Extreme (4.5+ km/s)",
         "optimal_range": "0-15 km",
-        "tactics": "High-speed laser tackler with energy turret cap reduction."
+        "tactics": "High-speed laser tackler with energy turret cap reduction.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Fast Tackle / Laser Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Executioner [Frigate | Amarr]\n  - Combat Role: Fast Tackle / Laser Frigate\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Fast Tackle / Laser Frigate\n  - Defense Profile: Armor / Shield | Speed: Extreme (4.5+ km/s)\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: High-speed laser tackler with energy turret cap reduction."
     },
     "Tormentor": {
         "class": "Frigate",
@@ -1872,7 +3930,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer / Active",
         "speed": "Moderate",
         "optimal_range": "0-15 km",
-        "tactics": "Strong pulse laser damage and light drone assistance."
+        "tactics": "Strong pulse laser damage and light drone assistance.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Laser / Drone Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Tormentor [Frigate | Amarr]\n  - Combat Role: Laser / Drone Brawler\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Laser / Drone Brawler\n  - Defense Profile: Armor Buffer / Active | Speed: Moderate\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Strong pulse laser damage and light drone assistance."
     },
     "Punisher": {
         "class": "Frigate",
@@ -1882,7 +3951,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Armor Buffer (4 Low Slots)",
         "speed": "Slow",
         "optimal_range": "0-15 km",
-        "tactics": "Cruiser-grade armor buffer on a frigate hull."
+        "tactics": "Cruiser-grade armor buffer on a frigate hull.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Heavy Armor Buffer / Laser Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Punisher [Frigate | Amarr]\n  - Combat Role: Heavy Armor Buffer / Laser Frigate\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Heavy Armor Buffer / Laser Frigate\n  - Defense Profile: Immense Armor Buffer (4 Low Slots) | Speed: Slow\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Cruiser-grade armor buffer on a frigate hull."
     },
     "Inquisitor": {
         "class": "Frigate",
@@ -1892,7 +3972,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Moderate",
         "optimal_range": "Remote Armor",
-        "tactics": "T1 frigate armor logistics."
+        "tactics": "T1 frigate armor logistics.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Remote Armor",
+        "bonuses": [
+            "Armor Logistics Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Inquisitor [Frigate | Amarr]\n  - Combat Role: Armor Logistics Frigate\n  - Weapon System: Remote Armor\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Armor Logistics Frigate\n  - Defense Profile: Armor | Speed: Moderate\n  - Weapon Optimal: Remote Armor\n  - Tactical Counter-Play: T1 frigate armor logistics."
     },
     "Crucifier": {
         "class": "Frigate",
@@ -1902,7 +3993,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Fast",
         "optimal_range": "30-70 km",
-        "tactics": "Applies severe tracking disruption to enemy turrets."
+        "tactics": "Applies severe tracking disruption to enemy turrets.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "30-70 km",
+        "bonuses": [
+            "Tracking Disruptor Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Crucifier [Frigate | Amarr]\n  - Combat Role: Tracking Disruptor Frigate\n  - Weapon System: 30-70 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Tracking Disruptor Frigate\n  - Defense Profile: Paper Thin | Speed: Fast\n  - Weapon Optimal: 30-70 km\n  - Tactical Counter-Play: Applies severe tracking disruption to enemy turrets."
     },
     "Magnate": {
         "class": "Frigate",
@@ -1912,7 +4014,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Moderate",
         "optimal_range": "0-15 km",
-        "tactics": "Scanning and exploration frigate with 4 low slots."
+        "tactics": "Scanning and exploration frigate with 4 low slots.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Exploration / Light Drone"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Magnate [Frigate | Amarr]\n  - Combat Role: Exploration / Light Drone\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Exploration / Light Drone\n  - Defense Profile: Armor | Speed: Moderate\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Scanning and exploration frigate with 4 low slots."
     },
     "Imperial Navy Slicer": {
         "class": "Faction Frigate",
@@ -1922,7 +4035,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Extreme (4.6+ km/s)",
         "optimal_range": "20-40 km",
-        "tactics": "Premier nano laser kiter. Strikes from 35 km with Scorch / Aurora."
+        "tactics": "Premier nano laser kiter. Strikes from 35 km with Scorch / Aurora.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "20-40 km",
+        "bonuses": [
+            "Beam / Pulse Nano Laser Kiter"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Imperial Navy Slicer [Faction Frigate | Amarr (Navy)]\n  - Combat Role: Beam / Pulse Nano Laser Kiter\n  - Weapon System: 20-40 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Beam / Pulse Nano Laser Kiter\n  - Defense Profile: Armor Buffer | Speed: Extreme (4.6+ km/s)\n  - Weapon Optimal: 20-40 km\n  - Tactical Counter-Play: Premier nano laser kiter. Strikes from 35 km with Scorch / Aurora."
     },
     "Crucifier Navy Issue": {
         "class": "Faction Frigate",
@@ -1932,7 +4056,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Fast",
         "optimal_range": "0-15 km",
-        "tactics": "Combines tracking disruption with strong energy turret DPS."
+        "tactics": "Combines tracking disruption with strong energy turret DPS.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Tracking Disruptor / Laser Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Crucifier Navy Issue [Faction Frigate | Amarr (Navy)]\n  - Combat Role: Tracking Disruptor / Laser Brawler\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Tracking Disruptor / Laser Brawler\n  - Defense Profile: Armor | Speed: Fast\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Combines tracking disruption with strong energy turret DPS."
     },
     "Magnate Navy Issue": {
         "class": "Faction Frigate",
@@ -1942,7 +4077,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Fast",
         "optimal_range": "0-20 km",
-        "tactics": "Faction combat exploration frigate."
+        "tactics": "Faction combat exploration frigate.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Combat Explorer / Heavy Drone"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Magnate Navy Issue [Faction Frigate | Amarr (Navy)]\n  - Combat Role: Combat Explorer / Heavy Drone\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Combat Explorer / Heavy Drone\n  - Defense Profile: Armor Buffer | Speed: Fast\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Faction combat exploration frigate."
     },
     "Anathema": {
         "class": "Covert Ops",
@@ -1952,7 +4098,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Cloaked",
         "optimal_range": "Covert",
-        "tactics": "Covert cloaking scout frigate."
+        "tactics": "Covert cloaking scout frigate.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Covert",
+        "bonuses": [
+            "Stealth Scout / Cyno"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Anathema [Covert Ops | Amarr]\n  - Combat Role: Stealth Scout / Cyno\n  - Weapon System: Covert\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Stealth Scout / Cyno\n  - Defense Profile: Paper Thin | Speed: Cloaked\n  - Weapon Optimal: Covert\n  - Tactical Counter-Play: Covert cloaking scout frigate."
     },
     "Purifier": {
         "class": "Stealth Bomber",
@@ -1962,7 +4119,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Cloaked",
         "optimal_range": "30-60 km",
-        "tactics": "EM bombs and torpedoes from cloak."
+        "tactics": "EM bombs and torpedoes from cloak.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "30-60 km",
+        "bonuses": [
+            "Covert Torpedo / Bomb Bomber"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Purifier [Stealth Bomber | Amarr]\n  - Combat Role: Covert Torpedo / Bomb Bomber\n  - Weapon System: 30-60 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Covert Torpedo / Bomb Bomber\n  - Defense Profile: Paper Thin | Speed: Cloaked\n  - Weapon Optimal: 30-60 km\n  - Tactical Counter-Play: EM bombs and torpedoes from cloak."
     },
     "Retribution": {
         "class": "Assault Frigate",
@@ -1972,7 +4140,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer + ADC",
         "speed": "Fast",
         "optimal_range": "15-45 km",
-        "tactics": "Premier assault frigate fleet sniper. High EM/Thermal DPS with ADC."
+        "tactics": "Premier assault frigate fleet sniper. High EM/Thermal DPS with ADC.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 2,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "15-45 km",
+        "bonuses": [
+            "Beam Laser / ADC Assault"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Retribution [Assault Frigate | Amarr]\n  - Combat Role: Beam Laser / ADC Assault\n  - Weapon System: 15-45 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 2 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Beam Laser / ADC Assault\n  - Defense Profile: Armor Buffer + ADC | Speed: Fast\n  - Weapon Optimal: 15-45 km\n  - Tactical Counter-Play: Premier assault frigate fleet sniper. High EM/Thermal DPS with ADC."
     },
     "Vengeance": {
         "class": "Assault Frigate",
@@ -1982,7 +4161,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active Armor + ADC",
         "speed": "Moderate",
         "optimal_range": "0-20 km",
-        "tactics": "Heavy rocket assault frigate with dual armor reps."
+        "tactics": "Heavy rocket assault frigate with dual armor reps.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 2,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Rocket / Active Armor Assault"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Vengeance [Assault Frigate | Amarr]\n  - Combat Role: Rocket / Active Armor Assault\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 2 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Rocket / Active Armor Assault\n  - Defense Profile: Active Armor + ADC | Speed: Moderate\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Heavy rocket assault frigate with dual armor reps."
     },
     "Sentinel": {
         "class": "Electronic Attack Ship",
@@ -1992,7 +4182,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Fast (4.0+ km/s)",
         "optimal_range": "30-50 km",
-        "tactics": "Drains capacitor dry from 40 km and applies tracking disruption. Critical target."
+        "tactics": "Drains capacitor dry from 40 km and applies tracking disruption. Critical target.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "30-50 km",
+        "bonuses": [
+            "Long-Range Cap Drain & Tracking Disruptor"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Sentinel [Electronic Attack Ship | Amarr]\n  - Combat Role: Long-Range Cap Drain & Tracking Disruptor\n  - Weapon System: 30-50 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Long-Range Cap Drain & Tracking Disruptor\n  - Defense Profile: Paper Thin | Speed: Fast (4.0+ km/s)\n  - Weapon Optimal: 30-50 km\n  - Tactical Counter-Play: Drains capacitor dry from 40 km and applies tracking disruption. Critical target."
     },
     "Crusader": {
         "class": "Interceptor",
@@ -2002,7 +4203,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Extreme (4.8+ km/s)",
         "optimal_range": "0-15 km",
-        "tactics": "Nullified fast tackle combat interceptor."
+        "tactics": "Nullified fast tackle combat interceptor.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Laser Fleet Tackler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Crusader [Interceptor | Amarr]\n  - Combat Role: Laser Fleet Tackler\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Laser Fleet Tackler\n  - Defense Profile: Armor | Speed: Extreme (4.8+ km/s)\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Nullified fast tackle combat interceptor."
     },
     "Malediction": {
         "class": "Interceptor",
@@ -2012,7 +4224,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Shield",
         "speed": "Extreme (5.0+ km/s)",
         "optimal_range": "0-15 km",
-        "tactics": "Premier fleet tackle interceptor with rocket and point."
+        "tactics": "Premier fleet tackle interceptor with rocket and point.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Fleet Fast Tackle Interceptor"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Malediction [Interceptor | Amarr]\n  - Combat Role: Fleet Fast Tackle Interceptor\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Fleet Fast Tackle Interceptor\n  - Defense Profile: Armor / Shield | Speed: Extreme (5.0+ km/s)\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Premier fleet tackle interceptor with rocket and point."
     },
     "Deacon": {
         "class": "Logistics Frigate",
@@ -2022,7 +4245,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Fast",
         "optimal_range": "Remote Armor",
-        "tactics": "Assault-tier remote armor repair frigate."
+        "tactics": "Assault-tier remote armor repair frigate.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Remote Armor",
+        "bonuses": [
+            "T2 Armor Logistics Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Deacon [Logistics Frigate | Amarr]\n  - Combat Role: T2 Armor Logistics Frigate\n  - Weapon System: Remote Armor\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: T2 Armor Logistics Frigate\n  - Defense Profile: Armor | Speed: Fast\n  - Weapon Optimal: Remote Armor\n  - Tactical Counter-Play: Assault-tier remote armor repair frigate."
     },
     "Coercer": {
         "class": "Destroyer",
@@ -2032,7 +4266,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Moderate",
         "optimal_range": "0-15 km (Pulse) / 30-65 km (Beam)",
-        "tactics": "8 energy turrets deliver high instant EM/Thermal laser DPS."
+        "tactics": "8 energy turrets deliver high instant EM/Thermal laser DPS.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-15 km (Pulse) / 30-65 km (Beam)",
+        "bonuses": [
+            "Pulse / Beam Laser Destroyer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Coercer [Destroyer | Amarr]\n  - Combat Role: Pulse / Beam Laser Destroyer\n  - Weapon System: 0-15 km (Pulse) / 30-65 km (Beam)\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: Pulse / Beam Laser Destroyer\n  - Defense Profile: Armor Buffer | Speed: Moderate\n  - Weapon Optimal: 0-15 km (Pulse) / 30-65 km (Beam)\n  - Tactical Counter-Play: 8 energy turrets deliver high instant EM/Thermal laser DPS."
     },
     "Dragoon": {
         "class": "Destroyer",
@@ -2042,7 +4287,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Slow",
         "optimal_range": "0-30 km",
-        "tactics": "Heavy energy neutralizers and light drones. Drains frigate capacitor in 1 cycle."
+        "tactics": "Heavy energy neutralizers and light drones. Drains frigate capacitor in 1 cycle.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-30 km",
+        "bonuses": [
+            "Drone / Cap Neutralizer Destroyer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Dragoon [Destroyer | Amarr]\n  - Combat Role: Drone / Cap Neutralizer Destroyer\n  - Weapon System: 0-30 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: Drone / Cap Neutralizer Destroyer\n  - Defense Profile: Armor Buffer | Speed: Slow\n  - Weapon Optimal: 0-30 km\n  - Tactical Counter-Play: Heavy energy neutralizers and light drones. Drains frigate capacitor in 1 cycle."
     },
     "Coercer Navy Issue": {
         "class": "Faction Destroyer",
@@ -2052,7 +4308,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Fast",
         "optimal_range": "0-25 km / 40-80 km",
-        "tactics": "Reduced capacitor usage and enhanced tracking."
+        "tactics": "Reduced capacitor usage and enhanced tracking.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-25 km / 40-80 km",
+        "bonuses": [
+            "Navy Laser Destroyer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Coercer Navy Issue [Faction Destroyer | Amarr (Navy)]\n  - Combat Role: Navy Laser Destroyer\n  - Weapon System: 0-25 km / 40-80 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: Navy Laser Destroyer\n  - Defense Profile: Armor Buffer | Speed: Fast\n  - Weapon Optimal: 0-25 km / 40-80 km\n  - Tactical Counter-Play: Reduced capacitor usage and enhanced tracking."
     },
     "Heretic": {
         "class": "Interdictor",
@@ -2062,7 +4329,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Fast (2.8+ km/s)",
         "optimal_range": "0-20 km",
-        "tactics": "Deploys 20km warp disruption bubbles on gates."
+        "tactics": "Deploys 20km warp disruption bubbles on gates.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Armor Warp Bubble Launcher"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Heretic [Interdictor | Amarr]\n  - Combat Role: Armor Warp Bubble Launcher\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Armor Warp Bubble Launcher\n  - Defense Profile: Armor Buffer | Speed: Fast (2.8+ km/s)\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Deploys 20km warp disruption bubbles on gates."
     },
     "Pontifex": {
         "class": "Command Destroyer",
@@ -2072,7 +4350,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Fast",
         "optimal_range": "0-20 km",
-        "tactics": "Spools 100km Micro Jump Field to kidnap ships on grid."
+        "tactics": "Spools 100km Micro Jump Field to kidnap ships on grid.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 2,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Micro Jump Field / Armor Skiff"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Pontifex [Command Destroyer | Amarr]\n  - Combat Role: Micro Jump Field / Armor Skiff\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 2 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: Micro Jump Field / Armor Skiff\n  - Defense Profile: Armor Buffer | Speed: Fast\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Spools 100km Micro Jump Field to kidnap ships on grid."
     },
     "Confessor": {
         "class": "Tactical Destroyer",
@@ -2082,7 +4371,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active / Passive Armor",
         "speed": "Variable (Prop/Sharpshooter/Defensive)",
         "optimal_range": "15-50 km",
-        "tactics": "Switches between Propulsion, Sharpshooter (laser optimal/damage), and Defensive modes."
+        "tactics": "Switches between Propulsion, Sharpshooter (laser optimal/damage), and Defensive modes.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "15-50 km",
+        "bonuses": [
+            "T3 Mode-Switching Laser Destroyer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Confessor [Tactical Destroyer | Amarr]\n  - Combat Role: T3 Mode-Switching Laser Destroyer\n  - Weapon System: 15-50 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: T3 Mode-Switching Laser Destroyer\n  - Defense Profile: Active / Passive Armor | Speed: Variable (Prop/Sharpshooter/Defensive)\n  - Weapon Optimal: 15-50 km\n  - Tactical Counter-Play: Switches between Propulsion, Sharpshooter (laser optimal/damage), and Defensive modes."
     },
     "Omen": {
         "class": "Cruiser",
@@ -2092,7 +4392,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Fast (2.2+ km/s)",
         "optimal_range": "20-45 km",
-        "tactics": "Fast laser attack cruiser with high EM/Thermal DPS."
+        "tactics": "Fast laser attack cruiser with high EM/Thermal DPS.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "20-45 km",
+        "bonuses": [
+            "Beam / Pulse Attack Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Omen [Cruiser | Amarr]\n  - Combat Role: Beam / Pulse Attack Cruiser\n  - Weapon System: 20-45 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Beam / Pulse Attack Cruiser\n  - Defense Profile: Armor Buffer | Speed: Fast (2.2+ km/s)\n  - Weapon Optimal: 20-45 km\n  - Tactical Counter-Play: Fast laser attack cruiser with high EM/Thermal DPS."
     },
     "Maller": {
         "class": "Cruiser",
@@ -2102,7 +4413,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Massive Armor Buffer (6 Lows)",
         "speed": "Slow",
         "optimal_range": "0-15 km",
-        "tactics": "Extremely heavy armor resistance bonus; classic fleet bait/line cruiser."
+        "tactics": "Extremely heavy armor resistance bonus; classic fleet bait/line cruiser.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Heavy Armor Buffer Bait Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Maller [Cruiser | Amarr]\n  - Combat Role: Heavy Armor Buffer Bait Cruiser\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Heavy Armor Buffer Bait Cruiser\n  - Defense Profile: Massive Armor Buffer (6 Lows) | Speed: Slow\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Extremely heavy armor resistance bonus; classic fleet bait/line cruiser."
     },
     "Augoror": {
         "class": "Cruiser",
@@ -2112,7 +4434,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Moderate",
         "optimal_range": "Remote Armor (Cap Transfer)",
-        "tactics": "Cap-chain armor logistics cruiser. Maintain cap chain with second Augoror."
+        "tactics": "Cap-chain armor logistics cruiser. Maintain cap chain with second Augoror.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "Remote Armor (Cap Transfer)",
+        "bonuses": [
+            "Armor Logistics Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Augoror [Cruiser | Amarr]\n  - Combat Role: Armor Logistics Cruiser\n  - Weapon System: Remote Armor (Cap Transfer)\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Armor Logistics Cruiser\n  - Defense Profile: Armor | Speed: Moderate\n  - Weapon Optimal: Remote Armor (Cap Transfer)\n  - Tactical Counter-Play: Cap-chain armor logistics cruiser. Maintain cap chain with second Augoror."
     },
     "Arbitrator": {
         "class": "Cruiser",
@@ -2122,7 +4455,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Moderate",
         "optimal_range": "0-50 km",
-        "tactics": "Applies severe tracking disruption while deploying combat drones."
+        "tactics": "Applies severe tracking disruption while deploying combat drones.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-50 km",
+        "bonuses": [
+            "Tracking Disruptor / Drone Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Arbitrator [Cruiser | Amarr]\n  - Combat Role: Tracking Disruptor / Drone Cruiser\n  - Weapon System: 0-50 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Tracking Disruptor / Drone Cruiser\n  - Defense Profile: Armor Buffer | Speed: Moderate\n  - Weapon Optimal: 0-50 km\n  - Tactical Counter-Play: Applies severe tracking disruption while deploying combat drones."
     },
     "Omen Navy Issue": {
         "class": "Faction Cruiser",
@@ -2132,7 +4476,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Fast (2.6+ km/s)",
         "optimal_range": "25-55 km",
-        "tactics": "Premier nano beam kiter with high laser tracking and alpha."
+        "tactics": "Premier nano beam kiter with high laser tracking and alpha.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "25-55 km",
+        "bonuses": [
+            "Heavy Laser Nano Kiter"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Omen Navy Issue [Faction Cruiser | Amarr (Navy)]\n  - Combat Role: Heavy Laser Nano Kiter\n  - Weapon System: 25-55 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Heavy Laser Nano Kiter\n  - Defense Profile: Armor Buffer | Speed: Fast (2.6+ km/s)\n  - Weapon Optimal: 25-55 km\n  - Tactical Counter-Play: Premier nano beam kiter with high laser tracking and alpha."
     },
     "Augoror Navy Issue": {
         "class": "Faction Cruiser",
@@ -2142,7 +4497,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Battleship-Grade Armor Buffer",
         "speed": "Slow",
         "optimal_range": "0-20 km",
-        "tactics": "Massive armor buffer and high laser DPS."
+        "tactics": "Massive armor buffer and high laser DPS.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Heavy Armor Laser Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Augoror Navy Issue [Faction Cruiser | Amarr (Navy)]\n  - Combat Role: Heavy Armor Laser Brawler\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Heavy Armor Laser Brawler\n  - Defense Profile: Battleship-Grade Armor Buffer | Speed: Slow\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Massive armor buffer and high laser DPS."
     },
     "Zealot": {
         "class": "Heavy Assault Cruiser",
@@ -2152,7 +4518,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer + ADC",
         "speed": "Moderate",
         "optimal_range": "40-90 km",
-        "tactics": "Armor fleet laser sniper with high EM/Thermal alpha and ADC."
+        "tactics": "Armor fleet laser sniper with high EM/Thermal alpha and ADC.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 2,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "40-90 km",
+        "bonuses": [
+            "HAC Beam Laser Sniper"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Zealot [Heavy Assault Cruiser | Amarr]\n  - Combat Role: HAC Beam Laser Sniper\n  - Weapon System: 40-90 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 2 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: HAC Beam Laser Sniper\n  - Defense Profile: Armor Buffer + ADC | Speed: Moderate\n  - Weapon Optimal: 40-90 km\n  - Tactical Counter-Play: Armor fleet laser sniper with high EM/Thermal alpha and ADC."
     },
     "Sacrilege": {
         "class": "Heavy Assault Cruiser",
@@ -2162,7 +4539,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Heavy Armor Buffer / Active + ADC",
         "speed": "Fast",
         "optimal_range": "15-40 km",
-        "tactics": "High-resist HAC firing heavy assault missiles and cap neutralizers."
+        "tactics": "High-resist HAC firing heavy assault missiles and cap neutralizers.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 2,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "15-40 km",
+        "bonuses": [
+            "HAC Heavy Assault Missile Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Sacrilege [Heavy Assault Cruiser | Amarr]\n  - Combat Role: HAC Heavy Assault Missile Brawler\n  - Weapon System: 15-40 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 2 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: HAC Heavy Assault Missile Brawler\n  - Defense Profile: Heavy Armor Buffer / Active + ADC | Speed: Fast\n  - Weapon Optimal: 15-40 km\n  - Tactical Counter-Play: High-resist HAC firing heavy assault missiles and cap neutralizers."
     },
     "Devoter": {
         "class": "Heavy Interdiction Cruiser",
@@ -2172,7 +4560,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Armor Buffer",
         "speed": "Moderate",
         "optimal_range": "0-20 km (Bubble) / Infinite Scram",
-        "tactics": "Heavy armor HIC projecting focused infinite points or mobile bubbles."
+        "tactics": "Heavy armor HIC projecting focused infinite points or mobile bubbles.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 2,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-20 km (Bubble) / Infinite Scram",
+        "bonuses": [
+            "Warp Disruption Field Generator"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Devoter [Heavy Interdiction Cruiser | Amarr]\n  - Combat Role: Warp Disruption Field Generator\n  - Weapon System: 0-20 km (Bubble) / Infinite Scram\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 2 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Warp Disruption Field Generator\n  - Defense Profile: Immense Armor Buffer | Speed: Moderate\n  - Weapon Optimal: 0-20 km (Bubble) / Infinite Scram\n  - Tactical Counter-Play: Heavy armor HIC projecting focused infinite points or mobile bubbles."
     },
     "Pilgrim": {
         "class": "Force Recon",
@@ -2182,7 +4581,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Cloaked",
         "optimal_range": "0-25 km",
-        "tactics": "Uncloaks to neut capacitor dry, apply tracking disruption, and light Covert Cyno."
+        "tactics": "Uncloaks to neut capacitor dry, apply tracking disruption, and light Covert Cyno.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-25 km",
+        "bonuses": [
+            "Covert Cloak / Cap Neut / Cyno"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Pilgrim [Force Recon | Amarr]\n  - Combat Role: Covert Cloak / Cap Neut / Cyno\n  - Weapon System: 0-25 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Covert Cloak / Cap Neut / Cyno\n  - Defense Profile: Paper Thin | Speed: Cloaked\n  - Weapon Optimal: 0-25 km\n  - Tactical Counter-Play: Uncloaks to neut capacitor dry, apply tracking disruption, and light Covert Cyno."
     },
     "Curse": {
         "class": "Combat Recon",
@@ -2192,7 +4602,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Shield Buffer",
         "speed": "Moderate",
         "optimal_range": "30-60 km",
-        "tactics": "Invisible to D-Scan. Heavy neutralizers drain cap at 50km range."
+        "tactics": "Invisible to D-Scan. Heavy neutralizers drain cap at 50km range.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "30-60 km",
+        "bonuses": [
+            "D-Scan Immune 50km Cap Neut"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Curse [Combat Recon | Amarr]\n  - Combat Role: D-Scan Immune 50km Cap Neut\n  - Weapon System: 30-60 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: D-Scan Immune 50km Cap Neut\n  - Defense Profile: Armor / Shield Buffer | Speed: Moderate\n  - Weapon Optimal: 30-60 km\n  - Tactical Counter-Play: Invisible to D-Scan. Heavy neutralizers drain cap at 50km range."
     },
     "Guardian": {
         "class": "Logistics Cruiser",
@@ -2202,7 +4623,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor",
         "speed": "Moderate",
         "optimal_range": "Remote Armor (Cap Transfer)",
-        "tactics": "Premier T2 armor logistics. Maintain cap chain with second Guardian."
+        "tactics": "Premier T2 armor logistics. Maintain cap chain with second Guardian.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 2,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "Remote Armor (Cap Transfer)",
+        "bonuses": [
+            "T2 Cap-Chain Armor Logistics"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Guardian [Logistics Cruiser | Amarr]\n  - Combat Role: T2 Cap-Chain Armor Logistics\n  - Weapon System: Remote Armor (Cap Transfer)\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 2 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: T2 Cap-Chain Armor Logistics\n  - Defense Profile: Armor | Speed: Moderate\n  - Weapon Optimal: Remote Armor (Cap Transfer)\n  - Tactical Counter-Play: Premier T2 armor logistics. Maintain cap chain with second Guardian."
     },
     "Legion": {
         "class": "Strategic Cruiser",
@@ -2212,7 +4644,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer / Active",
         "speed": "Fast (1.8-2.4 km/s)",
         "optimal_range": "20-70 km",
-        "tactics": "Highly customizable. Can fit covert cloak, interdiction nullification, heavy neuts, or 100MN AB."
+        "tactics": "Highly customizable. Can fit covert cloak, interdiction nullification, heavy neuts, or 100MN AB.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "20-70 km",
+        "bonuses": [
+            "Modular T3C (Laser / Missile / Neut / Cloak)"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Legion [Strategic Cruiser | Amarr]\n  - Combat Role: Modular T3C (Laser / Missile / Neut / Cloak)\n  - Weapon System: 20-70 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Modular T3C (Laser / Missile / Neut / Cloak)\n  - Defense Profile: Armor Buffer / Active | Speed: Fast (1.8-2.4 km/s)\n  - Weapon Optimal: 20-70 km\n  - Tactical Counter-Play: Highly customizable. Can fit covert cloak, interdiction nullification, heavy neuts, or 100MN AB."
     },
     "Harbinger": {
         "class": "Battlecruiser",
@@ -2222,7 +4665,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Slow",
         "optimal_range": "20-60 km",
-        "tactics": "6 heavy energy turrets with high tracking and laser DPS."
+        "tactics": "6 heavy energy turrets with high tracking and laser DPS.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "20-60 km",
+        "bonuses": [
+            "Heavy Laser Line BC"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Harbinger [Battlecruiser | Amarr]\n  - Combat Role: Heavy Laser Line BC\n  - Weapon System: 20-60 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Heavy Laser Line BC\n  - Defense Profile: Armor Buffer | Speed: Slow\n  - Weapon Optimal: 20-60 km\n  - Tactical Counter-Play: 6 heavy energy turrets with high tracking and laser DPS."
     },
     "Prophecy": {
         "class": "Battlecruiser",
@@ -2232,7 +4686,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Massive Armor Buffer (Triple Trimark)",
         "speed": "Slow",
         "optimal_range": "0-50 km",
-        "tactics": "Extremely tanky drone battlecruiser. Standard faction warfare doctrine."
+        "tactics": "Extremely tanky drone battlecruiser. Standard faction warfare doctrine.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "0-50 km",
+        "bonuses": [
+            "Heavy Drone / Armor Fleet BC"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Prophecy [Battlecruiser | Amarr]\n  - Combat Role: Heavy Drone / Armor Fleet BC\n  - Weapon System: 0-50 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Heavy Drone / Armor Fleet BC\n  - Defense Profile: Massive Armor Buffer (Triple Trimark) | Speed: Slow\n  - Weapon Optimal: 0-50 km\n  - Tactical Counter-Play: Extremely tanky drone battlecruiser. Standard faction warfare doctrine."
     },
     "Oracle": {
         "class": "Attack Battlecruiser",
@@ -2242,7 +4707,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin Armor",
         "speed": "Moderate",
         "optimal_range": "60-140 km",
-        "tactics": "Large Mega Beam / Tachyon lasers on BC hull. Extreme instant alpha."
+        "tactics": "Large Mega Beam / Tachyon lasers on BC hull. Extreme instant alpha.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "60-140 km",
+        "bonuses": [
+            "Battleship-Gun Laser Sniper"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Oracle [Attack Battlecruiser | Amarr]\n  - Combat Role: Battleship-Gun Laser Sniper\n  - Weapon System: 60-140 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Battleship-Gun Laser Sniper\n  - Defense Profile: Paper Thin Armor | Speed: Moderate\n  - Weapon Optimal: 60-140 km\n  - Tactical Counter-Play: Large Mega Beam / Tachyon lasers on BC hull. Extreme instant alpha."
     },
     "Harbinger Navy Issue": {
         "class": "Faction Battlecruiser",
@@ -2252,7 +4728,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Fast",
         "optimal_range": "20-70 km",
-        "tactics": "Enhanced laser tracking and armor resistance bonus."
+        "tactics": "Enhanced laser tracking and armor resistance bonus.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "20-70 km",
+        "bonuses": [
+            "Navy Laser Battlecruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Harbinger Navy Issue [Faction Battlecruiser | Amarr (Navy)]\n  - Combat Role: Navy Laser Battlecruiser\n  - Weapon System: 20-70 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Navy Laser Battlecruiser\n  - Defense Profile: Armor Buffer | Speed: Fast\n  - Weapon Optimal: 20-70 km\n  - Tactical Counter-Play: Enhanced laser tracking and armor resistance bonus."
     },
     "Prophecy Navy Issue": {
         "class": "Faction Battlecruiser",
@@ -2262,7 +4749,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Moderate",
         "optimal_range": "20-60 km",
-        "tactics": "Combines heavy missiles and full drone flights."
+        "tactics": "Combines heavy missiles and full drone flights.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "20-60 km",
+        "bonuses": [
+            "Navy Missile / Drone BC"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Prophecy Navy Issue [Faction Battlecruiser | Amarr (Navy)]\n  - Combat Role: Navy Missile / Drone BC\n  - Weapon System: 20-60 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Navy Missile / Drone BC\n  - Defense Profile: Armor Buffer | Speed: Moderate\n  - Weapon Optimal: 20-60 km\n  - Tactical Counter-Play: Combines heavy missiles and full drone flights."
     },
     "Damnation": {
         "class": "Command Ship",
@@ -2272,7 +4770,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Armor Buffer (300k+ EHP)",
         "speed": "Slow",
         "optimal_range": "0-30 km",
-        "tactics": "Provides Fleet Armor Bursts with near-unbreakable armor buffer."
+        "tactics": "Provides Fleet Armor Bursts with near-unbreakable armor buffer.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-30 km",
+        "bonuses": [
+            "Armor Fleet Command Flagship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Damnation [Command Ship | Amarr]\n  - Combat Role: Armor Fleet Command Flagship\n  - Weapon System: 0-30 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Armor Fleet Command Flagship\n  - Defense Profile: Immense Armor Buffer (300k+ EHP) | Speed: Slow\n  - Weapon Optimal: 0-30 km\n  - Tactical Counter-Play: Provides Fleet Armor Bursts with near-unbreakable armor buffer."
     },
     "Absolution": {
         "class": "Command Ship",
@@ -2282,7 +4791,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Armor Buffer",
         "speed": "Slow",
         "optimal_range": "20-50 km",
-        "tactics": "Provides Fleet Armor / Information Bursts with heavy laser DPS."
+        "tactics": "Provides Fleet Armor / Information Bursts with heavy laser DPS.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "20-50 km",
+        "bonuses": [
+            "Laser Fleet Command Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Absolution [Command Ship | Amarr]\n  - Combat Role: Laser Fleet Command Brawler\n  - Weapon System: 20-50 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Laser Fleet Command Brawler\n  - Defense Profile: Immense Armor Buffer | Speed: Slow\n  - Weapon Optimal: 20-50 km\n  - Tactical Counter-Play: Provides Fleet Armor / Information Bursts with heavy laser DPS."
     },
     "Apocalypse": {
         "class": "Battleship",
@@ -2292,7 +4812,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Slow",
         "optimal_range": "60-140 km",
-        "tactics": "8 large laser turrets with optimal range and tracking bonuses."
+        "tactics": "8 large laser turrets with optimal range and tracking bonuses.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "60-140 km",
+        "bonuses": [
+            "Large Beam / Pulse Laser Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Apocalypse [Battleship | Amarr]\n  - Combat Role: Large Beam / Pulse Laser Battleship\n  - Weapon System: 60-140 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Large Beam / Pulse Laser Battleship\n  - Defense Profile: Armor Buffer | Speed: Slow\n  - Weapon Optimal: 60-140 km\n  - Tactical Counter-Play: 8 large laser turrets with optimal range and tracking bonuses."
     },
     "Armageddon": {
         "class": "Battleship",
@@ -2302,7 +4833,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Slow",
         "optimal_range": "0-50 km",
-        "tactics": "Heavy energy neutralizer range bonus drains 2500+ GJ per cycle at 40 km."
+        "tactics": "Heavy energy neutralizer range bonus drains 2500+ GJ per cycle at 40 km.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "0-50 km",
+        "bonuses": [
+            "Heavy Cap Neut / Drone / Missile BS"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Armageddon [Battleship | Amarr]\n  - Combat Role: Heavy Cap Neut / Drone / Missile BS\n  - Weapon System: 0-50 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Heavy Cap Neut / Drone / Missile BS\n  - Defense Profile: Armor Buffer | Speed: Slow\n  - Weapon Optimal: 0-50 km\n  - Tactical Counter-Play: Heavy energy neutralizer range bonus drains 2500+ GJ per cycle at 40 km."
     },
     "Abaddon": {
         "class": "Battleship",
@@ -2312,7 +4854,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Massive Armor Resistance Buffer",
         "speed": "Slow",
         "optimal_range": "30-80 km",
-        "tactics": "High armor resistance bonus; heavy cap consumption on lasers."
+        "tactics": "High armor resistance bonus; heavy cap consumption on lasers.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "30-80 km",
+        "bonuses": [
+            "Heavy Laser Line Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Abaddon [Battleship | Amarr]\n  - Combat Role: Heavy Laser Line Battleship\n  - Weapon System: 30-80 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Heavy Laser Line Battleship\n  - Defense Profile: Massive Armor Resistance Buffer | Speed: Slow\n  - Weapon Optimal: 30-80 km\n  - Tactical Counter-Play: High armor resistance bonus; heavy cap consumption on lasers."
     },
     "Apocalypse Navy Issue": {
         "class": "Faction Battleship",
@@ -2322,7 +4875,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Slow",
         "optimal_range": "60-150 km",
-        "tactics": "Extreme laser rate of fire and optimal range."
+        "tactics": "Extreme laser rate of fire and optimal range.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "60-150 km",
+        "bonuses": [
+            "Navy Laser Sniper Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Apocalypse Navy Issue [Faction Battleship | Amarr (Navy)]\n  - Combat Role: Navy Laser Sniper Battleship\n  - Weapon System: 60-150 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Navy Laser Sniper Battleship\n  - Defense Profile: Armor Buffer | Speed: Slow\n  - Weapon Optimal: 60-150 km\n  - Tactical Counter-Play: Extreme laser rate of fire and optimal range."
     },
     "Armageddon Navy Issue": {
         "class": "Faction Battleship",
@@ -2332,7 +4896,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Slow",
         "optimal_range": "30-80 km",
-        "tactics": "Laser damage and heavy drone damage combination."
+        "tactics": "Laser damage and heavy drone damage combination.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "30-80 km",
+        "bonuses": [
+            "Navy Laser / Drone Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Armageddon Navy Issue [Faction Battleship | Amarr (Navy)]\n  - Combat Role: Navy Laser / Drone Battleship\n  - Weapon System: 30-80 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Navy Laser / Drone Battleship\n  - Defense Profile: Armor Buffer | Speed: Slow\n  - Weapon Optimal: 30-80 km\n  - Tactical Counter-Play: Laser damage and heavy drone damage combination."
     },
     "Paladin": {
         "class": "Marauder",
@@ -2342,7 +4917,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active Armor (Bastion Mode)",
         "speed": "Immobile in Bastion",
         "optimal_range": "40-100 km (Mega Pulse / Scorch) / 100-180 km (Tachyon)",
-        "tactics": "Bastion Mode doubles armor reps and yields 2500+ DPS with Scorch L. Apply neuts."
+        "tactics": "Bastion Mode doubles armor reps and yields 2500+ DPS with Scorch L. Apply neuts.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "40-100 km (Mega Pulse / Scorch) / 100-180 km (Tachyon)",
+        "bonuses": [
+            "Bastion Beam / Pulse Marauder"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Paladin [Marauder | Amarr]\n  - Combat Role: Bastion Beam / Pulse Marauder\n  - Weapon System: 40-100 km (Mega Pulse / Scorch) / 100-180 km (Tachyon)\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Bastion Beam / Pulse Marauder\n  - Defense Profile: Active Armor (Bastion Mode) | Speed: Immobile in Bastion\n  - Weapon Optimal: 40-100 km (Mega Pulse / Scorch) / 100-180 km (Tachyon)\n  - Tactical Counter-Play: Bastion Mode doubles armor reps and yields 2500+ DPS with Scorch L. Apply neuts."
     },
     "Redeemer": {
         "class": "Black Ops",
@@ -2352,7 +4938,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer / Active",
         "speed": "Slow (Covert Jump)",
         "optimal_range": "30-80 km",
-        "tactics": "Bridges covert fleets; massive instant laser alpha strike."
+        "tactics": "Bridges covert fleets; massive instant laser alpha strike.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "30-80 km",
+        "bonuses": [
+            "Covert Jump / Laser Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Redeemer [Black Ops | Amarr]\n  - Combat Role: Covert Jump / Laser Battleship\n  - Weapon System: 30-80 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Covert Jump / Laser Battleship\n  - Defense Profile: Armor Buffer / Active | Speed: Slow (Covert Jump)\n  - Weapon Optimal: 30-80 km\n  - Tactical Counter-Play: Bridges covert fleets; massive instant laser alpha strike."
     },
     "Revelation": {
         "class": "Dreadnought",
@@ -2362,7 +4959,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active Armor (Siege)",
         "speed": "Capital",
         "optimal_range": "Capital Grid",
-        "tactics": "Siege dreadnought with capital energy turrets. Infinite ammo with crystals."
+        "tactics": "Siege dreadnought with capital energy turrets. Infinite ammo with crystals.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Capital Grid",
+        "bonuses": [
+            "Capital Mega Beam / Pulse Dread"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Revelation [Dreadnought | Amarr]\n  - Combat Role: Capital Mega Beam / Pulse Dread\n  - Weapon System: Capital Grid\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Capital Mega Beam / Pulse Dread\n  - Defense Profile: Active Armor (Siege) | Speed: Capital\n  - Weapon Optimal: Capital Grid\n  - Tactical Counter-Play: Siege dreadnought with capital energy turrets. Infinite ammo with crystals."
     },
     "Revelation Navy Issue": {
         "class": "Faction Dreadnought",
@@ -2372,7 +4980,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Active",
         "speed": "Capital",
         "optimal_range": "Capital Grid",
-        "tactics": "Enhanced energy turret tracking and armor buffer."
+        "tactics": "Enhanced energy turret tracking and armor buffer.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Capital Grid",
+        "bonuses": [
+            "Navy Capital Laser Dread"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Revelation Navy Issue [Faction Dreadnought | Amarr (Navy)]\n  - Combat Role: Navy Capital Laser Dread\n  - Weapon System: Capital Grid\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Navy Capital Laser Dread\n  - Defense Profile: Armor Active | Speed: Capital\n  - Weapon Optimal: Capital Grid\n  - Tactical Counter-Play: Enhanced energy turret tracking and armor buffer."
     },
     "Bane": {
         "class": "Lancer Dreadnought",
@@ -2382,7 +5001,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Active",
         "speed": "Capital",
         "optimal_range": "Lancer Beam",
-        "tactics": "Fires disruptive capital lance disabling cynos and warp."
+        "tactics": "Fires disruptive capital lance disabling cynos and warp.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Lancer Beam",
+        "bonuses": [
+            "Disruptive Lancer Dread"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Bane [Lancer Dreadnought | Amarr]\n  - Combat Role: Disruptive Lancer Dread\n  - Weapon System: Lancer Beam\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Disruptive Lancer Dread\n  - Defense Profile: Armor Active | Speed: Capital\n  - Weapon Optimal: Lancer Beam\n  - Tactical Counter-Play: Fires disruptive capital lance disabling cynos and warp."
     },
     "Archon": {
         "class": "Carrier",
@@ -2392,7 +5022,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Capital",
         "optimal_range": "Fighter Range",
-        "tactics": "Capital carrier with fighter resistance and cap transfers."
+        "tactics": "Capital carrier with fighter resistance and cap transfers.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Fighter Range",
+        "bonuses": [
+            "Capital Fighter Carrier"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Archon [Carrier | Amarr]\n  - Combat Role: Capital Fighter Carrier\n  - Weapon System: Fighter Range\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Capital Fighter Carrier\n  - Defense Profile: Armor Buffer | Speed: Capital\n  - Weapon Optimal: Fighter Range\n  - Tactical Counter-Play: Capital carrier with fighter resistance and cap transfers."
     },
     "Aeon": {
         "class": "Supercarrier",
@@ -2402,7 +5043,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Armor Buffer",
         "speed": "Supercapital",
         "optimal_range": "Omni Grid",
-        "tactics": "Supercapital heavy fighter strike wings."
+        "tactics": "Supercapital heavy fighter strike wings.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Omni Grid",
+        "bonuses": [
+            "Supercapital Heavy Carrier"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Aeon [Supercarrier | Amarr]\n  - Combat Role: Supercapital Heavy Carrier\n  - Weapon System: Omni Grid\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Supercapital Heavy Carrier\n  - Defense Profile: Immense Armor Buffer | Speed: Supercapital\n  - Weapon Optimal: Omni Grid\n  - Tactical Counter-Play: Supercapital heavy fighter strike wings."
     },
     "Apostle": {
         "class": "Force Auxiliary",
@@ -2412,7 +5064,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active Armor (Triage)",
         "speed": "Capital",
         "optimal_range": "Remote Armor",
-        "tactics": "Capital remote armor repair ship with massive burst reps."
+        "tactics": "Capital remote armor repair ship with massive burst reps.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Remote Armor",
+        "bonuses": [
+            "Capital Armor FAX"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Apostle [Force Auxiliary | Amarr]\n  - Combat Role: Capital Armor FAX\n  - Weapon System: Remote Armor\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Capital Armor FAX\n  - Defense Profile: Active Armor (Triage) | Speed: Capital\n  - Weapon Optimal: Remote Armor\n  - Tactical Counter-Play: Capital remote armor repair ship with massive burst reps."
     },
     "Avatar": {
         "class": "Titan",
@@ -2422,7 +5085,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Armor Buffer",
         "speed": "Supercapital",
         "optimal_range": "Omni Grid",
-        "tactics": "Judgement EM Doomsday titan with fleet armor burst."
+        "tactics": "Judgement EM Doomsday titan with fleet armor burst.",
+        "high_slots": 8,
+        "mid_slots": 7,
+        "low_slots": 8,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "Omni Grid",
+        "bonuses": [
+            "Supercapital Judgement Titan"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Avatar [Titan | Amarr]\n  - Combat Role: Supercapital Judgement Titan\n  - Weapon System: Omni Grid\n  - Slot Layout: Highs: 8 | Mids: 7 | Lows: 8 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Supercapital Judgement Titan\n  - Defense Profile: Immense Armor Buffer | Speed: Supercapital\n  - Weapon Optimal: Omni Grid\n  - Tactical Counter-Play: Judgement EM Doomsday titan with fleet armor burst."
     },
     "Bestower": {
         "class": "Industrial",
@@ -2432,7 +5106,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Slow",
         "optimal_range": "0 km",
-        "tactics": "Large cargo capacity hauler."
+        "tactics": "Large cargo capacity hauler.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "High-Capacity Hauler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Bestower [Industrial | Amarr]\n  - Combat Role: High-Capacity Hauler\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: High-Capacity Hauler\n  - Defense Profile: Paper Thin | Speed: Slow\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Large cargo capacity hauler."
     },
     "Sigil": {
         "class": "Industrial",
@@ -2442,7 +5127,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Fast for Hauler",
         "optimal_range": "0 km",
-        "tactics": "Fast sub-warp align industrial."
+        "tactics": "Fast sub-warp align industrial.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Fast Industrial Hauler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Sigil [Industrial | Amarr]\n  - Combat Role: Fast Industrial Hauler\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Fast Industrial Hauler\n  - Defense Profile: Paper Thin | Speed: Fast for Hauler\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Fast sub-warp align industrial."
     },
     "Prorator": {
         "class": "Blockade Runner",
@@ -2452,7 +5148,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Cloaked Armor",
         "speed": "Fast (<3s align)",
         "optimal_range": "0 km",
-        "tactics": "Covert cloaking, cargo-scanned immune hauler."
+        "tactics": "Covert cloaking, cargo-scanned immune hauler.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Covert Fast Hauler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Prorator [Blockade Runner | Amarr]\n  - Combat Role: Covert Fast Hauler\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Covert Fast Hauler\n  - Defense Profile: Cloaked Armor | Speed: Fast (<3s align)\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Covert cloaking, cargo-scanned immune hauler."
     },
     "Impel": {
         "class": "Deep Space Transport",
@@ -2462,7 +5169,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Armor Buffer (+2 Warp Core)",
         "speed": "Slow",
         "optimal_range": "0 km",
-        "tactics": "+2 native warp core strength and Fleet Hangar."
+        "tactics": "+2 native warp core strength and Fleet Hangar.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Heavy Armor DST"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Impel [Deep Space Transport | Amarr]\n  - Combat Role: Heavy Armor DST\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Heavy Armor DST\n  - Defense Profile: Immense Armor Buffer (+2 Warp Core) | Speed: Slow\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: +2 native warp core strength and Fleet Hangar."
     },
     "Providence": {
         "class": "Freighter",
@@ -2472,7 +5190,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Buffer",
         "speed": "Extremely Slow",
         "optimal_range": "0 km",
-        "tactics": "Massive cargo freighter."
+        "tactics": "Massive cargo freighter.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Standard Sub-Capital Freighter"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Providence [Freighter | Amarr]\n  - Combat Role: Standard Sub-Capital Freighter\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Standard Sub-Capital Freighter\n  - Defense Profile: Buffer | Speed: Extremely Slow\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Massive cargo freighter."
     },
     "Ark": {
         "class": "Jump Freighter",
@@ -2482,7 +5211,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer",
         "speed": "Jump Drive",
         "optimal_range": "0 km",
-        "tactics": "Jump drive cargo hauler for nullsec logistics."
+        "tactics": "Jump drive cargo hauler for nullsec logistics.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Capital Jump Freighter"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Ark [Jump Freighter | Amarr]\n  - Combat Role: Capital Jump Freighter\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Capital Jump Freighter\n  - Defense Profile: Armor Buffer | Speed: Jump Drive\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Jump drive cargo hauler for nullsec logistics."
     },
     "Slasher": {
         "class": "Frigate",
@@ -2492,7 +5232,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Extreme (4.8+ km/s)",
         "optimal_range": "0-10 km",
-        "tactics": "Fastest T1 tackle frigate with projectile tracking."
+        "tactics": "Fastest T1 tackle frigate with projectile tracking.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-10 km",
+        "bonuses": [
+            "Fast Tackle / Projectile Tackler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Slasher [Frigate | Minmatar]\n  - Combat Role: Fast Tackle / Projectile Tackler\n  - Weapon System: 0-10 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Fast Tackle / Projectile Tackler\n  - Defense Profile: Shield Buffer | Speed: Extreme (4.8+ km/s)\n  - Weapon Optimal: 0-10 km\n  - Tactical Counter-Play: Fastest T1 tackle frigate with projectile tracking."
     },
     "Rifter": {
         "class": "Frigate",
@@ -2502,7 +5253,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Shield Buffer",
         "speed": "Fast",
         "optimal_range": "0-15 km",
-        "tactics": "Versatile projectile combat frigate with selectable damage."
+        "tactics": "Versatile projectile combat frigate with selectable damage.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Projectile Brawler / Kiter"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Rifter [Frigate | Minmatar]\n  - Combat Role: Projectile Brawler / Kiter\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Projectile Brawler / Kiter\n  - Defense Profile: Armor / Shield Buffer | Speed: Fast\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Versatile projectile combat frigate with selectable damage."
     },
     "Breacher": {
         "class": "Frigate",
@@ -2512,7 +5274,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Dual MASB Active Shield",
         "speed": "Fast",
         "optimal_range": "0-25 km",
-        "tactics": "Extreme active shield tank with light missiles/rockets."
+        "tactics": "Extreme active shield tank with light missiles/rockets.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-25 km",
+        "bonuses": [
+            "Dual MASB Missile Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Breacher [Frigate | Minmatar]\n  - Combat Role: Dual MASB Missile Brawler\n  - Weapon System: 0-25 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Dual MASB Missile Brawler\n  - Defense Profile: Dual MASB Active Shield | Speed: Fast\n  - Weapon Optimal: 0-25 km\n  - Tactical Counter-Play: Extreme active shield tank with light missiles/rockets."
     },
     "Probe": {
         "class": "Frigate",
@@ -2522,7 +5295,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield / Armor",
         "speed": "Fast",
         "optimal_range": "0-15 km",
-        "tactics": "Scanning and exploration frigate."
+        "tactics": "Scanning and exploration frigate.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Exploration / Light Drone"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Probe [Frigate | Minmatar]\n  - Combat Role: Exploration / Light Drone\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Exploration / Light Drone\n  - Defense Profile: Shield / Armor | Speed: Fast\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Scanning and exploration frigate."
     },
     "Burst": {
         "class": "Frigate",
@@ -2532,7 +5316,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Fast",
         "optimal_range": "Remote Shield",
-        "tactics": "T1 frigate shield logistics."
+        "tactics": "T1 frigate shield logistics.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Remote Shield",
+        "bonuses": [
+            "Shield Logistics Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Burst [Frigate | Minmatar]\n  - Combat Role: Shield Logistics Frigate\n  - Weapon System: Remote Shield\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Shield Logistics Frigate\n  - Defense Profile: Shield | Speed: Fast\n  - Weapon Optimal: Remote Shield\n  - Tactical Counter-Play: T1 frigate shield logistics."
     },
     "Vigil": {
         "class": "Frigate",
@@ -2542,7 +5337,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Extreme (4.8+ km/s)",
         "optimal_range": "40-80 km",
-        "tactics": "Target painters inflate signature radius across the grid."
+        "tactics": "Target painters inflate signature radius across the grid.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "40-80 km",
+        "bonuses": [
+            "Target Painter Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Vigil [Frigate | Minmatar]\n  - Combat Role: Target Painter Frigate\n  - Weapon System: 40-80 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Target Painter Frigate\n  - Defense Profile: Paper Thin | Speed: Extreme (4.8+ km/s)\n  - Weapon Optimal: 40-80 km\n  - Tactical Counter-Play: Target painters inflate signature radius across the grid."
     },
     "Republic Fleet Firetail": {
         "class": "Faction Frigate",
@@ -2552,7 +5358,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield / Armor",
         "speed": "Extreme (4.2+ km/s)",
         "optimal_range": "0-15 km",
-        "tactics": "Fast projectile frigate with tracking and damage bonuses."
+        "tactics": "Fast projectile frigate with tracking and damage bonuses.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "High Alpha Projectile Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Republic Fleet Firetail [Faction Frigate | Minmatar (Fleet)]\n  - Combat Role: High Alpha Projectile Brawler\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: High Alpha Projectile Brawler\n  - Defense Profile: Shield / Armor | Speed: Extreme (4.2+ km/s)\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Fast projectile frigate with tracking and damage bonuses."
     },
     "Vigil Navy Issue": {
         "class": "Faction Frigate",
@@ -2562,7 +5379,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Extreme (4.5+ km/s)",
         "optimal_range": "0-20 km",
-        "tactics": "Stasis webifier range bonus with rocket application."
+        "tactics": "Stasis webifier range bonus with rocket application.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Dual Web Rocket Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Vigil Navy Issue [Faction Frigate | Minmatar (Fleet)]\n  - Combat Role: Dual Web Rocket Brawler\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Dual Web Rocket Brawler\n  - Defense Profile: Shield Buffer | Speed: Extreme (4.5+ km/s)\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Stasis webifier range bonus with rocket application."
     },
     "Probe Navy Issue": {
         "class": "Faction Frigate",
@@ -2572,7 +5400,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Fast",
         "optimal_range": "0-20 km",
-        "tactics": "Exploration combat frigate with rocket DPS."
+        "tactics": "Exploration combat frigate with rocket DPS.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Combat Explorer / Rocket Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Probe Navy Issue [Faction Frigate | Minmatar (Fleet)]\n  - Combat Role: Combat Explorer / Rocket Brawler\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Combat Explorer / Rocket Brawler\n  - Defense Profile: Shield Buffer | Speed: Fast\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Exploration combat frigate with rocket DPS."
     },
     "Cheetah": {
         "class": "Covert Ops",
@@ -2582,7 +5421,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Cloaked",
         "optimal_range": "Covert",
-        "tactics": "Fastest covert ops scout frigate."
+        "tactics": "Fastest covert ops scout frigate.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Covert",
+        "bonuses": [
+            "Stealth Scout / Cyno"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Cheetah [Covert Ops | Minmatar]\n  - Combat Role: Stealth Scout / Cyno\n  - Weapon System: Covert\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Stealth Scout / Cyno\n  - Defense Profile: Paper Thin | Speed: Cloaked\n  - Weapon Optimal: Covert\n  - Tactical Counter-Play: Fastest covert ops scout frigate."
     },
     "Hound": {
         "class": "Stealth Bomber",
@@ -2592,7 +5442,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Cloaked",
         "optimal_range": "30-60 km",
-        "tactics": "Explosive bombs and torpedoes from cloak."
+        "tactics": "Explosive bombs and torpedoes from cloak.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "30-60 km",
+        "bonuses": [
+            "Covert Torpedo / Bomb Bomber"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Hound [Stealth Bomber | Minmatar]\n  - Combat Role: Covert Torpedo / Bomb Bomber\n  - Weapon System: 30-60 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Covert Torpedo / Bomb Bomber\n  - Defense Profile: Paper Thin | Speed: Cloaked\n  - Weapon Optimal: 30-60 km\n  - Tactical Counter-Play: Explosive bombs and torpedoes from cloak."
     },
     "Wolf": {
         "class": "Assault Frigate",
@@ -2602,7 +5463,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor Buffer / SAAR + ADC",
         "speed": "Fast (3.5+ km/s)",
         "optimal_range": "0-15 km (AC) / 25-50 km (Art)",
-        "tactics": "Premier combat assault frigate. High projectile tracking and ADC survivability."
+        "tactics": "Premier combat assault frigate. High projectile tracking and ADC survivability.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 2,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km (AC) / 25-50 km (Art)",
+        "bonuses": [
+            "Autocannon / Artillery Assault"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Wolf [Assault Frigate | Minmatar]\n  - Combat Role: Autocannon / Artillery Assault\n  - Weapon System: 0-15 km (AC) / 25-50 km (Art)\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 2 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Autocannon / Artillery Assault\n  - Defense Profile: Armor Buffer / SAAR + ADC | Speed: Fast (3.5+ km/s)\n  - Weapon Optimal: 0-15 km (AC) / 25-50 km (Art)\n  - Tactical Counter-Play: Premier combat assault frigate. High projectile tracking and ADC survivability."
     },
     "Jaguar": {
         "class": "Assault Frigate",
@@ -2612,7 +5484,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Dual MASB Shield + ADC",
         "speed": "Extreme (4.0+ km/s)",
         "optimal_range": "0-20 km",
-        "tactics": "Extreme active shield tackle frigate. Survives heavy incoming fire."
+        "tactics": "Extreme active shield tackle frigate. Survives heavy incoming fire.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 2,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Dual MASB Tackle Assault"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Jaguar [Assault Frigate | Minmatar]\n  - Combat Role: Dual MASB Tackle Assault\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 2 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Dual MASB Tackle Assault\n  - Defense Profile: Dual MASB Shield + ADC | Speed: Extreme (4.0+ km/s)\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Extreme active shield tackle frigate. Survives heavy incoming fire."
     },
     "Hyena": {
         "class": "Electronic Attack Ship",
@@ -2622,7 +5505,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Fast (4.2+ km/s)",
         "optimal_range": "0-40 km",
-        "tactics": "Projects 40km stasis webifiers stopping targets cold."
+        "tactics": "Projects 40km stasis webifiers stopping targets cold.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-40 km",
+        "bonuses": [
+            "40km Stasis Webifier Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Hyena [Electronic Attack Ship | Minmatar]\n  - Combat Role: 40km Stasis Webifier Frigate\n  - Weapon System: 0-40 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: 40km Stasis Webifier Frigate\n  - Defense Profile: Paper Thin | Speed: Fast (4.2+ km/s)\n  - Weapon Optimal: 0-40 km\n  - Tactical Counter-Play: Projects 40km stasis webifiers stopping targets cold."
     },
     "Claw": {
         "class": "Interceptor",
@@ -2632,7 +5526,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield / Armor",
         "speed": "Extreme (4.8+ km/s)",
         "optimal_range": "0-20 km",
-        "tactics": "Nullified fast tackle combat interceptor."
+        "tactics": "Nullified fast tackle combat interceptor.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Artillery / AC Fleet Interceptor"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Claw [Interceptor | Minmatar]\n  - Combat Role: Artillery / AC Fleet Interceptor\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Artillery / AC Fleet Interceptor\n  - Defense Profile: Shield / Armor | Speed: Extreme (4.8+ km/s)\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Nullified fast tackle combat interceptor."
     },
     "Stiletto": {
         "class": "Interceptor",
@@ -2642,7 +5547,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Extreme (5.0+ km/s)",
         "optimal_range": "0-15 km",
-        "tactics": "Fastest locking fleet tackle interceptor."
+        "tactics": "Fastest locking fleet tackle interceptor.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Premier Fast Tackle Interceptor"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Stiletto [Interceptor | Minmatar]\n  - Combat Role: Premier Fast Tackle Interceptor\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Premier Fast Tackle Interceptor\n  - Defense Profile: Shield | Speed: Extreme (5.0+ km/s)\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Fastest locking fleet tackle interceptor."
     },
     "Scalpel": {
         "class": "Logistics Frigate",
@@ -2652,7 +5568,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Fast",
         "optimal_range": "Remote Shield",
-        "tactics": "Assault-tier remote shield repair frigate."
+        "tactics": "Assault-tier remote shield repair frigate.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Remote Shield",
+        "bonuses": [
+            "T2 Shield Logistics Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Scalpel [Logistics Frigate | Minmatar]\n  - Combat Role: T2 Shield Logistics Frigate\n  - Weapon System: Remote Shield\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: T2 Shield Logistics Frigate\n  - Defense Profile: Shield | Speed: Fast\n  - Weapon Optimal: Remote Shield\n  - Tactical Counter-Play: Assault-tier remote shield repair frigate."
     },
     "Thrasher": {
         "class": "Destroyer",
@@ -2662,7 +5589,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield / Armor Buffer",
         "speed": "Fast (2.5 km/s)",
         "optimal_range": "0-15 km AC / 40-70 km Art",
-        "tactics": "8 projectile turrets deliver huge instant alpha strike."
+        "tactics": "8 projectile turrets deliver huge instant alpha strike.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-15 km AC / 40-70 km Art",
+        "bonuses": [
+            "Autocannon / Artillery High Alpha"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Thrasher [Destroyer | Minmatar]\n  - Combat Role: Autocannon / Artillery High Alpha\n  - Weapon System: 0-15 km AC / 40-70 km Art\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: Autocannon / Artillery High Alpha\n  - Defense Profile: Shield / Armor Buffer | Speed: Fast (2.5 km/s)\n  - Weapon Optimal: 0-15 km AC / 40-70 km Art\n  - Tactical Counter-Play: 8 projectile turrets deliver huge instant alpha strike."
     },
     "Talwar": {
         "class": "Destroyer",
@@ -2672,7 +5610,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Fast (2.2 km/s)",
         "optimal_range": "30-65 km",
-        "tactics": "7 missile launchers with reduced MWD signature bloom."
+        "tactics": "7 missile launchers with reduced MWD signature bloom.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "30-65 km",
+        "bonuses": [
+            "Light Missile / Rocket Kiter"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Talwar [Destroyer | Minmatar]\n  - Combat Role: Light Missile / Rocket Kiter\n  - Weapon System: 30-65 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: Light Missile / Rocket Kiter\n  - Defense Profile: Shield Buffer | Speed: Fast (2.2 km/s)\n  - Weapon Optimal: 30-65 km\n  - Tactical Counter-Play: 7 missile launchers with reduced MWD signature bloom."
     },
     "Thrasher Navy Issue": {
         "class": "Faction Destroyer",
@@ -2682,7 +5631,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Shield Buffer",
         "speed": "Fast (2.8+ km/s)",
         "optimal_range": "0-20 km",
-        "tactics": "Enhanced projectile tracking and signature reduction."
+        "tactics": "Enhanced projectile tracking and signature reduction.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Navy Projectile Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Thrasher Navy Issue [Faction Destroyer | Minmatar (Fleet)]\n  - Combat Role: Navy Projectile Brawler\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: Navy Projectile Brawler\n  - Defense Profile: Armor / Shield Buffer | Speed: Fast (2.8+ km/s)\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Enhanced projectile tracking and signature reduction."
     },
     "Sabre": {
         "class": "Interdictor",
@@ -2692,7 +5652,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Extreme (3.2+ km/s)",
         "optimal_range": "0-15 km",
-        "tactics": "King of interdictors. Deploys 20km warp disruption bubbles instantly."
+        "tactics": "King of interdictors. Deploys 20km warp disruption bubbles instantly.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Premier Warp Bubble Launcher"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Sabre [Interdictor | Minmatar]\n  - Combat Role: Premier Warp Bubble Launcher\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Premier Warp Bubble Launcher\n  - Defense Profile: Shield Buffer | Speed: Extreme (3.2+ km/s)\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: King of interdictors. Deploys 20km warp disruption bubbles instantly."
     },
     "Bifrost": {
         "class": "Command Destroyer",
@@ -2702,7 +5673,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Fast",
         "optimal_range": "0-20 km",
-        "tactics": "Spools 100km Micro Jump Field to kidnap ships on grid."
+        "tactics": "Spools 100km Micro Jump Field to kidnap ships on grid.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 2,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-20 km",
+        "bonuses": [
+            "Micro Jump Field / Shield Skiff"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Bifrost [Command Destroyer | Minmatar]\n  - Combat Role: Micro Jump Field / Shield Skiff\n  - Weapon System: 0-20 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 2 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: Micro Jump Field / Shield Skiff\n  - Defense Profile: Shield Buffer | Speed: Fast\n  - Weapon Optimal: 0-20 km\n  - Tactical Counter-Play: Spools 100km Micro Jump Field to kidnap ships on grid."
     },
     "Svipul": {
         "class": "Tactical Destroyer",
@@ -2712,7 +5694,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active / Passive Shield / Armor",
         "speed": "Variable (Prop/Sharpshooter/Defensive)",
         "optimal_range": "0-40 km",
-        "tactics": "Switches between Propulsion (4+ km/s), Sharpshooter (artillery alpha), and Defensive modes."
+        "tactics": "Switches between Propulsion (4+ km/s), Sharpshooter (artillery alpha), and Defensive modes.",
+        "high_slots": 8,
+        "mid_slots": 3,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-40 km",
+        "bonuses": [
+            "T3 Mode-Switching Projectile Destroyer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Svipul [Tactical Destroyer | Minmatar]\n  - Combat Role: T3 Mode-Switching Projectile Destroyer\n  - Weapon System: 0-40 km\n  - Slot Layout: Highs: 8 | Mids: 3 | Lows: 3 | Rigs: 3 (Turrets: 6 | Launchers: 4)\n  - Key Bonuses: T3 Mode-Switching Projectile Destroyer\n  - Defense Profile: Active / Passive Shield / Armor | Speed: Variable (Prop/Sharpshooter/Defensive)\n  - Weapon Optimal: 0-40 km\n  - Tactical Counter-Play: Switches between Propulsion (4+ km/s), Sharpshooter (artillery alpha), and Defensive modes."
     },
     "Stabber": {
         "class": "Cruiser",
@@ -2722,7 +5715,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Fast (2.4+ km/s)",
         "optimal_range": "0-20 km (AC) / 40-70 km (Art)",
-        "tactics": "Fastest T1 cruiser with selectable projectile damage."
+        "tactics": "Fastest T1 cruiser with selectable projectile damage.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-20 km (AC) / 40-70 km (Art)",
+        "bonuses": [
+            "Autocannon / Artillery Attack Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Stabber [Cruiser | Minmatar]\n  - Combat Role: Autocannon / Artillery Attack Cruiser\n  - Weapon System: 0-20 km (AC) / 40-70 km (Art)\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Autocannon / Artillery Attack Cruiser\n  - Defense Profile: Shield Buffer | Speed: Fast (2.4+ km/s)\n  - Weapon Optimal: 0-20 km (AC) / 40-70 km (Art)\n  - Tactical Counter-Play: Fastest T1 cruiser with selectable projectile damage."
     },
     "Rupture": {
         "class": "Cruiser",
@@ -2732,7 +5736,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Shield Buffer",
         "speed": "Moderate",
         "optimal_range": "0-25 km",
-        "tactics": "Heavy projectile damage and armor repair bonuses."
+        "tactics": "Heavy projectile damage and armor repair bonuses.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-25 km",
+        "bonuses": [
+            "Heavy Projectile Fleet Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Rupture [Cruiser | Minmatar]\n  - Combat Role: Heavy Projectile Fleet Cruiser\n  - Weapon System: 0-25 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Heavy Projectile Fleet Cruiser\n  - Defense Profile: Armor / Shield Buffer | Speed: Moderate\n  - Weapon Optimal: 0-25 km\n  - Tactical Counter-Play: Heavy projectile damage and armor repair bonuses."
     },
     "Scythe": {
         "class": "Cruiser",
@@ -2742,7 +5757,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Fast",
         "optimal_range": "Remote Shield",
-        "tactics": "Self-sufficient shield logistics cruiser (no cap chain required)."
+        "tactics": "Self-sufficient shield logistics cruiser (no cap chain required).",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "Remote Shield",
+        "bonuses": [
+            "Shield Logistics Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Scythe [Cruiser | Minmatar]\n  - Combat Role: Shield Logistics Cruiser\n  - Weapon System: Remote Shield\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Shield Logistics Cruiser\n  - Defense Profile: Shield | Speed: Fast\n  - Weapon Optimal: Remote Shield\n  - Tactical Counter-Play: Self-sufficient shield logistics cruiser (no cap chain required)."
     },
     "Bellicose": {
         "class": "Cruiser",
@@ -2752,7 +5778,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Moderate",
         "optimal_range": "30-70 km",
-        "tactics": "Target painters inflate signature radius for missile fleet."
+        "tactics": "Target painters inflate signature radius for missile fleet.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "30-70 km",
+        "bonuses": [
+            "Target Painter / Missile Cruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Bellicose [Cruiser | Minmatar]\n  - Combat Role: Target Painter / Missile Cruiser\n  - Weapon System: 30-70 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Target Painter / Missile Cruiser\n  - Defense Profile: Shield Buffer | Speed: Moderate\n  - Weapon Optimal: 30-70 km\n  - Tactical Counter-Play: Target painters inflate signature radius for missile fleet."
     },
     "Stabber Navy Issue": {
         "class": "Faction Cruiser",
@@ -2762,7 +5799,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield / Armor Buffer",
         "speed": "Extreme (2.8+ km/s)",
         "optimal_range": "15-35 km",
-        "tactics": "Premier nano autocannon skirmisher with extreme agility."
+        "tactics": "Premier nano autocannon skirmisher with extreme agility.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "15-35 km",
+        "bonuses": [
+            "Heavy Projectile Nano Kiter"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Stabber Navy Issue [Faction Cruiser | Minmatar (Fleet)]\n  - Combat Role: Heavy Projectile Nano Kiter\n  - Weapon System: 15-35 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Heavy Projectile Nano Kiter\n  - Defense Profile: Shield / Armor Buffer | Speed: Extreme (2.8+ km/s)\n  - Weapon Optimal: 15-35 km\n  - Tactical Counter-Play: Premier nano autocannon skirmisher with extreme agility."
     },
     "Scythe Navy Issue": {
         "class": "Faction Cruiser",
@@ -2772,7 +5820,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Extreme (2.8+ km/s)",
         "optimal_range": "25-60 km",
-        "tactics": "High-speed missile platform with rapid application."
+        "tactics": "High-speed missile platform with rapid application.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "25-60 km",
+        "bonuses": [
+            "Fast Missile / Rocket Kiter"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Scythe Navy Issue [Faction Cruiser | Minmatar (Fleet)]\n  - Combat Role: Fast Missile / Rocket Kiter\n  - Weapon System: 25-60 km\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Fast Missile / Rocket Kiter\n  - Defense Profile: Shield Buffer | Speed: Extreme (2.8+ km/s)\n  - Weapon Optimal: 25-60 km\n  - Tactical Counter-Play: High-speed missile platform with rapid application."
     },
     "Vagabond": {
         "class": "Heavy Assault Cruiser",
@@ -2782,7 +5841,21 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active Shield (Dual XL-ASB) + ADC",
         "speed": "Extreme (3.0+ km/s)",
         "optimal_range": "15-35 km",
-        "tactics": "King of nano brawlers. High sub-warp speed and ADC survivability."
+        "tactics": "Fast shield active HAC with Assault Damage Control. Fast kite at falloff (18-24km). Apply Tracking Disruptors or heavy webs.",
+        "high_slots": 5,
+        "mid_slots": 4,
+        "low_slots": 5,
+        "rig_slots": 2,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 1,
+        "weapon_type": "Medium Projectile (425mm Autocannons)",
+        "bonuses": [
+            "5% Medium Projectile rate of fire per lvl",
+            "10% Medium Projectile falloff per lvl",
+            "7.5% shield boost amount per lvl",
+            "5% all shield resists per lvl"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Vagabond [Heavy Assault Cruiser | Minmatar]\n  - Combat Role: HAC Active Shield Nano Kiter\n  - Weapon System: Medium Projectile (425mm Autocannons)\n  - Slot Layout: Highs: 5 | Mids: 4 | Lows: 5 | Rigs: 2 (Turrets: 4 | Launchers: 1)\n  - Key Bonuses: 5% Medium Projectile rate of fire per lvl | 10% Medium Projectile falloff per lvl | 7.5% shield boost amount per lvl\n  - Defense Profile: Active Shield (Dual XL-ASB) + ADC | Speed: Extreme (3.0+ km/s)\n  - Weapon Optimal: 15-35 km\n  - Tactical Counter-Play: Fast shield active HAC with Assault Damage Control. Fast kite at falloff (18-24km). Apply Tracking Disruptors or heavy webs."
     },
     "Muninn": {
         "class": "Heavy Assault Cruiser",
@@ -2792,7 +5865,19 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Shield Buffer + ADC",
         "speed": "Fast",
         "optimal_range": "40-80 km",
-        "tactics": "High-resist HAC heavy missile line fleet platform."
+        "tactics": "Missile combat HAC with high mobility and ADC. Counter with Missile Guidance Disruptors and explosive shield resists.",
+        "high_slots": 6,
+        "mid_slots": 4,
+        "low_slots": 5,
+        "rig_slots": 2,
+        "turret_hardpoints": 0,
+        "launcher_hardpoints": 5,
+        "weapon_type": "Heavy Assault Missiles / Heavy Missiles",
+        "bonuses": [
+            "5% Heavy Missile & HAM kinetic/explosive damage per lvl",
+            "5% Heavy Missile & HAM rate of fire per lvl"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Muninn [Heavy Assault Cruiser | Minmatar]\n  - Combat Role: HAC Heavy Missile Fleet Cruiser\n  - Weapon System: Heavy Assault Missiles / Heavy Missiles\n  - Slot Layout: Highs: 6 | Mids: 4 | Lows: 5 | Rigs: 2 (Turrets: 0 | Launchers: 5)\n  - Key Bonuses: 5% Heavy Missile & HAM kinetic/explosive damage per lvl | 5% Heavy Missile & HAM rate of fire per lvl\n  - Defense Profile: Armor / Shield Buffer + ADC | Speed: Fast\n  - Weapon Optimal: 40-80 km\n  - Tactical Counter-Play: Missile combat HAC with high mobility and ADC. Counter with Missile Guidance Disruptors and explosive shield resists."
     },
     "Huginn": {
         "class": "Combat Recon",
@@ -2802,7 +5887,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield / Armor Buffer",
         "speed": "Moderate",
         "optimal_range": "0-40 km (Web) / 60-100 km (Paint)",
-        "tactics": "Invisible to D-Scan. 40km+ stasis web stops targets dead."
+        "tactics": "Invisible to D-Scan. 40km+ stasis web stops targets dead.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-40 km (Web) / 60-100 km (Paint)",
+        "bonuses": [
+            "D-Scan Immune 40km Web & Painter"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Huginn [Combat Recon | Minmatar]\n  - Combat Role: D-Scan Immune 40km Web & Painter\n  - Weapon System: 0-40 km (Web) / 60-100 km (Paint)\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: D-Scan Immune 40km Web & Painter\n  - Defense Profile: Shield / Armor Buffer | Speed: Moderate\n  - Weapon Optimal: 0-40 km (Web) / 60-100 km (Paint)\n  - Tactical Counter-Play: Invisible to D-Scan. 40km+ stasis web stops targets dead."
     },
     "Rapier": {
         "class": "Force Recon",
@@ -2812,7 +5908,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Cloaked",
         "optimal_range": "0-40 km",
-        "tactics": "Uncloaks to apply 40km webifier and light Covert Cyno."
+        "tactics": "Uncloaks to apply 40km webifier and light Covert Cyno.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-40 km",
+        "bonuses": [
+            "Covert Cloak / 40km Web / Cyno"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Rapier [Force Recon | Minmatar]\n  - Combat Role: Covert Cloak / 40km Web / Cyno\n  - Weapon System: 0-40 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Covert Cloak / 40km Web / Cyno\n  - Defense Profile: Paper Thin | Speed: Cloaked\n  - Weapon Optimal: 0-40 km\n  - Tactical Counter-Play: Uncloaks to apply 40km webifier and light Covert Cyno."
     },
     "Scimitar": {
         "class": "Logistics Cruiser",
@@ -2822,7 +5929,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield",
         "speed": "Extreme (2.5+ km/s)",
         "optimal_range": "Remote Shield",
-        "tactics": "Fastest T2 shield logistics cruiser with self-sufficient cap."
+        "tactics": "Fastest T2 shield logistics cruiser with self-sufficient cap.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 2,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "Remote Shield",
+        "bonuses": [
+            "T2 Solo Shield Logistics"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Scimitar [Logistics Cruiser | Minmatar]\n  - Combat Role: T2 Solo Shield Logistics\n  - Weapon System: Remote Shield\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 2 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: T2 Solo Shield Logistics\n  - Defense Profile: Shield | Speed: Extreme (2.5+ km/s)\n  - Weapon Optimal: Remote Shield\n  - Tactical Counter-Play: Fastest T2 shield logistics cruiser with self-sufficient cap."
     },
     "Loki": {
         "class": "Strategic Cruiser",
@@ -2832,7 +5950,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield / Armor Buffer / Active",
         "speed": "Extreme (2.2-3.0 km/s)",
         "optimal_range": "0-45 km (Web) / 30-80 km (Art/HAM)",
-        "tactics": "Premier T3C. Fields 40km webs, covert cloak, interdiction nullification, 100MN AB, or heavy artillery/HAMs."
+        "tactics": "Premier T3C. Fields 40km webs, covert cloak, interdiction nullification, 100MN AB, or heavy artillery/HAMs.",
+        "high_slots": 5,
+        "mid_slots": 5,
+        "low_slots": 5,
+        "rig_slots": 3,
+        "turret_hardpoints": 4,
+        "launcher_hardpoints": 4,
+        "weapon_type": "0-45 km (Web) / 30-80 km (Art/HAM)",
+        "bonuses": [
+            "Modular T3C (Web / Artillery / Covert)"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Loki [Strategic Cruiser | Minmatar]\n  - Combat Role: Modular T3C (Web / Artillery / Covert)\n  - Weapon System: 0-45 km (Web) / 30-80 km (Art/HAM)\n  - Slot Layout: Highs: 5 | Mids: 5 | Lows: 5 | Rigs: 3 (Turrets: 4 | Launchers: 4)\n  - Key Bonuses: Modular T3C (Web / Artillery / Covert)\n  - Defense Profile: Shield / Armor Buffer / Active | Speed: Extreme (2.2-3.0 km/s)\n  - Weapon Optimal: 0-45 km (Web) / 30-80 km (Art/HAM)\n  - Tactical Counter-Play: Premier T3C. Fields 40km webs, covert cloak, interdiction nullification, 100MN AB, or heavy artillery/HAMs."
     },
     "Cyclone": {
         "class": "Battlecruiser",
@@ -2842,7 +5971,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active Shield (Dual MASB / XL-ASB)",
         "speed": "Fast for BC",
         "optimal_range": "15-40 km",
-        "tactics": "Massive active shield repair bonus with heavy missiles."
+        "tactics": "Massive active shield repair bonus with heavy missiles.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "15-40 km",
+        "bonuses": [
+            "Active Shield Missile / AC BC"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Cyclone [Battlecruiser | Minmatar]\n  - Combat Role: Active Shield Missile / AC BC\n  - Weapon System: 15-40 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Active Shield Missile / AC BC\n  - Defense Profile: Active Shield (Dual MASB / XL-ASB) | Speed: Fast for BC\n  - Weapon Optimal: 15-40 km\n  - Tactical Counter-Play: Massive active shield repair bonus with heavy missiles."
     },
     "Hurricane": {
         "class": "Battlecruiser",
@@ -2852,7 +5992,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield / Armor Buffer",
         "speed": "Fast for BC",
         "optimal_range": "15-40 km AC / 70+ km Art",
-        "tactics": "Versatile projectile platform with high alpha strike."
+        "tactics": "Versatile projectile platform with high alpha strike.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "15-40 km AC / 70+ km Art",
+        "bonuses": [
+            "Heavy Projectile Battlecruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Hurricane [Battlecruiser | Minmatar]\n  - Combat Role: Heavy Projectile Battlecruiser\n  - Weapon System: 15-40 km AC / 70+ km Art\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Heavy Projectile Battlecruiser\n  - Defense Profile: Shield / Armor Buffer | Speed: Fast for BC\n  - Weapon Optimal: 15-40 km AC / 70+ km Art\n  - Tactical Counter-Play: Versatile projectile platform with high alpha strike."
     },
     "Tornado": {
         "class": "Attack Battlecruiser",
@@ -2862,7 +6013,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin Shield",
         "speed": "Fast for BC (2.0 km/s)",
         "optimal_range": "80-150 km",
-        "tactics": "Large 1400mm Artillery on BC hull. Devastating alpha strike (10,000+ alpha)."
+        "tactics": "Large 1400mm Artillery on BC hull. Devastating alpha strike (10,000+ alpha).",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "80-150 km",
+        "bonuses": [
+            "Battleship-Gun 1400mm Artillery Sniper"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Tornado [Attack Battlecruiser | Minmatar]\n  - Combat Role: Battleship-Gun 1400mm Artillery Sniper\n  - Weapon System: 80-150 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Battleship-Gun 1400mm Artillery Sniper\n  - Defense Profile: Paper Thin Shield | Speed: Fast for BC (2.0 km/s)\n  - Weapon Optimal: 80-150 km\n  - Tactical Counter-Play: Large 1400mm Artillery on BC hull. Devastating alpha strike (10,000+ alpha)."
     },
     "Cyclone Navy Issue": {
         "class": "Faction Battlecruiser",
@@ -2872,7 +6034,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Fast",
         "optimal_range": "20-60 km",
-        "tactics": "Superior missile rate of fire and shield buffer."
+        "tactics": "Superior missile rate of fire and shield buffer.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "20-60 km",
+        "bonuses": [
+            "Heavy Missile / Shield BC"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Cyclone Navy Issue [Faction Battlecruiser | Minmatar (Fleet)]\n  - Combat Role: Heavy Missile / Shield BC\n  - Weapon System: 20-60 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Heavy Missile / Shield BC\n  - Defense Profile: Shield Buffer | Speed: Fast\n  - Weapon Optimal: 20-60 km\n  - Tactical Counter-Play: Superior missile rate of fire and shield buffer."
     },
     "Hurricane Navy Issue": {
         "class": "Faction Battlecruiser",
@@ -2882,7 +6055,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Shield Buffer",
         "speed": "Fast",
         "optimal_range": "20-80 km",
-        "tactics": "Higher projectile tracking and armor/shield flexibility."
+        "tactics": "Higher projectile tracking and armor/shield flexibility.",
+        "high_slots": 7,
+        "mid_slots": 5,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "20-80 km",
+        "bonuses": [
+            "Navy Projectile Battlecruiser"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Hurricane Navy Issue [Faction Battlecruiser | Minmatar (Fleet)]\n  - Combat Role: Navy Projectile Battlecruiser\n  - Weapon System: 20-80 km\n  - Slot Layout: Highs: 7 | Mids: 5 | Lows: 6 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Navy Projectile Battlecruiser\n  - Defense Profile: Armor / Shield Buffer | Speed: Fast\n  - Weapon Optimal: 20-80 km\n  - Tactical Counter-Play: Higher projectile tracking and armor/shield flexibility."
     },
     "Sleipnir": {
         "class": "Command Ship",
@@ -2892,7 +6076,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Active Shield (Dual XL-ASB)",
         "speed": "Fast for Command",
         "optimal_range": "15-40 km",
-        "tactics": "Provides Fleet Shield / Skirmish Bursts and deals 1200+ AC DPS."
+        "tactics": "Provides Fleet Shield / Skirmish Bursts and deals 1200+ AC DPS.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "15-40 km",
+        "bonuses": [
+            "Shield Fleet Command / Autocannon Brawler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Sleipnir [Command Ship | Minmatar]\n  - Combat Role: Shield Fleet Command / Autocannon Brawler\n  - Weapon System: 15-40 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Shield Fleet Command / Autocannon Brawler\n  - Defense Profile: Immense Active Shield (Dual XL-ASB) | Speed: Fast for Command\n  - Weapon Optimal: 15-40 km\n  - Tactical Counter-Play: Provides Fleet Shield / Skirmish Bursts and deals 1200+ AC DPS."
     },
     "Claymore": {
         "class": "Command Ship",
@@ -2902,7 +6097,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Shield Buffer",
         "speed": "Fast for Command",
         "optimal_range": "20-60 km",
-        "tactics": "Provides Fleet Skirmish / Shield Bursts with heavy missiles."
+        "tactics": "Provides Fleet Skirmish / Shield Bursts with heavy missiles.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "20-60 km",
+        "bonuses": [
+            "Shield Fleet Command / Missile"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Claymore [Command Ship | Minmatar]\n  - Combat Role: Shield Fleet Command / Missile\n  - Weapon System: 20-60 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Shield Fleet Command / Missile\n  - Defense Profile: Immense Shield Buffer | Speed: Fast for Command\n  - Weapon Optimal: 20-60 km\n  - Tactical Counter-Play: Provides Fleet Skirmish / Shield Bursts with heavy missiles."
     },
     "Tempest": {
         "class": "Battleship",
@@ -2912,7 +6118,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield / Armor",
         "speed": "Fast for BS",
         "optimal_range": "20-40 km AC / 100+ km Art",
-        "tactics": "High-speed projectile battleship with massive alpha."
+        "tactics": "High-speed projectile battleship with massive alpha.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "20-40 km AC / 100+ km Art",
+        "bonuses": [
+            "Artillery / AC Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Tempest [Battleship | Minmatar]\n  - Combat Role: Artillery / AC Battleship\n  - Weapon System: 20-40 km AC / 100+ km Art\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Artillery / AC Battleship\n  - Defense Profile: Shield / Armor | Speed: Fast for BS\n  - Weapon Optimal: 20-40 km AC / 100+ km Art\n  - Tactical Counter-Play: High-speed projectile battleship with massive alpha."
     },
     "Typhoon": {
         "class": "Battleship",
@@ -2922,7 +6139,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Shield Buffer / Active",
         "speed": "Fast for BS",
         "optimal_range": "30-100 km",
-        "tactics": "High rate of fire missile and projectile platform."
+        "tactics": "High rate of fire missile and projectile platform.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "30-100 km",
+        "bonuses": [
+            "Cruise / Torpedo / Cruise BS"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Typhoon [Battleship | Minmatar]\n  - Combat Role: Cruise / Torpedo / Cruise BS\n  - Weapon System: 30-100 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Cruise / Torpedo / Cruise BS\n  - Defense Profile: Armor / Shield Buffer / Active | Speed: Fast for BS\n  - Weapon Optimal: 30-100 km\n  - Tactical Counter-Play: High rate of fire missile and projectile platform."
     },
     "Maelstrom": {
         "class": "Battleship",
@@ -2932,7 +6160,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active Shield (X-Large Booster)",
         "speed": "Slow",
         "optimal_range": "60-140 km",
-        "tactics": "Massive shield boost bonus; heavy 1400mm artillery fleet anchor."
+        "tactics": "Massive shield boost bonus; heavy 1400mm artillery fleet anchor.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "60-140 km",
+        "bonuses": [
+            "Active Shield / Artillery BS"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Maelstrom [Battleship | Minmatar]\n  - Combat Role: Active Shield / Artillery BS\n  - Weapon System: 60-140 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Active Shield / Artillery BS\n  - Defense Profile: Active Shield (X-Large Booster) | Speed: Slow\n  - Weapon Optimal: 60-140 km\n  - Tactical Counter-Play: Massive shield boost bonus; heavy 1400mm artillery fleet anchor."
     },
     "Tempest Fleet Issue": {
         "class": "Faction Battleship",
@@ -2942,7 +6181,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield / Armor Buffer",
         "speed": "Fast for BS",
         "optimal_range": "25-50 km AC / 100+ km Art",
-        "tactics": "Extreme projectile rate of fire and devastating alpha strike."
+        "tactics": "Extreme projectile rate of fire and devastating alpha strike.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "25-50 km AC / 100+ km Art",
+        "bonuses": [
+            "Artillery / AC High Alpha Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Tempest Fleet Issue [Faction Battleship | Minmatar (Fleet)]\n  - Combat Role: Artillery / AC High Alpha Battleship\n  - Weapon System: 25-50 km AC / 100+ km Art\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Artillery / AC High Alpha Battleship\n  - Defense Profile: Shield / Armor Buffer | Speed: Fast for BS\n  - Weapon Optimal: 25-50 km AC / 100+ km Art\n  - Tactical Counter-Play: Extreme projectile rate of fire and devastating alpha strike."
     },
     "Typhoon Fleet Issue": {
         "class": "Faction Battleship",
@@ -2952,7 +6202,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Armor / Shield Buffer",
         "speed": "Fast for BS",
         "optimal_range": "40-120 km",
-        "tactics": "Enhanced missile application and projectile support."
+        "tactics": "Enhanced missile application and projectile support.",
+        "high_slots": 8,
+        "mid_slots": 6,
+        "low_slots": 7,
+        "rig_slots": 3,
+        "turret_hardpoints": 7,
+        "launcher_hardpoints": 7,
+        "weapon_type": "40-120 km",
+        "bonuses": [
+            "Navy Missile / Cruise Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Typhoon Fleet Issue [Faction Battleship | Minmatar (Fleet)]\n  - Combat Role: Navy Missile / Cruise Battleship\n  - Weapon System: 40-120 km\n  - Slot Layout: Highs: 8 | Mids: 6 | Lows: 7 | Rigs: 3 (Turrets: 7 | Launchers: 7)\n  - Key Bonuses: Navy Missile / Cruise Battleship\n  - Defense Profile: Armor / Shield Buffer | Speed: Fast for BS\n  - Weapon Optimal: 40-120 km\n  - Tactical Counter-Play: Enhanced missile application and projectile support."
     },
     "Vargur": {
         "class": "Marauder",
@@ -2962,7 +6223,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active Shield (Dual XL-ASB in Bastion)",
         "speed": "Immobile in Bastion",
         "optimal_range": "25-60 km (AC) / 100-180 km (Artillery)",
-        "tactics": "Bastion Mode doubles shield reps and yields 3000+ DPS with Hail L. Apply neuts."
+        "tactics": "Bastion Mode doubles shield reps and yields 3000+ DPS with Hail L. Apply neuts.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "25-60 km (AC) / 100-180 km (Artillery)",
+        "bonuses": [
+            "Bastion Autocannon / Artillery Marauder"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Vargur [Marauder | Minmatar]\n  - Combat Role: Bastion Autocannon / Artillery Marauder\n  - Weapon System: 25-60 km (AC) / 100-180 km (Artillery)\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Bastion Autocannon / Artillery Marauder\n  - Defense Profile: Active Shield (Dual XL-ASB in Bastion) | Speed: Immobile in Bastion\n  - Weapon Optimal: 25-60 km (AC) / 100-180 km (Artillery)\n  - Tactical Counter-Play: Bastion Mode doubles shield reps and yields 3000+ DPS with Hail L. Apply neuts."
     },
     "Panther": {
         "class": "Black Ops",
@@ -2972,7 +6244,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield / Armor Buffer",
         "speed": "Fast for BS (Covert Jump)",
         "optimal_range": "25-60 km",
-        "tactics": "Fastest Black Ops battleship with massive projectile alpha."
+        "tactics": "Fastest Black Ops battleship with massive projectile alpha.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "25-60 km",
+        "bonuses": [
+            "Covert Jump / Projectile Battleship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Panther [Black Ops | Minmatar]\n  - Combat Role: Covert Jump / Projectile Battleship\n  - Weapon System: 25-60 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Covert Jump / Projectile Battleship\n  - Defense Profile: Shield / Armor Buffer | Speed: Fast for BS (Covert Jump)\n  - Weapon Optimal: 25-60 km\n  - Tactical Counter-Play: Fastest Black Ops battleship with massive projectile alpha."
     },
     "Naglfar": {
         "class": "Dreadnought",
@@ -2982,7 +6265,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield / Armor Active",
         "speed": "Capital",
         "optimal_range": "Capital Grid",
-        "tactics": "High alpha projectile dreadnought with Siege module."
+        "tactics": "High alpha projectile dreadnought with Siege module.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Capital Grid",
+        "bonuses": [
+            "Capital Projectile Siege"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Naglfar [Dreadnought | Minmatar]\n  - Combat Role: Capital Projectile Siege\n  - Weapon System: Capital Grid\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Capital Projectile Siege\n  - Defense Profile: Shield / Armor Active | Speed: Capital\n  - Weapon Optimal: Capital Grid\n  - Tactical Counter-Play: High alpha projectile dreadnought with Siege module."
     },
     "Naglfar Navy Issue": {
         "class": "Faction Dreadnought",
@@ -2992,7 +6286,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield / Armor Active",
         "speed": "Capital",
         "optimal_range": "Capital Grid",
-        "tactics": "Superior projectile tracking and dual tank versatility."
+        "tactics": "Superior projectile tracking and dual tank versatility.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Capital Grid",
+        "bonuses": [
+            "Navy Capital Projectile Dread"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Naglfar Navy Issue [Faction Dreadnought | Minmatar (Fleet)]\n  - Combat Role: Navy Capital Projectile Dread\n  - Weapon System: Capital Grid\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Navy Capital Projectile Dread\n  - Defense Profile: Shield / Armor Active | Speed: Capital\n  - Weapon Optimal: Capital Grid\n  - Tactical Counter-Play: Superior projectile tracking and dual tank versatility."
     },
     "Valravn": {
         "class": "Lancer Dreadnought",
@@ -3002,7 +6307,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Active",
         "speed": "Capital",
         "optimal_range": "Lancer Beam",
-        "tactics": "Fires disruptive capital lance disabling cynos and warp."
+        "tactics": "Fires disruptive capital lance disabling cynos and warp.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Lancer Beam",
+        "bonuses": [
+            "Disruptive Lancer Dread"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Valravn [Lancer Dreadnought | Minmatar]\n  - Combat Role: Disruptive Lancer Dread\n  - Weapon System: Lancer Beam\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Disruptive Lancer Dread\n  - Defense Profile: Shield Active | Speed: Capital\n  - Weapon Optimal: Lancer Beam\n  - Tactical Counter-Play: Fires disruptive capital lance disabling cynos and warp."
     },
     "Nidhoggur": {
         "class": "Carrier",
@@ -3012,7 +6328,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Capital",
         "optimal_range": "Fighter Range",
-        "tactics": "Capital carrier with fighter speed and fighter damage bonuses."
+        "tactics": "Capital carrier with fighter speed and fighter damage bonuses.",
+        "high_slots": 6,
+        "mid_slots": 6,
+        "low_slots": 6,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 3,
+        "weapon_type": "Fighter Range",
+        "bonuses": [
+            "Capital Fighter Carrier"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Nidhoggur [Carrier | Minmatar]\n  - Combat Role: Capital Fighter Carrier\n  - Weapon System: Fighter Range\n  - Slot Layout: Highs: 6 | Mids: 6 | Lows: 6 | Rigs: 3 (Turrets: 3 | Launchers: 3)\n  - Key Bonuses: Capital Fighter Carrier\n  - Defense Profile: Shield Buffer | Speed: Capital\n  - Weapon Optimal: Fighter Range\n  - Tactical Counter-Play: Capital carrier with fighter speed and fighter damage bonuses."
     },
     "Hel": {
         "class": "Supercarrier",
@@ -3022,7 +6349,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Supercapital",
         "optimal_range": "Omni Grid",
-        "tactics": "Fastest supercarrier with immense fighter strike damage."
+        "tactics": "Fastest supercarrier with immense fighter strike damage.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Omni Grid",
+        "bonuses": [
+            "Supercapital Heavy Carrier"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Hel [Supercarrier | Minmatar]\n  - Combat Role: Supercapital Heavy Carrier\n  - Weapon System: Omni Grid\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Supercapital Heavy Carrier\n  - Defense Profile: Shield Buffer | Speed: Supercapital\n  - Weapon Optimal: Omni Grid\n  - Tactical Counter-Play: Fastest supercarrier with immense fighter strike damage."
     },
     "Lif": {
         "class": "Force Auxiliary",
@@ -3032,7 +6370,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active Shield (Triage)",
         "speed": "Capital",
         "optimal_range": "Remote Shield",
-        "tactics": "Capital remote shield repair ship."
+        "tactics": "Capital remote shield repair ship.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Remote Shield",
+        "bonuses": [
+            "Capital Shield FAX"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Lif [Force Auxiliary | Minmatar]\n  - Combat Role: Capital Shield FAX\n  - Weapon System: Remote Shield\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Capital Shield FAX\n  - Defense Profile: Active Shield (Triage) | Speed: Capital\n  - Weapon Optimal: Remote Shield\n  - Tactical Counter-Play: Capital remote shield repair ship."
     },
     "Ragnarok": {
         "class": "Titan",
@@ -3042,7 +6391,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Supercapital",
         "optimal_range": "Omni Grid",
-        "tactics": "Gjallarhorn Explosive Doomsday titan with fleet shield burst."
+        "tactics": "Gjallarhorn Explosive Doomsday titan with fleet shield burst.",
+        "high_slots": 8,
+        "mid_slots": 7,
+        "low_slots": 8,
+        "rig_slots": 3,
+        "turret_hardpoints": 6,
+        "launcher_hardpoints": 6,
+        "weapon_type": "Omni Grid",
+        "bonuses": [
+            "Supercapital Gjallarhorn Titan"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Ragnarok [Titan | Minmatar]\n  - Combat Role: Supercapital Gjallarhorn Titan\n  - Weapon System: Omni Grid\n  - Slot Layout: Highs: 8 | Mids: 7 | Lows: 8 | Rigs: 3 (Turrets: 6 | Launchers: 6)\n  - Key Bonuses: Supercapital Gjallarhorn Titan\n  - Defense Profile: Shield Buffer | Speed: Supercapital\n  - Weapon Optimal: Omni Grid\n  - Tactical Counter-Play: Gjallarhorn Explosive Doomsday titan with fleet shield burst."
     },
     "Mammoth": {
         "class": "Industrial",
@@ -3052,7 +6412,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Slow",
         "optimal_range": "0 km",
-        "tactics": "Large cargo capacity industrial."
+        "tactics": "Large cargo capacity industrial.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "High-Capacity Hauler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Mammoth [Industrial | Minmatar]\n  - Combat Role: High-Capacity Hauler\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: High-Capacity Hauler\n  - Defense Profile: Paper Thin | Speed: Slow\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Large cargo capacity industrial."
     },
     "Wreathe": {
         "class": "Industrial",
@@ -3062,7 +6433,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Fast (<4s align)",
         "optimal_range": "0 km",
-        "tactics": "Fast sub-warp align industrial."
+        "tactics": "Fast sub-warp align industrial.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Fast Industrial Hauler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Wreathe [Industrial | Minmatar]\n  - Combat Role: Fast Industrial Hauler\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Fast Industrial Hauler\n  - Defense Profile: Paper Thin | Speed: Fast (<4s align)\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Fast sub-warp align industrial."
     },
     "Hoarder": {
         "class": "Industrial",
@@ -3072,7 +6454,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Slow",
         "optimal_range": "0 km",
-        "tactics": "Specialized Ammo/Charge cargo bay."
+        "tactics": "Specialized Ammo/Charge cargo bay.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Ammo & Charge Hauler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Hoarder [Industrial | Minmatar]\n  - Combat Role: Ammo & Charge Hauler\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Ammo & Charge Hauler\n  - Defense Profile: Paper Thin | Speed: Slow\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Specialized Ammo/Charge cargo bay."
     },
     "Prowler": {
         "class": "Blockade Runner",
@@ -3082,7 +6475,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Cloaked Shield",
         "speed": "Fast (<2.5s align)",
         "optimal_range": "0 km",
-        "tactics": "Fastest blockade runner with covert cloak."
+        "tactics": "Fastest blockade runner with covert cloak.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Covert Fast Hauler"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Prowler [Blockade Runner | Minmatar]\n  - Combat Role: Covert Fast Hauler\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Covert Fast Hauler\n  - Defense Profile: Cloaked Shield | Speed: Fast (<2.5s align)\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Fastest blockade runner with covert cloak."
     },
     "Mastodon": {
         "class": "Deep Space Transport",
@@ -3092,7 +6496,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Shield Buffer (+2 Warp Core)",
         "speed": "Slow",
         "optimal_range": "0 km",
-        "tactics": "+2 native warp core strength and Fleet Hangar."
+        "tactics": "+2 native warp core strength and Fleet Hangar.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Heavy Shield DST"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Mastodon [Deep Space Transport | Minmatar]\n  - Combat Role: Heavy Shield DST\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Heavy Shield DST\n  - Defense Profile: Immense Shield Buffer (+2 Warp Core) | Speed: Slow\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: +2 native warp core strength and Fleet Hangar."
     },
     "Fenrir": {
         "class": "Freighter",
@@ -3102,7 +6517,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Buffer",
         "speed": "Fastest Freighter",
         "optimal_range": "0 km",
-        "tactics": "Fastest aligning standard freighter."
+        "tactics": "Fastest aligning standard freighter.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Fast Sub-Capital Freighter"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Fenrir [Freighter | Minmatar]\n  - Combat Role: Fast Sub-Capital Freighter\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Fast Sub-Capital Freighter\n  - Defense Profile: Buffer | Speed: Fastest Freighter\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Fastest aligning standard freighter."
     },
     "Nomad": {
         "class": "Jump Freighter",
@@ -3112,7 +6538,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Jump Drive",
         "optimal_range": "0 km",
-        "tactics": "Fastest aligning jump freighter for nullsec logistics."
+        "tactics": "Fastest aligning jump freighter for nullsec logistics.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Fast Capital Jump Freighter"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Nomad [Jump Freighter | Minmatar]\n  - Combat Role: Fast Capital Jump Freighter\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Fast Capital Jump Freighter\n  - Defense Profile: Shield Buffer | Speed: Jump Drive\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Fastest aligning jump freighter for nullsec logistics."
     },
     "Venture": {
         "class": "Mining Frigate",
@@ -3122,7 +6559,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Fast",
         "optimal_range": "0-15 km",
-        "tactics": "Native +2 warp core strength allows slipping standard points."
+        "tactics": "Native +2 warp core strength allows slipping standard points.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Gas / Ore / +2 Warp Core Miner"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Venture [Mining Frigate | ORE]\n  - Combat Role: Gas / Ore / +2 Warp Core Miner\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Gas / Ore / +2 Warp Core Miner\n  - Defense Profile: Shield Buffer | Speed: Fast\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Native +2 warp core strength allows slipping standard points."
     },
     "Prospect": {
         "class": "Expedition Frigate",
@@ -3132,7 +6580,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Cloaked Shield",
         "speed": "Fast",
         "optimal_range": "0-15 km",
-        "tactics": "Covert cloaking mining frigate. Can fit Covert Cyno."
+        "tactics": "Covert cloaking mining frigate. Can fit Covert Cyno.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Covert Ops Gas / Ore Miner"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Prospect [Expedition Frigate | ORE]\n  - Combat Role: Covert Ops Gas / Ore Miner\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Covert Ops Gas / Ore Miner\n  - Defense Profile: Cloaked Shield | Speed: Fast\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Covert cloaking mining frigate. Can fit Covert Cyno."
     },
     "Endurance": {
         "class": "Expedition Frigate",
@@ -3142,7 +6601,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Fast",
         "optimal_range": "0-15 km",
-        "tactics": "Specialized ice mining frigate with cloak bonus."
+        "tactics": "Specialized ice mining frigate with cloak bonus.",
+        "high_slots": 3,
+        "mid_slots": 4,
+        "low_slots": 3,
+        "rig_slots": 3,
+        "turret_hardpoints": 3,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Cloaked Ice Mining Frigate"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Endurance [Expedition Frigate | ORE]\n  - Combat Role: Cloaked Ice Mining Frigate\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 3 | Mids: 4 | Lows: 3 | Rigs: 3 (Turrets: 3 | Launchers: 2)\n  - Key Bonuses: Cloaked Ice Mining Frigate\n  - Defense Profile: Shield Buffer | Speed: Fast\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Specialized ice mining frigate with cloak bonus."
     },
     "Retriever": {
         "class": "Mining Barge",
@@ -3152,7 +6622,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Slow",
         "optimal_range": "0-15 km",
-        "tactics": "Large ore hold mining barge. Easy target."
+        "tactics": "Large ore hold mining barge. Easy target.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "High-Capacity Mining Barge"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Retriever [Mining Barge | ORE]\n  - Combat Role: High-Capacity Mining Barge\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: High-Capacity Mining Barge\n  - Defense Profile: Paper Thin | Speed: Slow\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Large ore hold mining barge. Easy target."
     },
     "Procurer": {
         "class": "Mining Barge",
@@ -3162,7 +6643,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Heavy Shield Buffer (60k+ EHP)",
         "speed": "Slow",
         "optimal_range": "0-15 km",
-        "tactics": "Heavy shield resistance bonus. Difficult to gank."
+        "tactics": "Heavy shield resistance bonus. Difficult to gank.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Heavy Tanked Mining Barge"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Procurer [Mining Barge | ORE]\n  - Combat Role: Heavy Tanked Mining Barge\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Heavy Tanked Mining Barge\n  - Defense Profile: Heavy Shield Buffer (60k+ EHP) | Speed: Slow\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Heavy shield resistance bonus. Difficult to gank."
     },
     "Covetor": {
         "class": "Mining Barge",
@@ -3172,7 +6664,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Slow",
         "optimal_range": "0-15 km",
-        "tactics": "Maximum mining yield with paper tank."
+        "tactics": "Maximum mining yield with paper tank.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "High Yield Mining Barge"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Covetor [Mining Barge | ORE]\n  - Combat Role: High Yield Mining Barge\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: High Yield Mining Barge\n  - Defense Profile: Paper Thin | Speed: Slow\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Maximum mining yield with paper tank."
     },
     "Mackinaw": {
         "class": "Exhumer",
@@ -3182,7 +6685,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Slow",
         "optimal_range": "0-15 km",
-        "tactics": "T2 mining exhumer with massive ore hold."
+        "tactics": "T2 mining exhumer with massive ore hold.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "High-Capacity T2 Exhumer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Mackinaw [Exhumer | ORE]\n  - Combat Role: High-Capacity T2 Exhumer\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: High-Capacity T2 Exhumer\n  - Defense Profile: Shield Buffer | Speed: Slow\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: T2 mining exhumer with massive ore hold."
     },
     "Skiff": {
         "class": "Exhumer",
@@ -3192,7 +6706,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Shield Buffer (100k+ EHP)",
         "speed": "Slow",
         "optimal_range": "0-15 km",
-        "tactics": "T2 mining exhumer with battleship-grade shield tank."
+        "tactics": "T2 mining exhumer with battleship-grade shield tank.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Immense Tanked T2 Exhumer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Skiff [Exhumer | ORE]\n  - Combat Role: Immense Tanked T2 Exhumer\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Immense Tanked T2 Exhumer\n  - Defense Profile: Immense Shield Buffer (100k+ EHP) | Speed: Slow\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: T2 mining exhumer with battleship-grade shield tank."
     },
     "Hulk": {
         "class": "Exhumer",
@@ -3202,7 +6727,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Paper Thin",
         "speed": "Slow",
         "optimal_range": "0-15 km",
-        "tactics": "Maximum mining yield in EVE. Requires fleet defense."
+        "tactics": "Maximum mining yield in EVE. Requires fleet defense.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-15 km",
+        "bonuses": [
+            "Maximum Yield T2 Exhumer"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Hulk [Exhumer | ORE]\n  - Combat Role: Maximum Yield T2 Exhumer\n  - Weapon System: 0-15 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Maximum Yield T2 Exhumer\n  - Defense Profile: Paper Thin | Speed: Slow\n  - Weapon Optimal: 0-15 km\n  - Tactical Counter-Play: Maximum mining yield in EVE. Requires fleet defense."
     },
     "Noctis": {
         "class": "Salvage Ship",
@@ -3212,7 +6748,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Slow",
         "optimal_range": "0-40 km",
-        "tactics": "Rapid tractor beam and salvager bonuses."
+        "tactics": "Rapid tractor beam and salvager bonuses.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0-40 km",
+        "bonuses": [
+            "Fleet Salvage / Tractor Flagship"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Noctis [Salvage Ship | ORE]\n  - Combat Role: Fleet Salvage / Tractor Flagship\n  - Weapon System: 0-40 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Fleet Salvage / Tractor Flagship\n  - Defense Profile: Shield Buffer | Speed: Slow\n  - Weapon Optimal: 0-40 km\n  - Tactical Counter-Play: Rapid tractor beam and salvager bonuses."
     },
     "Porpoise": {
         "class": "Industrial Command",
@@ -3222,7 +6769,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Fast for Command",
         "optimal_range": "Mining Boost Range",
-        "tactics": "Sub-capital mining booster and drone combatant."
+        "tactics": "Sub-capital mining booster and drone combatant.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Mining Boost Range",
+        "bonuses": [
+            "Compact Mining Command / Booster"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Porpoise [Industrial Command | ORE]\n  - Combat Role: Compact Mining Command / Booster\n  - Weapon System: Mining Boost Range\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Compact Mining Command / Booster\n  - Defense Profile: Shield Buffer | Speed: Fast for Command\n  - Weapon Optimal: Mining Boost Range\n  - Tactical Counter-Play: Sub-capital mining booster and drone combatant."
     },
     "Orca": {
         "class": "Industrial Command",
@@ -3232,7 +6790,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Immense Shield Buffer (300k+ EHP)",
         "speed": "Slow",
         "optimal_range": "Mining Boost Range",
-        "tactics": "Fleet booster, ore compression, and massive cargo hold."
+        "tactics": "Fleet booster, ore compression, and massive cargo hold.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Mining Boost Range",
+        "bonuses": [
+            "Heavy Mining Command / Fleet Hangar"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Orca [Industrial Command | ORE]\n  - Combat Role: Heavy Mining Command / Fleet Hangar\n  - Weapon System: Mining Boost Range\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Heavy Mining Command / Fleet Hangar\n  - Defense Profile: Immense Shield Buffer (300k+ EHP) | Speed: Slow\n  - Weapon Optimal: Mining Boost Range\n  - Tactical Counter-Play: Fleet booster, ore compression, and massive cargo hold."
     },
     "Rorqual": {
         "class": "Capital Industrial",
@@ -3242,7 +6811,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Active Shield (Industrial Core + PANIC)",
         "speed": "Capital",
         "optimal_range": "Mining Grid",
-        "tactics": "Capital mining flagship. PANIC module grants 5-7.5 minutes of complete invulnerability."
+        "tactics": "Capital mining flagship. PANIC module grants 5-7.5 minutes of complete invulnerability.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "Mining Grid",
+        "bonuses": [
+            "Capital Mining Command / PANIC"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Rorqual [Capital Industrial | ORE]\n  - Combat Role: Capital Mining Command / PANIC\n  - Weapon System: Mining Grid\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Capital Mining Command / PANIC\n  - Defense Profile: Active Shield (Industrial Core + PANIC) | Speed: Capital\n  - Weapon Optimal: Mining Grid\n  - Tactical Counter-Play: Capital mining flagship. PANIC module grants 5-7.5 minutes of complete invulnerability."
     },
     "Bowhead": {
         "class": "Freighter",
@@ -3252,7 +6832,18 @@ SHIP_DATABASE: Dict[str, Dict[str, Any]] = {
         "tank": "Shield Buffer",
         "speed": "Slow",
         "optimal_range": "0 km",
-        "tactics": "Specialized Ship Maintenance Bay transports fully assembled battleships."
+        "tactics": "Specialized Ship Maintenance Bay transports fully assembled battleships.",
+        "high_slots": 4,
+        "mid_slots": 4,
+        "low_slots": 4,
+        "rig_slots": 3,
+        "turret_hardpoints": 2,
+        "launcher_hardpoints": 2,
+        "weapon_type": "0 km",
+        "bonuses": [
+            "Assembled Ship Transport"
+        ],
+        "pre_rendered_dossier": "\u2022 Vessel: Bowhead [Freighter | ORE]\n  - Combat Role: Assembled Ship Transport\n  - Weapon System: 0 km\n  - Slot Layout: Highs: 4 | Mids: 4 | Lows: 4 | Rigs: 3 (Turrets: 2 | Launchers: 2)\n  - Key Bonuses: Assembled Ship Transport\n  - Defense Profile: Shield Buffer | Speed: Slow\n  - Weapon Optimal: 0 km\n  - Tactical Counter-Play: Specialized Ship Maintenance Bay transports fully assembled battleships."
     }
 }
 
@@ -3981,225 +7572,62 @@ ROLE_DOCTRINES: Dict[str, str] = {
         "• Strategic Mandate: Maximum clear speed against pirate NPC anomalies (Havens/Sanctums) and DED 6/10-10/10 escalations.\n"
         "• Fitting Rules: Specialized NPC damage-type resists (e.g. EM/Therm for Blood/Sansha, Kin/Therm for Guristas, Exp/Kin for Angels), maximum sustained application/DPS (Missile Guidance / Tracking Computers / Drone Damage Amps), large capacitor pool, Mobile Tractor Unit (MTU)."
     ),
-    "Wormhole": (
-        "[COMBAT ROLE DOCTRINE — WORMHOLE SOLO & EXPLORATION]:\n"
-        "• Strategic Mandate: Relic/Data hacking, Sleeper site clearing, and covert travel in J-space.\n"
-        "• Fitting Rules: Core Probe Launcher with Sisters Probes, Relic & Data Analyzers, Covert Ops Cloaking Device, Omni-resist active tank."
-    ),
-    "Fast Tackle": (
-        "[COMBAT ROLE DOCTRINE — HEAVY INTERCEPTION & FAST TACKLE]:\n"
-        "• Strategic Mandate: Fast initial point on warping targets, holding tackle until fleet arrives.\n"
-        "• Fitting Rules: Sub-2 second align time, 5MN/50MN MWD, Sensor Booster with Scan Resolution script, Warp Disruptor + Scrambler, Overdrive/Nanofiber modules."
-    )
 }
 
-EVE_COMBAT_AXIOMS = """
-[EVE ONLINE COMBAT DOCTRINE & TACTICAL DIRECTIVES]:
-1. STRICT SINGLE RESPONSE (NO DUPLICATES): Output your tactical advice once in 2 to 4 concise bullet points total. NEVER repeat yourself, NEVER generate duplicate sections.
-2. NEVER ECHO SYSTEM HEADERS: Never repeat, quote, or output reference headers or tags (such as `[EVE TACTICAL INTELLIGENCE]`, `[TACTICAL DIRECTIVE]`).
-3. RIGOROUS TACKLE & EWAR DEFINITIONS:
-   - Warp Scrambler (Scram): Range <=10km (short point). Disables Microwarpdrive (MWD) & Micro Jump Drives (MJD).
-   - Warp Disruptor (Long Point): Range <=30km (up to 45km+ on Recons). Disables warp only (target retains full MWD speed).
-   - Tracking Disruptor: Scripts for Tracking Speed / Optimal Range applied to hostile turrets to make large guns miss high-transversal targets.
-   - Stasis Webifier: Range <=10km standard (up to 40km+ on Minmatar Recons & Loki). Slows target velocity by 50-60% (up to 90% with web bonuses).
-   - Heavy Energy Neutralizer: Drains raw capacitor per cycle, shutting down active reps.
-4. AUTHENTIC FITTING & TANK EXCLUSIVITY:
-   - Never dual-tank: A ship fit is either Shield Tanked (Extenders/Boosters) OR Armor Tanked (Plates/Repairers), never both.
-   - Match weapon and module classes to hull faction and size (e.g. Minmatar hulls use Projectiles/HAMs, not Lasers; Cruisers/T3Cs cannot fit Battleship MJDs or Battleship weapons).
-"""
-
-import functools
-
-_RE_CLEAN_ALPHANUM = re.compile(r"[^a-z0-9]")
-_RE_WORDS = re.compile(r"\b[A-Za-z0-9\-]+\b")
-_RE_OWN_SHIP = re.compile(
-    r"\b(?:i am in an?|i'm in an?|flying an?|piloting an?|my ship is an?|in an?)\s+([A-Za-z0-9\-\s]+?)(?:\s+and|\s+with|\s+need|\s+looking|\s+waiting|\s+fighting|\s+vs|\s+against|\s*\.|\s*,|\s*$)",
-    re.IGNORECASE
+EVE_COMBAT_AXIOMS = (
+    "[CORE COMBAT MECHANICS & ENGAGEMENT PRINCIPLES]:\n"
+    "1. Angular Velocity & Transversal Tracking: Turret tracking effectiveness = (Angular Velocity * Signature Radius) / Tracking Factor. High transversal shrinks enemy turret DPS against your hull. Missiles ignore tracking but are mitigated by speed and signature radius.\n"
+    "2. Tackle Hierarchy: Warp Disruptor (Long Point: 20-30km+, disables warp only) vs. Warp Scrambler (Short Scram: 7.5-12km+, disables warp, MWD propulsion, and Micro Jump Drives). Stasis Webifiers reduce target speed by 50-60% (up to 90% on Serpentis hulls).\n"
+    "3. Electronic Warfare Counters:\n"
+    "   - Against Turrets (Lasers/Hybrids/Projectiles): Tracking Disruptors with optimal/tracking scripts.\n"
+    "   - Against Missiles (Orthrus/Cerberus/Drake/Raven): Missile Guidance Disruptors with range/velocity scripts.\n"
+    "   - Against Drones: Smartbombs, defanging light drones, or sensor dampening mother hull.\n"
+    "   - Against Lock-Range kiters: Sensor Dampeners (Targeting range script) forces enemy inside short tackle range."
 )
 
-# Common EVE Online Shorthand Combat Aliases
-_COMMON_SHIP_ALIASES: Dict[str, str] = {
-    "slicer": "Imperial Navy Slicer",
-    "in slicer": "Imperial Navy Slicer",
-    "hookbill": "Caldari Navy Hookbill",
-    "comet": "Federation Navy Comet",
-    "firetail": "Republic Fleet Firetail",
-    "omen navy": "Omen Navy Issue",
-    "stabber fleet": "Stabber Fleet Issue",
-    "scythe fleet": "Scythe Fleet Issue",
-    "caracal navy": "Caracal Navy Issue",
-    "drake navy": "Drake Navy Issue",
-    "exequror navy": "Exequror Navy Issue",
-    "vexor navy": "Vexor Navy Issue",
-    "brutix navy": "Brutix Navy Issue",
-    "megathron navy": "Megathron Navy Issue",
-    "tempest fleet": "Tempest Fleet Issue",
-    "typhoon fleet": "Typhoon Fleet Issue",
-    "bhaal": "Bhaalgorn",
-    "vindi": "Vindicator",
-    "macha": "Machariel",
-    "rattle": "Rattlesnake"
-}
+_NORMALIZED_SHIP_LOOKUP: Dict[str, Dict[str, Any]] = {name.lower(): info for name, info in SHIP_DATABASE.items()}
+_NORMALIZED_MODULE_LOOKUP: Dict[str, Dict[str, Any]] = {name.lower(): info for name, info in MODULE_DATABASE.items()}
+_MULTI_WORD_SHIPS = [(name, info, name.lower()) for name, info in SHIP_DATABASE.items() if " " in name]
+_MULTI_WORD_SHIPS.sort(key=lambda x: len(x[2]), reverse=True)
+_ROLE_DOCTRINES_LOWER = [(k.lower(), v) for k, v in ROLE_DOCTRINES.items()]
 
-# Fast Normalized Lookup Tables & Pre-Rendered Dossiers for Sub-Microsecond Resolution
-_FAST_SHIP_LOOKUP: Dict[str, Dict[str, Any]] = {}
-for _k, _v in SHIP_DATABASE.items():
-    _v_copy = dict(_v)
-    _v_copy["canonical_name"] = _k
-    _v_copy["pre_rendered_dossier"] = (
-        f"• {_k} ({_v.get('class', 'Vessel')} - {_v.get('faction', 'General')}) | Tank: {_v.get('tank', 'Shield/Armor')} | "
-        f"Optimal: {_v.get('optimal_range', 'Standard')} | Threat: {_v.get('threat', 'Combatant')}\n"
-        f"  Tactics: {_v.get('tactics', 'Engage according to weapon tracking and range.')}"
-    )
-    _FAST_SHIP_LOOKUP[_k.lower()] = _v_copy
-    _clean_k = _RE_CLEAN_ALPHANUM.sub("", _k.lower())
-    _FAST_SHIP_LOOKUP[_clean_k] = _v_copy
-
-for _alias, _target in _COMMON_SHIP_ALIASES.items():
-    if _target in SHIP_DATABASE:
-        _tgt_data = _FAST_SHIP_LOOKUP[_target.lower()]
-        _FAST_SHIP_LOOKUP[_alias.lower()] = _tgt_data
-        _FAST_SHIP_LOOKUP[_RE_CLEAN_ALPHANUM.sub("", _alias.lower())] = _tgt_data
-
-_MULTI_WORD_SHIPS = [(_k, _v, _k.lower()) for _k, _v in SHIP_DATABASE.items() if " " in _k]
-_ROLE_DOCTRINES_LOWER = [(_rk.lower(), _rdoc) for _rk, _rdoc in ROLE_DOCTRINES.items()]
-
-_FAST_MODULE_LOOKUP: Dict[str, Dict[str, Any]] = {}
-for _mk, _mv in MODULE_DATABASE.items():
-    _mv_copy = dict(_mv)
-    _mv_copy["canonical_name"] = _mk
-    _mk_l = _mk.lower()
-    _FAST_MODULE_LOOKUP[_mk_l] = _mv_copy
-    _clean_mk = _RE_CLEAN_ALPHANUM.sub("", _mk_l)
-    _FAST_MODULE_LOOKUP[_clean_mk] = _mv_copy
-    
-    if "/" in _mk_l:
-        parts = [p.strip() for p in _mk_l.split("/")]
-        last_part = parts[-1]
-        last_words = last_part.split()
-        if len(last_words) > 1:
-            base_noun = " ".join(last_words[1:])
-            for p in parts:
-                variant_full = p if base_noun in p else f"{p} {base_noun}"
-                _FAST_MODULE_LOOKUP[variant_full] = _mv_copy
-                _FAST_MODULE_LOOKUP[_RE_CLEAN_ALPHANUM.sub("", variant_full)] = _mv_copy
-                for _suffix in [" ii", " i", " compact", " scoped", " enduring", " restrained", " tech ii", " tech 2"]:
-                    _FAST_MODULE_LOOKUP[f"{variant_full}{_suffix}"] = _mv_copy
-                    _FAST_MODULE_LOOKUP[_RE_CLEAN_ALPHANUM.sub("", f"{variant_full}{_suffix}")] = _mv_copy
-
-    if "(" in _mk_l:
-        _base = _mk_l.split("(")[0].strip()
-        _FAST_MODULE_LOOKUP[_base] = _mv_copy
-        _FAST_MODULE_LOOKUP[_RE_CLEAN_ALPHANUM.sub("", _base)] = _mv_copy
-        _paren_content = _mk_l.split("(")[1].split(")")[0]
-        for _token in _paren_content.split("/"):
-            _t = _token.strip()
-            if len(_t) >= 2:
-                _FAST_MODULE_LOOKUP[_t] = _mv_copy
-                _FAST_MODULE_LOOKUP[_RE_CLEAN_ALPHANUM.sub("", _t)] = _mv_copy
-                
-    for _suffix in [" ii", " i", " compact", " scoped", " enduring", " restrained", " tech ii", " tech 2", " tech 1"]:
-        if _mk_l.endswith(_suffix):
-            _base = _mk_l[:-len(_suffix)].strip()
-            _FAST_MODULE_LOOKUP[_base] = _mv_copy
-            _FAST_MODULE_LOOKUP[_RE_CLEAN_ALPHANUM.sub("", _base)] = _mv_copy
-
-
-@functools.lru_cache(maxsize=4096)
 def lookup_ship(name: str) -> Optional[Dict[str, Any]]:
-    """O(1) canonical ship retrieval with C-level LRU caching."""
     if not name:
         return None
-    raw_lower = name.strip().lower()
-    if raw_lower in _FAST_SHIP_LOOKUP:
-        return _FAST_SHIP_LOOKUP[raw_lower]
-    clean = _RE_CLEAN_ALPHANUM.sub("", raw_lower)
-    return _FAST_SHIP_LOOKUP.get(clean)
-
-
-@functools.lru_cache(maxsize=4096)
-def lookup_module(name: str) -> Optional[Dict[str, Any]]:
-    """O(1) canonical module retrieval with C-level LRU caching and fuzzy fallback."""
-    if not name:
-        return None
-    raw_lower = name.strip().lower()
-    if raw_lower in _FAST_MODULE_LOOKUP:
-        return _FAST_MODULE_LOOKUP[raw_lower]
-    clean = _RE_CLEAN_ALPHANUM.sub("", raw_lower)
-    if clean in _FAST_MODULE_LOOKUP:
-        return _FAST_MODULE_LOOKUP[clean]
-    for mk, mv in MODULE_DATABASE.items():
-        base_name = mk.split("(")[0].strip().lower()
-        if base_name in raw_lower or raw_lower in base_name:
-            return mv
+    nl = name.strip().lower()
+    if nl in _NORMALIZED_SHIP_LOOKUP:
+        return _NORMALIZED_SHIP_LOOKUP[nl]
+    for s_name, s_info in SHIP_DATABASE.items():
+        if nl in s_name.lower():
+            return s_info
     return None
 
+def lookup_module(name: str) -> Optional[Dict[str, Any]]:
+    if not name:
+        return None
+    nl = name.strip().lower()
+    if nl in _NORMALIZED_MODULE_LOOKUP:
+        return _NORMALIZED_MODULE_LOOKUP[nl]
+    for m_name, m_info in MODULE_DATABASE.items():
+        if nl in m_name.lower():
+            return m_info
+    return None
 
-def validate_fit_module_compatibility(hull_name: str, fit_dict: Dict[str, Any]) -> List[str]:
-    """Validates module sizing, hull weapon affinity, and tank exclusivity rules."""
-    warnings = []
-    ship_info = lookup_ship(hull_name)
-    if not ship_info:
-        return warnings
-
-    s_class = ship_info.get("class", "Frigate")
-    tank_type = ship_info.get("tank", "Shield")
+def get_tactical_summary_for_text(text: str, attachments: Any = None, piloted_ship: Optional[str] = None, piloted_ship_name: Optional[str] = None) -> str:
+    if not text:
+        return EVE_COMBAT_AXIOMS
     
-    # Check dual tanking
-    lows = fit_dict.get("low_slots", [])
-    mids = fit_dict.get("mid_slots", [])
+    active_piloted = piloted_ship or piloted_ship_name
+    lower_text = text.lower()
+    words = set(re.findall(r'\b[a-zA-Z0-9_-]+\b', lower_text))
     
-    has_armor_tank = any(any(k in m.lower() for k in ["plate", "armor repairer", "energized membrane"]) for m in lows)
-    has_shield_tank = any(any(k in m.lower() for k in ["shield extender", "shield booster", "shield hardener"]) for m in mids)
-    
-    if has_armor_tank and has_shield_tank:
-        warnings.append("Dual-Tank Conflict Detected: Fitting both Shield and Armor defensive modules divides fitting resources.")
-
-    return warnings
-
-
-def get_tactical_grounding(prompt: str, attachments: List[Dict[str, Any]] = None, piloted_ship: Optional[str] = None) -> str:
-    """
-    Extracts verified ship dossiers and tactical axioms for everything mentioned in the prompt.
-    Correctly distinguishes Capsuleer's own piloted vessel from hostile contacts.
-    """
-    if attachments:
-        full_text = prompt + " " + " ".join([att.get("text", "") for att in attachments])
-    else:
-        full_text = prompt
-
-    lower_text = full_text.lower()
-    words = _RE_WORDS.findall(full_text)
-    
-    grounding_blocks = []
     detected_hulls = set()
-    
-    # Check if Capsuleer is stating their own piloted vessel
-    own_ship_match = _RE_OWN_SHIP.search(prompt)
-    piloted_ship_name = None
-    s_res = None
-    if own_ship_match:
-        cand_name = own_ship_match.group(1).strip()
-        s_res = lookup_ship(cand_name)
-        if s_res:
-            piloted_ship_name = s_res.get("canonical_name", cand_name)
-    elif piloted_ship:
-        s_res = lookup_ship(piloted_ship)
-        if s_res:
-            piloted_ship_name = s_res.get("canonical_name", piloted_ship)
-
-    if piloted_ship_name and s_res:
-        grounding_blocks.append(
-            f"[CAPSULEER PILOTED VESSEL — {piloted_ship_name.upper()} ({s_res.get('class', 'Vessel')} - {s_res.get('faction', 'General')})]:\n"
-            f"• Piloted Ship Role: {s_res.get('role', 'Combat')}\n"
-            f"• Key Combat Envelope: Optimal {s_res.get('optimal_range', 'Standard')} | Tank: {s_res.get('tank', 'Shield/Armor')}\n"
-            f"• Hull Strengths & Tactics: {s_res.get('tactics', 'Standard combat tactics.')}"
-        )
+    grounding_blocks = []
 
     # Check for direct multi-word ship names first
     for ship_name, s_info, ship_lower in _MULTI_WORD_SHIPS:
         if ship_lower in lower_text:
-            if piloted_ship_name and ship_lower == piloted_ship_name.lower():
+            if active_piloted and ship_lower == active_piloted.lower():
                 continue
             if ship_lower not in detected_hulls:
                 detected_hulls.add(ship_lower)
@@ -4210,7 +7638,7 @@ def get_tactical_grounding(prompt: str, attachments: List[Dict[str, Any]] = None
         if s_info:
             cname = s_info.get("canonical_name", w.capitalize())
             cname_l = cname.lower()
-            if piloted_ship_name and cname_l == piloted_ship_name.lower():
+            if active_piloted and cname_l == active_piloted.lower():
                 continue
             if cname_l not in detected_hulls:
                 detected_hulls.add(cname_l)
@@ -4231,3 +7659,8 @@ def get_tactical_grounding(prompt: str, attachments: List[Dict[str, Any]] = None
         "• Tactical Action: Maintain directional scan (14.3 AU at 360°), hold bookmark / gate perches, align out if uncloaked, and prepare defensive tackle or warp-out vectors."
     )
     return f"{default_summary}\n\n{EVE_COMBAT_AXIOMS}"
+
+_FAST_SHIP_LOOKUP = _NORMALIZED_SHIP_LOOKUP
+_FAST_MODULE_LOOKUP = _NORMALIZED_MODULE_LOOKUP
+get_tactical_grounding = get_tactical_summary_for_text
+

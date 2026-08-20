@@ -2,7 +2,7 @@
 # Git Ignore Rules for A.U.R.A. EVE Tool
 # ==============================================================================
 
-# Neural Model Weights (Exceeds GitHub 100MB / 2GB limit)
+# 1. Neural Model Weights (Exceeds GitHub 100MB / 2GB limit; kept local only)
 *.gguf
 *.bin
 *.onnx
@@ -11,7 +11,18 @@
 models/
 **/models/
 
-# Large Binaries, Installers, & Compiled Libraries (>50MB / 100MB GitHub limit)
+# 2. Local Builds, Distro Packages & Installers
+A.U.R.A Distro/
+**/A.U.R.A Distro/
+AURA_Standalone_Windows/
+A.U.R.A. Installer/
+build/
+dist/
+build_installer_temp/
+build_standalone_temp/
+dist_standalone_temp/
+*.spec
+*.spec.bak
 *.exe
 *.dll
 *.so
@@ -21,49 +32,34 @@ models/
 *.7z
 *.tar.gz
 
-# Virtual Environments
-venv/
-venv_app/
-env/
-ENV/
-.venv/
-requirements/venv/
-**/venv/
-**/venv_app/
-**/requirements/venv/
-
-# PyInstaller & Distribution Packages
-build/
-dist/
-A.U.R.A Distro/
-**/A.U.R.A Distro/
-AURA_Standalone_Windows/
-A.U.R.A. Installer/
-build_installer_temp/
-build_standalone_temp/
-dist_standalone_temp/
-*.spec
-*.spec.bak
-
-# Vulkan & Hardware Libraries
-vulkan_llama/
-**/vulkan_llama/
-requirements/vulkan_llama/
-**/requirements/vulkan_llama/
-
-# Development & Benchmark Tools
+# 3. Developer & Benchmarking Tools (Local maintenance only)
 tools/
 **/tools/
 A.U.R.A. Source/tools/
 **/A.U.R.A. Source/tools/
 
-# Python Cache & Bytecode
+# 4. Python Cache, Bytecode & Virtual Environments
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
+venv/
+**/venv/
+venv_app/
+**/venv_app/
+env/
+ENV/
+.venv/
+requirements/venv/
+**/requirements/venv/
 
-# OS & IDE Files
+# 5. Local Chat Logs & Temp Files
+*.log
+logs/
+**/logs/
+
+# 6. OS & IDE Metadata
 .DS_Store
 Thumbs.db
 desktop.ini
@@ -71,8 +67,3 @@ desktop.ini
 .vscode/
 *.swp
 *.swo
-
-# Local Chat / Log Temp files
-*.log
-logs/
-**/logs/

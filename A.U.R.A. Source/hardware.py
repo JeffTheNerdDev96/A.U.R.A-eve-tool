@@ -327,16 +327,15 @@ class DynamicHardwareRouter:
         token_count: int,
         has_image: bool = False,
         has_doc: bool = False,
-        attachment_count: int = 0,
-        turbo_mode: bool = False
+        attachment_count: int = 0
     ) -> Dict[str, Any]:
         """
-        Routes workload across compute hardware with strict user control and non-NPU fallback:
-        1. File/Vision Upload Override: If files or screenshots are attached, IGNORE NPU-only mode and use ALL resources.
-        2. Turbo Mode: If Turbo Mode is enabled by the user, allow GPU and CPU compute mesh alongside NPU.
-        3. Default Mode:
-           - On NPU hosts: Uses NPU ONLY for pure text and intel processing (zero GPU/CPU overhead).
-           - On Non-NPU hosts: Automatically fallback to GPU + CPU mesh mode.
+        Routes workload across compute hardware automatically:
+        1. File/Vision Upload Override: If files or screenshots are attached, scale up all compute resources.
+        2. Default Mode:
+           - On NPU hosts: Uses dedicated NPU core for pure text and intel processing (zero GPU/CPU overhead).
+           - On GPU hosts: Uses GPU + CPU acceleration.
+           - On CPU hosts: Uses multi-threaded vector compute mesh.
         """
         has_npu = self.detector.has_npu
         npu_vendor = self.detector.npu_vendor
@@ -344,7 +343,6 @@ class DynamicHardwareRouter:
         gpu_name = self.detector.gpu_name
         gpu_vendor = self.detector.gpu_vendor
         has_attachments = has_image or has_doc or attachment_count > 0
-        is_turbo = turbo_mode or config.turbo_mode
 
         # -------------------------------------------------------------
         # 1. FILE UPLOAD & VISION OVERRIDE (Use ALL resources)
@@ -405,67 +403,6 @@ class DynamicHardwareRouter:
                     "hw_tag": "*CPU*",
                     "npu_vendor": "None",
                     "mode": "file_override"
-                }
-
-        # -------------------------------------------------------------
-        # 2. TURBO MODE (User Toggle ON -> Multi-Compute Mesh)
-        # -------------------------------------------------------------
-        if is_turbo:
-            if has_npu and has_gpu:
-                return {
-                    "tier_id": 3,
-                    "tier_name": f"Turbo Mode: Full Mesh ({npu_vendor} NPU + {gpu_vendor} GPU + CPU)",
-                    "badge": f"🚀 Turbo Mesh: {npu_vendor} NPU + {gpu_vendor} GPU + CPU",
-                    "color": "#f97316",
-                    "bg_color": "#431407",
-                    "strategy": f"{npu_vendor} NPU + {gpu_vendor} GPU + CPU",
-                    "short_tag": "NPU + GPU + CPU",
-                    "coprocessor_target": "FULL_MESH",
-                    "hw_tag": f"*{npu_vendor} NPU + {gpu_vendor} GPU + CPU*",
-                    "npu_vendor": npu_vendor,
-                    "mode": "turbo"
-                }
-            elif has_npu:
-                return {
-                    "tier_id": 2,
-                    "tier_name": f"Turbo Mode: {npu_vendor} NPU + CPU",
-                    "badge": f"🚀 Turbo: {npu_vendor} NPU + CPU",
-                    "color": "#f97316",
-                    "bg_color": "#431407",
-                    "strategy": f"{npu_vendor} NPU + CPU",
-                    "short_tag": "NPU + CPU",
-                    "coprocessor_target": "FULL_MESH",
-                    "hw_tag": f"*{npu_vendor} NPU + CPU*",
-                    "npu_vendor": npu_vendor,
-                    "mode": "turbo"
-                }
-            elif has_gpu:
-                return {
-                    "tier_id": 2,
-                    "tier_name": f"Turbo Mode: {gpu_name} + CPU Max Mesh",
-                    "badge": f"🚀 Turbo: {gpu_vendor} GPU + CPU",
-                    "color": "#f97316",
-                    "bg_color": "#431407",
-                    "strategy": f"{gpu_vendor} GPU + CPU",
-                    "short_tag": "GPU + CPU",
-                    "coprocessor_target": "GPU",
-                    "hw_tag": f"*{gpu_vendor} GPU + CPU*",
-                    "npu_vendor": "None",
-                    "mode": "turbo"
-                }
-            else:
-                return {
-                    "tier_id": 3,
-                    "tier_name": "Turbo Mode: CPU Max Multi-Threading",
-                    "badge": "🚀 Turbo: CPU Multi-Core",
-                    "color": "#f97316",
-                    "bg_color": "#431407",
-                    "strategy": "CPU",
-                    "short_tag": "CPU",
-                    "coprocessor_target": "CPU",
-                    "hw_tag": "*CPU*",
-                    "npu_vendor": "None",
-                    "mode": "turbo"
                 }
 
         # -------------------------------------------------------------

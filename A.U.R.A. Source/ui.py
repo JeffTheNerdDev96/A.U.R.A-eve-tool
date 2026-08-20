@@ -42,13 +42,12 @@ class WorkerThread(QThread):
     done_received = pyqtSignal(dict)
     error_received = pyqtSignal(str)
 
-    def __init__(self, engine: UnifiedInferenceEngine, prompt: str, chat_history: List[Dict[str, str]], attachments: List[Dict[str, Any]], turbo_mode: bool = False, piloted_ship: Optional[str] = None, parent=None):
+    def __init__(self, engine: UnifiedInferenceEngine, prompt: str, chat_history: List[Dict[str, str]], attachments: List[Dict[str, Any]], piloted_ship: Optional[str] = None, parent=None):
         super().__init__(parent)
         self.engine = engine
         self.prompt = prompt
         self.chat_history = chat_history
         self.attachments = attachments
-        self.turbo_mode = turbo_mode
         self.piloted_ship = piloted_ship
         self._is_stopped = False
 
@@ -58,7 +57,7 @@ class WorkerThread(QThread):
 
     def run(self):
         try:
-            for packet in self.engine.generate_stream(self.prompt, self.chat_history, self.attachments, turbo_mode=self.turbo_mode, piloted_ship=self.piloted_ship):
+            for packet in self.engine.generate_stream(self.prompt, self.chat_history, self.attachments, piloted_ship=self.piloted_ship):
                 if self._is_stopped:
                     break
                 if packet["type"] == "meta":
@@ -410,9 +409,8 @@ class MainWindow(QMainWindow):
         self.last_auto_response_time = 0
         self.auto_response_cooldown = 10  # Seconds between automated AURA voice alerts
         
-        npu_info = f" | {self.engine.detector.npu_vendor} NPU Core" if self.engine.detector.has_npu else ""
-        # Full name preserved in window title bar as requested
-        self.setWindowTitle(f"A.U.R.A. Assist — Adaptive Underworld Recon Array ({config.version}){npu_info}")
+        # Full name preserved in window title bar
+        self.setWindowTitle(f"A.U.R.A. Assist — Tactical Recon Array ({config.version})")
         self.resize(1380, 880)
         self.setMinimumSize(1080, 680)
         
@@ -702,16 +700,6 @@ class MainWindow(QMainWindow):
         self.context_lbl.setStyleSheet("color: #94a3b8; background: #070a12; border: 1px solid #334155; padding: 4px 12px; border-radius: 6px; font-size: 13px;")
         hw_layout.addWidget(self.context_lbl)
 
-        # Turbo Mode Toggle Button
-        self.turbo_btn = QPushButton("⚡ Turbo: OFF (NPU Only)")
-        self.turbo_btn.setFixedHeight(32)
-        self.turbo_btn.setCheckable(True)
-        self.turbo_btn.setChecked(config.turbo_mode)
-        self.turbo_btn.setObjectName("TurboBtn")
-        self._update_turbo_btn_style()
-        self.turbo_btn.toggled.connect(self._on_turbo_toggled)
-        hw_layout.addWidget(self.turbo_btn)
-
         hw_layout.addStretch()
 
         self.tier_badge = QLabel(self._get_idle_badge_text())
@@ -942,44 +930,6 @@ class MainWindow(QMainWindow):
         # Display initial greeting
         self._display_welcome()
 
-    def _update_turbo_btn_style(self):
-        has_npu = self.engine.detector.has_npu
-        npu_vendor = self.engine.detector.npu_vendor
-        has_gpu = self.engine.detector.has_gpu
-        gpu_vendor = self.engine.detector.gpu_vendor
-        
-        if has_npu:
-            if self.turbo_btn.isChecked():
-                self.turbo_btn.setText(f"🚀 Turbo: ON ({npu_vendor} NPU+GPU+CPU)")
-                self.turbo_btn.setStyleSheet("color: #fed7aa; font-weight: bold; background: #431407; border: 1px solid #f97316; padding: 4px 12px; border-radius: 6px;")
-                self.turbo_btn.setToolTip("Turbo Mode Active: GPU & CPU acceleration enabled alongside NPU.")
-            else:
-                self.turbo_btn.setText(f"⚡ Turbo: OFF ({npu_vendor} NPU Only)")
-                self.turbo_btn.setStyleSheet("color: #94a3b8; font-weight: bold; background: #070a12; border: 1px solid #334155; padding: 4px 12px; border-radius: 6px;")
-                self.turbo_btn.setToolTip("Default Mode: Pure NPU processing (zero GPU/CPU overhead). Toggle ON for full GPU+CPU mesh.")
-        elif has_gpu:
-            if self.turbo_btn.isChecked():
-                self.turbo_btn.setText(f"🚀 Turbo: ON ({gpu_vendor} GPU+CPU Max)")
-                self.turbo_btn.setStyleSheet("color: #fed7aa; font-weight: bold; background: #431407; border: 1px solid #f97316; padding: 4px 12px; border-radius: 6px;")
-                self.turbo_btn.setToolTip("Turbo Mode Active: GPU acceleration and maximum CPU compute threads.")
-            else:
-                self.turbo_btn.setText(f"⚡ Mode: {gpu_vendor} GPU+CPU (Default)")
-                self.turbo_btn.setStyleSheet("color: #38bdf8; font-weight: bold; background: #0c4a6e; border: 1px solid #0284c7; padding: 4px 12px; border-radius: 6px;")
-                self.turbo_btn.setToolTip("Default Mode: GPU + CPU acceleration active (No NPU detected on system).")
-        else:
-            if self.turbo_btn.isChecked():
-                self.turbo_btn.setText("🚀 Turbo: Max Threads")
-                self.turbo_btn.setStyleSheet("color: #fed7aa; font-weight: bold; background: #431407; border: 1px solid #f97316; padding: 4px 12px; border-radius: 6px;")
-                self.turbo_btn.setToolTip("Turbo Active: All CPU threads engaged.")
-            else:
-                self.turbo_btn.setText("⚡ Mode: CPU (Default)")
-                self.turbo_btn.setStyleSheet("color: #94a3b8; font-weight: bold; background: #070a12; border: 1px solid #334155; padding: 4px 12px; border-radius: 6px;")
-                self.turbo_btn.setToolTip("Default Mode: Standard CPU multi-core processing (No NPU detected on system).")
-
-    def _on_turbo_toggled(self, checked: bool):
-        config.turbo_mode = checked
-        self._update_turbo_btn_style()
-
     def _set_piloted_ship(self, ship_name: Optional[str]):
         """Updates the active piloted hull and top bar indicator for tailored combat calculations."""
         if not ship_name:
@@ -994,12 +944,10 @@ class MainWindow(QMainWindow):
             self.piloted_ship_lbl.setStyleSheet("color: #67e8f9; background: #082f49; border: 1px solid #0284c7; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 13px;")
 
     def _get_idle_badge_text(self) -> str:
-        hw = self.engine.detector
-        target = f"{hw.npu_vendor} NPU" if hw.has_npu else (f"{hw.gpu_vendor} GPU+CPU" if hw.has_gpu else "CPU")
         if self.engine.llm is not None:
-            return f"● Online ({target})"
+            return "● Online"
         else:
-            return f"⚡ Standby ({target} Ready)"
+            return "⚡ Standby (Ready)"
 
     def _get_idle_badge_style(self) -> str:
         if self.engine.llm is not None:
@@ -1339,14 +1287,15 @@ class MainWindow(QMainWindow):
             f"• Hull Class: {s_class}\n"
             f"• Target Combat Role: **{role}**\n\n"
             f"{summary_md}\n\n"
-            f"[ROLE SPECIFIC EVALUATION DIRECTIVE]:\n"
+            f"[AUTHENTIC EVE FITTING RULES]:\n"
             f"{size_rules}\n"
+            f"• AMMO & MODULE RULES: Ammunition sizes in EVE Online are strictly S (Small), M (Medium), L (Large), XL (Extra Large). Never invent fake letters like 'Hail B' or 'Hail C'. T2 Projectile ammo is strictly Hail S/M/L (short-range DPS) or Barrage S/M/L (falloff). Never invent fake modules like 'Shield Binder'.\n"
             f"Evaluate this `{hull}` fitting specifically for the **{role}** doctrine.\n"
             f"Provide a structured 3 to 4 bullet assessment:\n"
-            f"1. Role Compatibility: Acknowledge the fitted weapons, tank, and tackle. Assess how well this configuration performs in {role}.\n"
-            f"2. Capacitor & Tank: Evaluate capacitor resilience and tank synergy (e.g. active reps, buffer, ADC, resistances) during sustained engagements in {role}.\n"
-            f"3. Module / Ammo Refinements: Suggest 1-2 authentic, size-legal module or ammo adjustments (e.g., ammo switching between Hail S for close brawling and Barrage S for tracking/falloff projection; or optional sidegrades matching this exact hull class).\n"
-            f"4. Piloting & Range Envelope: State the exact engagement range and flight tactics for {role} (e.g., closing distance with MWD, applying Scram to disable enemy MWD, managing optimal/falloff ranges, cycling active tank with nanite paste, and timing Assault Damage Control)."
+            f"1. Role Compatibility: Acknowledge fitted weapons, tank, and tackle. Assess performance in {role}.\n"
+            f"2. Capacitor & Tank Synergy: Evaluate capacitor resilience and tank synergy for {role}.\n"
+            f"3. Module / Ammo Refinements: Suggest 1-2 authentic, size-legal module or ammo adjustments (e.g. switching between Hail S for brawling and Barrage S for falloff projection; or authentic sidegrades for this exact hull size).\n"
+            f"4. Piloting & Range Envelope: State exact optimal/falloff engagement ranges and flight tactics for {role}."
         )
         self._set_piloted_ship(hull)
         self._execute_tactical_prompt(prompt, f"🛠️ <b>Fitting Lab Review</b>: `{hull}` ({role})")
@@ -1380,7 +1329,6 @@ class MainWindow(QMainWindow):
             prompt,
             list(self.chat_history),
             list(self.attachments),
-            turbo_mode=config.turbo_mode,
             piloted_ship=self.current_piloted_ship,
             parent=self
         )
@@ -1565,7 +1513,7 @@ class MainWindow(QMainWindow):
         
         self.tier_badge.setText("● Thinking...")
         self.tier_badge.setStyleSheet("color: #fda4af; font-weight: bold; background: #4c0519; padding: 4px 12px; border-radius: 6px; border: 1px solid #e11d48;")
-        self.progress_status_lbl.setText(f"🚀 {strategy} Active...")
+        self.progress_status_lbl.setText("⚡ Calculating tactical countermeasures...")
 
     def _on_token(self, packet: dict):
         text = packet.get("text", "")
@@ -1579,10 +1527,8 @@ class MainWindow(QMainWindow):
         tps = done_info.get("tokens_per_sec", 0.0)
         elapsed = done_info.get("time_elapsed", 0.0)
         toks = done_info.get("tokens_generated", 0)
-        strategy = done_info.get("hardware_strategy", "")
         
-        strat_note = f" | {strategy}" if strategy else ""
-        self.chat_display.append(f"<br><small style='color: #64748b;'>⚡ {toks} tokens in {elapsed}s ({tps:.1f} t/s){strat_note}</small><br>")
+        self.chat_display.append(f"<br><small style='color: #64748b;'>⚡ {toks} tokens in {elapsed}s ({tps:.1f} t/s)</small><br>")
         self.tier_badge.setText(self._get_idle_badge_text())
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
 

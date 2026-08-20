@@ -1,5 +1,5 @@
 ===============================================================================
-       A.U.R.A. Assist — Adaptive Underworld Recon Array (v0.1.2-alpha4)
+       A.U.R.A. Assist — Adaptive Underworld Recon Array (v0.1.3-alpha5)
                   Angel Cartel Cybernetics Division
                        Author: JeffTheNerdDev96
 ===============================================================================
@@ -7,10 +7,12 @@
 1. OVERVIEW & MISSION
 -------------------------------------------------------------------------------
 A.U.R.A. is an offline-first, tactical intelligence co-pilot designed for EVE 
-Online capsuleers. Powered by an onboard Phi-3.5 Mini (3.8B Reasoning) neural 
-engine, A.U.R.A. provides instant tactical analysis, directional scan fleet 
-threat ranking, ship fitting reviews, vision OCR, and real-time intel radar 
-monitoring with zero cloud latency or data transmission.
+Online capsuleers. Powered by an onboard Phi-4 Mini (3.8B Reasoning) neural 
+core and hardware tensor co-processor (supporting Intel AI Boost NPUs, NVIDIA 
+CUDA, AMD Vulkan / Ryzen AI, and CPU vector compute), A.U.R.A. provides:
+instant tactical analysis, directional scan fleet threat ranking, ship 
+fitting reviews, vision OCR, and real-time intel radar monitoring with zero 
+cloud latency or data transmission.
 
 
 2. HARDWARE COMPUTE & NEURAL ACCELERATION

@@ -1,0 +1,6 @@
+# A.U.R.A. Assist — AMD Ryzen AI NPU (XDNA) Acceleration
+PyQt6>=6.5.0
+onnxruntime-directml>=1.18.0
+numpy>=1.24.0
+llama-cpp-python>=0.2.79
+torch>=2.2.0
