@@ -3,7 +3,7 @@ setlocal
 echo ===================================================================
 echo   CPU Multi-Threaded Vector Mesh Setup for A.U.R.A.
 echo ===================================================================
-echo [!] Installing CPU vector compute runtime into local venv...
+echo [!] Installing CPU vector compute runtime & Core PyQt6 into local venv...
 echo.
 
 set "SCRIPT_DIR=%~dp0"
@@ -14,7 +14,7 @@ if not exist "%PYTHON_EXE%" (
     python -m venv "%SCRIPT_DIR%venv"
 )
 
-"%PYTHON_EXE%" -m pip install -r "%SCRIPT_DIR%requirements.txt"
+"%PYTHON_EXE%" -m pip install --prefer-binary --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu -r "%SCRIPT_DIR%requirements.txt"
 
 echo.
 echo [✓] CPU Vector Mesh setup complete! Launch run.bat to start A.U.R.A.

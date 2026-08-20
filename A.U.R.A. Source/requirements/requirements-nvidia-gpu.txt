@@ -1,5 +1,2 @@
 # NVIDIA GeForce / RTX GPU Acceleration (CUDA / cuBLAS)
-# To install pre-built llama-cpp-python with CUDA:
-# pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cu124
-llama-cpp-python>=0.3.0
-numpy>=1.26.0,<3.0.0
+-r requirements.txt
