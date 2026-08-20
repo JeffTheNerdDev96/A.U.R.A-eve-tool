@@ -1,5 +1,5 @@
-# A.U.R.A. — EVE Online AI-Enhanced Utility
-v0.1.3-alpha4
+# A.U.R.A. — EVE Online AI Tactical Copilot
+**v0.1.3-alpha5**
 
 > **Adaptive Underworld Recon Array (A.U.R.A.)** — Your all-in-one, local tactical companion and shipboard assistant for *EVE Online*.
 
@@ -11,46 +11,25 @@ Inspired by core community tools like **R.I.F.T.**, **PYFA**, and **DSCAN.INFO**
 
 The project pairs utility tooling with a custom, offline tactical language model fine-tuned on EVE Online's combat mechanics, fitting archetypes, module statistics, and system intel to create a true shipboard AI assistant.
 
+For full operational instructions, see the [Tactical User Guide (USER_GUIDE.md)](USER_GUIDE.md).
+
 ---
 
-## Current & Planned Features
+## Features & Capabilities
 
 ### Intelligence & Recon
-* **Live Intel Reader:** Real-time log monitoring and intel channel scraping.
-* **D-Scan Breakdown:** Instant directional scan analysis and threat identification.
-* **Fitting Assistant:** On-the-fly EFT fitting validation, tank doctrine checks, and module specs.
+* **Live Intel Radar:** Real-time log monitoring and intel channel scraping with threat classification (Critical / High / Medium / Info / Clear).
+* **D-Scan Breakdown:** Instant directional scan analysis, fleet composition breakdown, and threat identification.
+* **Fitting Assistant (Fitting Lab):** On-the-fly EFT fitting validation, tank doctrine checks, capacitor analysis, and module/ammo specs.
 * **Custom Chat Folder Support:** Flexible log directory configuration for multi-client setups.
+* **Recon Vision & Document Ingestion:** OCR ingestion for combat screenshots, killmails, and tactical briefings.
 
-### Pilot Location Tracking *(In Development)*
-* **Real-time Position Monitoring:** Live tracking of your current location.
-* **Movement History:** System-level transit logs and route memory.
-* **Wormhole Chain Awareness:** Mapping and tracking connected wormhole networks.
-
-### Threat Proximity Alerts *(In Development)*
-* **Hostile Detection:** Automated alerts when known hostiles enter nearby systems.
-* **Configurable Threat Radius:** Custom jump-range thresholds for early warning alerts.
-* **Live Intel Integration:** Cross-referencing active intel feeds with your local space.
-
-### Fleet Fight Analysis & Group Tactics *(Planned)*
-* **Composition Evaluation:** AI-driven analysis of enemy fleet compositions.
-* **Counter-Fleet Recommendations:** Tactical doctrine suggestions to counter hostile setups.
-* **Maneuver Suggestions:** Real-time positioning, range control, and target prioritization guidance.
-* **Post-Fight Breakdowns:** Comprehensive engagement reviews for Fleet Commanders.
-
----
-
-## Roadmap
-
-| Feature | Status |
-| :--- | :---: |
-| **Live Intel Reader** | ✔ Complete |
-| **D-Scan Breakdown** | ✔ Complete |
-| **Fitting Assistant** | ✔ Complete |
-| **Custom Chat Folder Support** | ✔ Complete |
-| **Pilot Location Tracking** | ⏳ In Development |
-| **Threat Proximity Alerts** | ⏳ In Development |
-| **Fleet Fight Analysis** | ⏳ Planned |
-| **Group Tactics Engine** | ⏳ Planned |
+### Multi-Hardware Acceleration
+* **Intel NPU / Arc GPU:** Level Zero OpenVINO acceleration with zero gaming FPS impact.
+* **AMD Ryzen AI NPU:** Dedicated NPU coprocessing via DirectML / XDNA.
+* **NVIDIA CUDA:** Full VRAM layer offload for GeForce / RTX GPUs.
+* **AMD Radeon Vulkan:** High-performance Vulkan compute.
+* **CPU Vector Mesh:** Multi-threaded AVX2 / AVX-512 optimization across all CPU threads.
 
 ---
 
@@ -60,18 +39,30 @@ A.U.R.A. is driven by a custom fine-tuned model:
 
 * **Model Repository:** [`AURA-Eve-Tactical-Instruct-3.8B`](https://huggingface.co/JeffTheNerdDev96/AURA-Eve-Tactical-Instruct-3.8B)
 * **Base Model:** `microsoft/Phi-4-mini-instruct` (3.8B Parameters)
-* **Quantization:** `Q4_K_M` GGUF (~2.3 GB) via `llama.cpp`
+* **Quantization:** `Q4_K_M` GGUF (~2.37 GB) via `llama.cpp`
 
 ---
 
-## Installation
+## Quick Start & Installation
 
-> **Note:** A.U.R.A. is currently in **early development**.
+1. **Clone the Repository:**
+   ```bash
+   git clone https://github.com/JeffTheNerdDev96/A.U.R.A-eve-tool.git
+   cd A.U.R.A-eve-tool
+   ```
 
-An upcoming automated installer will manage downloading the required model files, dependencies, and backend support binaries.
+2. **Run Hardware Setup:**
+   Choose the script in `A.U.R.A. Source/requirements/` that matches your PC:
+   - `install_intel_npu.bat` (Intel Core Ultra NPU / Arc GPU)
+   - `install_amd_npu.bat` (AMD Ryzen AI NPU)
+   - `install_nvidia_cuda.bat` (NVIDIA RTX / GTX)
+   - `install_amd_vulkan.bat` (AMD Radeon GPU)
+   - `install_cpu.bat` (CPU Only)
 
-### Manual Setup (Current Builds)
-1. Download `model_q4.gguf` from the [Hugging Face Model Card](https://huggingface.co/JeffTheNerdDev96/AURA-Eve-Tactical-Instruct-3.8B).
-2. Place the quantized binary into your local source directory:
-   ```text
-   A.U.R.A. Source/models/phi-4-mini/model_q4.gguf
+3. **Launch A.U.R.A.:**
+   Double-click `run.bat` in the root folder or execute:
+   ```bash
+   run.bat
+   ```
+
+For detailed hardware requirements and documentation, see [requirements/README.md](A.U.R.A.%20Source/requirements/README.md) and [USER_GUIDE.md](USER_GUIDE.md).

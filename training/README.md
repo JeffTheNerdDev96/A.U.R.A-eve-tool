@@ -8,13 +8,14 @@ This directory contains the custom data generation toolchain (**`t-tools`**) and
 
 ```
 training/
-├── t-tools/                              # Python data generation & compiler scripts
-│   ├── generate_ship_dataset.py          # Ships (classes, slot layouts, hardpoints, bonuses)
-│   ├── generate_module_dataset.py        # Modules (high/mid/low/rigs, stats, blanks if None)
-│   ├── generate_system_dataset.py        # Solar systems (regions, sec status, truesec, stations)
-│   ├── generate_instruction_dataset.py   # SFT / ChatML instruction-tuning dataset for Phi-4
-│   ├── generate_fitting_archetypes.py    # Verified EFT fits and fitting validation constraints
-│   └── generate_all_datasets.py          # Master compiler script (executes all tools)
+├── colab_training_pipeline.py        # Unsloth QLoRA Google Colab fine-tuning & GGUF export pipeline
+├── t-tools/                          # Python data generation & compiler scripts
+│   ├── generate_ship_dataset.py      # Ships (classes, slot layouts, hardpoints, bonuses)
+│   ├── generate_module_dataset.py    # Modules (high/mid/low/rigs, stats, blanks if None)
+│   ├── generate_system_dataset.py    # Solar systems (regions, sec status, truesec, stations)
+│   ├── generate_instruction_dataset.py # SFT / ChatML instruction-tuning dataset for Phi-4
+│   ├── generate_fitting_archetypes.py # Verified EFT fits and fitting validation constraints
+│   └── generate_all_datasets.py      # Master compiler script (executes all tools)
 │
 └── t-data/                               # Generated datasets ready for Colab / SFT training
     ├── eve_ships.json                    # Full EVE ships database (JSON format)

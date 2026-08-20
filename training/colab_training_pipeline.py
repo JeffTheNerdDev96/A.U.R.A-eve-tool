@@ -1,21 +1,28 @@
-# THIS IS A INTERAL USE SCRIPT. USED FOR AI TRAINING AND GENRATION IN CLOUD.
+import os
+import sys
+import shutil
+import json
 
 # =======================================================================
 # 1. MOUNT DRIVE & BUILD LLAMA.CPP TOOLCHAIN 
 # =======================================================================
-from google.colab import drive
-drive.mount('/content/drive/')
+try:
+    from google.colab import drive
+    drive.mount('/content/drive/')
+except ImportError:
+    print("[Colab Pipeline] Running outside Google Colab environment.")
 
 # Install Unsloth & training packages
-!pip install --upgrade --no-cache-dir "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
-!pip install --no-deps trl peft accelerate bitsandbytes datasets
+os.system('pip install --upgrade --no-cache-dir "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"')
+os.system('pip install --no-deps trl peft accelerate bitsandbytes datasets')
 
 # Install CMake and build llama.cpp quantizer (RAM-safe 2 threads)
-!apt-get install -y cmake
-!rm -rf /content/llama.cpp
-!git clone https://github.com/ggerganov/llama.cpp /content/llama.cpp
-!cd /content/llama.cpp && pip install -r requirements.txt
-!cd /content/llama.cpp && cmake -B build && cmake --build build --config Release -j 2 --target llama-quantize
+os.system('apt-get install -y cmake')
+if os.path.exists('/content/llama.cpp'):
+    shutil.rmtree('/content/llama.cpp', ignore_errors=True)
+os.system('git clone https://github.com/ggerganov/llama.cpp /content/llama.cpp')
+os.system('cd /content/llama.cpp && pip install -r requirements.txt')
+os.system('cd /content/llama.cpp && cmake -B build && cmake --build build --config Release -j 2 --target llama-quantize')
 
 # =======================================================================
 # 2. LOAD PHI-4-MINI & CONFIGURE QLORA
@@ -239,12 +246,10 @@ drive_q4_gguf = os.path.join(drive_output_dir, "model_q4.gguf")
 os.makedirs(drive_output_dir, exist_ok=True)
 
 # Convert local 16-bit weights to intermediate F16 GGUF on local disk
-!python /content/llama.cpp/convert_hf_to_gguf.py {local_merged_dir} \
-    --outfile {local_f16_gguf} \
-    --outtype f16
+os.system(f"python /content/llama.cpp/convert_hf_to_gguf.py {local_merged_dir} --outfile {local_f16_gguf} --outtype f16")
 
 # Quantize directly into Google Drive as Q4_K_M (~2.2 - 2.4 GB)
-!/content/llama.cpp/build/bin/llama-quantize {local_f16_gguf} {drive_q4_gguf} q4_k_m
+os.system(f"/content/llama.cpp/build/bin/llama-quantize {local_f16_gguf} {drive_q4_gguf} q4_k_m")
 
 # =======================================================================
 # 8. FINAL SCRATCH DISK PURGE
