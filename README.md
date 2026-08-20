@@ -1,13 +1,38 @@
-A.U.R.A — EVE Online AI‑Enhanced Utility
+# A.U.R.A. — EVE Online AI-Enhanced Utility
 
-Your all‑in‑one EVE tool.
+> **Adaptive Underworld Recon Array (A.U.R.A.)** — Your all-in-one, local tactical companion and shipboard assistant for *EVE Online*.
 
-Inspired by tools like R.I.F.T., PYFA, and sites such as DSCAN.INFO, I wanted to build a unified local utility that brings everything together in one place.
+---
 
-The AI component comes from work I’ve been doing on other projects, so I integrated it here to experiment with creating a true “AURA‑like” assistant.
+## Overview
 
-You may notice hints in the UI and code referencing my favorite EVE faction — I won’t say which one, but it’s pretty obvious.
+Inspired by core community tools like **R.I.F.T.**, **PYFA**, and **DSCAN.INFO**, A.U.R.A. is designed to unify essential EVE utilities into a single, cohesive desktop interface. 
 
-Feel free to try it out, see what works, and share any feedback or suggestions.
+Rather than relying on static tables alone, A.U.R.A. embeds a dedicated, offline tactical language model fine-tuned on New Eden's combat mechanics, fitting archetypes, module data, and regional intelligence.
 
-This project is still in very early development and is not intended to replace existing tools at this time. It’s a fun side project exploring AI‑assisted gameplay utilities.
+---
+
+## Key Features
+
+* **Tactical AI Copilot:** Instant ship breakdown, threat assessments, optimal engagement profiles, and EFT fitting lookups.
+* **Unified Intel Dashboard:** Quick access to d-scan parsing, system statistics, and security profiles.
+* **Fully Local & Offline:** Powered by quantized GGUF models that run directly on your hardware without external API fees or latency.
+* **Angel Cartel Flavor:** Tailored aesthetics and tactical shipboard directives inspired by New Eden's premier underworld faction.
+
+---
+
+## AI Model Architecture
+
+A.U.R.A. is driven by a custom fine-tuned model:
+
+* **Model:** [`AURA-Eve-Tactical-Instruct-3.8B`](https://huggingface.co/JeffTheNerdDev96/AURA-Eve-Tactical-Instruct-3.8B)
+* **Backbone:** `microsoft/Phi-4-mini-instruct` (3.8B Parameters)
+* **Quantization:** `Q4_K_M` GGUF (~2.3 GB) via `llama.cpp`
+
+### Model Setup
+
+1. Download the quantized model file:
+   * Grab `model_q4.gguf` directly from the [Hugging Face Repository](https://huggingface.co/JeffTheNerdDev96/AURA-Eve-Tactical-Instruct-3.8B).
+2. Place the file in the designated models directory:
+   ```text
+   A.U.R.A. Source/models/phi-4-mini/model_q4.gguf
