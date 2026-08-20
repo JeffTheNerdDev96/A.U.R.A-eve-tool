@@ -10,9 +10,12 @@
 *.pt
 models/
 **/models/
+
+# 2. Training Datasets & Cloud Pipelines (Internal development only)
+training/
 **/training/
 
-# 2. Local Builds, Distro Packages & Installers
+# 3. Local Builds, Distro Packages & Installers
 A.U.R.A Distro/
 **/A.U.R.A Distro/
 AURA_Standalone_Windows/
@@ -33,13 +36,13 @@ dist_standalone_temp/
 *.7z
 *.tar.gz
 
-# 3. Developer & Benchmarking Tools (Local maintenance only)
+# 4. Developer & Benchmarking Tools (Local maintenance only)
 tools/
 **/tools/
 A.U.R.A. Source/tools/
 **/A.U.R.A. Source/tools/
 
-# 4. Python Cache, Bytecode & Virtual Environments
+# 5. Python Cache, Bytecode & Virtual Environments
 __pycache__/
 **/__pycache__/
 *.py[cod]
@@ -55,12 +58,12 @@ ENV/
 requirements/venv/
 **/requirements/venv/
 
-# 5. Local Chat Logs & Temp Files
+# 6. Local Chat Logs & Temp Files
 *.log
 logs/
 **/logs/
 
-# 6. OS & IDE Metadata
+# 7. OS & IDE Metadata
 .DS_Store
 Thumbs.db
 desktop.ini
