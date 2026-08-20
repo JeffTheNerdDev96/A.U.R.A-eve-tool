@@ -1,23 +1,24 @@
+# THIS IS A INTERAL USE SCRIPT. USED FOR AI TRAINING AND GENRATION IN CLOUD.
+
 # =======================================================================
-# THIS IS FOR CLOUD MODEL TRAINING NOT RUN LOCALLY
-# 1. MOUNT DRIVE & BUILD CONVERSION TOOLCHAIN
+# 1. MOUNT DRIVE & BUILD LLAMA.CPP TOOLCHAIN 
 # =======================================================================
 from google.colab import drive
 drive.mount('/content/drive/')
 
-# Install Unsloth and training dependencies
+# Install Unsloth & training packages
 !pip install --upgrade --no-cache-dir "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
 !pip install --no-deps trl peft accelerate bitsandbytes datasets
 
 # Install CMake and build llama.cpp quantizer (RAM-safe 2 threads)
 !apt-get install -y cmake
-!rm -rf llama.cpp
-!git clone https://github.com/ggerganov/llama.cpp
-!cd llama.cpp && pip install -r requirements.txt
-!cd llama.cpp && cmake -B build && cmake --build build --config Release -j 2 --target llama-quantize
+!rm -rf /content/llama.cpp
+!git clone https://github.com/ggerganov/llama.cpp /content/llama.cpp
+!cd /content/llama.cpp && pip install -r requirements.txt
+!cd /content/llama.cpp && cmake -B build && cmake --build build --config Release -j 2 --target llama-quantize
 
 # =======================================================================
-# 2. LOAD PHI-4-MINI-INSTRUCT & CONFIGURE QLORA
+# 2. LOAD PHI-4-MINI & CONFIGURE QLORA
 # =======================================================================
 from unsloth import FastLanguageModel
 from unsloth.chat_templates import get_chat_template
@@ -40,7 +41,7 @@ tokenizer = get_chat_template(
     chat_template = "phi-4",
 )
 
-# Attach PEFT / LoRA target modules
+# Configure PEFT / LoRA target modules
 model = FastLanguageModel.get_peft_model(
     model,
     r = 16,
@@ -53,11 +54,12 @@ model = FastLanguageModel.get_peft_model(
 )
 
 # =======================================================================
-# 3. LOAD & PARSE ALL TRAINING DATASETS
+# 3. LOAD & UNIFY TRAINING DATASETS
 # =======================================================================
 import os
 import glob
 import json
+import shutil
 from datasets import Dataset
 
 data_dir = "/content/drive/MyDrive/AURA/DATA"
@@ -71,6 +73,7 @@ system_prompt = (
 for file_path in glob.glob(os.path.join(data_dir, "*.*")):
     fname = os.path.basename(file_path).lower()
     
+    # Process JSONL files
     if fname.endswith(".jsonl"):
         with open(file_path, "r", encoding="utf-8") as f:
             for line in f:
@@ -79,6 +82,7 @@ for file_path in glob.glob(os.path.join(data_dir, "*.*")):
                     if "messages" in item:
                         all_samples.append({"messages": item["messages"]})
                         
+    # Process JSON files
     elif fname.endswith(".json"):
         with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -146,11 +150,14 @@ def formatting_prompts_func(examples):
 dataset = dataset.map(formatting_prompts_func, batched=True)
 
 # =======================================================================
-# 4. FINE-TUNE MODEL
+# 4. TRAINING WITH DRIVE & VRAM PROTECTION
 # =======================================================================
 from trl import SFTTrainer
 from transformers import TrainingArguments
 from unsloth import is_bfloat16_supported
+
+# Output intermediate checkpoints to local VM disk to save Google Drive storage
+local_chk_dir = "/content/checkpoints"
 
 trainer = SFTTrainer(
     model = model,
@@ -173,55 +180,87 @@ trainer = SFTTrainer(
         weight_decay = 0.01,
         lr_scheduler_type = "linear",
         seed = 3407,
-        output_dir = "/content/drive/MyDrive/AURA/model-tuned/checkpoints",
+        output_dir = local_chk_dir,
+        save_strategy = "no", # Prevents filling up drive with multi-GB intermediate checkpoints
     ),
 )
 
 trainer.train()
 
 # =======================================================================
-# 5. PHASE 1: MERGE LORA WEIGHTS INTO BASE PHI-4-MINI
+# 5. MERGE WEIGHTS TO LOCAL SCRATCH DISK (SAVES GOOGLE DRIVE QUOTA)
 # =======================================================================
-print("Merging LoRA adapters into full base model...")
-lora_dir = "/content/drive/MyDrive/AURA/model-tuned/lora_adapters"
-merged_dir = "/content/drive/MyDrive/AURA/model-tuned/merged_16bit"
+# 1. Save lightweight LoRA adapters (~50MB) directly to Drive for backup
+drive_lora_dir = "/content/drive/MyDrive/AURA/model-tuned/lora_adapters"
+os.makedirs(drive_lora_dir, exist_ok=True)
+model.save_pretrained(drive_lora_dir)
+tokenizer.save_pretrained(drive_lora_dir)
+print(f"LoRA adapters saved to Drive: {drive_lora_dir}")
 
-# Save standalone LoRA adapters
-model.save_pretrained(lora_dir)
-tokenizer.save_pretrained(lora_dir)
+# 2. Save heavy merged 16-bit model (~7.5GB) to LOCAL disk instead of Drive
+local_merged_dir = "/content/merged_16bit"
+os.makedirs(local_merged_dir, exist_ok=True)
+model.save_pretrained_merged(local_merged_dir, tokenizer, save_method="merged_16bit")
 
-# Merge LoRA weights directly into the base Phi-4-mini weights
-model.save_pretrained_merged(merged_dir, tokenizer, save_method="merged_16bit")
+# 3. Patch tokenizer_config.json on local scratch disk
+tok_cfg_path = os.path.join(local_merged_dir, "tokenizer_config.json")
+if os.path.exists(tok_cfg_path):
+    with open(tok_cfg_path, "r", encoding="utf-8") as f:
+        tok_cfg = json.load(f)
+    tok_cfg["tokenizer_class"] = "GPT2Tokenizer"
+    with open(tok_cfg_path, "w", encoding="utf-8") as f:
+        json.dump(tok_cfg, f, indent=2)
+    print("Patched local tokenizer_config.json for BPE compatibility.")
 
 # =======================================================================
-# 6. SYSTEM MEMORY PURGE (PREVENTS COLAB RAM CRASHES)
+# 6. SYSTEM MEMORY & SCRATCH CLEANUP
 # =======================================================================
+# Free PyTorch tensors, datasets, and optimizer states from System RAM & VRAM
 for var in ['model', 'tokenizer', 'trainer', 'dataset', 'all_samples']:
     if var in globals():
         del globals()[var]
 
 gc.collect()
 torch.cuda.empty_cache()
-print("PyTorch and Python heap RAM successfully flushed.")
+print("System RAM and VRAM cleared.")
+
+# Remove intermediate training checkpoints
+if os.path.exists(local_chk_dir):
+    shutil.rmtree(local_chk_dir)
+    print("Deleted local training checkpoints.")
 
 # =======================================================================
-# 7. PHASE 1: CONVERT TO GGUF & QUANTIZE TO Q4_K_M (model_q4.gguf)
+# 7. GGUF CONVERSION & DIRECT WRITE TO GOOGLE DRIVE
 # =======================================================================
-f16_gguf = "/content/drive/MyDrive/AURA/model-tuned/AURA-Eve-F16.gguf"
-q4_gguf = "/content/drive/MyDrive/AURA/model-tuned/model_q4.gguf"
+local_f16_gguf = "/content/AURA-F16.gguf"
+drive_output_dir = "/content/drive/MyDrive/AURA/model-tuned/gguf"
+drive_q4_gguf = os.path.join(drive_output_dir, "model_q4.gguf")
 
-# Convert merged 16-bit weights to intermediate F16 GGUF
-!python llama.cpp/convert_hf_to_gguf.py {merged_dir} \
-    --outfile {f16_gguf} \
-    --outtype f16 \
-    --vocab-type bpe
+os.makedirs(drive_output_dir, exist_ok=True)
 
-# Quantize to Q4_K_M (~2.2 - 2.4 GB)
-!./llama.cpp/build/bin/llama-quantize {f16_gguf} {q4_gguf} q4_k_m
+# Convert local 16-bit weights to intermediate F16 GGUF on local disk
+!python /content/llama.cpp/convert_hf_to_gguf.py {local_merged_dir} \
+    --outfile {local_f16_gguf} \
+    --outtype f16
 
-# Remove large 7.5GB temporary F16 file to preserve Google Drive storage
-if os.path.exists(f16_gguf):
-    os.remove(f16_gguf)
-    print(f"Removed temporary F16 binary: {f16_gguf}")
+# Quantize directly into Google Drive as Q4_K_M (~2.2 - 2.4 GB)
+!/content/llama.cpp/build/bin/llama-quantize {local_f16_gguf} {drive_q4_gguf} q4_k_m
 
-print(f"\nPhase 1 Complete! Quantized binary ready for download at:\n{q4_gguf}")
+# =======================================================================
+# 8. FINAL SCRATCH DISK PURGE
+# =======================================================================
+# Delete 7.5GB F16 GGUF and 7.5GB merged safetensors from Colab VM
+if os.path.exists(local_f16_gguf):
+    os.remove(local_f16_gguf)
+if os.path.exists(local_merged_dir):
+    shutil.rmtree(local_merged_dir)
+
+print("Purged all local scratch files.")
+
+# Final verification
+if os.path.exists(drive_q4_gguf):
+    size_gb = os.path.getsize(drive_q4_gguf) / (1024 ** 3)
+    print(f"\nSUCCESS! Quantized model ready in your Google Drive ({size_gb:.2f} GB):")
+    print(f"-> {drive_q4_gguf}")
+else:
+    print("\nError: Final GGUF file was not generated.")
