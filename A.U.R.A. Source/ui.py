@@ -1255,32 +1255,26 @@ class MainWindow(QMainWindow):
             prompt = (
                 f"[INTEL LOG DECODING REQUEST]\n\n"
                 f"{summary_md}\n\n"
-                f"[TACTICAL DIRECTIVE]:\n"
-                f"Decode these hostile vectors. Identify dangerous gate camps, cyno traps, hot systems, and recommend safe routing or counter-engagement tactics."
+                f"[DIRECT TACTICAL ASSESSMENT]:\n"
+                f"Provide strictly 2 direct bullets: 1) Identify dangerous gate camps, cynos, or hot systems; 2) Direct routing and evasion directive."
             )
             header = f"📡 <b>D-SCAN Analyzer: Intel Stream</b> ({total_items} reports decoded)"
         elif p_type == "combined":
             prompt = (
                 f"[COMBINED D-SCAN & INTEL ANALYSIS REQUEST]\n\n"
                 f"{summary_md}\n\n"
-                f"[TACTICAL DIRECTIVE]:\n"
-                f"Provide an immediate tactical combat assessment for all vessels and intel reports.\n"
-                f"Note: Vessels listed at 'D-Scan Sphere (< 14.3 AU)' or '-' are in local directional scanning range and are active threats preparing to warp or probe.\n"
-                f"Identify primary targets, dangerous tackle/cyno traps, recommended transversal/range tactics, and whether to engage or warp out."
+                f"[DIRECT TACTICAL ASSESSMENT]:\n"
+                f"Provide strictly 2 direct bullets: 1) Primary hostile threats and bubble/cyno traps; 2) Immediate action (engage envelope, align, or warp out)."
             )
             header = f"📡 <b>D-SCAN Analyzer: Fleet & Intel Matrix</b> ({total_items} elements detected)"
         else:
             prompt = (
                 f"[DIRECTIONAL SCAN TACTICAL ANALYSIS REQUEST]\n\n"
                 f"{summary_md}\n\n"
-                f"[TACTICAL DIRECTIVE]:\n"
-                f"Provide an immediate combat threat assessment for this D-Scan.\n"
-                f"Note: Vessels listed at 'D-Scan Sphere (< 14.3 AU)' or '-' are in local directional scanning range (< 14.3 AU) and are active threats preparing to warp or combat probe.\n"
-                f"Provide a structured 4-point response:\n"
-                f"1. Threat Breakdown: Identify primary hostile targets and dangerous tackle/cyno/bubble traps on scan.\n"
-                f"2. Combat Range & Transversal: Recommended flight engagement range and transversal velocity tactics.\n"
-                f"3. High-Priority Countermeasures: Modules/tactics to counter hostile tackle, EWAR, or DPS.\n"
-                f"4. Tactical Action: Explicit advice on whether to engage, hold position, reposition, or immediately warp out."
+                f"[DIRECT TACTICAL ASSESSMENT]:\n"
+                f"Provide strictly 2 direct bullets:\n"
+                f"• Grid Threats & Hazards: Identify primary hostile targets, tackle/bubbles, and cyno danger on scan.\n"
+                f"• Immediate Action: Direct tactical order (recommended engagement range/EWAR, hold alignment, or immediate warp out)."
             )
             header = f"📡 <b>D-SCAN Analyzer: Fleet Threat Matrix</b> ({threat_level} — {total_items} vessels)"
 
@@ -1321,19 +1315,14 @@ class MainWindow(QMainWindow):
 
         prompt = (
             f"[FITTING LAB EVALUATION REQUEST]\n"
-            f"• Vessel: `{hull}` ({fit_name})\n"
-            f"• Hull Class: {s_class}\n"
-            f"• Target Combat Role: **{role}**\n\n"
+            f"• Vessel: `{hull}` ({fit_name}) [{s_class.upper()}] | Target Role: **{role}**\n\n"
             f"{summary_md}\n\n"
-            f"[AUTHENTIC EVE FITTING RULES]:\n"
             f"{size_rules}\n"
-            f"• AMMO & MODULE RULES: Ammunition sizes in EVE Online are strictly S (Small), M (Medium), L (Large), XL (Extra Large). Never invent fake letters like 'Hail B' or 'Hail C'. T2 Projectile ammo is strictly Hail S/M/L (short-range DPS) or Barrage S/M/L (falloff). Never invent fake modules like 'Shield Binder'.\n"
-            f"Evaluate this `{hull}` fitting specifically for the **{role}** doctrine.\n"
-            f"Provide a structured 3 to 4 bullet assessment:\n"
-            f"1. Role Compatibility: Acknowledge fitted weapons, tank, and tackle. Assess performance in {role}.\n"
-            f"2. Capacitor & Tank Synergy: Evaluate capacitor resilience and tank synergy for {role}.\n"
-            f"3. Module / Ammo Refinements: Suggest 1-2 authentic, size-legal module or ammo adjustments (e.g. switching between Hail S for brawling and Barrage S for falloff projection; or authentic sidegrades for this exact hull size).\n"
-            f"4. Piloting & Range Envelope: State exact optimal/falloff engagement ranges and flight tactics for {role}."
+            f"• AMMO & MODULE RULES: Ammunition sizes in EVE Online are strictly S (Small), M (Medium), L (Large), XL (Extra Large). T2 Projectile ammo is strictly Hail S/M/L (short-range DPS) or Barrage S/M/L (falloff). Never invent fake modules.\n\n"
+            f"[DIRECT FITTING ASSESSMENT]:\n"
+            f"Evaluate this `{hull}` for **{role}** in strictly 2 direct bullets:\n"
+            f"• Fit Viability & Profile: Direct assessment of capacitor resilience, tank synergy, and weapon projection for {role}.\n"
+            f"• Key Refinements & Tactics: 1-2 authentic, size-legal module/ammo optimizations and optimal engagement range envelope."
         )
         self._set_piloted_ship(hull)
         self._execute_tactical_prompt(prompt, f"🛠️ <b>Fitting Lab Review</b>: `{hull}` ({role})")

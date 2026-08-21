@@ -7746,6 +7746,9 @@ def get_tactical_summary_for_text(text: str, attachments: Any = None, piloted_sh
             p_t = p_info.get("tank", "Combat Tank")
             grounding_blocks.append(f"• Active Capsuleer Vessel: {p_name} [{p_info.get('class', 'Vessel')} | {p_info.get('faction', 'Faction')}] — Weapons: {p_w} | Tank: {p_t}")
 
+    is_combat_context = any(k in lower_text for k in ["intel", "ping", "threat", "dscan", "d-scan", "hostile", "target", "kill", "fight", "engage", "counter", "bubble", "camp", "cyno", "spotted", "local", "spike", "trap"])
+    dossier_prefix = "• Hostile Target Dossier" if is_combat_context else "• Vessel Dossier"
+
     # Check for direct multi-word ship names first
     for ship_name, s_info, ship_lower in _MULTI_WORD_SHIPS:
         if ship_lower in lower_text:
@@ -7756,7 +7759,7 @@ def get_tactical_summary_for_text(text: str, attachments: Any = None, piloted_sh
                 r = s_info.get("role", "Combat Vessel")
                 w = s_info.get("weapon_type", "Standard")
                 t = s_info.get("tactics", "Standard tactical engagement.")
-                grounding_blocks.append(f"• Target Dossier: {ship_name} [{s_info.get('class', 'Vessel')} | {s_info.get('faction', 'Faction')}] — Role: {r} | Weapons: {w} | Tactics: {t}")
+                grounding_blocks.append(f"{dossier_prefix}: {ship_name} [{s_info.get('class', 'Vessel')} | {s_info.get('faction', 'Faction')}] — Role: {r} | Weapons: {w} | Profile: {t}")
 
     for w in words:
         if len(detected_hulls) >= 3:
@@ -7772,16 +7775,18 @@ def get_tactical_summary_for_text(text: str, attachments: Any = None, piloted_sh
                 r = s_info.get("role", "Combat Vessel")
                 wp = s_info.get("weapon_type", "Standard")
                 t = s_info.get("tactics", "Standard tactical engagement.")
-                grounding_blocks.append(f"• Target Dossier: {cname} [{s_info.get('class', 'Vessel')} | {s_info.get('faction', 'Faction')}] — Role: {r} | Weapons: {wp} | Tactics: {t}")
+                grounding_blocks.append(f"{dossier_prefix}: {cname} [{s_info.get('class', 'Vessel')} | {s_info.get('faction', 'Faction')}] — Role: {r} | Weapons: {wp} | Profile: {t}")
 
     # Check for Role Doctrine Grounding
-    for role_key_l, role_doctrine in _ROLE_DOCTRINES_LOWER:
-        if role_key_l in lower_text and len(grounding_blocks) < 4:
-            grounding_blocks.append(role_doctrine)
+    if is_combat_context:
+        for role_key_l, role_doctrine in _ROLE_DOCTRINES_LOWER:
+            if role_key_l in lower_text and len(grounding_blocks) < 4:
+                grounding_blocks.append(role_doctrine)
 
     if grounding_blocks:
         joined_dossiers = "\n".join(grounding_blocks[:3])
-        return f"[Tactical Intelligence]:\n{joined_dossiers}"
+        header_title = "[Tactical Intelligence]:" if is_combat_context else "[EVE Vessel Reference]:"
+        return f"{header_title}\n{joined_dossiers}"
     
     return ""
 
