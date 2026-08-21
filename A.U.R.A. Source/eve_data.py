@@ -7588,6 +7588,26 @@ EVE_COMBAT_AXIOMS = (
 import functools
 import sys
 
+_COMMON_STOP_WORDS = {
+    "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "aren't",
+    "as", "at", "be", "because", "been", "before", "being", "below", "between", "both", "but", "by",
+    "can", "can't", "cannot", "could", "couldn't", "did", "didn't", "do", "does", "doesn't", "doing",
+    "don't", "down", "during", "each", "eve", "few", "fit", "fits", "fitted", "fitting", "fleet", "fleets",
+    "for", "from", "further", "had", "hadn't", "has", "hasn't", "have", "haven't", "having", "he", "he'd",
+    "he'll", "he's", "her", "here", "here's", "hers", "herself", "him", "himself", "his", "how", "how's",
+    "hull", "hulls", "i", "i'd", "i'll", "i'm", "i've", "if", "in", "into", "is", "isn't", "it", "it's",
+    "its", "itself", "let's", "me", "more", "most", "mustn't", "my", "myself", "no", "nor", "not", "of",
+    "off", "on", "once", "one", "online", "only", "or", "other", "ought", "our", "ours", "ourselves", "out",
+    "over", "own", "pilot", "pilots", "ping", "pings", "pvp", "pve", "query", "same", "shan't", "she",
+    "she'd", "she'll", "she's", "ship", "ships", "should", "shouldn't", "so", "some", "such", "than",
+    "that", "that's", "the", "their", "theirs", "them", "themselves", "then", "there", "there's", "these",
+    "they", "they'd", "they'll", "they're", "they've", "this", "threat", "threats", "those", "through",
+    "to", "too", "under", "until", "up", "very", "was", "wasn't", "we", "we'd", "we'll", "we're", "we've",
+    "were", "weren't", "what", "what's", "whats", "when", "when's", "where", "where's", "which", "while",
+    "who", "who's", "whom", "why", "why's", "with", "won't", "would", "wouldn't", "you", "you'd", "you'll",
+    "you're", "you've", "your", "yours", "yourself", "yourselves"
+}
+
 _NORMALIZED_SHIP_LOOKUP: Dict[str, Dict[str, Any]] = {sys.intern(name.lower()): info for name, info in SHIP_DATABASE.items()}
 _NORMALIZED_MODULE_LOOKUP: Dict[str, Dict[str, Any]] = {sys.intern(name.lower()): info for name, info in MODULE_DATABASE.items()}
 _MULTI_WORD_SHIPS = [(name, info, sys.intern(name.lower())) for name, info in SHIP_DATABASE.items() if " " in name]
@@ -7599,12 +7619,17 @@ def lookup_ship(name: str) -> Optional[Dict[str, Any]]:
     if not name:
         return None
     nl = name.strip().lower()
+    if nl in _COMMON_STOP_WORDS or len(nl) < 3:
+        return None
     res = _NORMALIZED_SHIP_LOOKUP.get(nl)
     if res is not None:
         return res
-    for s_name, s_info in SHIP_DATABASE.items():
-        if nl in s_name.lower():
-            return s_info
+    # Strict prefix/word matching only for valid tokens with 4+ chars
+    if len(nl) >= 4:
+        for s_name, s_info in SHIP_DATABASE.items():
+            s_l = s_name.lower()
+            if s_l.startswith(nl) or f" {nl}" in s_l:
+                return s_info
     return None
 
 @functools.lru_cache(maxsize=2048)
@@ -7612,12 +7637,16 @@ def lookup_module(name: str) -> Optional[Dict[str, Any]]:
     if not name:
         return None
     nl = name.strip().lower()
+    if nl in _COMMON_STOP_WORDS or len(nl) < 3:
+        return None
     res = _NORMALIZED_MODULE_LOOKUP.get(nl)
     if res is not None:
         return res
-    for m_name, m_info in MODULE_DATABASE.items():
-        if nl in m_name.lower():
-            return m_info
+    if len(nl) >= 4:
+        for m_name, m_info in MODULE_DATABASE.items():
+            m_l = m_name.lower()
+            if m_l.startswith(nl) or f" {nl}" in m_l:
+                return m_info
     return None
 
 def get_tactical_summary_for_text(text: str, attachments: Any = None, piloted_ship: Optional[str] = None, piloted_ship_name: Optional[str] = None) -> str:
@@ -7626,7 +7655,8 @@ def get_tactical_summary_for_text(text: str, attachments: Any = None, piloted_sh
     
     active_piloted = piloted_ship or piloted_ship_name
     lower_text = text.lower()
-    words = set(re.findall(r'\b[a-zA-Z0-9_-]+\b', lower_text))
+    raw_tokens = re.findall(r'\b[a-zA-Z0-9_-]+\b', lower_text)
+    words = [w for w in raw_tokens if w not in _COMMON_STOP_WORDS and len(w) >= 3]
     
     detected_hulls = set()
     grounding_blocks = []

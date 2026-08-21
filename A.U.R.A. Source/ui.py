@@ -968,22 +968,6 @@ class MainWindow(QMainWindow):
         # Display initial greeting
         self._display_welcome()
 
-        # Asynchronous background neural pre-warming (Eliminates first-response delay)
-        QTimer.singleShot(600, self._prewarm_neural_core)
-
-    def _prewarm_neural_core(self):
-        """Asynchronously pre-arms the neural model into VRAM and NPU in background on startup."""
-        import threading
-        def _warmup():
-            try:
-                self.engine.ensure_model_loaded(warmup=True)
-                if self.engine.coprocessor and self.engine.detector.has_npu:
-                    self.engine.coprocessor._ensure_core()
-                    self.engine.coprocessor._get_or_compile("NPU")
-            except Exception:
-                pass
-        threading.Thread(target=_warmup, daemon=True).start()
-
     def _set_piloted_ship(self, ship_name: Optional[str]):
         """Updates the active piloted hull and top bar indicator for tailored combat calculations."""
         if not ship_name:
