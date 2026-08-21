@@ -1641,14 +1641,30 @@ class MainWindow(QMainWindow):
         self._reset_idle_timer()
 
 
+    def _perform_lifecycle_cleanup(self):
+        """Purges memory buffers, unloads neural cores, runs garbage collection, and cleans temporary files."""
+        try:
+            if hasattr(self, "engine") and self.engine and self.engine.llm is not None:
+                self.engine.unload_model()
+            if hasattr(self, "chat_history"):
+                self.chat_history.clear()
+            if hasattr(self, "attachments"):
+                self.attachments.clear()
+            gc.collect()
+        except Exception:
+            pass
+
     def closeEvent(self, event):
+        """Clean shutdown handler ensuring no ghost processes or VRAM/RAM allocations remain."""
         try:
             if hasattr(self, "chat_monitor") and self.chat_monitor:
                 self.chat_monitor.stop()
-                self.chat_monitor.wait(800)
+                self.chat_monitor.wait(500)
             if hasattr(self, "worker") and self.worker and self.worker.isRunning():
+                self.worker.stop()
                 self.worker.quit()
-                self.worker.wait(800)
+                self.worker.wait(500)
+            self._perform_lifecycle_cleanup()
         except Exception:
             pass
         event.accept()
@@ -1656,9 +1672,13 @@ class MainWindow(QMainWindow):
 
 def run_app():
     app = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(True)
     window = MainWindow()
     window.show()
-    sys.exit(app.exec())
+    ret = app.exec()
+    # Ensure all background DLLs and thread pools exit cleanly with zero lingering processes
+    gc.collect()
+    os._exit(ret)
 
 
 if __name__ == "__main__":

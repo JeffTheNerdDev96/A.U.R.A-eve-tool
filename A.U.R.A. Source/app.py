@@ -6,6 +6,13 @@ import sys
 import os
 import traceback
 import time
+import shutil
+import atexit
+import gc
+
+# Enforce no stale bytecode caching across all executions
+sys.dont_write_bytecode = True
+os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
 
 if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -39,7 +46,34 @@ if sys.platform == "win32":
         except Exception:
             pass
 
-# 2. Global Uncaught Exception Trap & Crash Logger
+# 2. Automated Stale Cache & Temporary File Cleaner
+def _cleanup_stale_caches():
+    """Purges orphaned __pycache__ and temporary logs to keep filesystem pristine."""
+    app_dir = os.path.dirname(os.path.abspath(__file__))
+    pc = os.path.join(app_dir, "__pycache__")
+    if os.path.exists(pc):
+        try:
+            shutil.rmtree(pc, ignore_errors=True)
+        except Exception:
+            pass
+
+    log_dir = os.path.join(app_dir, "logs")
+    if os.path.exists(log_dir):
+        now = time.time()
+        for f in os.listdir(log_dir):
+            if f.endswith(".log") and f != "crash.log":
+                f_path = os.path.join(log_dir, f)
+                try:
+                    # Remove non-crash logs older than 3 days
+                    if os.stat(f_path).st_mtime < now - (3 * 86400):
+                        os.remove(f_path)
+                except Exception:
+                    pass
+
+_cleanup_stale_caches()
+atexit.register(_cleanup_stale_caches)
+
+# 3. Global Uncaught Exception Trap & Crash Logger
 def _global_exception_handler(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, KeyboardInterrupt):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)

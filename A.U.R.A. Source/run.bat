@@ -6,6 +6,7 @@ cd /d "%~dp0"
 set "SCRIPT_DIR=%~dp0"
 set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8
+set PYTHONDONTWRITEBYTECODE=1
 title A.U.R.A. Assist - Tactical Recon Array (v0.1.4-alpha6)
 
 cls
