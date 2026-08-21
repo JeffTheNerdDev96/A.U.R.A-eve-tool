@@ -60,12 +60,15 @@ class WorkerThread(QThread):
             for packet in self.engine.generate_stream(self.prompt, self.chat_history, self.attachments, piloted_ship=self.piloted_ship):
                 if self._is_stopped:
                     break
-                if packet["type"] == "meta":
-                    self.meta_received.emit(packet)
-                elif packet["type"] == "token":
-                    self.token_received.emit(packet)
-                elif packet["type"] == "done":
-                    self.done_received.emit(packet)
+                match packet.get("type"):
+                    case "meta":
+                        self.meta_received.emit(packet)
+                    case "token":
+                        self.token_received.emit(packet)
+                    case "done":
+                        self.done_received.emit(packet)
+                    case "error":
+                        self.error_received.emit(packet.get("text", packet.get("error", "Error")))
             
             if self._is_stopped:
                 self.done_received.emit({
@@ -77,7 +80,10 @@ class WorkerThread(QThread):
                     "stopped": True
                 })
         except Exception as e:
-            self.error_received.emit(str(e))
+            from error_handler import AURAErrorCode, log_diagnostic_error, format_error_html
+            code = AURAErrorCode.ERR_5001_WORKER_CRASH
+            log_diagnostic_error(code, e, "WorkerThread.run")
+            self.error_received.emit(format_error_html(code, str(e)))
 
 
 
@@ -1356,7 +1362,10 @@ class MainWindow(QMainWindow):
             sb.setValue(sb.maximum())
 
     def _on_worker_error(self, err_msg: str):
-        self.chat_display.append(f"<br><small style='color: #ef4444;'>⚠️ Tactical Compute Error: {err_msg}</small><br>")
+        if "<div" in err_msg:
+            self.chat_display.append(f"<br>{err_msg}<br>")
+        else:
+            self.chat_display.append(f"<br><small style='color: #ef4444;'>Tactical Compute Error: {err_msg}</small><br>")
         self.tier_badge.setText(self._get_idle_badge_text())
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
         self.stop_btn.hide()

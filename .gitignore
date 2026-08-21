@@ -36,11 +36,21 @@ dist_standalone_temp/
 *.7z
 *.tar.gz
 
-# 4. Developer & Benchmarking Tools (Local maintenance only)
+# 4. Developer Tools, Build Output & Temporary Workspaces
 tools/
 **/tools/
 A.U.R.A. Source/tools/
 **/A.U.R.A. Source/tools/
+build_installer_temp/
+**/build_installer_temp/
+build_standalone_temp/
+**/build_standalone_temp/
+build_launcher_temp/
+**/build_launcher_temp/
+dist_standalone_temp/
+**/dist_standalone_temp/
+scratch/
+**/scratch/
 
 # 5. Python Cache, Bytecode & Virtual Environments
 __pycache__/

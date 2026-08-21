@@ -6,11 +6,11 @@ cd /d "%~dp0"
 set "SCRIPT_DIR=%~dp0"
 set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8
-title A.U.R.A. Assist - Tactical Recon Array (v0.1.3-alpha5)
+title A.U.R.A. Assist - Tactical Recon Array (v0.1.4-alpha6)
 
 cls
 echo ===================================================================
-echo   [+] A.U.R.A. ASSIST - TACTICAL RECON ARRAY (v0.1.3-alpha5)
+echo   [+] A.U.R.A. ASSIST - TACTICAL RECON ARRAY (v0.1.4-alpha6)
 echo   Angel Cartel Cybernetics Division  ^|  by JeffTheNerdDev96
 echo ===================================================================
 echo [!] Initializing Phi-4 Mini Neural Core ^& Live Intel Radar...
@@ -19,20 +19,21 @@ echo.
 set "PYTHON_EXE="
 set "PYTHONW_EXE="
 
+rem 1. Check requirements\venv dedicated environment
 if exist "%SCRIPT_DIR%requirements\venv\Scripts\python.exe" (
-    set "PYTHON_EXE=%SCRIPT_DIR%requirements\venv\Scripts\python.exe"
-    if exist "%SCRIPT_DIR%requirements\venv\Scripts\pythonw.exe" set "PYTHONW_EXE=%SCRIPT_DIR%requirements\venv\Scripts\pythonw.exe"
-    set "PATH=%SCRIPT_DIR%requirements\venv\Scripts;%SCRIPT_DIR%requirements\vulkan_llama;%SCRIPT_DIR%requirements\venv\Lib\site-packages\openvino\libs;%SCRIPT_DIR%requirements\venv\Lib\site-packages\llama_cpp\lib;%PATH%"
-    goto :VERIFY_AND_LAUNCH
+    "%SCRIPT_DIR%requirements\venv\Scripts\python.exe" -c "import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)" >nul 2>nul
+    if %ERRORLEVEL% EQU 0 (
+        set "PYTHON_EXE=%SCRIPT_DIR%requirements\venv\Scripts\python.exe"
+        if exist "%SCRIPT_DIR%requirements\venv\Scripts\pythonw.exe" set "PYTHONW_EXE=%SCRIPT_DIR%requirements\venv\Scripts\pythonw.exe"
+        set "PATH=%SCRIPT_DIR%requirements\venv\Scripts;%SCRIPT_DIR%requirements\vulkan_llama;%SCRIPT_DIR%requirements\venv\Lib\site-packages\openvino\libs;%SCRIPT_DIR%requirements\venv\Lib\site-packages\llama_cpp\lib;%PATH%"
+        goto :VERIFY_AND_LAUNCH
+    ) else (
+        echo [!] Warning: Existing virtualenv is running an obsolete Python version. Rebuilding with Python 3.12...
+        rmdir /s /q "%SCRIPT_DIR%requirements\venv"
+    )
 )
 
-if exist "%SCRIPT_DIR%venv\Scripts\python.exe" (
-    set "PYTHON_EXE=%SCRIPT_DIR%venv\Scripts\python.exe"
-    if exist "%SCRIPT_DIR%venv\Scripts\pythonw.exe" set "PYTHONW_EXE=%SCRIPT_DIR%venv\Scripts\pythonw.exe"
-    set "PATH=%SCRIPT_DIR%venv\Scripts;%SCRIPT_DIR%requirements\vulkan_llama;%SCRIPT_DIR%venv\Lib\site-packages\openvino\libs;%SCRIPT_DIR%venv\Lib\site-packages\llama_cpp\lib;%PATH%"
-    goto :VERIFY_AND_LAUNCH
-)
-
+rem 2. Check bundled standalone Python 3.12 runtime
 if exist "%SCRIPT_DIR%runtime\python.exe" (
     set "PYTHON_EXE=%SCRIPT_DIR%runtime\python.exe"
     if exist "%SCRIPT_DIR%runtime\pythonw.exe" set "PYTHONW_EXE=%SCRIPT_DIR%runtime\pythonw.exe"
@@ -40,15 +41,24 @@ if exist "%SCRIPT_DIR%runtime\python.exe" (
     goto :VERIFY_AND_LAUNCH
 )
 
-where python >nul 2>nul
+rem 3. Check system Python 3.12 via launcher or PATH
+py -3.12 -c "import sys; sys.exit(0)" >nul 2>nul
+if %ERRORLEVEL% EQU 0 (
+    set "PYTHON_EXE=py -3.12"
+    set "PATH=%SCRIPT_DIR%requirements\vulkan_llama;%PATH%"
+    goto :VERIFY_AND_LAUNCH
+)
+
+python -c "import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)" >nul 2>nul
 if %ERRORLEVEL% EQU 0 (
     set "PYTHON_EXE=python"
     set "PATH=%SCRIPT_DIR%requirements\vulkan_llama;%PATH%"
     goto :VERIFY_AND_LAUNCH
 )
 
-echo [X] Error: Python was not found on this system.
-echo [!] Please run one of the hardware setup scripts in requirements\ first:
+echo [X] Error: Python 3.12+ was not found on this system.
+echo [!] A.U.R.A. v0.1.4-alpha6 requires Python 3.12 or higher.
+echo [!] Please run one of the hardware setup scripts in requirements\ or execute the setup installer:
 echo     - install_intel_npu.bat   (Intel NPU / Arc GPU)
 echo     - install_amd_npu.bat     (AMD Ryzen AI NPU)
 echo     - install_nvidia_cuda.bat (NVIDIA RTX / GTX)

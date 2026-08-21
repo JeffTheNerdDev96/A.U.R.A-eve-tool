@@ -275,6 +275,20 @@ class HardwareDetector:
         return any(g.get("type") == "iGPU" for g in self.devices.get("gpus", []))
 
     @property
+    def dgpu_name(self) -> str:
+        for g in self.devices.get("gpus", []):
+            if g.get("type") == "dGPU":
+                return g["device_name"]
+        return ""
+
+    @property
+    def igpu_name(self) -> str:
+        for g in self.devices.get("gpus", []):
+            if g.get("type") == "iGPU":
+                return g["device_name"]
+        return ""
+
+    @property
     def gpu_name(self) -> str:
         return self.devices["gpu"]["device_name"]
 
@@ -297,24 +311,23 @@ class HardwareDetector:
         return self.devices["cpu"]["device_name"]
 
     def get_summary_string(self) -> str:
+        components = []
         if self.has_npu:
-            npu_part = f"{self.npu_name} ({self.npu_vendor} NPU)"
-        else:
-            npu_part = "No NPU (Auto Fallback: CPU + GPU)"
-            
-        if self.has_gpu:
-            gpu_part = f"{self.gpu_name} ({self.gpu_vendor})"
-        else:
-            gpu_part = "No Dedicated GPU"
-            
-        cpu_part = f"{self.cpu_name} ({self.cpu_threads}T)"
-        return f"NPU: {npu_part} | GPU: {gpu_part} | CPU: {cpu_part}"
+            components.append(f"NPU: {self.npu_name} ({self.npu_vendor})")
+        if self.has_dgpu:
+            components.append(f"dGPU: {self.dgpu_name}")
+        if self.has_igpu:
+            components.append(f"iGPU: {self.igpu_name}")
+        if not self.has_dgpu and not self.has_igpu and self.has_gpu:
+            components.append(f"GPU: {self.gpu_name} ({self.gpu_vendor})")
+        components.append(f"CPU: {self.cpu_name} ({self.cpu_threads}T)")
+        return " | ".join(components)
 
 
 class DynamicHardwareRouter:
     """
-    Calculates compute workload demand for A.U.R.A. and prioritizes dual-vendor NPUs (Intel & AMD),
-    scaling dynamically across Intel, AMD, and NVIDIA GPUs (dGPU & iGPU) and CPU.
+    Calculates compute workload demand for A.U.R.A. and orchestrates heterogeneous multi-hardware scaling:
+    - Scales across NPU, integrated iGPU (Intel Arc/Iris or AMD Radeon), dedicated dGPU (NVIDIA/AMD), and Multi-Core CPU.
     """
     def __init__(self, detector: HardwareDetector):
         self.detector = detector
@@ -330,43 +343,83 @@ class DynamicHardwareRouter:
         attachment_count: int = 0
     ) -> Dict[str, Any]:
         """
-        Routes workload across compute hardware automatically:
-        1. File/Vision Upload Override: If files or screenshots are attached, scale up all compute resources.
-        2. Default Mode:
-           - On NPU hosts: Uses dedicated NPU core for pure text and intel processing (zero GPU/CPU overhead).
-           - On GPU hosts: Uses GPU + CPU acceleration.
-           - On CPU hosts: Uses multi-threaded vector compute mesh.
+        Routes workload across heterogeneous hardware mesh automatically:
+        1. File/Vision Upload Override: Scales across all available compute units simultaneously.
+        2. Heavy Tactical Reasoning / D-Scan (token_count > 350): Engages full hardware compute mesh.
+        3. Ambient / Conversational Queries: Routes to energy-efficient dedicated NPU core or primary GPU.
         """
         has_npu = self.detector.has_npu
         npu_vendor = self.detector.npu_vendor
+        has_dgpu = self.detector.has_dgpu
+        has_igpu = self.detector.has_igpu
         has_gpu = self.detector.has_gpu
         gpu_name = self.detector.gpu_name
         gpu_vendor = self.detector.gpu_vendor
         has_attachments = has_image or has_doc or attachment_count > 0
+        is_heavy_workload = has_attachments or token_count > 350
 
         # -------------------------------------------------------------
-        # 1. FILE UPLOAD & VISION OVERRIDE (Use ALL resources)
+        # TIER 4: HETEROGENEOUS QUAD-MESH (NPU + iGPU + dGPU + CPU)
         # -------------------------------------------------------------
-        if has_attachments:
-            if has_npu and has_gpu:
+        if has_npu and has_dgpu and has_igpu:
+            tier_name = f"Heterogeneous Quad-Mesh ({npu_vendor} NPU + {self.detector.dgpu_name} + {self.detector.igpu_name} + CPU)"
+            return {
+                "tier_id": 4,
+                "tier_name": tier_name,
+                "badge": f"⚡ Quad-Mesh: {npu_vendor} NPU + dGPU + iGPU + CPU",
+                "color": "#f43f5e",
+                "bg_color": "#4c0519",
+                "strategy": f"{npu_vendor} NPU + dGPU + iGPU + CPU",
+                "short_tag": "Quad-Mesh",
+                "coprocessor_target": "FULL_MESH",
+                "hw_tag": f"*{npu_vendor} NPU + dGPU + iGPU + CPU*",
+                "npu_vendor": npu_vendor,
+                "mode": "quad_mesh"
+            }
+
+        # -------------------------------------------------------------
+        # TIER 3: TRIPLE-MESH (NPU + GPU + CPU) - Intel Core Ultra / AMD Ryzen AI
+        # -------------------------------------------------------------
+        if has_npu and has_gpu:
+            if is_heavy_workload:
+                gpu_desc = f"{gpu_vendor} GPU" if not has_igpu else f"{self.detector.igpu_name}"
                 return {
                     "tier_id": 3,
-                    "tier_name": f"Full Compute Mesh ({npu_vendor} NPU + {gpu_vendor} GPU + CPU)",
-                    "badge": f"⚡ Full Mesh: {npu_vendor} NPU + {gpu_vendor} GPU + CPU",
+                    "tier_name": f"Full Compute Mesh ({npu_vendor} NPU + {gpu_desc} + CPU)",
+                    "badge": f"⚡ Full Mesh: {npu_vendor} NPU + {gpu_desc} + CPU",
                     "color": "#f43f5e",
                     "bg_color": "#4c0519",
-                    "strategy": f"{npu_vendor} NPU + {gpu_vendor} GPU + CPU",
+                    "strategy": f"{npu_vendor} NPU + {gpu_desc} + CPU",
                     "short_tag": "NPU + GPU + CPU",
                     "coprocessor_target": "FULL_MESH",
-                    "hw_tag": f"*{npu_vendor} NPU + {gpu_vendor} GPU + CPU*",
+                    "hw_tag": f"*{npu_vendor} NPU + {gpu_desc} + CPU*",
                     "npu_vendor": npu_vendor,
-                    "mode": "file_override"
+                    "mode": "heavy_mesh"
                 }
-            elif has_npu:
+            else:
+                return {
+                    "tier_id": 1,
+                    "tier_name": f"Tier 1: {npu_vendor} NPU Dedicated Core",
+                    "badge": f"⚡ {npu_vendor} NPU Ambient Core",
+                    "color": "#10b981",
+                    "bg_color": "#064e3b",
+                    "strategy": f"{npu_vendor} NPU",
+                    "short_tag": "NPU",
+                    "coprocessor_target": "NPU",
+                    "hw_tag": f"*{npu_vendor} NPU*",
+                    "npu_vendor": npu_vendor,
+                    "mode": "default_npu"
+                }
+
+        # -------------------------------------------------------------
+        # TIER 2: NPU + CPU MESH (Systems with NPU but no GPU drivers loaded)
+        # -------------------------------------------------------------
+        if has_npu:
+            if is_heavy_workload:
                 return {
                     "tier_id": 2,
-                    "tier_name": f"{npu_vendor} NPU + CPU (File Accelerated)",
-                    "badge": f"⚡ {npu_vendor} NPU + CPU (File Accelerated)",
+                    "tier_name": f"{npu_vendor} NPU + CPU Mesh",
+                    "badge": f"⚡ {npu_vendor} NPU + CPU Mesh",
                     "color": "#38bdf8",
                     "bg_color": "#0c4a6e",
                     "strategy": f"{npu_vendor} NPU + CPU",
@@ -374,59 +427,31 @@ class DynamicHardwareRouter:
                     "coprocessor_target": "FULL_MESH",
                     "hw_tag": f"*{npu_vendor} NPU + CPU*",
                     "npu_vendor": npu_vendor,
-                    "mode": "file_override"
-                }
-            elif has_gpu:
-                return {
-                    "tier_id": 2,
-                    "tier_name": f"{gpu_vendor} GPU + CPU (File Accelerated)",
-                    "badge": f"⚡ {gpu_name} + CPU",
-                    "color": "#38bdf8",
-                    "bg_color": "#0c4a6e",
-                    "strategy": f"{gpu_vendor} GPU + CPU",
-                    "short_tag": "GPU + CPU",
-                    "coprocessor_target": "GPU",
-                    "hw_tag": f"*{gpu_vendor} GPU + CPU*",
-                    "npu_vendor": "None",
-                    "mode": "file_override"
+                    "mode": "heavy_mesh"
                 }
             else:
                 return {
-                    "tier_id": 3,
-                    "tier_name": "CPU Multi-Core (File Accelerated)",
-                    "badge": "⚡ CPU Multi-Core",
-                    "color": "#f59e0b",
-                    "bg_color": "#451a03",
-                    "strategy": "CPU",
-                    "short_tag": "CPU",
-                    "coprocessor_target": "CPU",
-                    "hw_tag": "*CPU*",
-                    "npu_vendor": "None",
-                    "mode": "file_override"
+                    "tier_id": 1,
+                    "tier_name": f"Tier 1: {npu_vendor} NPU Dedicated Core",
+                    "badge": f"⚡ {npu_vendor} NPU Only",
+                    "color": "#10b981",
+                    "bg_color": "#064e3b",
+                    "strategy": f"{npu_vendor} NPU",
+                    "short_tag": "NPU",
+                    "coprocessor_target": "NPU",
+                    "hw_tag": f"*{npu_vendor} NPU*",
+                    "npu_vendor": npu_vendor,
+                    "mode": "default_npu"
                 }
 
         # -------------------------------------------------------------
-        # 3. DEFAULT MODE (When Turbo is OFF and no attachments)
+        # TIER 2: GPU + CPU MESH (Desktop / Gaming Laptop with dGPU/iGPU)
         # -------------------------------------------------------------
-        if has_npu:
-            return {
-                "tier_id": 1,
-                "tier_name": f"Tier 1: {npu_vendor} NPU Dedicated Core",
-                "badge": f"⚡ {npu_vendor} NPU Only",
-                "color": "#10b981",
-                "bg_color": "#064e3b",
-                "strategy": f"{npu_vendor} NPU",
-                "short_tag": "NPU",
-                "coprocessor_target": "NPU",
-                "hw_tag": f"*{npu_vendor} NPU*",
-                "npu_vendor": npu_vendor,
-                "mode": "default_npu"
-            }
-        elif has_gpu:
+        if has_gpu:
             return {
                 "tier_id": 2,
-                "tier_name": f"GPU + CPU Mesh Mode ({gpu_name})",
-                "badge": f"⚡ {gpu_vendor} GPU + CPU (Default Mode)",
+                "tier_name": f"{gpu_vendor} GPU + CPU Mesh ({gpu_name})",
+                "badge": f"⚡ {gpu_name} + CPU",
                 "color": "#38bdf8",
                 "bg_color": "#0c4a6e",
                 "strategy": f"{gpu_vendor} GPU + CPU",
@@ -434,19 +459,22 @@ class DynamicHardwareRouter:
                 "coprocessor_target": "GPU",
                 "hw_tag": f"*{gpu_vendor} GPU + CPU*",
                 "npu_vendor": "None",
-                "mode": "default_gpu_cpu"
+                "mode": "gpu_cpu_mesh"
             }
-        else:
-            return {
-                "tier_id": 1,
-                "tier_name": "Tier 1: CPU Multi-Core Standard",
-                "badge": "⚡ CPU Multi-Core (Default Mode)",
-                "color": "#10b981",
-                "bg_color": "#064e3b",
-                "strategy": "CPU",
-                "short_tag": "CPU",
-                "coprocessor_target": "CPU",
-                "hw_tag": "*CPU*",
-                "npu_vendor": "None",
-                "mode": "default_cpu"
-            }
+
+        # -------------------------------------------------------------
+        # TIER 1: CPU MULTI-CORE VECTOR MESH (AVX2 / AVX-512 SIMD)
+        # -------------------------------------------------------------
+        return {
+            "tier_id": 1,
+            "tier_name": f"CPU Multi-Core Vector Mesh ({self.detector.cpu_threads}T)",
+            "badge": f"⚡ CPU Multi-Core ({self.detector.cpu_threads}T)",
+            "color": "#10b981",
+            "bg_color": "#064e3b",
+            "strategy": "CPU",
+            "short_tag": "CPU",
+            "coprocessor_target": "CPU",
+            "hw_tag": "*CPU*",
+            "npu_vendor": "None",
+            "mode": "cpu_vector_mesh"
+        }

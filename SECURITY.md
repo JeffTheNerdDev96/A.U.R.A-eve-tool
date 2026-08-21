@@ -2,12 +2,10 @@
 
 ## Supported Versions
 
-
-| Version | Supported          |
-| ------- | ------------------ |
-| x.1.x   | :white_check_mark: |
-| x.x.1   | :red_x_mark:       |
-
+| Version | Supported | Python Runtime | Architecture |
+| :--- | :--- | :--- | :--- |
+| **v0.1.4-alpha6+** | **Yes** | Python 3.12+ | 64-bit AMD64 |
+| <= v0.1.3-alpha5 | No | Python <= 3.11 | Deprecated |
 
 ## Reporting a Vulnerability
 

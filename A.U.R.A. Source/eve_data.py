@@ -7585,29 +7585,36 @@ EVE_COMBAT_AXIOMS = (
     "   - Against Lock-Range kiters: Sensor Dampeners (Targeting range script) forces enemy inside short tackle range."
 )
 
-_NORMALIZED_SHIP_LOOKUP: Dict[str, Dict[str, Any]] = {name.lower(): info for name, info in SHIP_DATABASE.items()}
-_NORMALIZED_MODULE_LOOKUP: Dict[str, Dict[str, Any]] = {name.lower(): info for name, info in MODULE_DATABASE.items()}
-_MULTI_WORD_SHIPS = [(name, info, name.lower()) for name, info in SHIP_DATABASE.items() if " " in name]
-_MULTI_WORD_SHIPS.sort(key=lambda x: len(x[2]), reverse=True)
-_ROLE_DOCTRINES_LOWER = [(k.lower(), v) for k, v in ROLE_DOCTRINES.items()]
+import functools
+import sys
 
+_NORMALIZED_SHIP_LOOKUP: Dict[str, Dict[str, Any]] = {sys.intern(name.lower()): info for name, info in SHIP_DATABASE.items()}
+_NORMALIZED_MODULE_LOOKUP: Dict[str, Dict[str, Any]] = {sys.intern(name.lower()): info for name, info in MODULE_DATABASE.items()}
+_MULTI_WORD_SHIPS = [(name, info, sys.intern(name.lower())) for name, info in SHIP_DATABASE.items() if " " in name]
+_MULTI_WORD_SHIPS.sort(key=lambda x: len(x[2]), reverse=True)
+_ROLE_DOCTRINES_LOWER = [(sys.intern(k.lower()), v) for k, v in ROLE_DOCTRINES.items()]
+
+@functools.lru_cache(maxsize=2048)
 def lookup_ship(name: str) -> Optional[Dict[str, Any]]:
     if not name:
         return None
     nl = name.strip().lower()
-    if nl in _NORMALIZED_SHIP_LOOKUP:
-        return _NORMALIZED_SHIP_LOOKUP[nl]
+    res = _NORMALIZED_SHIP_LOOKUP.get(nl)
+    if res is not None:
+        return res
     for s_name, s_info in SHIP_DATABASE.items():
         if nl in s_name.lower():
             return s_info
     return None
 
+@functools.lru_cache(maxsize=2048)
 def lookup_module(name: str) -> Optional[Dict[str, Any]]:
     if not name:
         return None
     nl = name.strip().lower()
-    if nl in _NORMALIZED_MODULE_LOOKUP:
-        return _NORMALIZED_MODULE_LOOKUP[nl]
+    res = _NORMALIZED_MODULE_LOOKUP.get(nl)
+    if res is not None:
+        return res
     for m_name, m_info in MODULE_DATABASE.items():
         if nl in m_name.lower():
             return m_info

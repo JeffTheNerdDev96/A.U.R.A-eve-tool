@@ -128,51 +128,67 @@ class DocumentParser:
             return f"[Error parsing DOCX: {e}]"
 
     @staticmethod
+    def _read_text_file_safe(file_path: str) -> str:
+        """Reads tactical text files with robust multi-encoding fallbacks."""
+        for enc in ["utf-8-sig", "utf-8", "cp1252", "latin-1"]:
+            try:
+                with open(file_path, "r", encoding=enc) as f:
+                    return f.read()
+            except (UnicodeDecodeError, LookupError):
+                continue
+            except Exception as e:
+                return f"[Error reading file: {e}]"
+        try:
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                return f.read()
+        except Exception as e:
+            return f"[Error reading file: {e}]"
+
+    @staticmethod
     def parse_file(file_path: str) -> Dict[str, Any]:
         filename = os.path.basename(file_path)
         ext = os.path.splitext(file_path)[1].lower()
         
-        # 1. Images / Screenshots
-        if ext in [".png", ".jpg", ".jpeg", ".bmp", ".webp"]:
-            analysis = ImagePreprocessor.analyze_image_content(file_path)
-            return {
-                "filename": filename,
-                "path": file_path,
-                "type": "image",
-                "text": analysis["extracted_text"],
-                "analysis": analysis,
-                "summary": analysis["summary"]
-            }
-            
-        # 2. PDF
-        elif ext == ".pdf":
-            text = DocumentParser.parse_pdf(file_path)
-            word_est = max(1, len(text) // 6)
-            return {
-                "filename": filename,
-                "path": file_path,
-                "type": "document",
-                "text": text,
-                "summary": f"PDF fleet doctrine (~{word_est:,} words)"
-            }
-            
-        # 3. Word DOCX
-        elif ext in [".docx", ".doc"]:
-            text = DocumentParser.parse_docx(file_path)
-            word_est = max(1, len(text) // 6)
-            return {
-                "filename": filename,
-                "path": file_path,
-                "type": "document",
-                "text": text,
-                "summary": f"Word document (~{word_est:,} words)"
-            }
-            
-        # 4. Text / EFT Fits / Logs / CSV
-        elif ext in [".txt", ".csv", ".md", ".json", ".log", ".py", ".eft"]:
-            try:
-                with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
-                    text = f.read()
+        match ext:
+            # 1. Images / Screenshots
+            case ".png" | ".jpg" | ".jpeg" | ".bmp" | ".webp":
+                analysis = ImagePreprocessor.analyze_image_content(file_path)
+                return {
+                    "filename": filename,
+                    "path": file_path,
+                    "type": "image",
+                    "text": analysis["extracted_text"],
+                    "analysis": analysis,
+                    "summary": analysis["summary"]
+                }
+                
+            # 2. PDF
+            case ".pdf":
+                text = DocumentParser.parse_pdf(file_path)
+                word_est = max(1, len(text) // 6)
+                return {
+                    "filename": filename,
+                    "path": file_path,
+                    "type": "document",
+                    "text": text,
+                    "summary": f"PDF fleet doctrine (~{word_est:,} words)"
+                }
+                
+            # 3. Word DOCX
+            case ".docx" | ".doc":
+                text = DocumentParser.parse_docx(file_path)
+                word_est = max(1, len(text) // 6)
+                return {
+                    "filename": filename,
+                    "path": file_path,
+                    "type": "document",
+                    "text": text,
+                    "summary": f"Word document (~{word_est:,} words)"
+                }
+                
+            # 4. Text / EFT Fits / Logs / CSV
+            case ".txt" | ".csv" | ".md" | ".json" | ".log" | ".py" | ".eft" | ".xml":
+                text = DocumentParser._read_text_file_safe(file_path)
                 word_est = max(1, len(text) // 6)
                 return {
                     "filename": filename,
@@ -181,19 +197,12 @@ class DocumentParser:
                     "text": text,
                     "summary": f"Tactical text file (~{word_est:,} words)"
                 }
-            except Exception as e:
+                
+            case _:
                 return {
                     "filename": filename,
                     "path": file_path,
-                    "type": "document",
-                    "text": f"[Error reading file: {e}]",
-                    "summary": f"Error: {e}"
+                    "type": "unknown",
+                    "text": f"[Unsupported format: {ext}]",
+                    "summary": f"Unsupported format: {ext}"
                 }
-        else:
-            return {
-                "filename": filename,
-                "path": file_path,
-                "type": "unknown",
-                "text": f"[Unsupported format: {ext}]",
-                "summary": f"Unsupported format: {ext}"
-            }

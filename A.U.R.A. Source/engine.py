@@ -17,6 +17,7 @@ if sys.stderr and hasattr(sys.stderr, "reconfigure"):
 
 from config import config
 from hardware import HardwareDetector, DynamicHardwareRouter
+from error_handler import AURAErrorCode, AURAException, log_diagnostic_error, format_error_html
 from ingestion import DocumentParser, ImagePreprocessor
 from eve_data import get_tactical_grounding
 
@@ -40,15 +41,8 @@ def find_model_file() -> Optional[str]:
         os.path.join(root_dir, "A.U.R.A Distro", "Installer", "models", "phi-4-mini", "model_q4.gguf"),
         os.path.join(os.path.dirname(sys.executable), "models", "phi-4-mini", "model_q4.gguf"),
         os.path.join(os.getcwd(), "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.expanduser(r"~\AppData\Local\Programs\A.U.R.A. v0.1.3-alpha5\models\phi-4-mini\model_q4.gguf"),
-        os.path.join(source_dir, "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(root_dir, "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(root_dir, "A.U.R.A Distro", "Installer", "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(os.path.dirname(sys.executable), "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(os.getcwd(), "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.expanduser(r"~\AppData\Local\Programs\A.U.R.A. v0.1.3-alpha5\models\phi-4-mini\model_q4.gguf"),
-        r"C:\A.U.R.A. v0.1.3-alpha5\models\phi-4-mini\model_q4.gguf",
-        r"C:\A.U.R.A. v0.1.3-alpha5\models\phi-4-mini\model_q4.gguf",
+        os.path.expanduser(r"~\AppData\Local\Programs\A.U.R.A. v0.1.4-alpha6\models\phi-4-mini\model_q4.gguf"),
+        r"C:\A.U.R.A. v0.1.4-alpha6\models\phi-4-mini\model_q4.gguf",
         os.path.join(source_dir, "models", "Phi-4-mini-instruct", "model_q4.gguf"),
         os.path.join(root_dir, "models", "Phi-4-mini-instruct", "model_q4.gguf"),
     ]
@@ -101,15 +95,26 @@ class NeuralHardwareCoProcessor:
             devs = self.core.available_devices
             if mode == "NPU" and "NPU" in devs:
                 self.compiled_models[mode] = self.core.compile_model(self.base_model, "NPU", {"NPU_USE_NPUW": "YES"})
-            elif mode in ["FULL_MESH", "NPU_GPU"]:
-                target_str = "AUTO:NPU,GPU,CPU" if "GPU" in devs else "CPU"
+            elif mode in ["FULL_MESH", "NPU_GPU", "QUAD_MESH", "heavy_mesh", "quad_mesh"]:
+                active_targets = []
+                if "NPU" in devs:
+                    active_targets.append("NPU")
+                for d in devs:
+                    if d.startswith("GPU") and d not in active_targets:
+                        active_targets.append(d)
+                if "CPU" in devs:
+                    active_targets.append("CPU")
+                
+                target_str = f"AUTO:{','.join(active_targets)}" if len(active_targets) > 1 else (active_targets[0] if active_targets else "CPU")
                 self.compiled_models[mode] = self.core.compile_model(self.base_model, target_str)
-            elif mode == "GPU" and "GPU" in devs:
-                self.compiled_models[mode] = self.core.compile_model(self.base_model, "GPU")
+            elif mode == "GPU" and any(d.startswith("GPU") for d in devs):
+                gpu_dev = next(d for d in devs if d.startswith("GPU"))
+                self.compiled_models[mode] = self.core.compile_model(self.base_model, gpu_dev)
             elif mode == "CPU" and "CPU" in devs:
                 self.compiled_models[mode] = self.core.compile_model(self.base_model, "CPU")
             return self.compiled_models.get(mode)
-        except Exception:
+        except Exception as e:
+            log_diagnostic_error(AURAErrorCode.ERR_2001_OPENVINO_NPU_FAILED, e, f"NeuralHardwareCoProcessor._get_or_compile({mode})")
             return None
 
     def execute(self, target_mode: str = "FULL_MESH", iterations: int = 2):
@@ -119,15 +124,15 @@ class NeuralHardwareCoProcessor:
                 dummy_input = np.random.randn(1, 128).astype(np.float32)
                 for _ in range(iterations):
                     compiled([dummy_input])
-            except Exception:
-                pass
+            except Exception as e:
+                log_diagnostic_error(AURAErrorCode.ERR_2001_OPENVINO_NPU_FAILED, e, "NeuralHardwareCoProcessor.execute")
 
 
 class UnifiedInferenceEngine:
     """
     Direct Neural Model Inference Engine customized for EVE Online Angel Cartel A.U.R.A.
     Powered by Microsoft Phi-4 Mini (3.8B Reasoning Core).
-    Features lazy on-demand initialization to ensure near-instant app boot and minimal standby RAM.
+    Features lazy on-demand initialization to ensure near-instant app boot (<300ms) and minimal standby RAM.
     """
     def __init__(self, eager_load: bool = False):
         self.detector = HardwareDetector()
@@ -135,6 +140,7 @@ class UnifiedInferenceEngine:
         self.llm = None
         self.is_loaded = False
         self.init_error = None
+        self.error_code = None
         self.coprocessor = NeuralHardwareCoProcessor(self.detector)
         if eager_load:
             self._load_model()
@@ -212,8 +218,9 @@ class UnifiedInferenceEngine:
                 
                 try:
                     self.llm = Llama(**llama_kwargs)
-                except Exception:
+                except Exception as inner_e:
                     # Fallback to pure CPU memory mapping if GPU offloading fails
+                    log_diagnostic_error(AURAErrorCode.ERR_2003_CUDA_OFFLOAD_FAILED, inner_e, "Llama GPU offload fallback to CPU")
                     llama_kwargs["n_gpu_layers"] = 0
                     llama_kwargs.pop("type_k", None)
                     llama_kwargs.pop("type_v", None)
@@ -221,15 +228,20 @@ class UnifiedInferenceEngine:
 
                 self.is_loaded = True
                 self.init_error = None
+                self.error_code = None
                 print(f"[A.U.R.A.] Tactical Neural Core '{config.model_display_name}' online & ready for combat!")
             except Exception as e:
                 self.is_loaded = False
                 self.init_error = str(e)
-                print(f"[A.U.R.A.] Error initializing Llama: {e}")
+                self.error_code = AURAErrorCode.ERR_1002_CONTEXT_ALLOC_FAILED
+                log_diagnostic_error(AURAErrorCode.ERR_1002_CONTEXT_ALLOC_FAILED, e, f"engine._load_model from {model_file}")
+                print(f"[A.U.R.A.] Error initializing Llama [{self.error_code}]: {e}")
         else:
             self.is_loaded = False
-            self.init_error = f"Model file for Phi-4 Mini not found."
-            print(f"[A.U.R.A.] {self.init_error}")
+            self.init_error = "Model file for Phi-4 Mini ('model_q4.gguf') was not found."
+            self.error_code = AURAErrorCode.ERR_1001_MODEL_NOT_FOUND
+            log_diagnostic_error(AURAErrorCode.ERR_1001_MODEL_NOT_FOUND, None, "engine.find_model_file")
+            print(f"[A.U.R.A.] [{self.error_code}] {self.init_error}")
 
 
 
@@ -400,31 +412,27 @@ class UnifiedInferenceEngine:
                             "elapsed": round(now - (first_token_time or gen_start_time), 2)
                         }
             else:
-                msg = f"A.U.R.A. Neural Core is offline: Neural weights (model_q4.gguf) not found in 'models/{config.model_folder}/'. Please verify that 'model_q4.gguf' is located in 'models/{config.model_folder}/'."
-                gen_start_time = time.time()
-                first_token_time = None
-                for w in msg.split(" "):
-                    time.sleep(0.03)
-                    tokens_generated += 1
-                    now = time.time()
-                    if first_token_time is None:
-                        first_token_time = now
-                    current_elapsed = max(0.01, now - (first_token_time or gen_start_time))
-                    yield {
-                        "type": "token",
-                        "text": w + " ",
-                        "tokens_generated": tokens_generated,
-                        "current_tps": round(tokens_generated / current_elapsed, 1),
-                        "elapsed": round(current_elapsed, 2)
-                    }
+                err_code = self.error_code or AURAErrorCode.ERR_1001_MODEL_NOT_FOUND
+                err_html = format_error_html(
+                    err_code,
+                    f"A.U.R.A. Neural Core is offline: Neural weights ('model_q4.gguf') was not found in 'models/{config.model_folder}/'."
+                )
+                yield {
+                    "type": "error",
+                    "error_code": err_code,
+                    "text": err_html,
+                    "tokens_generated": 1,
+                    "current_tps": 0.0,
+                    "elapsed": 0.05
+                }
         except Exception as e:
-            err_msg = f"Error during tactical calculation: {e}"
-            print(f"[A.U.R.A. Engine Error]: {e}")
-            import traceback
-            traceback.print_exc()
+            err_code = AURAErrorCode.ERR_1004_INFERENCE_TIMEOUT
+            log_diagnostic_error(err_code, e, "engine.generate_stream")
+            err_html = format_error_html(err_code, f"Error during tactical neural computation: {str(e)}")
             yield {
-                "type": "token",
-                "text": err_msg,
+                "type": "error",
+                "error_code": err_code,
+                "text": err_html,
                 "tokens_generated": 1,
                 "current_tps": 0.0,
                 "elapsed": 0.1

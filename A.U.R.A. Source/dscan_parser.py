@@ -72,6 +72,9 @@ class DScanParser:
     @staticmethod
     def _find_ship_in_text(text: str) -> Optional[tuple[str, Dict[str, Any]]]:
         """Finds the best matching ship hull from any arbitrary text line or token list."""
+        if not text:
+            return None
+            
         # 1. Direct exact lookup
         info = lookup_ship(text)
         if info:
@@ -103,14 +106,14 @@ class DScanParser:
             if info:
                 return info.get("canonical_name", w), info
 
-        # 4. Search for known ship names inside the string (longest first)
+        # 5. Search for known ship names inside the string (longest first)
         text_lower = text.lower()
         match = _SHIP_SUBSTR_PATTERN.search(text_lower)
         if match:
             matched_lower = match.group(1)
-            for hull in _SORTED_HULLS_BY_LENGTH:
-                if hull.lower() == matched_lower:
-                    return hull, SHIP_DATABASE[hull]
+            info = lookup_ship(matched_lower)
+            if info:
+                return info.get("canonical_name", matched_lower.capitalize()), info
 
         return None
 
