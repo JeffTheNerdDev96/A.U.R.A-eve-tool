@@ -34,24 +34,43 @@ def find_model_file() -> Optional[str]:
 
     source_dir = os.path.dirname(os.path.abspath(__file__))
     root_dir = os.path.dirname(source_dir)
-    
+    exe_dir = os.path.dirname(sys.executable)
+    local_app_data = os.environ.get("LOCALAPPDATA", "")
+    app_data = os.environ.get("APPDATA", "")
+    user_prof = os.environ.get("USERPROFILE", "")
+
     candidates = [
         os.path.join(source_dir, "models", "phi-4-mini", "model_q4.gguf"),
         os.path.join(root_dir, "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(root_dir, "A.U.R.A Distro", "Installer", "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(os.path.dirname(sys.executable), "models", "phi-4-mini", "model_q4.gguf"),
+        os.path.join(exe_dir, "models", "phi-4-mini", "model_q4.gguf"),
+        os.path.join(os.path.dirname(exe_dir), "models", "phi-4-mini", "model_q4.gguf"),
         os.path.join(os.getcwd(), "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.expanduser(r"~\AppData\Local\Programs\A.U.R.A. v0.1.4-alpha6\models\phi-4-mini\model_q4.gguf"),
+        os.path.join(local_app_data, "Programs", "A.U.R.A. v0.1.4-alpha6", "models", "phi-4-mini", "model_q4.gguf"),
+        os.path.join(local_app_data, "Programs", "A.U.R.A.", "models", "phi-4-mini", "model_q4.gguf"),
+        os.path.join(user_prof, "AppData", "Local", "Programs", "A.U.R.A. v0.1.4-alpha6", "models", "phi-4-mini", "model_q4.gguf"),
         r"C:\A.U.R.A. v0.1.4-alpha6\models\phi-4-mini\model_q4.gguf",
+        r"C:\Program Files\A.U.R.A. v0.1.4-alpha6\models\phi-4-mini\model_q4.gguf",
+        os.path.join(root_dir, "A.U.R.A Distro", "Installer", "models", "phi-4-mini", "model_q4.gguf"),
         os.path.join(source_dir, "models", "Phi-4-mini-instruct", "model_q4.gguf"),
         os.path.join(root_dir, "models", "Phi-4-mini-instruct", "model_q4.gguf"),
     ]
     for p in candidates:
-        if os.path.exists(p) and os.path.getsize(p) > 100000000:
+        if p and os.path.exists(p) and os.path.getsize(p) > 100000000:
             _CACHED_MODEL_PATH = os.path.abspath(p)
             _PATH_RESOLVED = True
             return _CACHED_MODEL_PATH
             
+    # Search local models subfolder dynamically
+    for base in [source_dir, root_dir, exe_dir, os.path.dirname(exe_dir)]:
+        m_dir = os.path.join(base, "models")
+        if os.path.exists(m_dir):
+            for root, _, files in os.walk(m_dir):
+                for f in files:
+                    if f.endswith(".gguf") and os.path.getsize(os.path.join(root, f)) > 100000000:
+                        _CACHED_MODEL_PATH = os.path.abspath(os.path.join(root, f))
+                        _PATH_RESOLVED = True
+                        return _CACHED_MODEL_PATH
+
     _PATH_RESOLVED = True
     _CACHED_MODEL_PATH = None
     return None

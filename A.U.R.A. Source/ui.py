@@ -35,6 +35,21 @@ from chat_monitor import LiveChatMonitor, find_default_chatlog_dir
 from eve_data import lookup_ship
 
 
+class TacticalInputEdit(QTextEdit):
+    """Multi-line tactical input editor that sends on Enter and inserts a newline on Shift+Enter."""
+    return_pressed = pyqtSignal()
+
+    def keyPressEvent(self, event):
+        if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
+                super().keyPressEvent(event)
+            else:
+                self.return_pressed.emit()
+                event.accept()
+        else:
+            super().keyPressEvent(event)
+
+
 class WorkerThread(QThread):
     """Background worker for non-blocking neural token streaming with attachments and history."""
     meta_received = pyqtSignal(dict)
@@ -751,7 +766,7 @@ class MainWindow(QMainWindow):
         prog_layout.setContentsMargins(0, 0, 0, 0)
         prog_layout.setSpacing(4)
         
-        self.progress_status_lbl = QLabel("⚡ Computing parameters on neural matrix...")
+        self.progress_status_lbl = QLabel("Processing...")
         self.progress_status_lbl.setStyleSheet("color: #f43f5e; font-size: 12px; font-weight: bold;")
         prog_layout.addWidget(self.progress_status_lbl)
 
@@ -804,27 +819,44 @@ class MainWindow(QMainWindow):
         left_layout.addWidget(tools_frame)
 
 
-        # Input Area & Send Button
+        # Input Area & Send / Stop Buttons
         input_h_layout = QHBoxLayout()
         input_h_layout.setSpacing(8)
 
-        self.input_edit = QTextEdit()
+        self.input_edit = TacticalInputEdit()
         self.input_edit.setObjectName("InputEdit")
-        self.input_edit.setPlaceholderText("Command A.U.R.A. or ask tactical engagement queries... (Press Send Command)")
+        self.input_edit.setPlaceholderText("Command A.U.R.A. or ask tactical queries... (Press Enter to Send, Shift+Enter for newline)")
         self.input_edit.setFixedHeight(52)
         self.input_edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.input_edit.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.input_edit.textChanged.connect(self._reset_idle_timer)
+        self.input_edit.return_pressed.connect(self._send_message)
         input_h_layout.addWidget(self.input_edit, stretch=1)
 
         self.send_btn = QPushButton("Send Command ➤")
         self.send_btn.setFixedHeight(52)
+        self.send_btn.setMinimumWidth(140)
         self.send_btn.clicked.connect(self._send_message)
         input_h_layout.addWidget(self.send_btn)
 
-        self.stop_btn = QPushButton("⏹ Stop")
+        self.stop_btn = QPushButton("⏹ Stop Generation")
         self.stop_btn.setFixedHeight(52)
-        self.stop_btn.setStyleSheet("background-color: #991b1b; color: #ffffff; border: 1px solid #ef4444; border-radius: 6px; font-weight: bold; padding: 8px 16px; font-size: 13.5px;")
+        self.stop_btn.setMinimumWidth(140)
+        self.stop_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #991b1b;
+                color: #ffffff;
+                border: 1px solid #ef4444;
+                border-radius: 6px;
+                font-weight: bold;
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #b91c1c;
+                border: 1px solid #f87171;
+            }
+        """)
         self.stop_btn.setToolTip("Immediately interrupt active neural generation")
         self.stop_btn.clicked.connect(self._stop_generation)
         self.stop_btn.hide()
@@ -1318,17 +1350,16 @@ class MainWindow(QMainWindow):
         self._append_message("Capsuleer", display_header)
         self.tier_badge.setText("● Thinking...")
         self.tier_badge.setStyleSheet("color: #fda4af; font-weight: bold; background: #4c0519; padding: 4px 12px; border-radius: 6px; border: 1px solid #e11d48;")
-        if self.engine.llm is None:
-            self.progress_status_lbl.setText("⚡ Arming Tactical Neural Core & Allocating Tensors...")
-        else:
-            self.progress_status_lbl.setText("⚡ A.U.R.A. calculating tactical countermeasures...")
+        self.progress_status_lbl.setText("Processing...")
         self.progress_container.setVisible(True)
 
         ts = self._get_timestamp_str()
         self.chat_display.append(f"<small style='color: #94a3b8; font-family: monospace;'>[{ts}]</small> <b style='color: #f43f5e;'>A.U.R.A.:</b><br>")
         self.current_assistant_tokens = []
-        self.send_btn.setEnabled(False)
+        self.send_btn.hide()
         self.stop_btn.show()
+        self.stop_btn.setEnabled(True)
+        QApplication.processEvents()
 
         self.worker = WorkerThread(
             self.engine,
@@ -1353,6 +1384,7 @@ class MainWindow(QMainWindow):
         if self.worker is not None and self.worker.isRunning():
             self.worker.stop()
             self.stop_btn.hide()
+            self.send_btn.show()
             self.send_btn.setEnabled(True)
             self.progress_container.setVisible(False)
             self.tier_badge.setText(self._get_idle_badge_text())
@@ -1360,6 +1392,7 @@ class MainWindow(QMainWindow):
             self.chat_display.append("<br><small style='color: #f59e0b;'>⏹ <i>[Neural inference stopped by Capsuleer]</i></small><br>")
             sb = self.chat_display.verticalScrollBar()
             sb.setValue(sb.maximum())
+            QApplication.processEvents()
 
     def _on_worker_error(self, err_msg: str):
         if "<div" in err_msg:
@@ -1369,9 +1402,11 @@ class MainWindow(QMainWindow):
         self.tier_badge.setText(self._get_idle_badge_text())
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
         self.stop_btn.hide()
+        self.send_btn.show()
         self.send_btn.setEnabled(True)
         self.progress_container.setVisible(False)
         self._refresh_attachment_chips()
+        QApplication.processEvents()
 
     # ---------------- Standard Chat & Telemetry ----------------
 
@@ -1517,12 +1552,9 @@ class MainWindow(QMainWindow):
         tokens = meta.get("token_estimate", 0)
         self._update_context_display(tokens)
         
-        hw_plan = meta.get("hardware_plan", {})
-        strategy = hw_plan.get("strategy", "NPU")
-        
         self.tier_badge.setText("● Thinking...")
         self.tier_badge.setStyleSheet("color: #fda4af; font-weight: bold; background: #4c0519; padding: 4px 12px; border-radius: 6px; border: 1px solid #e11d48;")
-        self.progress_status_lbl.setText("⚡ Calculating tactical countermeasures...")
+        self.progress_status_lbl.setText("Processing...")
 
     def _on_token(self, packet: dict):
         text = packet.get("text", "")
@@ -1543,9 +1575,11 @@ class MainWindow(QMainWindow):
 
         self.progress_container.setVisible(False)
         self.stop_btn.hide()
+        self.send_btn.show()
         self.send_btn.setEnabled(True)
         sb = self.chat_display.verticalScrollBar()
         sb.setValue(sb.maximum())
+        QApplication.processEvents()
         
         full_reply = "".join(self.current_assistant_tokens)
         self.chat_history.append({"role": "assistant", "content": full_reply})
