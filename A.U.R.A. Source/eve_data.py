@@ -7608,9 +7608,81 @@ _COMMON_STOP_WORDS = {
     "you're", "you've", "your", "yours", "yourself", "yourselves"
 }
 
-_NORMALIZED_SHIP_LOOKUP: Dict[str, Dict[str, Any]] = {sys.intern(name.lower()): info for name, info in SHIP_DATABASE.items()}
-_NORMALIZED_MODULE_LOOKUP: Dict[str, Dict[str, Any]] = {sys.intern(name.lower()): info for name, info in MODULE_DATABASE.items()}
-_MULTI_WORD_SHIPS = [(name, info, sys.intern(name.lower())) for name, info in SHIP_DATABASE.items() if " " in name]
+_SHIP_SLANG_MAP: Dict[str, str] = {
+    "oni": "Omen Navy Issue",
+    "vaga": "Vagabond",
+    "mach": "Machariel",
+    "scimi": "Scimitar",
+    "bhaal": "Bhaalgorn",
+    "drake": "Drake",
+    "cerb": "Cerberus",
+    "cyn": "Cynabal",
+    "wolf": "Wolf",
+    "jag": "Jaguar",
+    "loki": "Loki",
+    "tengu": "Tengu",
+    "proteus": "Proteus",
+    "legion": "Legion",
+    "deimos": "Deimos",
+    "ishtar": "Ishtar",
+    "talos": "Talos",
+    "naga": "Naga",
+    "tornado": "Tornado",
+    "oracle": "Oracle",
+    "hyp": "Hyperion",
+    "mega": "Megathron",
+    "vindi": "Vindicator",
+    "rattlesnake": "Rattlesnake",
+    "snake": "Rattlesnake",
+    "barge": "Barghest",
+    "orth": "Orthrus",
+    "garm": "Garmur",
+    "phoon": "Typhoon",
+    "tempest": "Tempest",
+    "rokh": "Rokh",
+    "raven": "Raven",
+    "abaddon": "Abaddon",
+    "geddon": "Armageddon",
+    "apoc": "Apocalypse",
+    "revelation": "Revelation",
+    "naglfar": "Naglfar",
+    "moros": "Moros",
+    "phoenix": "Phoenix",
+    "sabre": "Sabre",
+    "flycatcher": "Flycatcher",
+    "eris": "Eris",
+    "heretic": "Heretic",
+    "broadsword": "Broadsword",
+    "onyx": "Onyx",
+    "devoter": "Devoter",
+    "phobos": "Phobos",
+    "huginn": "Huginn",
+    "rapier": "Rapier",
+    "arazu": "Arazu",
+    "lachesis": "Lachesis",
+    "falcon": "Falcon",
+    "rook": "Rook",
+    "pilgrim": "Pilgrim",
+    "curse": "Curse",
+    "drekavac": "Drekavac",
+    "ikitursa": "Ikitursa",
+    "leshak": "Leshak",
+    "zarmazd": "Zarmazd",
+    "vedmak": "Vedmak",
+    "kiki": "Kikimora",
+    "kikimora": "Kikimora",
+    "damavik": "Damavik",
+    "nergal": "Nergal"
+}
+
+_NORMALIZED_SHIP_LOOKUP: Dict[str, Dict[str, Any]] = {}
+for name, info in SHIP_DATABASE.items():
+    s_entry = dict(info)
+    s_entry["canonical_name"] = name
+    _NORMALIZED_SHIP_LOOKUP[sys.intern(name.lower())] = s_entry
+
+_NORMALIZED_MODULE_LOOKUP: Dict[str, Dict[str, Any]] = {sys.intern(name.lower()): dict(info, canonical_name=name) for name, info in MODULE_DATABASE.items()}
+_MULTI_WORD_SHIPS = [(name, _NORMALIZED_SHIP_LOOKUP[sys.intern(name.lower())], sys.intern(name.lower())) for name, _ in SHIP_DATABASE.items() if " " in name]
 _MULTI_WORD_SHIPS.sort(key=lambda x: len(x[2]), reverse=True)
 _ROLE_DOCTRINES_LOWER = [(sys.intern(k.lower()), v) for k, v in ROLE_DOCTRINES.items()]
 
@@ -7619,16 +7691,20 @@ def lookup_ship(name: str) -> Optional[Dict[str, Any]]:
     if not name:
         return None
     nl = name.strip().lower()
-    if nl in _COMMON_STOP_WORDS or len(nl) < 3:
+    if nl in _COMMON_STOP_WORDS:
         return None
     res = _NORMALIZED_SHIP_LOOKUP.get(nl)
     if res is not None:
         return res
-    # Strict prefix/word matching only for valid tokens with 4+ chars
-    if len(nl) >= 4:
-        for s_name, s_info in SHIP_DATABASE.items():
-            s_l = s_name.lower()
-            if s_l.startswith(nl) or f" {nl}" in s_l:
+    slang_target = _SHIP_SLANG_MAP.get(nl)
+    if slang_target:
+        s_res = _NORMALIZED_SHIP_LOOKUP.get(slang_target.lower())
+        if s_res is not None:
+            return s_res
+    # Strict prefix/word matching only for valid tokens with 3+ chars
+    if len(nl) >= 3:
+        for s_name, s_info in _NORMALIZED_SHIP_LOOKUP.items():
+            if s_name == nl or s_name.startswith(nl) or f" {nl}" in s_name:
                 return s_info
     return None
 
@@ -7660,6 +7736,15 @@ def get_tactical_summary_for_text(text: str, attachments: Any = None, piloted_sh
     
     detected_hulls = set()
     grounding_blocks = []
+
+    # If Capsuleer is in a declared hull, inject piloted ship profile
+    if active_piloted:
+        p_info = lookup_ship(active_piloted)
+        if p_info:
+            p_name = p_info.get("canonical_name", active_piloted)
+            p_w = p_info.get("weapon_type", "Combat Weapons")
+            p_t = p_info.get("tank", "Combat Tank")
+            grounding_blocks.append(f"• Active Capsuleer Vessel: {p_name} [{p_info.get('class', 'Vessel')} | {p_info.get('faction', 'Faction')}] — Weapons: {p_w} | Tank: {p_t}")
 
     # Check for direct multi-word ship names first
     for ship_name, s_info, ship_lower in _MULTI_WORD_SHIPS:

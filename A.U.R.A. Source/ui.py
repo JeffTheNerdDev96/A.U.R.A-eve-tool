@@ -1528,22 +1528,33 @@ class MainWindow(QMainWindow):
         if not prompt:
             prompt = "Analyze the attached tactical intelligence and recommend an optimal combat response."
 
-        # Detect if Capsuleer is stating their own piloted vessel
-        m_ship = re.search(
-            r"\b(?:i am in a|i'm in a|flying a|piloting a|my ship is a?|in a)\s+([A-Za-z0-9\-\s]+?)(?:\s+and|\s+with|\s+need|\s+looking|\s+waiting|\s*\.|\s*,|\s*$)",
-            prompt,
-            re.IGNORECASE
-        )
-        if m_ship:
-            cand = m_ship.group(1).strip()
-            s_res = lookup_ship(cand)
-            if s_res:
-                self._set_piloted_ship(s_res.get("canonical_name", cand))
+        # Flexible Natural Language Piloted Vessel Detector
+        ship_patterns = [
+            r"\b(?:i am in a|i'm in a|i am in|i'm in|i am|i'm|flying a|flying|piloting a|piloting|my ship is a?|hull:|ship:)\s+([A-Za-z0-9\-\s]+?)(?:\s+and|\s+with|\s+need|\s+looking|\s+waiting|\s+now|\s*\.|\s*,|\s*$)",
+            r"^(?:in a|in)\s+([A-Za-z0-9\-\s]+?)$"
+        ]
+        detected_ship = None
+        for pat in ship_patterns:
+            m_ship = re.search(pat, prompt, re.IGNORECASE)
+            if m_ship:
+                cand = m_ship.group(1).strip()
+                cand = re.sub(r"^(?:now\s+in\s+a|now\s+in|now|a)\s+", "", cand, flags=re.IGNORECASE).strip()
+                s_res = lookup_ship(cand)
+                if s_res:
+                    detected_ship = s_res.get("canonical_name", cand)
+                    self._set_piloted_ship(detected_ship)
+                    break
 
         display_msg = prompt
         if self.attachments:
             att_names = ", ".join([f"[{att['filename']}]" for att in self.attachments])
             display_msg = f"{prompt} <i>(Attached: {att_names})</i>"
+
+        # If user was simply declaring their vessel, format prompt for defensive posture guidance
+        if detected_ship:
+            cleaned = re.sub(r"\b(?:i am in a|i'm in a|i am in|i'm in|i am|i'm|flying a|flying|piloting a|piloting|my ship is a?|hull:|ship:|in a|in|now)\b", "", prompt, flags=re.IGNORECASE).strip()
+            if len(cleaned.split()) <= 4:
+                prompt = f"Acknowledge that Capsuleer is flying a {detected_ship}. Provide 2 concise bullets on tactical flight posture, speed/tank profile, and module pre-heating for the {detected_ship}."
 
         self.input_edit.clear()
         self._execute_tactical_prompt(prompt, display_msg)
