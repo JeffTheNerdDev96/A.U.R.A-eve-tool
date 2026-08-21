@@ -118,6 +118,8 @@ class NeuralHardwareCoProcessor:
         self.core = None
         self.base_model = None
         self.active_backend = "Dynamic Hardware Acceleration"
+        self.active_threads: List[Any] = []
+        self.active_stop_event: Optional[Any] = None
 
     def _ensure_core(self):
         if self.core is None:
@@ -171,13 +173,40 @@ class NeuralHardwareCoProcessor:
             log_diagnostic_error(AURAErrorCode.ERR_2001_OPENVINO_NPU_FAILED, e, f"NeuralHardwareCoProcessor._get_or_compile({mode})")
             return None
 
+    def stop_all_workers(self):
+        """Immediately halts and joins any active asynchronous NPU, GPU, or CPU worker threads."""
+        if self.active_stop_event is not None:
+            try:
+                self.active_stop_event.set()
+            except Exception:
+                pass
+        for t in self.active_threads:
+            try:
+                t.join(timeout=0.05)
+            except Exception:
+                pass
+        self.active_threads.clear()
+        self.active_stop_event = None
+
+    def unload_coprocessor(self):
+        """Releases all OpenVINO compiled models, tensor buffers, and core instances."""
+        self.stop_all_workers()
+        self.compiled_models.clear()
+        self.base_model = None
+        self.core = None
+        import gc
+        gc.collect()
+
     def start_stream_mesh(self, target_mode: str = "NPU"):
         """Starts asynchronous continuous high-throughput tensor calculations across NPU and multi-vendor GPUs during streaming."""
+        self.stop_all_workers()
         compiled = self._get_or_compile(target_mode) or self._get_or_compile("FULL_MESH") or self._get_or_compile("CPU")
         if compiled is None:
             return None
         import threading
         stop_event = threading.Event()
+        self.active_stop_event = stop_event
+        
         def _hardware_worker(batch_sz=8):
             try:
                 import openvino as ov
@@ -207,6 +236,7 @@ class NeuralHardwareCoProcessor:
         for _ in range(worker_count):
             t = threading.Thread(target=_hardware_worker, daemon=True)
             t.start()
+            self.active_threads.append(t)
 
         # If heavy mesh and multi-vendor GPU is available, spawn dedicated GPU compute stream alongside NPU
         if target_mode in ["FULL_MESH", "QUAD_MESH", "heavy_mesh"]:
@@ -231,6 +261,7 @@ class NeuralHardwareCoProcessor:
                         pass
                 t_gpu = threading.Thread(target=_gpu_worker, daemon=True)
                 t_gpu.start()
+                self.active_threads.append(t_gpu)
 
         return stop_event
 
@@ -281,14 +312,29 @@ class UnifiedInferenceEngine:
         """Releases the GGUF model and KV cache tensors from RAM/VRAM back to the OS."""
         if self.llm is not None:
             try:
+                if hasattr(self.llm, "reset"):
+                    self.llm.reset()
+            except Exception:
+                pass
+            try:
+                if hasattr(self.llm, "close"):
+                    self.llm.close()
+            except Exception:
+                pass
+            try:
                 del self.llm
             except Exception:
                 pass
             self.llm = None
-            self.is_loaded = False
-            import gc
-            gc.collect()
-            print("[A.U.R.A.] Neural Core unloaded. Standby memory reclaimed.")
+        self.is_loaded = False
+        if self.coprocessor is not None:
+            try:
+                self.coprocessor.unload_coprocessor()
+            except Exception:
+                pass
+        import gc
+        gc.collect()
+        print("[A.U.R.A.] Neural Core & Co-processor unloaded. All CPU, iGPU, dGPU, and NPU resources released.")
 
     def _load_model(self):
         """Loads the local GGUF model into memory on-demand with optimized memory mapping and KV cache."""

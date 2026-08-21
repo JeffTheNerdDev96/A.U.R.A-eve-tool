@@ -200,6 +200,19 @@ def log_diagnostic_error(code: str, exc: Optional[Exception] = None, context: st
     )
     
     try:
+        # Disk fill protection: rotate log if exceeding 5MB
+        if os.path.exists(crash_log) and os.path.getsize(crash_log) > 5 * 1024 * 1024:
+            old_log = crash_log + ".old"
+            if os.path.exists(old_log):
+                try:
+                    os.remove(old_log)
+                except Exception:
+                    pass
+            try:
+                os.rename(crash_log, old_log)
+            except Exception:
+                pass
+
         with open(crash_log, "a", encoding="utf-8") as f:
             f.write(log_entry)
     except Exception:

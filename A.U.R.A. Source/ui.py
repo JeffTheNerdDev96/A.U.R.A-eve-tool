@@ -14,6 +14,7 @@ import os
 import time
 import re
 import json
+import html
 from typing import List, Dict, Any, Optional
 
 from PyQt6.QtWidgets import (
@@ -1367,10 +1368,33 @@ class MainWindow(QMainWindow):
     def _get_timestamp_str(self) -> str:
         return time.strftime("%H:%M:%S")
 
+    def _cleanup_worker(self):
+        """Cleanly disconnects and schedules deletion of finished/interrupted worker thread."""
+        if self.worker is not None:
+            try:
+                self.worker.meta_received.disconnect()
+            except Exception:
+                pass
+            try:
+                self.worker.token_received.disconnect()
+            except Exception:
+                pass
+            try:
+                self.worker.done_received.disconnect()
+            except Exception:
+                pass
+            try:
+                self.worker.error_received.disconnect()
+            except Exception:
+                pass
+            self.worker.deleteLater()
+            self.worker = None
+
     def _execute_tactical_prompt(self, prompt: str, display_header: str):
         if self.worker is not None and self.worker.isRunning():
             return
             
+        self._cleanup_worker()
         self._append_message("Capsuleer", display_header)
         self.tier_badge.setText("● Thinking...")
         self.tier_badge.setStyleSheet("color: #fda4af; font-weight: bold; background: #4c0519; padding: 4px 12px; border-radius: 6px; border: 1px solid #e11d48;")
@@ -1407,6 +1431,7 @@ class MainWindow(QMainWindow):
         """Immediately halts the active neural inference stream."""
         if self.worker is not None and self.worker.isRunning():
             self.worker.stop()
+            self._cleanup_worker()
             self.stop_btn.hide()
             self.send_btn.show()
             self.send_btn.setEnabled(True)
@@ -1419,10 +1444,11 @@ class MainWindow(QMainWindow):
             QApplication.processEvents()
 
     def _on_worker_error(self, err_msg: str):
+        self._cleanup_worker()
         if "<div" in err_msg:
             self.chat_display.append(f"<br>{err_msg}<br>")
         else:
-            self.chat_display.append(f"<br><small style='color: #ef4444;'>Tactical Compute Error: {err_msg}</small><br>")
+            self.chat_display.append(f"<br><small style='color: #ef4444;'>Tactical Compute Error: {html.escape(err_msg)}</small><br>")
         self.tier_badge.setText(self._get_idle_badge_text())
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
         self.stop_btn.hide()
@@ -1541,7 +1567,11 @@ class MainWindow(QMainWindow):
     def _append_message(self, sender: str, text: str):
         color = "#38bdf8" if sender == "Capsuleer" else "#f43f5e"
         ts = self._get_timestamp_str()
-        self.chat_display.append(f"<small style='color: #94a3b8; font-family: monospace;'>[{ts}]</small> <b style='color: {color};'>{sender}:</b><br>{text.replace(chr(10), '<br>')}<br>")
+        if not ("<b" in text or "<small" in text or "<div" in text or "<span" in text or "<br" in text):
+            safe_text = html.escape(text).replace("\n", "<br>")
+        else:
+            safe_text = text.replace("\n", "<br>")
+        self.chat_display.append(f"<small style='color: #94a3b8; font-family: monospace;'>[{ts}]</small> <b style='color: {color};'>{sender}:</b><br>{safe_text}<br>")
         self.chat_display.verticalScrollBar().setValue(self.chat_display.verticalScrollBar().maximum())
 
 
@@ -1637,6 +1667,7 @@ class MainWindow(QMainWindow):
         
         full_reply = "".join(self.current_assistant_tokens)
         self.chat_history.append({"role": "assistant", "content": full_reply})
+        self._cleanup_worker()
         self._update_context_display()
         self._reset_idle_timer()
 
