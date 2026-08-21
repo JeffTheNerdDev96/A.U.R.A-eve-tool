@@ -1429,8 +1429,10 @@ class MainWindow(QMainWindow):
 
     def _stop_generation(self):
         """Immediately halts the active neural inference stream."""
-        if self.worker is not None and self.worker.isRunning():
-            self.worker.stop()
+        if self.worker is not None:
+            if self.worker.isRunning():
+                self.worker.stop()
+                self.worker.wait(1000)
             self._cleanup_worker()
             self.stop_btn.hide()
             self.send_btn.show()

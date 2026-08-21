@@ -217,6 +217,7 @@ class FittingParser:
             "tackle_mods": tackle_mods,
             "cap_mods": cap_mods,
             "weapons": weapons,
+            "module_count": len(high_slots) + len(mid_slots) + len(low_slots) + len(rig_slots) + len(subsystems),
             "summary_md": "\n".join(summary_lines),
             "raw_text": eft_text
         }
