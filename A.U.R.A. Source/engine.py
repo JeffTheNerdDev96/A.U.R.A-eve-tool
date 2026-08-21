@@ -203,17 +203,14 @@ class UnifiedInferenceEngine:
                 from llama_cpp import Llama
                 
                 # Multi-Hardware Mesh Parallel Workload Allocation:
-                # Fully utilizes all PC resources: NPU co-processor + GPU VRAM layers + all CPU vector threads
-                total_threads = psutil.cpu_count(logical=True) or 4
-                gpu_layers = 33 if self.detector.has_gpu else 0
-                threads = max(4, total_threads)
-                threads_batch = max(6, total_threads)
+                # Fully utilizes all PC resources: NPU co-processor + GPU VRAM layers (NVIDIA) + physical CPU vector cores
+                phys_cores = psutil.cpu_count(logical=False) or 4
+                gpu_layers = 33 if self.detector.has_nvidia else 0
+                threads = max(4, min(8, phys_cores))
+                threads_batch = max(4, min(8, phys_cores))
                 
                 print(f"[A.U.R.A.] Initializing tactical neural model '{config.model_display_name}' from {model_file} ({threads} compute threads, {gpu_layers} GPU layers)...")
                 print(f"[A.U.R.A.] Hardware Topology: {self.detector.get_summary_string()}")
-                
-                type_k = getattr(llama_cpp, "GGML_TYPE_Q8_0", getattr(llama_cpp, "GGML_TYPE_F16", None))
-                type_v = getattr(llama_cpp, "GGML_TYPE_Q8_0", getattr(llama_cpp, "GGML_TYPE_F16", None))
                 
                 llama_kwargs = {
                     "model_path": model_file,
@@ -228,21 +225,12 @@ class UnifiedInferenceEngine:
                     "verbose": False
                 }
                 
-                if type_k is not None and type_v is not None:
-                    try:
-                        llama_kwargs["type_k"] = type_k
-                        llama_kwargs["type_v"] = type_v
-                    except Exception:
-                        pass
-                
                 try:
                     self.llm = Llama(**llama_kwargs)
                 except Exception as inner_e:
                     # Fallback to pure CPU memory mapping if GPU offloading fails
                     log_diagnostic_error(AURAErrorCode.ERR_2003_CUDA_OFFLOAD_FAILED, inner_e, "Llama GPU offload fallback to CPU")
                     llama_kwargs["n_gpu_layers"] = 0
-                    llama_kwargs.pop("type_k", None)
-                    llama_kwargs.pop("type_v", None)
                     self.llm = Llama(**llama_kwargs)
 
                 self.is_loaded = True
@@ -358,6 +346,7 @@ class UnifiedInferenceEngine:
         hw_tag = hw_plan.get("hw_tag", "*A.U.R.A. ACCELERATED*")
         tokens_generated = 0
         gen_start_time = None
+        first_token_time = None
         overall_start = time.time()
 
         if self.llm is None:
@@ -383,7 +372,7 @@ class UnifiedInferenceEngine:
                 # Dynamic Full Compute Mesh: Maximize parallel workloads across all CPU cores + NPU co-processor + GPU
                 if hasattr(self.llm, "n_threads"):
                     try:
-                        self.llm.n_threads = self.detector.cpu_threads
+                        self.llm.n_threads = max(4, min(8, psutil.cpu_count(logical=False) or 4))
                     except Exception:
                         pass
                 

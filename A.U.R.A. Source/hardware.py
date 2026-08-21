@@ -267,6 +267,18 @@ class HardwareDetector:
         return self.devices["gpu"]["available"]
 
     @property
+    def has_nvidia(self) -> bool:
+        return any(g.get("vendor", "").lower() == "nvidia" for g in self.devices.get("gpus", []))
+
+    @property
+    def has_amd_gpu(self) -> bool:
+        return any(g.get("vendor", "").lower() == "amd" for g in self.devices.get("gpus", []))
+
+    @property
+    def has_intel_gpu(self) -> bool:
+        return any(g.get("vendor", "").lower() == "intel" for g in self.devices.get("gpus", []))
+
+    @property
     def has_dgpu(self) -> bool:
         return any(g.get("type") == "dGPU" for g in self.devices.get("gpus", []))
 

@@ -7636,11 +7636,16 @@ def get_tactical_summary_for_text(text: str, attachments: Any = None, piloted_sh
         if ship_lower in lower_text:
             if active_piloted and ship_lower == active_piloted.lower():
                 continue
-            if ship_lower not in detected_hulls:
+            if ship_lower not in detected_hulls and len(detected_hulls) < 3:
                 detected_hulls.add(ship_lower)
-                grounding_blocks.append(s_info.get("pre_rendered_dossier", f"• {ship_name}"))
+                r = s_info.get("role", "Combat Vessel")
+                w = s_info.get("weapon_type", "Standard")
+                t = s_info.get("tactics", "Standard tactical engagement.")
+                grounding_blocks.append(f"• Target Dossier: {ship_name} [{s_info.get('class', 'Vessel')} | {s_info.get('faction', 'Faction')}] — Role: {r} | Weapons: {w} | Tactics: {t}")
 
     for w in words:
+        if len(detected_hulls) >= 3:
+            break
         s_info = lookup_ship(w)
         if s_info:
             cname = s_info.get("canonical_name", w.capitalize())
@@ -7649,23 +7654,21 @@ def get_tactical_summary_for_text(text: str, attachments: Any = None, piloted_sh
                 continue
             if cname_l not in detected_hulls:
                 detected_hulls.add(cname_l)
-                grounding_blocks.append(s_info.get("pre_rendered_dossier", f"• {cname}"))
+                r = s_info.get("role", "Combat Vessel")
+                wp = s_info.get("weapon_type", "Standard")
+                t = s_info.get("tactics", "Standard tactical engagement.")
+                grounding_blocks.append(f"• Target Dossier: {cname} [{s_info.get('class', 'Vessel')} | {s_info.get('faction', 'Faction')}] — Role: {r} | Weapons: {wp} | Tactics: {t}")
 
     # Check for Role Doctrine Grounding
     for role_key_l, role_doctrine in _ROLE_DOCTRINES_LOWER:
-        if role_key_l in lower_text:
+        if role_key_l in lower_text and len(grounding_blocks) < 4:
             grounding_blocks.append(role_doctrine)
 
     if grounding_blocks:
-        joined_dossiers = "\n\n".join(grounding_blocks[:8])
-        return f"[Tactical Grounding Matrix]:\n{joined_dossiers}\n\n{EVE_COMBAT_AXIOMS}"
+        joined_dossiers = "\n".join(grounding_blocks[:3])
+        return f"[Tactical Intelligence]:\n{joined_dossiers}"
     
-    default_summary = (
-        "[GENERAL FLEET SCOUTING & COMBAT READINESS]:\n"
-        "• Hostile Composition: Unspecified / General hostile elements reported.\n"
-        "• Tactical Action: Maintain directional scan (14.3 AU at 360°), hold bookmark / gate perches, align out if uncloaked, and prepare defensive tackle or warp-out vectors."
-    )
-    return f"{default_summary}\n\n{EVE_COMBAT_AXIOMS}"
+    return ""
 
 _FAST_SHIP_LOOKUP = _NORMALIZED_SHIP_LOOKUP
 _FAST_MODULE_LOOKUP = _NORMALIZED_MODULE_LOOKUP
