@@ -33,6 +33,13 @@ if exist "%SCRIPT_DIR%venv\Scripts\python.exe" (
     goto :VERIFY_AND_LAUNCH
 )
 
+if exist "%SCRIPT_DIR%runtime\python.exe" (
+    set "PYTHON_EXE=%SCRIPT_DIR%runtime\python.exe"
+    if exist "%SCRIPT_DIR%runtime\pythonw.exe" set "PYTHONW_EXE=%SCRIPT_DIR%runtime\pythonw.exe"
+    set "PATH=%SCRIPT_DIR%runtime;%SCRIPT_DIR%runtime\Scripts;%SCRIPT_DIR%requirements\vulkan_llama;%PATH%"
+    goto :VERIFY_AND_LAUNCH
+)
+
 where python >nul 2>nul
 if %ERRORLEVEL% EQU 0 (
     set "PYTHON_EXE=python"

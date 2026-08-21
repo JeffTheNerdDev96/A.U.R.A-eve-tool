@@ -57,6 +57,10 @@ ENV/
 .venv/
 requirements/venv/
 **/requirements/venv/
+runtime/
+**/runtime/
+python_runtime/
+**/python_runtime/
 
 # 6. Local Chat Logs & Temp Files
 *.log
