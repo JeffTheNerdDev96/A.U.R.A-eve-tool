@@ -525,7 +525,7 @@ class UnifiedInferenceEngine:
                                 trimmed = line.strip()
                                 if trimmed:
                                     # Anti-loop duplicate guard: Terminate if a paragraph/line repeats earlier output
-                                    if trimmed in generated_lines or any(len(trimmed) > 15 and trimmed == prev for prev in generated_lines):
+                                    if trimmed in generated_lines or any(len(trimmed) > 12 and (trimmed in prev or prev in trimmed) for prev in generated_lines):
                                         should_stop = True
                                         break
                                     # Stop if model attempts to generate secondary section header after initial bullets
@@ -533,6 +533,11 @@ class UnifiedInferenceEngine:
                                         should_stop = True
                                         break
                                     generated_lines.append(trimmed)
+                                    # Stop after 3 bullets to strictly enforce brevity mandate
+                                    bullet_count = sum(1 for l in generated_lines if l.startswith("•") or l.startswith("-") or l.startswith("*"))
+                                    if bullet_count >= 3:
+                                        should_stop = True
+                                        break
                             if should_stop:
                                 break
                             current_line_buf = parts[-1]
