@@ -368,6 +368,10 @@ class UnifiedInferenceEngine:
 
     def _build_contextual_prompt(self, prompt: str, attachments: List[Dict[str, Any]], piloted_ship: Optional[str] = None) -> str:
         """Injects verified EVE mechanics, ship dossiers, and attachments into the tactical prompt context."""
+        # If the prompt is already a fully formed structured request (from D-Scan, Fitting Lab, or Intel tools), pass directly
+        if prompt.startswith("["):
+            return prompt
+
         grounding = get_tactical_grounding(prompt, attachments, piloted_ship=piloted_ship)
         
         attachment_blocks = []
@@ -501,7 +505,7 @@ class UnifiedInferenceEngine:
                         temperature=config.temperature,
                         top_p=config.top_p,
                         repeat_penalty=1.28,
-                        stop=["<|im_end|>", "<|end|>", "<|eot_id|>", "<|end_of_text|>", "<|im_start|>", "\n[", "\n\n["],
+                        stop=["<|im_end|>", "<|end|>", "<|eot_id|>", "<|end_of_text|>", "<|im_start|>"],
                         stream=True
                     )
                     
@@ -525,29 +529,26 @@ class UnifiedInferenceEngine:
                                 trimmed = line.strip()
                                 if trimmed:
                                     # Anti-loop duplicate guard: Terminate if a paragraph/line repeats earlier output
-                                    if trimmed in generated_lines or any(len(trimmed) > 12 and (trimmed in prev or prev in trimmed) for prev in generated_lines):
+                                    if trimmed in generated_lines or any(len(trimmed) > 25 and (trimmed == prev or trimmed in prev or prev in trimmed) for prev in generated_lines):
                                         should_stop = True
                                         break
-                                    # Stop if model attempts to generate secondary section header after initial bullets
-                                    if trimmed.startswith("[") and tokens_generated > 20:
+                                    # Stop if model hallucinates user prompt repeat template at the end
+                                    if any(marker in trimmed for marker in [
+                                        "[CAPSULEER QUERY]", "[CAPSULEER COMMAND]", "[CAPSULEER TACTICAL",
+                                        "[INTEL LOG DECODING REQUEST]", "[DIRECTIONAL SCAN TACTICAL",
+                                        "[FITTING LAB EVALUATION REQUEST]", "[AUTHENTIC EVE FITTING RULES]"
+                                    ]):
                                         should_stop = True
                                         break
                                     generated_lines.append(trimmed)
-                                    # Stop after 3 bullets to strictly enforce brevity mandate
-                                    bullet_count = sum(1 for l in generated_lines if l.startswith("•") or l.startswith("-") or l.startswith("*"))
-                                    if bullet_count >= 3:
-                                        should_stop = True
-                                        break
                             if should_stop:
                                 break
                             current_line_buf = parts[-1]
 
                         # Prevent echoing of secondary mock context headers after generating content
-                        if tokens_generated > 20 and any(header in token_text for header in [
-                            "[Tactical Grounding", "[Verified Tactical", "[EVE TACTICAL", "[EVE COMBAT",
-                            "[TACTICAL INTEL", "[COMBAT ROLE", "[ENGAGEMENT RANGE", "[EVADE ROUTES",
-                            "[TACKLE VULNERABILITIES", "[PILOTING", "[TACTICAL ENGAGEMENT", "[CAPSULEER",
-                            "[Direct Tactical", "[Target Dossier"
+                        if tokens_generated > 30 and any(header in token_text for header in [
+                            "[Tactical Grounding:", "[Verified Tactical Grounding", "[EVE TACTICAL AXIOMS", "[EVE COMBAT AXIOMS",
+                            "[TACTICAL INTEL MATRIX", "[COMBAT ROLE DOCTRINE"
                         ]):
                             break
 

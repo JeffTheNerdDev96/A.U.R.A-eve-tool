@@ -1251,32 +1251,69 @@ class MainWindow(QMainWindow):
         total_items = parsed.get("total_ships", 0)
         p_type = parsed.get("type", "dscan")
         
-        if p_type == "intel":
-            prompt = (
-                f"[INTEL LOG DECODING REQUEST]\n\n"
-                f"{summary_md}\n\n"
-                f"[DIRECT TACTICAL ASSESSMENT]:\n"
-                f"Provide strictly 2 direct bullets: 1) Identify dangerous gate camps, cynos, or hot systems; 2) Direct routing and evasion directive."
-            )
-            header = f"📡 <b>D-SCAN Analyzer: Intel Stream</b> ({total_items} reports decoded)"
-        elif p_type == "combined":
-            prompt = (
-                f"[COMBINED D-SCAN & INTEL ANALYSIS REQUEST]\n\n"
-                f"{summary_md}\n\n"
-                f"[DIRECT TACTICAL ASSESSMENT]:\n"
-                f"Provide strictly 2 direct bullets: 1) Primary hostile threats and bubble/cyno traps; 2) Immediate action (engage envelope, align, or warp out)."
-            )
-            header = f"📡 <b>D-SCAN Analyzer: Fleet & Intel Matrix</b> ({total_items} elements detected)"
+        if total_items >= 6:
+            # Large fleet scan: Provide thorough, structured breakdown
+            if p_type == "intel":
+                prompt = (
+                    f"[LARGE INTEL STREAM DECODING REQUEST — {total_items} REPORTS]\n\n"
+                    f"{summary_md}\n\n"
+                    f"[TACTICAL FLEET INTEL DIRECTIVE]:\n"
+                    f"Analyze this intel stream and provide a comprehensive assessment:\n"
+                    f"1. Threat Vectors & Chokepoints: Dangerous gate camps, cyno drop threats, and hostile fleet movements.\n"
+                    f"2. Routing & Strategic Directive: Recommended safe transit routes, gate alignment, and evasion tactics."
+                )
+                header = f"📡 <b>D-SCAN Analyzer: Fleet Intel Matrix</b> ({total_items} reports decoded)"
+            elif p_type == "combined":
+                prompt = (
+                    f"[LARGE FLEET & INTEL MATRIX ANALYSIS — {total_items} ELEMENTS]\n\n"
+                    f"{summary_md}\n\n"
+                    f"[TACTICAL FLEET COMBAT DIRECTIVE]:\n"
+                    f"Provide a comprehensive fleet battle assessment:\n"
+                    f"1. Fleet Composition & Threat Wings: Break down mainline DPS (Battleships/HACs), Logistics anchors, and Fast Tackle/Interdictors.\n"
+                    f"2. Priority Focus Targets & Hazards: High-value targets to break first, cyno risks, and heavy neut/bubble threats.\n"
+                    f"3. Strategic Fleet Action: Engagement feasibility, recommended range envelope (kite vs brawl), and primary extraction vector."
+                )
+                header = f"📡 <b>D-SCAN Analyzer: Combined Fleet & Intel Matrix</b> ({total_items} elements detected)"
+            else:
+                prompt = (
+                    f"[LARGE FLEET DIRECTIONAL SCAN ANALYSIS — {total_items} HOSTILE VESSELS]\n\n"
+                    f"{summary_md}\n\n"
+                    f"[TACTICAL FLEET COMBAT DIRECTIVE]:\n"
+                    f"Provide a structured fleet combat breakdown:\n"
+                    f"1. Fleet Composition & Threat Wings: Analyze mainline combat wings (Battleships/HACs/BCs), Logistics reps, and Fast Tackle/Interdictors on scan.\n"
+                    f"2. High-Priority Targets & Grid Traps: Identify primary kill targets (e.g. tackle to free grid, or logistics to break reps), cyno beacons, and warp bubbles.\n"
+                    f"3. Strategic Engagement Directive: Explicit tactical order — engagement feasibility, optimal combat range envelope, or immediate fleet warp out."
+                )
+                header = f"📡 <b>D-SCAN Analyzer: Major Fleet Threat Matrix</b> ({threat_level} — {total_items} vessels)"
         else:
-            prompt = (
-                f"[DIRECTIONAL SCAN TACTICAL ANALYSIS REQUEST]\n\n"
-                f"{summary_md}\n\n"
-                f"[DIRECT TACTICAL ASSESSMENT]:\n"
-                f"Provide strictly 2 direct bullets:\n"
-                f"• Grid Threats & Hazards: Identify primary hostile targets, tackle/bubbles, and cyno danger on scan.\n"
-                f"• Immediate Action: Direct tactical order (recommended engagement range/EWAR, hold alignment, or immediate warp out)."
-            )
-            header = f"📡 <b>D-SCAN Analyzer: Fleet Threat Matrix</b> ({threat_level} — {total_items} vessels)"
+            # Small skirmish or single encounter: Punchy, direct breakdown
+            if p_type == "intel":
+                prompt = (
+                    f"[INTEL LOG DECODING REQUEST]\n\n"
+                    f"{summary_md}\n\n"
+                    f"[DIRECT TACTICAL ASSESSMENT]:\n"
+                    f"• Threat Vectors: Identify dangerous gate camps, cynos, or hot systems.\n"
+                    f"• Tactical Action: Direct routing and evasion directive."
+                )
+                header = f"📡 <b>D-SCAN Analyzer: Intel Stream</b> ({total_items} reports decoded)"
+            elif p_type == "combined":
+                prompt = (
+                    f"[COMBINED D-SCAN & INTEL ANALYSIS REQUEST]\n\n"
+                    f"{summary_md}\n\n"
+                    f"[DIRECT TACTICAL ASSESSMENT]:\n"
+                    f"• Grid Threats & Hazards: Primary hostile threats, tackle/bubbles, and cyno traps.\n"
+                    f"• Immediate Action: Direct engagement decision (range envelope, align, or warp out)."
+                )
+                header = f"📡 <b>D-SCAN Analyzer: Fleet & Intel Matrix</b> ({total_items} elements detected)"
+            else:
+                prompt = (
+                    f"[DIRECTIONAL SCAN TACTICAL ANALYSIS REQUEST]\n\n"
+                    f"{summary_md}\n\n"
+                    f"[DIRECT TACTICAL ASSESSMENT]:\n"
+                    f"• Grid Threats & Hazards: Primary hostile targets, tackle/bubbles, and cyno danger.\n"
+                    f"• Immediate Action: Direct tactical order (recommended engagement range/EWAR, hold alignment, or immediate warp out)."
+                )
+                header = f"📡 <b>D-SCAN Analyzer: Fleet Threat Matrix</b> ({threat_level} — {total_items} vessels)"
 
         self._execute_tactical_prompt(prompt, header)
 
@@ -1319,10 +1356,10 @@ class MainWindow(QMainWindow):
             f"{summary_md}\n\n"
             f"{size_rules}\n"
             f"• AMMO & MODULE RULES: Ammunition sizes in EVE Online are strictly S (Small), M (Medium), L (Large), XL (Extra Large). T2 Projectile ammo is strictly Hail S/M/L (short-range DPS) or Barrage S/M/L (falloff). Never invent fake modules.\n\n"
-            f"[DIRECT FITTING ASSESSMENT]:\n"
-            f"Evaluate this `{hull}` for **{role}** in strictly 2 direct bullets:\n"
-            f"• Fit Viability & Profile: Direct assessment of capacitor resilience, tank synergy, and weapon projection for {role}.\n"
-            f"• Key Refinements & Tactics: 1-2 authentic, size-legal module/ammo optimizations and optimal engagement range envelope."
+            f"[TACTICAL FITTING EVALUATION]:\n"
+            f"1. Fit Viability & Profile: Evaluate capacitor stability, active/buffer tank resilience, and weapon projection for {role}.\n"
+            f"2. Recommended Optimizations: Suggest 1-2 authentic, size-legal module or ammo sidegrades for this hull.\n"
+            f"3. Piloting & Range Envelope: State optimal engagement distance and flight tactics for {role}."
         )
         self._set_piloted_ship(hull)
         self._execute_tactical_prompt(prompt, f"🛠️ <b>Fitting Lab Review</b>: `{hull}` ({role})")
