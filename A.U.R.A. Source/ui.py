@@ -1552,6 +1552,25 @@ class MainWindow(QMainWindow):
         if not prompt:
             prompt = "Analyze the attached tactical intelligence and recommend an optimal combat response."
 
+        # Auto-detect if raw multiline input is an EFT Fitting or a D-Scan / Intel dump
+        if "\n" in prompt and not self.attachments:
+            lines = [l.strip() for l in prompt.split("\n") if l.strip()]
+            if len(lines) >= 2:
+                # Check for EFT Fit format [Hull, Name]
+                if lines[0].startswith("[") and "," in lines[0] and lines[0].endswith("]"):
+                    parsed_fit = FittingParser.parse(prompt)
+                    if parsed_fit.get("hull_name"):
+                        self.input_edit.clear()
+                        self._handle_fit_submission(prompt, parsed_fit, "Solo PvP Roaming (Lowsec / FW / Null)")
+                        return
+
+                # Check for D-Scan or Intel table paste
+                parsed_dscan = DScanParser.parse_unified(prompt)
+                if parsed_dscan.get("total_ships", 0) >= 2 or (parsed_dscan.get("total_ships", 0) >= 1 and any("\t" in l for l in lines)):
+                    self.input_edit.clear()
+                    self._handle_dscan_submission(prompt, parsed_dscan)
+                    return
+
         # Flexible Natural Language Piloted Vessel Detector
         ship_patterns = [
             r"\b(?:i am in a|i'm in a|i am in|i'm in|i am|i'm|flying a|flying|piloting a|piloting|my ship is a?|hull:|ship:)\s+([A-Za-z0-9\-\s]+?)(?:\s+and|\s+with|\s+need|\s+looking|\s+waiting|\s+now|\s*\.|\s*,|\s*$)",
