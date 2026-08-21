@@ -33,7 +33,8 @@ For full operational instructions, see the [Tactical User Guide (USER_GUIDE.md)]
 
 ---
 
-## AI Model Architecture
+## AI Model Architecture (WORK IN PROGRESS)
+## CURRENT INSTALLER SHIPS WITH PHI-4-MINI 4BIT MODEL FOR TESTING
 
 A.U.R.A. is driven by a custom fine-tuned model:
 
