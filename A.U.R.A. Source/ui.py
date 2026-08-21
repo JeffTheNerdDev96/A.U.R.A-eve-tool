@@ -1252,37 +1252,35 @@ class MainWindow(QMainWindow):
         p_type = parsed.get("type", "dscan")
         
         if total_items >= 6:
-            # Large fleet scan: Provide thorough, structured breakdown
+            # Large fleet scan: Clean, tight 2-bullet fleet assessment
             if p_type == "intel":
                 prompt = (
-                    f"[LARGE INTEL STREAM DECODING REQUEST — {total_items} REPORTS]\n\n"
+                    f"[FLEET INTEL STREAM ANALYSIS — {total_items} REPORTS]\n\n"
                     f"{summary_md}\n\n"
-                    f"[TACTICAL FLEET INTEL DIRECTIVE]:\n"
-                    f"Analyze this intel stream and provide a comprehensive assessment:\n"
-                    f"1. Threat Vectors & Chokepoints: Dangerous gate camps, cyno drop threats, and hostile fleet movements.\n"
-                    f"2. Routing & Strategic Directive: Recommended safe transit routes, gate alignment, and evasion tactics."
+                    f"[TACTICAL DIRECTIVE]:\n"
+                    f"Provide a clean, tight 2-bullet tactical assessment:\n"
+                    f"• Threat Vectors & Chokepoints: Summary of dangerous gate camps, cyno drop hazards, and hostile fleet vectors.\n"
+                    f"• Strategic Routing Order: Safe transit vector, gate alignment, and evasion directive."
                 )
                 header = f"📡 <b>D-SCAN Analyzer: Fleet Intel Matrix</b> ({total_items} reports decoded)"
             elif p_type == "combined":
                 prompt = (
-                    f"[LARGE FLEET & INTEL MATRIX ANALYSIS — {total_items} ELEMENTS]\n\n"
+                    f"[COMBINED FLEET & INTEL ANALYSIS — {total_items} ELEMENTS]\n\n"
                     f"{summary_md}\n\n"
-                    f"[TACTICAL FLEET COMBAT DIRECTIVE]:\n"
-                    f"Provide a comprehensive fleet battle assessment:\n"
-                    f"1. Fleet Composition & Threat Wings: Break down mainline DPS (Battleships/HACs), Logistics anchors, and Fast Tackle/Interdictors.\n"
-                    f"2. Priority Focus Targets & Hazards: High-value targets to break first, cyno risks, and heavy neut/bubble threats.\n"
-                    f"3. Strategic Fleet Action: Engagement feasibility, recommended range envelope (kite vs brawl), and primary extraction vector."
+                    f"[TACTICAL DIRECTIVE]:\n"
+                    f"Provide a clean, tight 2-bullet tactical combat summary:\n"
+                    f"• Fleet Threat Composition: Mainline combat wings (Marauders/Battleships), logistics reps, and tackle/bubble hazards.\n"
+                    f"• Strategic Action Order: Decisive engagement directive (optimal combat range envelope or immediate fleet warp out)."
                 )
-                header = f"📡 <b>D-SCAN Analyzer: Combined Fleet & Intel Matrix</b> ({total_items} elements detected)"
+                header = f"📡 <b>D-SCAN Analyzer: Combined Fleet Matrix</b> ({total_items} elements detected)"
             else:
                 prompt = (
-                    f"[LARGE FLEET DIRECTIONAL SCAN ANALYSIS — {total_items} HOSTILE VESSELS]\n\n"
+                    f"[FLEET DIRECTIONAL SCAN ANALYSIS — {total_items} HOSTILE VESSELS]\n\n"
                     f"{summary_md}\n\n"
-                    f"[TACTICAL FLEET COMBAT DIRECTIVE]:\n"
-                    f"Provide a structured fleet combat breakdown:\n"
-                    f"1. Fleet Composition & Threat Wings: Analyze mainline combat wings (Battleships/HACs/BCs), Logistics reps, and Fast Tackle/Interdictors on scan.\n"
-                    f"2. High-Priority Targets & Grid Traps: Identify primary kill targets (e.g. tackle to free grid, or logistics to break reps), cyno beacons, and warp bubbles.\n"
-                    f"3. Strategic Engagement Directive: Explicit tactical order — engagement feasibility, optimal combat range envelope, or immediate fleet warp out."
+                    f"[TACTICAL DIRECTIVE]:\n"
+                    f"Provide a clean, tight 2-bullet tactical combat assessment (do not create nested sub-bullets or redundant sections):\n"
+                    f"• Fleet Composition & Primary Hazards: Summary of mainline DPS wings (Battleships/Marauders), logistics reps, and heavy neut/bubble threats from the scan.\n"
+                    f"• Strategic Action Order: Decisive engagement directive (optimal combat range envelope or immediate fleet warp out order)."
                 )
                 header = f"📡 <b>D-SCAN Analyzer: Major Fleet Threat Matrix</b> ({threat_level} — {total_items} vessels)"
         else:
