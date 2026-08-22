@@ -17,6 +17,13 @@ import winreg
 from typing import Dict, List, Any, Optional
 from config import config
 from error_handler import AURAErrorCode, log_diagnostic_error
+from hardware_profile import (
+    apply_install_mask,
+    gpu_strategy_label,
+    load_install_profile,
+    standby_label,
+    summarize_devices,
+)
 
 
 # Global hardware scan cache to ensure instant O(1) hardware queries across the app
@@ -28,15 +35,16 @@ class HardwareDetector:
     Discovers and classifies available compute hardware units on the host machine.
     Scans for Intel & AMD & Qualcomm NPUs, Dedicated & Integrated GPUs (NVIDIA, AMD, Intel), and CPU capabilities.
     """
-    def __init__(self, force_rescan: bool = False):
+    def __init__(self, force_rescan: bool = False, apply_profile: bool = True):
         global _CACHED_HARDWARE_DEVICES
-        if _CACHED_HARDWARE_DEVICES is not None and not force_rescan:
+        if _CACHED_HARDWARE_DEVICES is not None and not force_rescan and apply_profile:
             self.devices = _CACHED_HARDWARE_DEVICES
         else:
-            self.devices = self.scan_devices()
-            _CACHED_HARDWARE_DEVICES = self.devices
+            self.devices = self.scan_devices(apply_profile=apply_profile)
+            if apply_profile:
+                _CACHED_HARDWARE_DEVICES = self.devices
 
-    def scan_devices(self) -> Dict[str, Any]:
+    def scan_devices(self, apply_profile: bool = True) -> Dict[str, Any]:
         # 1. CPU Detection
         cpu_name = "Host CPU"
         try:
@@ -149,9 +157,15 @@ class HardwareDetector:
                                         
                                         desc_lower = desc.lower()
 
-                                        # AMD Ryzen AI NPU Check (XDNA / XDNA 2 / IPU: VEN_1022 & DEV_1502 / DEV_17F0 / DEV_17F1 / DEV_14E4 / 'AMD IPU')
-                                        is_amd_pci = any(k in sub_lower for k in ["1022&dev_1502", "1022&dev_17f0", "1022&dev_17f1", "1022&dev_14e4", "amd_ipu", "ven_1022"])
-                                        is_amd_name = any(k in desc_lower for k in ["amd ipu", "amd npu", "ryzen ai", "xdna", "amd ai engine", "npu compute device"])
+                                        # AMD Ryzen AI NPU only (do not treat every VEN_1022 GPU as an NPU)
+                                        is_amd_pci = any(
+                                            k in sub_lower
+                                            for k in ["1022&dev_1502", "1022&dev_17f0", "1022&dev_17f1", "1022&dev_14e4"]
+                                        )
+                                        is_amd_name = any(
+                                            k in desc_lower
+                                            for k in ["amd ipu", "amd npu", "ryzen ai", "xdna", "amd ai engine", "npu compute device"]
+                                        )
                                         
                                         if (is_amd_pci or is_amd_name) and config.enable_amd_npu and not devices["npu"]["available"]:
                                             devices["npu"]["available"] = True
@@ -249,6 +263,11 @@ class HardwareDetector:
             devices["gpu"]["vendor"] = selected_gpu["vendor"]
             devices["gpu"]["type"] = selected_gpu["type"]
 
+        devices["live_summary"] = summarize_devices(devices)
+        devices["install_profile"] = load_install_profile()
+        if apply_profile:
+            apply_install_mask(devices, devices["install_profile"])
+
         return devices
 
     @property
@@ -335,6 +354,23 @@ class HardwareDetector:
     def cpu_name(self) -> str:
         return self.devices["cpu"]["device_name"]
 
+    @property
+    def install_profile(self) -> Optional[Dict[str, Any]]:
+        return self.devices.get("install_profile")
+
+    @property
+    def llama_wheel(self) -> str:
+        profile = self.install_profile or {}
+        return str(profile.get("llama_wheel") or "")
+
+    @property
+    def coprocessor_kind(self) -> str:
+        profile = self.install_profile or {}
+        return str(profile.get("coprocessor") or "")
+
+    def get_live_summary_string(self) -> str:
+        return self.devices.get("live_summary") or self.get_summary_string()
+
     def get_summary_string(self) -> str:
         components = []
         if self.has_npu:
@@ -347,6 +383,48 @@ class HardwareDetector:
             components.append(f"GPU: {self.gpu_name} ({self.gpu_vendor})")
         components.append(f"CPU: {self.cpu_name} ({self.cpu_threads}T)")
         return " | ".join(components)
+
+    def get_routing_tooltip(self) -> str:
+        profile = self.install_profile
+        installed = "none (live PnP fallback)"
+        if profile:
+            installed = ", ".join(profile.get("profiles") or []) or "none"
+        return (
+            f"Installed: {installed}\n"
+            f"Routed: {self.get_summary_string()}\n"
+            f"Live: {self.get_live_summary_string()}"
+        )
+
+    def routing_standby_label(self) -> str:
+        return standby_label(self.install_profile)
+
+    def preferred_coprocessor_target(self, heavy: bool = False) -> str:
+        profile = self.install_profile
+        kind = (profile or {}).get("coprocessor") if profile else None
+        if profile is not None:
+            if kind in (None, "", "none"):
+                gpu_class = profile.get("gpu_class") or ""
+                if gpu_class in ("intel_igpu", "intel_dgpu") and self.has_gpu:
+                    return "GPU"
+                return "NONE"
+            if kind == "directml":
+                return "DIRECTML" if self.has_npu else "NONE"
+            if kind == "openvino":
+                if heavy and self.has_npu and self.has_gpu:
+                    return "FULL_MESH"
+                if self.has_npu:
+                    return "NPU"
+                if self.has_gpu:
+                    return "GPU"
+                return "NONE"
+            return "NONE"
+        if self.has_npu and self.has_gpu and heavy:
+            return "FULL_MESH"
+        if self.has_npu:
+            return "NPU"
+        if self.has_gpu and self.has_intel_gpu:
+            return "GPU"
+        return "NONE"
 
 
 class DynamicHardwareRouter:
@@ -380,13 +458,23 @@ class DynamicHardwareRouter:
         has_gpu = self.detector.has_gpu
         gpu_name = self.detector.gpu_name
         gpu_vendor = self.detector.gpu_vendor
+        gpu_label = gpu_strategy_label(self.detector.install_profile, gpu_vendor)
         has_attachments = has_image or has_doc or attachment_count > 0
         is_heavy_workload = has_attachments or token_count > 350
+        installed = set((self.detector.install_profile or {}).get("profiles") or [])
+        profile_locked = self.detector.install_profile is not None
+        quad_installed = True
+        if profile_locked:
+            has_npu_stack = "intel_npu" in installed or "amd_npu" in installed
+            has_igpu_stack = "amd_igpu" in installed or "intel_igpu" in installed
+            has_dgpu_stack = any(p in installed for p in ("nvidia_dgpu", "amd_dgpu", "intel_dgpu"))
+            quad_installed = has_npu_stack and has_igpu_stack and has_dgpu_stack
 
         # -------------------------------------------------------------
         # TIER 4: HETEROGENEOUS QUAD-MESH (NPU + iGPU + dGPU + CPU)
         # -------------------------------------------------------------
-        if has_npu and has_dgpu and has_igpu:
+        if has_npu and has_dgpu and has_igpu and quad_installed:
+            coprocessor_target = self.detector.preferred_coprocessor_target(heavy=True)
             tier_name = f"Heterogeneous Quad-Mesh ({npu_vendor} NPU + {self.detector.dgpu_name} + {self.detector.igpu_name} + CPU)"
             return {
                 "tier_id": 4,
@@ -396,7 +484,7 @@ class DynamicHardwareRouter:
                 "bg_color": "#4c0519",
                 "strategy": f"{npu_vendor} NPU + dGPU + iGPU + CPU",
                 "short_tag": "Quad-Mesh",
-                "coprocessor_target": "FULL_MESH",
+                "coprocessor_target": coprocessor_target,
                 "hw_tag": f"*{npu_vendor} NPU + dGPU + iGPU + CPU*",
                 "npu_vendor": npu_vendor,
                 "mode": "quad_mesh"
@@ -407,7 +495,7 @@ class DynamicHardwareRouter:
         # -------------------------------------------------------------
         if has_npu and has_gpu:
             if is_heavy_workload:
-                gpu_desc = f"{gpu_vendor} GPU" if not has_igpu else f"{self.detector.igpu_name}"
+                gpu_desc = gpu_label if not has_igpu else f"{self.detector.igpu_name}"
                 return {
                     "tier_id": 3,
                     "tier_name": f"Full Compute Mesh ({npu_vendor} NPU + {gpu_desc} + CPU)",
@@ -416,7 +504,7 @@ class DynamicHardwareRouter:
                     "bg_color": "#4c0519",
                     "strategy": f"{npu_vendor} NPU + {gpu_desc} + CPU",
                     "short_tag": "NPU + GPU + CPU",
-                    "coprocessor_target": "FULL_MESH",
+                    "coprocessor_target": self.detector.preferred_coprocessor_target(heavy=True),
                     "hw_tag": f"*{npu_vendor} NPU + {gpu_desc} + CPU*",
                     "npu_vendor": npu_vendor,
                     "mode": "heavy_mesh"
@@ -430,7 +518,7 @@ class DynamicHardwareRouter:
                     "bg_color": "#064e3b",
                     "strategy": f"{npu_vendor} NPU",
                     "short_tag": "NPU",
-                    "coprocessor_target": "NPU",
+                    "coprocessor_target": self.detector.preferred_coprocessor_target(heavy=False),
                     "hw_tag": f"*{npu_vendor} NPU*",
                     "npu_vendor": npu_vendor,
                     "mode": "default_npu"
@@ -449,7 +537,7 @@ class DynamicHardwareRouter:
                     "bg_color": "#0c4a6e",
                     "strategy": f"{npu_vendor} NPU + CPU",
                     "short_tag": "NPU + CPU",
-                    "coprocessor_target": "FULL_MESH",
+                    "coprocessor_target": self.detector.preferred_coprocessor_target(heavy=True),
                     "hw_tag": f"*{npu_vendor} NPU + CPU*",
                     "npu_vendor": npu_vendor,
                     "mode": "heavy_mesh"
@@ -463,7 +551,7 @@ class DynamicHardwareRouter:
                     "bg_color": "#064e3b",
                     "strategy": f"{npu_vendor} NPU",
                     "short_tag": "NPU",
-                    "coprocessor_target": "NPU",
+                    "coprocessor_target": self.detector.preferred_coprocessor_target(heavy=False),
                     "hw_tag": f"*{npu_vendor} NPU*",
                     "npu_vendor": npu_vendor,
                     "mode": "default_npu"
@@ -475,14 +563,14 @@ class DynamicHardwareRouter:
         if has_gpu:
             return {
                 "tier_id": 2,
-                "tier_name": f"{gpu_vendor} GPU + CPU Mesh ({gpu_name})",
+                "tier_name": f"{gpu_label} + CPU Mesh ({gpu_name})",
                 "badge": f"⚡ {gpu_name} + CPU",
                 "color": "#38bdf8",
                 "bg_color": "#0c4a6e",
-                "strategy": f"{gpu_vendor} GPU + CPU",
-                "short_tag": "GPU + CPU",
-                "coprocessor_target": "GPU",
-                "hw_tag": f"*{gpu_vendor} GPU + CPU*",
+                "strategy": f"{gpu_label} + CPU",
+                "short_tag": f"{gpu_label} + CPU",
+                "coprocessor_target": self.detector.preferred_coprocessor_target(heavy=is_heavy_workload),
+                "hw_tag": f"*{gpu_label} + CPU*",
                 "npu_vendor": "None",
                 "mode": "gpu_cpu_mesh"
             }
@@ -498,7 +586,7 @@ class DynamicHardwareRouter:
             "bg_color": "#064e3b",
             "strategy": "CPU",
             "short_tag": "CPU",
-            "coprocessor_target": "CPU",
+            "coprocessor_target": "NONE",
             "hw_tag": "*CPU*",
             "npu_vendor": "None",
             "mode": "cpu_vector_mesh"

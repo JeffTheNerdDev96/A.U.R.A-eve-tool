@@ -101,6 +101,7 @@ class WorkerThread(QThread):
     def stop(self):
         """Immediately interrupts the active generation stream."""
         self._is_stopped = True
+        self.engine.request_abort()
 
     def run(self):
         try:
@@ -108,7 +109,7 @@ class WorkerThread(QThread):
                 if self._is_stopped:
                     break
                 match packet.get("type"):
-                    case "meta":
+                    case "meta" | "loading":
                         self.meta_received.emit(packet)
                     case "token":
                         self.token_received.emit(packet)
@@ -513,8 +514,7 @@ class MainWindow(QMainWindow):
         self.current_assistant_tokens: List[str] = []
         self.current_piloted_ship: Optional[str] = None
         self.worker: Optional[WorkerThread] = None
-        
-        # Real-time Chatlog Monitor
+        self._intel_ask_buttons: List[QPushButton] = []
         self.chat_monitor = LiveChatMonitor()
         self.chat_monitor.intel_received.connect(self._handle_live_intel_line)
         self.chat_monitor.critical_threat_detected.connect(self._handle_live_critical_threat)
@@ -600,7 +600,7 @@ class MainWindow(QMainWindow):
         self.reset_btn = QPushButton("Purge")
         self.reset_btn.setObjectName("ChromeAction")
         self.reset_btn.setFixedHeight(32)
-        self.reset_btn.setToolTip("Purge conversation memory and memory buffer")
+        self.reset_btn.setToolTip("Stop inference, purge conversation memory, and release the neural core")
         self.reset_btn.clicked.connect(self._reset_memory)
         chrome_layout.addWidget(self.reset_btn)
 
@@ -608,7 +608,7 @@ class MainWindow(QMainWindow):
         self.tier_badge.setObjectName("TierBadge")
         self.tier_badge.setFixedHeight(32)
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
-        self.tier_badge.setToolTip(self.engine.detector.get_summary_string())
+        self.tier_badge.setToolTip(self.engine.detector.get_routing_tooltip())
         chrome_layout.addWidget(self.tier_badge)
 
         self.credits_btn = QPushButton("Credits")
@@ -862,7 +862,6 @@ class MainWindow(QMainWindow):
         self.intel_list.setObjectName("LiveIntelList")
         self.intel_list.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.intel_list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.intel_list.itemClicked.connect(self._on_intel_item_clicked)
         right_layout.addWidget(self.intel_list, stretch=1)
 
         # Feed Action Bar
@@ -870,7 +869,7 @@ class MainWindow(QMainWindow):
         self.clear_feed_btn = QPushButton("🧹 Clear Feed")
         self.clear_feed_btn.setFixedHeight(28)
         self.clear_feed_btn.setStyleSheet(radar_control_btn_css())
-        self.clear_feed_btn.clicked.connect(self.intel_list.clear)
+        self.clear_feed_btn.clicked.connect(self._clear_intel_feed)
         feed_actions.addWidget(self.clear_feed_btn)
 
         self.test_ping_btn = QPushButton("🧪 Test Threat Ping")
@@ -999,8 +998,10 @@ class MainWindow(QMainWindow):
     def _get_idle_badge_text(self) -> str:
         if self.engine.llm is not None:
             return "● Online"
-        else:
-            return "⚡ Standby (Ready)"
+        label = self.engine.detector.routing_standby_label()
+        if self.engine.detector.has_dgpu and self.engine.llama_backend == "cpu":
+            return f"⚡ {label} [CPU llama]"
+        return f"⚡ {label}"
 
     def _get_idle_badge_style(self) -> str:
         if self.engine.llm is not None:
@@ -1135,21 +1136,45 @@ class MainWindow(QMainWindow):
 
         card_text = f"{header}\n{detail_line}\n{quote_line}" if quote_line else f"{header}\n{detail_line}"
 
-        item = QListWidgetItem(card_text)
-        item.setForeground(QBrush(QColor(TEXT_PRIMARY)))
-        item.setBackground(QBrush(QColor(BG_DEEP)))
-        item.setData(Qt.ItemDataRole.UserRole, level)
-        
-        radar_font = QFont("Consolas", 10)
-        radar_font.setStyleHint(QFont.StyleHint.Monospace)
-        item.setFont(radar_font)
-        item.setData(Qt.ItemDataRole.UserRole, parsed)
+        row_widget = QWidget()
+        row_widget.setStyleSheet(f"background-color: {BG_DEEP};")
+        row_layout = QVBoxLayout(row_widget)
+        row_layout.setContentsMargins(6, 6, 6, 4)
+        row_layout.setSpacing(4)
+
+        text_lbl = QLabel(card_text)
+        text_lbl.setWordWrap(True)
+        text_lbl.setFont(QFont("Consolas", 10))
+        text_color = TEXT_PRIMARY
         if parsed.get("location_known") and not parsed.get("in_range"):
-            item.setForeground(QBrush(QColor("#64748b")))
+            text_color = "#64748b"
+        text_lbl.setStyleSheet(f"color: {text_color}; font-family: Consolas, monospace; font-size: 10pt;")
+        row_layout.addWidget(text_lbl)
+
+        btn_row = QHBoxLayout()
+        btn_row.addStretch()
+        ask_btn = QPushButton("⚡ ASK A.U.R.A.")
+        ask_btn.setFixedHeight(26)
+        ask_btn.setStyleSheet(radar_accent_btn_css())
+        ask_btn.setToolTip("Ask A.U.R.A. for tactical analysis of this intel ping")
+        ask_btn.setEnabled(not (self.worker is not None and self.worker.isRunning()))
+        ask_btn.clicked.connect(lambda checked=False, p=parsed: self._ask_aura_for_intel(p))
+        btn_row.addWidget(ask_btn)
+        row_layout.addLayout(btn_row)
+
+        item = QListWidgetItem()
+        row_widget.adjustSize()
+        item.setSizeHint(row_widget.sizeHint())
+        item.setData(Qt.ItemDataRole.UserRole, parsed)
+        item.setBackground(QBrush(QColor(BG_DEEP)))
 
         self.intel_list.insertItem(0, item)
+        self.intel_list.setItemWidget(item, row_widget)
+        self._intel_ask_buttons.append(ask_btn)
         if self.intel_list.count() > 120:
-            self.intel_list.takeItem(self.intel_list.count() - 1)
+            removed = self.intel_list.takeItem(self.intel_list.count() - 1)
+            if removed and self._intel_ask_buttons:
+                self._intel_ask_buttons.pop()
 
         if getattr(config, "windows_alerts_enabled", True) and self.alerter.should_toast(parsed):
             self._show_threat_toast(parsed)
@@ -1260,13 +1285,22 @@ class MainWindow(QMainWindow):
             if parsed.get("is_critical", False):
                 self._handle_live_critical_threat(parsed)
 
-    def _on_intel_item_clicked(self, item: QListWidgetItem):
-        """When user clicks an item in the live intel list, generate targeted tactical advice."""
-        if hasattr(self, "chat_tab"):
-            self.tabs.setCurrentWidget(self.chat_tab)
-        parsed = item.data(Qt.ItemDataRole.UserRole)
+    def _clear_intel_feed(self) -> None:
+        self.intel_list.clear()
+        self._intel_ask_buttons.clear()
+
+    def _refresh_intel_ask_buttons(self) -> None:
+        """Enable or disable intel ASK buttons based on whether inference is running."""
+        busy = self.worker is not None and self.worker.isRunning()
+        for btn in self._intel_ask_buttons:
+            btn.setEnabled(not busy)
+
+    def _ask_aura_for_intel(self, parsed: dict) -> None:
+        """Generate targeted tactical advice for a live intel ping (explicit button only)."""
         if not parsed:
             return
+        if hasattr(self, "chat_tab"):
+            self.tabs.setCurrentWidget(self.chat_tab)
         sys_name = parsed.get("system", "Target System")
         raw = parsed.get("clean_msg", "")
         ships = ", ".join(parsed.get("ships", [])) or "Hostile elements"
@@ -1274,7 +1308,7 @@ class MainWindow(QMainWindow):
         flags = " | ".join(parsed.get("status_flags", []))
         threat_level = parsed.get("threat_level", "ALERT")
         count = parsed.get("est_count", 0)
-        
+
         is_clear = ("NO VISUAL / SYSTEM CLEAR" in flags) or (threat_level == "GREEN (CLEAR)")
         if is_clear and not parsed.get("ships") and not pilots:
             prompt = (
@@ -1309,7 +1343,7 @@ class MainWindow(QMainWindow):
 
         count_desc = f" (+{count} hostiles)" if count >= 5 else ""
         header_desc = f"{ships}{count_desc}" if not pilots else f"{ships} (Pilot: {pilots}){count_desc}"
-        
+
         piloted_line = f"• Capsuleer Active Ship: `{self.current_piloted_ship}`\n" if self.current_piloted_ship else ""
         piloted_directive = f"Evaluate this engagement specifically from the perspective of the Capsuleer flying a `{self.current_piloted_ship}` against {ships}. " if self.current_piloted_ship else ""
 
@@ -1489,16 +1523,31 @@ class MainWindow(QMainWindow):
             self.worker.deleteLater()
             self.worker = None
 
+    def _force_stop_worker(self) -> None:
+        """Stop active inference and tear down the worker thread (does not unload model)."""
+        if self.worker is not None:
+            if self.worker.isRunning():
+                self.worker.stop()
+                if not self.worker.wait(10000):
+                    self.worker.terminate()
+                    self.worker.wait(2000)
+            self._cleanup_worker()
+        self.engine.request_abort()
+        self.engine.clear_abort()
+
     def _execute_tactical_prompt(self, prompt: str, display_header: str):
         if self.worker is not None and self.worker.isRunning():
-            return
-            
-        self._cleanup_worker()
+            self._force_stop_worker()
+        else:
+            self._cleanup_worker()
+        self.engine.clear_abort()
+
         self._append_message("Capsuleer", display_header)
         self.tier_badge.setText("● Thinking...")
         self.tier_badge.setStyleSheet(tier_badge_busy_css())
         self.progress_status_lbl.setText("Processing...")
         self.progress_container.setVisible(True)
+        self._refresh_intel_ask_buttons()
 
         ts = self._get_timestamp_str()
         self.chat_display.append(
@@ -1531,24 +1580,22 @@ class MainWindow(QMainWindow):
 
     def _stop_generation(self):
         """Immediately halts the active neural inference stream."""
-        if self.worker is not None:
-            if self.worker.isRunning():
-                self.worker.stop()
-                self.worker.wait(1000)
-            self._cleanup_worker()
-            self.stop_btn.hide()
-            self.send_btn.show()
-            self.send_btn.setEnabled(True)
-            self.progress_container.setVisible(False)
-            self.tier_badge.setText(self._get_idle_badge_text())
-            self.tier_badge.setStyleSheet(self._get_idle_badge_style())
-            self.chat_display.append("<br><small style='color: #f59e0b;'>⏹ <i>[Neural inference stopped by Capsuleer]</i></small><br>")
-            sb = self.chat_display.verticalScrollBar()
-            sb.setValue(sb.maximum())
-            QApplication.processEvents()
+        self._force_stop_worker()
+        self.stop_btn.hide()
+        self.send_btn.show()
+        self.send_btn.setEnabled(True)
+        self.progress_container.setVisible(False)
+        self.tier_badge.setText(self._get_idle_badge_text())
+        self.tier_badge.setStyleSheet(self._get_idle_badge_style())
+        self._refresh_intel_ask_buttons()
+        self.chat_display.append("<br><small style='color: #f59e0b;'>⏹ <i>[Neural inference stopped by Capsuleer]</i></small><br>")
+        sb = self.chat_display.verticalScrollBar()
+        sb.setValue(sb.maximum())
+        QApplication.processEvents()
 
     def _on_worker_error(self, err_msg: str):
         self._cleanup_worker()
+        self.engine.clear_abort()
         self.chat_display.append(f"<br>{err_msg}<br>")
         self.tier_badge.setText(self._get_idle_badge_text())
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
@@ -1557,6 +1604,7 @@ class MainWindow(QMainWindow):
         self.send_btn.setEnabled(True)
         self.progress_container.setVisible(False)
         self._refresh_attachment_chips()
+        self._refresh_intel_ask_buttons()
         QApplication.processEvents()
 
     # ---------------- Standard Chat & Telemetry ----------------
@@ -1650,18 +1698,26 @@ class MainWindow(QMainWindow):
             sb.setValue(sb.maximum())
 
     def _reset_memory(self):
+        """Purge: stop inference, unload model, and clear all conversation context."""
+        self._force_stop_worker()
         self.chat_history.clear()
         self.attachments.clear()
+        self.current_assistant_tokens.clear()
         self._refresh_attachment_chips()
         self.chat_display.clear()
         self._set_piloted_ship(None)
         self._display_welcome()
-        if self.engine.llm is not None:
-            self.engine.unload_model()
+        self.engine.unload_model()
         self.tier_badge.setText(self._get_idle_badge_text())
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
+        self.progress_container.setVisible(False)
+        self.stop_btn.hide()
+        self.send_btn.show()
+        self.send_btn.setEnabled(True)
         self._update_context_display(0)
+        self._refresh_intel_ask_buttons()
         self._reset_idle_timer()
+        QApplication.processEvents()
 
     def _append_message(self, sender: str, text: str):
         """Append a chat line with HTML-escaped sender and body (user/tool content)."""
@@ -1737,11 +1793,18 @@ class MainWindow(QMainWindow):
 
     def _on_meta(self, meta: dict):
         tokens = meta.get("token_estimate", 0)
-        self._update_context_display(tokens)
-        
-        self.tier_badge.setText("● Thinking...")
-        self.tier_badge.setStyleSheet(tier_badge_busy_css())
-        self.progress_status_lbl.setText("Processing...")
+        if meta.get("type") != "loading":
+            self._update_context_display(tokens)
+
+        if meta.get("type") == "loading" or meta.get("phase") == "loading":
+            status = meta.get("status") or meta.get("text") or "Loading neural core..."
+            self.tier_badge.setText("● Loading...")
+            self.tier_badge.setStyleSheet(tier_badge_busy_css())
+            self.progress_status_lbl.setText(status)
+        else:
+            self.tier_badge.setText("● Thinking...")
+            self.tier_badge.setStyleSheet(tier_badge_busy_css())
+            self.progress_status_lbl.setText("Processing...")
 
     def _on_token(self, packet: dict):
         text = packet.get("text", "")
@@ -1764,6 +1827,7 @@ class MainWindow(QMainWindow):
         self.stop_btn.hide()
         self.send_btn.show()
         self.send_btn.setEnabled(True)
+        self._refresh_intel_ask_buttons()
         sb = self.chat_display.verticalScrollBar()
         sb.setValue(sb.maximum())
         QApplication.processEvents()
@@ -1771,6 +1835,7 @@ class MainWindow(QMainWindow):
         full_reply = "".join(self.current_assistant_tokens)
         self.chat_history.append({"role": "assistant", "content": full_reply})
         self._cleanup_worker()
+        self.engine.clear_abort()
         self._update_context_display()
         self._reset_idle_timer()
 

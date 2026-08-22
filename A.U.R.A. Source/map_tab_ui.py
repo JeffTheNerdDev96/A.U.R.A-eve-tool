@@ -192,7 +192,8 @@ class SystemNodeItem(QGraphicsEllipseItem):
         self.setPen(pen)
         self.setOpacity(opacity)
         if self._label:
-            self._label.setPos(self.rect().center().x() + r + 2, self.rect().center().y() - 6)
+            r = self.rect().width() / 2.0
+            self._label.setPos(r + 2, -6)
 
 
 class MapTabWidget(QWidget):
@@ -312,13 +313,13 @@ class MapTabWidget(QWidget):
         self._origin_id = int(system_id)
         self._origin_name = system_name
         self._hide_placeholder()
-        self._rebuild_graph()
+        self._rebuild_graph(fit_view=True)
 
     def set_jump_range(self, n: int) -> None:
         self._jump_range = max(0, int(n))
         self.range_lbl.setText(f"Alert range: {self._jump_range} jumps")
         if self._origin_id is not None:
-            self._rebuild_graph()
+            self._rebuild_graph(fit_view=True)
 
     def note_intel(self, parsed: dict) -> None:
         sys_name = (parsed.get("system") or "").strip()
@@ -335,7 +336,7 @@ class MapTabWidget(QWidget):
         self._intel_by_system[key] = {"level": level, "msg": msg, "ts": ts, "name": sys_name}
         self._prune_intel()
         if self._origin_id is not None:
-            self._rebuild_graph(full_layout=False)
+            self._rebuild_graph(full_layout=False, fit_view=False)
 
     def _prune_intel(self) -> None:
         cutoff = time.time() - INTEL_TTL_SEC
@@ -367,7 +368,7 @@ class MapTabWidget(QWidget):
                     self._extra_ids.add(sid)
         return visible
 
-    def _rebuild_graph(self, full_layout: bool = True) -> None:
+    def _rebuild_graph(self, full_layout: bool = True, fit_view: bool = True) -> None:
         self._prune_intel()
         if self._origin_id is None:
             self._show_placeholder()
@@ -383,6 +384,10 @@ class MapTabWidget(QWidget):
             self._layout_cache_key = cache_key
 
         positions = self._layout_cache
+        saved_transform = self.view.transform()
+        if not fit_view:
+            center_scene = self.view.mapToScene(self.view.viewport().rect().center())
+
         self.scene.clear()
         self._node_items.clear()
         self._edge_items.clear()
@@ -423,12 +428,16 @@ class MapTabWidget(QWidget):
                 ring_w = 2.5
             opacity = 0.55 if is_extra else 1.0
 
-            lbl = QGraphicsTextItem(rec["name"])
-            lbl.setDefaultTextColor(QColor(TEXT_SECONDARY))
-            lbl.setFont(QFont("Segoe UI", 8))
+            lbl = QGraphicsTextItem(rec["name"], node)
+            if is_current:
+                lbl.setDefaultTextColor(QColor(TEXT_PRIMARY))
+                lbl.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+            else:
+                lbl.setDefaultTextColor(QColor(_sec_color(sec).name()))
+                lbl.setFont(QFont("Segoe UI", 8))
             lbl.setZValue(3)
-            self.scene.addItem(lbl)
             node.set_label(lbl)
+            self._label_items.append(lbl)
 
             node.set_visual(fill, ring, ring_w, opacity, is_current)
             self.scene.addItem(node)
@@ -445,7 +454,12 @@ class MapTabWidget(QWidget):
                 txt += f" ({extra} intel-only outside bubble)"
             self.caption_lbl.setText(txt)
 
-        self._fit_view()
+        if fit_view:
+            self._fit_view()
+        else:
+            self.view.setTransform(saved_transform)
+            self.view.centerOn(center_scene)
+
         if self._selected_id and self._selected_id in self._node_items:
             self._node_items[self._selected_id].setSelected(True)
 
@@ -507,7 +521,7 @@ class MapTabWidget(QWidget):
                 self.info_body.setText("Set location first (Local / jump).")
                 return
             self._extra_ids.add(sid)
-            self._rebuild_graph(full_layout=True)
+            self._rebuild_graph(full_layout=True, fit_view=True)
         node = self._node_items.get(sid)
         if node:
             node.setSelected(True)

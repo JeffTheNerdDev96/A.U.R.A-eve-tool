@@ -1,2 +1,2 @@
-# NVIDIA GeForce / RTX GPU Acceleration (CUDA / cuBLAS)
+# NVIDIA GeForce / RTX GPU Acceleration (CUDA wheel is installed by the setup bat)
 -r requirements.txt

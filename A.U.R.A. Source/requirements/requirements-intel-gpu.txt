@@ -1,0 +1,3 @@
+# Intel Arc / Iris / UHD GPU coprocessor via OpenVINO
+-r requirements.txt
+openvino>=2024.0.0

@@ -4,40 +4,70 @@ Feature documentation: [USER_GUIDE.md](../../USER_GUIDE.md) in the repository ro
 
 Adaptive Underworld Recon Array (A.U.R.A.) features dynamic, vendor-agnostic hardware routing supporting **Intel NPUs/GPUs**, **AMD Ryzen AI NPUs**, **AMD Radeon GPUs**, **NVIDIA CUDA**, and **CPU Vector Mesh** computing.
 
+Setup writes `hardware_profile.json` in this folder. At runtime, the engine **masks live PnP devices to that profile** so routing matches what you installed.
+
+Recommended: run `install_auto.bat` to detect hardware and compose stacks. Named scripts overwrite the profile (they do not merge).
+
+OS GPU/NPU drivers are **checked and linked**, never silently installed.
+
 ---
 
-## 1. Intel AI Boost NPU & Arc Dedicated / Integrated GPUs
-* **Intel NPU**: `Intel(R) AI Boost` (Meteor Lake, Lunar Lake, Arrow Lake).
-* **Intel dGPUs**: Intel Arc Battlemage (B580, B570), Arc Alchemist (A770, A750, A580, A380, A310).
-* **Intel iGPUs**: Intel Arc 140V / 130V, Iris Xe, UHD Graphics.
-* **Backend**: OpenVINO Level Zero & NPU Plugin.
-* **Setup**: Run `install_intel_npu.bat`
+## 1. Intel AI Boost NPU
+* **Hardware**: `Intel(R) AI Boost` (Meteor Lake, Lunar Lake, Arrow Lake).
+* **Backend**: OpenVINO Level Zero NPU plugin (coprocessor). Chat GGUF stays on CPU llama-cpp unless an Intel GPU script/auto compose also installed Vulkan.
+* **Setup**: `install_intel_npu.bat`
 
 ---
 
 ## 2. AMD Ryzen AI (XDNA NPUs)
-* **AMD NPUs**: AMD Ryzen AI 300 (XDNA 2 / Strix Point / Strix Halo), Ryzen 8040 (Hawk Point), Ryzen 7040 (Phoenix).
-* **Backend**: AMD XDNA / DirectML Execution Provider & ONNX Runtime.
-* **Setup**: Run `install_amd_npu.bat`
+* **Hardware**: Ryzen AI 300 / 8040 / 7040 (XDNA / XDNA 2).
+* **Backend**: ONNX Runtime DirectML coprocessor. Chat GGUF uses CPU llama-cpp on this named script.
+* **Setup**: `install_amd_npu.bat`
 
 ---
 
-## 3. NVIDIA Dedicated GPUs (CUDA / Tensor Cores)
-* **NVIDIA dGPUs**: GeForce RTX 50/40/30/20 series, GTX 16/10 series, RTX Ada Generation, Quadro, Titan.
-* **Backend**: CUDA 12.4+ / cuBLAS hardware layer offload.
-* **Setup**: Run `install_nvidia_cuda.bat`
+## 3. AMD Radeon Integrated GPU
+* **Hardware**: Radeon 890M / 780M / 680M / Vega iGPU.
+* **Backend**: Vulkan llama-cpp (falls back to CPU wheel if the Vulkan build is unavailable).
+* **Setup**: `install_amd_igpu.bat`
 
 ---
 
-## 4. AMD Radeon Dedicated & Integrated GPUs
-* **AMD dGPUs**: Radeon RX 8000 / 7000 / 6000 series, Radeon Pro, Vega 64 / 56.
-* **AMD iGPUs**: Radeon 890M / 780M / 680M / Vega.
-* **Backend**: Vulkan Compute Shaders & DirectML runtime.
-* **Setup**: Run `install_amd_vulkan.bat`
+## 4. Intel Integrated GPU
+* **Hardware**: Arc 140V / 130V, Iris Xe, UHD Graphics.
+* **Backend**: Vulkan llama-cpp + OpenVINO GPU plugin.
+* **Setup**: `install_intel_igpu.bat`
 
 ---
 
-## 5. CPU Multi-Threading & Vector Mesh
-* **CPUs**: Intel Core Ultra, Intel Core 14th-10th Gen, AMD Ryzen 9000/7000/5000 series.
-* **Vector Extensions**: AVX2, AVX-512, FMA, OpenMP vector processing.
-* **Setup**: Run `install_cpu.bat`
+## 5. NVIDIA Dedicated GPUs (CUDA)
+* **Hardware**: GeForce RTX/GTX, Quadro, Titan, RTX Ada.
+* **Backend**: CUDA 12.4+ / cuBLAS layer offload.
+* **Setup**: `install_nvidia_cuda.bat` (alias `install_nvidia_dgpu.bat`)
+
+---
+
+## 6. AMD Radeon Dedicated GPU
+* **Hardware**: Radeon RX 8000 / 7000 / 6000, Radeon Pro, Vega 64 / 56.
+* **Backend**: Vulkan llama-cpp (CPU fallback if no wheel).
+* **Setup**: `install_amd_dgpu.bat` (`install_amd_vulkan.bat` still calls this)
+
+---
+
+## 7. Intel Dedicated GPU
+* **Hardware**: Arc Battlemage / Alchemist dGPUs.
+* **Backend**: Vulkan llama-cpp + OpenVINO GPU plugin.
+* **Setup**: `install_intel_dgpu.bat`
+
+---
+
+## 8. CPU Multi-Threading & Vector Mesh
+* **Hardware**: Any supported Intel/AMD CPU.
+* **Backend**: CPU llama-cpp only (masks GPU/NPU routing even if silicon is present).
+* **Setup**: `install_cpu.bat`
+
+---
+
+## Automatic compose
+
+`install_auto.bat` (also used by `run.bat` self-heal) picks one GGUF wheel (CUDA > Vulkan dGPU > Vulkan iGPU > CPU) and adds NPU extras when an Intel or AMD NPU is present. Typical Intel Core Ultra: Vulkan llama **plus** OpenVINO NPU.

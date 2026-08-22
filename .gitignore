@@ -35,6 +35,11 @@ dist_standalone_temp/
 *.tar.gz
 
 # 4. Developer Tools, Build Output & Temporary Workspaces
+tests/
+**/test_*.py
+DEVELOPER.md
+check_syntax.bat
+TESTTXT.txt
 tools/
 **/tools/
 A.U.R.A. Source/tools/
@@ -69,6 +74,7 @@ runtime/
 **/runtime/
 python_runtime/
 **/python_runtime/
+A.U.R.A. Source/requirements/hardware_profile.json
 
 # 6. Local Chat Logs & Temp Files
 *.log

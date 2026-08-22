@@ -125,15 +125,21 @@ The main window uses five tabs. Live intel monitoring continues in the backgroun
 
 ## 5. Hardware Profile Installation
 
-Run the setup batch script in `A.U.R.A. Source/requirements/` corresponding to your hardware:
+Run `requirements/install_auto.bat` to detect hardware, or pick a named script in `A.U.R.A. Source/requirements/`. Each script writes `hardware_profile.json`; the engine routes GGUF layers and the coprocessor mesh using that profile **and** live devices.
 
-- **Intel NPU / Arc GPU**: `requirements/install_intel_npu.bat`
+- **Auto detect / compose**: `requirements/install_auto.bat`
+- **Intel NPU**: `requirements/install_intel_npu.bat`
 - **AMD Ryzen AI NPU**: `requirements/install_amd_npu.bat`
-- **NVIDIA RTX / GTX**: `requirements/install_nvidia_cuda.bat`
-- **AMD Radeon Vulkan**: `requirements/install_amd_vulkan.bat`
+- **Intel integrated GPU**: `requirements/install_intel_igpu.bat`
+- **AMD integrated GPU**: `requirements/install_amd_igpu.bat`
+- **NVIDIA dedicated GPU**: `requirements/install_nvidia_cuda.bat`
+- **AMD dedicated GPU**: `requirements/install_amd_dgpu.bat`
+- **Intel dedicated GPU**: `requirements/install_intel_dgpu.bat`
 - **CPU Vector Mesh**: `requirements/install_cpu.bat`
 
-Launch with `run.bat` in the root folder or `A.U.R.A. Source/run.bat`.
+Setup checks for vendor OS drivers and prints official download links; it does not silent-install GPU/NPU drivers.
+
+Launch with `run.bat` in the root folder or `A.U.R.A. Source/run.bat`. Missing Python/deps self-heal via `install_auto.bat`.
 
 Standalone package: `AURA_Setup_v0.2.0-alpha1.exe` (bundled Python 3.12 and model weights).
 
@@ -141,7 +147,7 @@ Standalone package: `AURA_Setup_v0.2.0-alpha1.exe` (bundled Python 3.12 and mode
 
 ## 6. Heterogeneous Multi-Hardware Scaling
 
-A.U.R.A. dynamically scales inference across all co-existing hardware compute units based on workload demand:
+A.U.R.A. scales inference using the **installed hardware profile** intersected with devices that are still present. Chat remains Phi-4 Mini GGUF (llama.cpp). NPU/OpenVINO/DirectML are coprocessor meshes, not a second chat model.
 
 | Scaling Tier | Target Host Configuration | Dynamic Compute Distribution |
 | :--- | :--- | :--- |

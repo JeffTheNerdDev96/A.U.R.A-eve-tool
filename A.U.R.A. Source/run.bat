@@ -59,11 +59,15 @@ if %ERRORLEVEL% EQU 0 (
 
 echo [X] Error: Python 3.12+ was not found on this system.
 echo [!] A.U.R.A. v0.2.0-alpha1 requires Python 3.12 or higher.
-echo [!] Please run one of the hardware setup scripts in requirements\ or execute the setup installer:
-echo     - install_intel_npu.bat   (Intel NPU / Arc GPU)
+echo [!] Run install_auto.bat or a hardware setup script in requirements\:
+echo     - install_auto.bat        (detect and compose stacks)
+echo     - install_intel_npu.bat   (Intel NPU)
 echo     - install_amd_npu.bat     (AMD Ryzen AI NPU)
-echo     - install_nvidia_cuda.bat (NVIDIA RTX / GTX)
-echo     - install_amd_vulkan.bat  (AMD Radeon GPU)
+echo     - install_intel_igpu.bat  (Intel integrated GPU)
+echo     - install_amd_igpu.bat    (AMD integrated GPU)
+echo     - install_nvidia_cuda.bat (NVIDIA dedicated GPU)
+echo     - install_amd_dgpu.bat    (AMD dedicated GPU)
+echo     - install_intel_dgpu.bat  (Intel dedicated GPU)
 echo     - install_cpu.bat         (CPU Vector Mesh)
 echo.
 pause
@@ -74,8 +78,8 @@ rem Verify core PyQt6 GUI environment is present and self-heal if missing
 "%PYTHON_EXE%" -c "import PyQt6.QtWidgets, psutil" >nul 2>nul
 if %ERRORLEVEL% NEQ 0 (
     echo [!] Dependencies missing. Running automated environment setup...
-    if exist "%SCRIPT_DIR%requirements\install_intel_npu.bat" (
-        call "%SCRIPT_DIR%requirements\install_intel_npu.bat"
+    if exist "%SCRIPT_DIR%requirements\install_auto.bat" (
+        call "%SCRIPT_DIR%requirements\install_auto.bat" --unattended
     ) else if exist "%SCRIPT_DIR%requirements\requirements.txt" (
         "%PYTHON_EXE%" -m pip install --prefer-binary --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu -r "%SCRIPT_DIR%requirements\requirements.txt"
     )

@@ -1,4 +1,4 @@
-# Intel NPU (Neural Processing Unit) & Intel Arc / iGPU Acceleration via OpenVINO
+# Intel NPU (AI Boost) via OpenVINO
 -r requirements.txt
 openvino>=2024.0.0
 openvino-genai>=2024.0.0

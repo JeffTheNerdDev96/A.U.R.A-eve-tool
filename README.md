@@ -78,12 +78,16 @@ A.U.R.A. is driven by a custom fine-tuned model:
    ```
 
 2. **Run Hardware Setup:**
-   Choose the script in `A.U.R.A. Source/requirements/` that matches your PC:
-   - `install_intel_npu.bat` (Intel Core Ultra NPU / Arc GPU)
+   Prefer `A.U.R.A. Source/requirements/install_auto.bat` to detect hardware and install the matching stacks. Or pick a named script:
+   - `install_auto.bat` (detect Intel/AMD NPU, iGPU, dGPU, or CPU Mesh)
+   - `install_intel_npu.bat` (Intel NPU)
    - `install_amd_npu.bat` (AMD Ryzen AI NPU)
-   - `install_nvidia_cuda.bat` (NVIDIA RTX / GTX)
-   - `install_amd_vulkan.bat` (AMD Radeon GPU)
-   - `install_cpu.bat` (CPU Only)
+   - `install_intel_igpu.bat` / `install_amd_igpu.bat` (integrated GPU)
+   - `install_nvidia_cuda.bat` (NVIDIA dedicated GPU)
+   - `install_amd_dgpu.bat` / `install_intel_dgpu.bat` (dedicated GPU)
+   - `install_cpu.bat` (CPU Vector Mesh)
+
+   Runtime routing follows `hardware_profile.json` written by these scripts (intersected with live hardware).
 
 3. **Launch A.U.R.A.:**
    Double-click `run.bat` in the root folder or execute:
@@ -94,18 +98,6 @@ A.U.R.A. is driven by a custom fine-tuned model:
    Standalone installs: run `AURA_Setup_v0.2.0-alpha1.exe` for bundled Python 3.12 and model weights.
 
 For detailed hardware requirements and documentation, see [requirements/README.md](A.U.R.A.%20Source/requirements/README.md) and [USER_GUIDE.md](USER_GUIDE.md).
-
----
-
-## Developer checks
-
-Before committing changes, validate Python syntax across all modules:
-
-```bat
-check_syntax.bat
-```
-
-Requires Python 3.12+ on PATH (or the project venv at `A.U.R.A. Source/requirements/venv`). See [DEVELOPER.md](DEVELOPER.md) for the module map, error-code index, and shutdown lifecycle.
 
 ---
 
