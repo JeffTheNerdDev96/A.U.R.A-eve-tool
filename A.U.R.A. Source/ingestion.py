@@ -6,12 +6,26 @@ import os
 from typing import Dict, Any, List
 from PIL import Image, ImageEnhance
 
+from config import config
 from error_handler import AURAErrorCode, log_diagnostic_error
+from input_safety import clamp_text, strip_control_chars
 
 try:
     import llama_cpp
 except Exception:
     pass
+
+
+def _check_file_size(file_path: str) -> None:
+    size = os.path.getsize(file_path)
+    if size > config.max_attachment_bytes:
+        raise ValueError(
+            f"File exceeds {config.max_attachment_bytes // (1024 * 1024)} MB attachment limit"
+        )
+
+
+def _finalize_text(text: str) -> str:
+    return clamp_text(strip_control_chars(text or ""), config.max_llm_context_chars // 2)
 
 
 class ImagePreprocessor:
@@ -23,11 +37,12 @@ class ImagePreprocessor:
         scaled_img = None
         enhanced_img = None
         try:
+            _check_file_size(image_path)
+            Image.MAX_IMAGE_PIXELS = config.max_image_pixels
             img = Image.open(image_path).convert("RGB")
             w, h = img.size
             extracted_lines = []
             
-            # Bound dimensions to max 1920 to prevent excessive RAM allocation on 4K screenshots
             scale_factor = 1.5
             if w > 1920 or h > 1080:
                 scale_factor = min(1920 / w, 1080 / h)
@@ -55,7 +70,10 @@ class ImagePreprocessor:
             except Exception:
                 pass
 
-            extracted_text = "\n".join(extracted_lines) if extracted_lines else "[Screenshot contains visual tactical graphics without distinct machine-readable text]"
+            extracted_text = _finalize_text(
+                "\n".join(extracted_lines) if extracted_lines
+                else "[Screenshot contains visual tactical graphics without distinct machine-readable text]"
+            )
             
             return {
                 "dimensions": f"{w}x{h}",
@@ -98,10 +116,13 @@ class DocumentParser:
             reader = pypdf.PdfReader(file_path)
             pages_text = []
             for idx, page in enumerate(reader.pages):
+                if idx >= config.max_pdf_pages:
+                    pages_text.append(f"[Truncated at {config.max_pdf_pages} pages]")
+                    break
                 text = page.extract_text()
                 if text and text.strip():
                     pages_text.append(f"--- Page {idx + 1} ---\n{text.strip()}")
-            return "\n\n".join(pages_text) if pages_text else "[PDF appears empty]"
+            return _finalize_text("\n\n".join(pages_text) if pages_text else "[PDF appears empty]")
         except Exception as e:
             return f"[Error parsing PDF: {e}]"
 
@@ -114,9 +135,14 @@ class DocumentParser:
         try:
             doc = docx.Document(file_path)
             content = []
+            para_count = 0
             for p in doc.paragraphs:
+                if para_count >= config.max_docx_paragraphs:
+                    content.append("[Truncated: paragraph limit reached]")
+                    break
                 if p.text.strip():
                     content.append(p.text.strip())
+                    para_count += 1
             for table in doc.tables:
                 table_data = []
                 for row in table.rows:
@@ -125,26 +151,27 @@ class DocumentParser:
                         table_data.append(" | ".join(row_text))
                 if table_data:
                     content.append("\n[Table]\n" + "\n".join(table_data))
-            return "\n\n".join(content) if content else "[Word Document is empty]"
+            return _finalize_text("\n\n".join(content) if content else "[Word Document is empty]")
         except Exception as e:
             return f"[Error parsing DOCX: {e}]"
 
     @staticmethod
     def _read_text_file_safe(file_path: str) -> str:
         """Reads tactical text files with robust multi-encoding fallbacks."""
+        max_bytes = config.max_attachment_bytes
+        try:
+            with open(file_path, "rb") as raw:
+                data = raw.read(max_bytes + 1)
+            if len(data) > max_bytes:
+                raise ValueError(f"File exceeds {max_bytes // (1024 * 1024)} MB attachment limit")
+        except OSError as e:
+            return f"[Error reading file: {e}]"
         for enc in ["utf-8-sig", "utf-8", "cp1252", "latin-1"]:
             try:
-                with open(file_path, "r", encoding=enc) as f:
-                    return f.read()
+                return _finalize_text(data.decode(enc))
             except (UnicodeDecodeError, LookupError):
                 continue
-            except Exception as e:
-                return f"[Error reading file: {e}]"
-        try:
-            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
-                return f.read()
-        except Exception as e:
-            return f"[Error reading file: {e}]"
+        return _finalize_text(data.decode("utf-8", errors="ignore"))
 
     @staticmethod
     def parse_file(file_path: str) -> Dict[str, Any]:
@@ -167,11 +194,11 @@ class DocumentParser:
 
     @staticmethod
     def _parse_file_impl(file_path: str) -> Dict[str, Any]:
+        _check_file_size(file_path)
         filename = os.path.basename(file_path)
         ext = os.path.splitext(file_path)[1].lower()
         
         match ext:
-            # 1. Images / Screenshots
             case ".png" | ".jpg" | ".jpeg" | ".bmp" | ".webp":
                 analysis = ImagePreprocessor.analyze_image_content(file_path)
                 return {
@@ -183,7 +210,6 @@ class DocumentParser:
                     "summary": analysis["summary"]
                 }
                 
-            # 2. PDF
             case ".pdf":
                 text = DocumentParser.parse_pdf(file_path)
                 word_est = max(1, len(text) // 6)
@@ -195,7 +221,6 @@ class DocumentParser:
                     "summary": f"PDF fleet doctrine (~{word_est:,} words)"
                 }
                 
-            # 3. Word DOCX
             case ".docx" | ".doc":
                 text = DocumentParser.parse_docx(file_path)
                 word_est = max(1, len(text) // 6)
@@ -207,8 +232,7 @@ class DocumentParser:
                     "summary": f"Word document (~{word_est:,} words)"
                 }
                 
-            # 4. Text / EFT Fits / Logs / CSV
-            case ".txt" | ".csv" | ".md" | ".json" | ".log" | ".py" | ".eft" | ".xml":
+            case ".txt" | ".csv" | ".md" | ".json" | ".log" | ".eft" | ".xml":
                 text = DocumentParser._read_text_file_safe(file_path)
                 word_est = max(1, len(text) // 6)
                 return {

@@ -19,7 +19,6 @@ import os
 import time
 import re
 import json
-import html
 import gc
 from typing import List, Dict, Any, Optional
 
@@ -47,6 +46,7 @@ from fitting_lab_ui import FittingLabWidget
 from map_tab_ui import MapTabWidget
 from composition_ui import CompositionTabWidget
 from lifecycle import cleanup_temp_files, shutdown_application
+from input_safety import escape_html, safe_display_text, clamp_text
 from theme import (
     ACCENT, ACCENT_HOVER, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT, TEXT_BRAND,
     BG_DEEP, BG_ELEVATED, BORDER, BTN_SECONDARY_BG, BTN_SECONDARY_BORDER,
@@ -320,6 +320,7 @@ class DScanDialog(QDialog):
         layout.addWidget(sub)
 
         self.input_edit = QTextEdit()
+        self.input_edit.setAcceptRichText(False)
         self.input_edit.setPlaceholderText(
             "Paste D-Scan table or Intel log lines...\n\n"
             "Examples:\n"
@@ -410,6 +411,7 @@ class FittingDialog(QDialog):
         layout.addWidget(sub)
 
         self.input_edit = QTextEdit()
+        self.input_edit.setAcceptRichText(False)
         self.input_edit.setPlaceholderText("Paste EFT fit here...\nExample:\n[Cynabal, Fleet Nano]\nGyrostabilizer II\nGyrostabilizer II\nTracking Enhancer II\nDamage Control II\n\n50MN Quad LiF Restrained Microwarpdrive\nLarge F-S9 Regolith Compact Shield Extender\n...")
         layout.addWidget(self.input_edit)
 
@@ -470,6 +472,7 @@ class IntelBatchDialog(QDialog):
         layout.addWidget(sub)
 
         self.input_edit = QTextEdit()
+        self.input_edit.setAcceptRichText(False)
         self.input_edit.setPlaceholderText("Paste chat/intel log lines...\nExample:\n[ 19:15:23 ] ScoutPilot > V-3YG7 +5 Loki Cynabal gate bubbled\n[ 19:16:01 ] Wingman > 1DQ1-A red dreadnought in local\n[ 19:16:45 ] ScoutPilot > Amamake spike 10 hostiles")
         layout.addWidget(self.input_edit)
 
@@ -709,6 +712,7 @@ class MainWindow(QMainWindow):
         input_h_layout.setSpacing(8)
 
         self.input_edit = TacticalInputEdit()
+        self.input_edit.setAcceptRichText(False)
         self.input_edit.setObjectName("InputEdit")
         self.input_edit.setPlaceholderText("Command Adaptive Underworld Recon Array (A.U.R.A.) or ask tactical queries... (Press Enter to Send, Shift+Enter for newline)")
         self.input_edit.setFixedHeight(52)
@@ -1087,7 +1091,7 @@ class MainWindow(QMainWindow):
         flags = parsed.get("status_flags", [])
         is_clear = (level == "CLEAR" or "SYSTEM CLEAR" in flags)
         ch = parsed.get("channel", "Intel")
-        raw_msg = parsed.get("clean_msg", "").strip()
+        raw_msg = safe_display_text(parsed.get("clean_msg", "").strip(), config.max_chat_chars)
 
         # Threat badges and high-contrast color highlights
         level_map = {
@@ -1281,7 +1285,7 @@ class MainWindow(QMainWindow):
                 f"[DIRECTIVE FOR A.U.R.A.]:\n"
                 f"Confirm that `{sys_name}` is reported clear with no hostiles detected. Advise standard scouting vigilance (maintain 14.3 AU D-Scan, check local member list, and monitor gate perches)."
             )
-            self._execute_tactical_prompt(prompt, f"🛰️ <b>Intel Ping Query:</b> `{sys_name}` (Reported Clear)")
+            self._execute_tactical_prompt(prompt, f"Intel Ping Query: {safe_display_text(sys_name, 128)} (Reported Clear)")
             return
 
         is_unlocated = ("UNLOCATED IN LOCAL" in flags) or ("NO VISUAL / NV" in flags)
@@ -1300,7 +1304,7 @@ class MainWindow(QMainWindow):
                 f"Provide a concise 2-to-3 bullet tactical counter-play advisory for capsuleers in or near `{sys_name}`. "
                 f"Warn that {target_desc} is in local but unlocated (NV). Advise holding cloak/perch, scanning celestial brackets with 14.3 AU 360° D-Scan, and preparing for combat probes or sudden gate decloaks."
             )
-            self._execute_tactical_prompt(prompt, f"🛰️ <b>Intel Ping Query:</b> `{sys_name}` ({target_desc} - NV)")
+            self._execute_tactical_prompt(prompt, f"Intel Ping Query: {safe_display_text(sys_name, 128)} ({safe_display_text(target_desc, 128)} - NV)")
             return
 
         count_desc = f" (+{count} hostiles)" if count >= 5 else ""
@@ -1322,7 +1326,7 @@ class MainWindow(QMainWindow):
             f"{piloted_directive}Provide strictly 2 to 3 concise tactical counter-play bullets. "
             f"Detail primary target focus, tackle/EWAR counters, and whether to engage. Do NOT output duplicate paragraphs, second sections, or repeat text."
         )
-        self._execute_tactical_prompt(prompt, f"🛰️ <b>Intel Ping Query:</b> `{sys_name}` ({header_desc})")
+        self._execute_tactical_prompt(prompt, f"Intel Ping Query: {safe_display_text(sys_name, 128)} ({safe_display_text(header_desc, 160)})")
 
 
 
@@ -1386,7 +1390,7 @@ class MainWindow(QMainWindow):
                     f"• Threat Vectors: Identify dangerous gate camps, cynos, or hot systems.\n"
                     f"• Tactical Action: Direct routing and evasion directive."
                 )
-                header = f"📡 <b>D-SCAN Analyzer: Intel Stream</b> ({total_items} reports decoded)"
+                header = f"D-SCAN Analyzer: Intel Stream ({total_items} reports decoded)"
             elif p_type == "combined":
                 prompt = (
                     f"[COMBINED D-SCAN & INTEL ANALYSIS REQUEST]\n\n"
@@ -1395,7 +1399,7 @@ class MainWindow(QMainWindow):
                     f"• Grid Threats & Hazards: Primary hostile threats, tackle/bubbles, and cyno traps.\n"
                     f"• Immediate Action: Direct engagement decision (range envelope, align, or warp out)."
                 )
-                header = f"📡 <b>D-SCAN Analyzer: Fleet & Intel Matrix</b> ({total_items} elements detected)"
+                header = f"D-SCAN Analyzer: Fleet and Intel Matrix ({total_items} elements detected)"
             else:
                 prompt = (
                     f"[DIRECTIONAL SCAN TACTICAL ANALYSIS REQUEST]\n\n"
@@ -1404,7 +1408,7 @@ class MainWindow(QMainWindow):
                     f"• Grid Threats & Hazards: Primary hostile targets, tackle/bubbles, and cyno danger.\n"
                     f"• Immediate Action: Direct tactical order (recommended engagement range/EWAR, hold alignment, or immediate warp out)."
                 )
-                header = f"📡 <b>D-SCAN Analyzer: Fleet Threat Matrix</b> ({threat_level} — {total_items} vessels)"
+                header = f"D-SCAN Analyzer: Fleet Threat Matrix ({safe_display_text(threat_level, 64)} — {total_items} vessels)"
 
         self._execute_tactical_prompt(prompt, header)
 
@@ -1415,7 +1419,7 @@ class MainWindow(QMainWindow):
 
     def _handle_fit_submission(self, raw_text: str, parsed: dict, role: str):
         if not parsed or "error" in parsed or not raw_text.strip():
-            self._append_message("Capsuleer", "🛠️ <b>Fitting Lab Review</b>: [Unrecognized Fitting Format]")
+            self._append_message("Capsuleer", "Fitting Lab Review: [Unrecognized Fitting Format]")
             self.chat_display.append("<small style='color: #ef4444;'>⚠️ Unable to parse ship fitting. Please provide standard EFT / In-Game format (e.g. `[Hull, Fit Name]`).</small><br>")
             return
 
@@ -1453,7 +1457,10 @@ class MainWindow(QMainWindow):
             f"3. Piloting & Range Envelope: State optimal engagement distance and flight tactics for {role}."
         )
         self._set_piloted_ship(hull)
-        self._execute_tactical_prompt(prompt, f"🛠️ <b>Fitting Lab Review</b>: `{hull}` ({role})")
+        self._execute_tactical_prompt(
+            prompt,
+            f"Fitting Lab Review: {safe_display_text(hull, 128)} ({safe_display_text(role, 64)})",
+        )
 
 
 
@@ -1542,10 +1549,7 @@ class MainWindow(QMainWindow):
 
     def _on_worker_error(self, err_msg: str):
         self._cleanup_worker()
-        if "<div" in err_msg:
-            self.chat_display.append(f"<br>{err_msg}<br>")
-        else:
-            self.chat_display.append(f"<br><small style='color: #ef4444;'>Tactical Compute Error: {html.escape(err_msg)}</small><br>")
+        self.chat_display.append(f"<br>{err_msg}<br>")
         self.tier_badge.setText(self._get_idle_badge_text())
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
         self.stop_btn.hide()
@@ -1592,7 +1596,7 @@ class MainWindow(QMainWindow):
             chip_layout.setSpacing(6)
 
             icon = "🖼️" if att["type"] == "image" else "📄"
-            lbl = QLabel(f"{icon} {att['filename']}")
+            lbl = QLabel(f"{icon} {safe_display_text(att.get('filename', 'file'), 128)}")
             lbl.setStyleSheet(f"color: {TEXT_PRIMARY}; font-size: 12px; font-weight: 500;")
             chip_layout.addWidget(lbl)
 
@@ -1660,15 +1664,14 @@ class MainWindow(QMainWindow):
         self._reset_idle_timer()
 
     def _append_message(self, sender: str, text: str):
+        """Append a chat line with HTML-escaped sender and body (user/tool content)."""
         color = ACCENT_HOVER if sender == "Capsuleer" else TEXT_BRAND
         ts = self._get_timestamp_str()
-        if not ("<b" in text or "<small" in text or "<div" in text or "<span" in text or "<br" in text):
-            safe_text = html.escape(text).replace("\n", "<br>")
-        else:
-            safe_text = text.replace("\n", "<br>")
+        safe_sender = escape_html(sender)
+        safe_text = escape_html(clamp_text(text, config.max_chat_chars)).replace("\n", "<br>")
         self.chat_display.append(
             f"<small style='color: {TEXT_HINT}; font-family: monospace;'>[{ts}]</small> "
-            f"<b style='color: {color};'>{sender}:</b><br>{safe_text}<br>"
+            f"<b style='color: {color};'>{safe_sender}:</b><br>{safe_text}<br>"
         )
         self.chat_display.verticalScrollBar().setValue(self.chat_display.verticalScrollBar().maximum())
 
@@ -1716,10 +1719,12 @@ class MainWindow(QMainWindow):
                     self._set_piloted_ship(detected_ship)
                     break
 
-        display_msg = prompt
+        display_msg = clamp_text(prompt, config.max_chat_chars)
         if self.attachments:
-            att_names = ", ".join([f"[{att['filename']}]" for att in self.attachments])
-            display_msg = f"{prompt} <i>(Attached: {att_names})</i>"
+            att_names = ", ".join(
+                f"[{safe_display_text(att.get('filename', 'file'), 128)}]" for att in self.attachments
+            )
+            display_msg = f"{display_msg}\n(Attached: {att_names})"
 
         # If user was simply declaring their vessel, format prompt for defensive posture guidance
         if detected_ship:

@@ -1,7 +1,7 @@
 Release Notes — A.U.R.A. Assist v0.2.0-alpha1
 A.U.R.A. (Adaptive Underworld Recon Array) receives a major milestone overhaul. Version 0.2.0 transitions the project from a single-screen layout into a modular, multi-tab tactical suite featuring system proximity mapping, early fitting estimation tools, fleet matchup intelligence, and OS-level threat alerts.
 
-What's New in v0.2.0
+What's New in v0.2.0-alpha1
 
 Modular Tabbed Navigation
 Replaced the split-view layout with a scalable tabbed navigation architecture (Live Intel Radar, Fitting, Map, Composition, A.U.R.A. Chat).

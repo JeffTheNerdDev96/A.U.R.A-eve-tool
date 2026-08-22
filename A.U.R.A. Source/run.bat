@@ -7,11 +7,11 @@ set "SCRIPT_DIR=%~dp0"
 set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8
 set PYTHONDONTWRITEBYTECODE=1
-title Adaptive Underworld Recon Array (A.U.R.A.) - v0.2.0
+title Adaptive Underworld Recon Array (A.U.R.A.) - v0.2.0-alpha1
 
 cls
 echo ===================================================================
-echo   [+] Adaptive Underworld Recon Array (A.U.R.A.) - v0.2.0
+echo   [+] Adaptive Underworld Recon Array (A.U.R.A.) - v0.2.0-alpha1
 echo   Angel Cartel Cybernetics Division  ^|  by JeffTheNerdDev96
 echo ===================================================================
 echo [!] Initializing Phi-4 Mini Neural Core ^& Live Intel Radar...
@@ -58,7 +58,7 @@ if %ERRORLEVEL% EQU 0 (
 )
 
 echo [X] Error: Python 3.12+ was not found on this system.
-echo [!] A.U.R.A. v0.2.0 requires Python 3.12 or higher.
+echo [!] A.U.R.A. v0.2.0-alpha1 requires Python 3.12 or higher.
 echo [!] Please run one of the hardware setup scripts in requirements\ or execute the setup installer:
 echo     - install_intel_npu.bat   (Intel NPU / Arc GPU)
 echo     - install_amd_npu.bat     (AMD Ryzen AI NPU)

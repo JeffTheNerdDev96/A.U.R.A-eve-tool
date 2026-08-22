@@ -54,6 +54,7 @@ class CompositionTabWidget(QWidget):
         ll.setContentsMargins(8, 8, 8, 8)
         ll.addWidget(self._section("Friendly fleet (Fleet window / chat)"))
         self.friendly_edit = QTextEdit()
+        self.friendly_edit.setAcceptRichText(False)
         self.friendly_edit.setPlaceholderText(
             "Paste friendly hulls — fleet window, overview, intel, or a list.\n\n"
             "Examples:\n"
@@ -74,6 +75,7 @@ class CompositionTabWidget(QWidget):
         rl.setContentsMargins(8, 8, 8, 8)
         rl.addWidget(self._section("Hostile D-scan / grid"))
         self.enemy_edit = QTextEdit()
+        self.enemy_edit.setAcceptRichText(False)
         self.enemy_edit.setPlaceholderText(
             "Paste hostile D-scan, overview, or intel channel lines.\n\n"
             "Examples:\n"

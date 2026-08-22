@@ -1,4 +1,4 @@
-# Adaptive Underworld Recon Array (A.U.R.A.) — v0.2.0 — Tactical User Guide
+# Adaptive Underworld Recon Array (A.U.R.A.) — v0.2.0-alpha1 — Tactical User Guide
 
 **Adaptive Underworld Recon Array (A.U.R.A.)**  
 *Angel Cartel Cybernetics Division — by JeffTheNerdDev96*
@@ -97,7 +97,7 @@ The main window uses five tabs. Live intel monitoring continues in the backgroun
 | Delta | Friendly minus enemy; **Adv** (green) or **Disadv** (red) when `|delta| ≥ 2` or when logi/EWAR counts differ |
 
 - **Logistics bucket** includes T1 cruisers and frigates (Osprey, Scythe, Augoror, Exequror, Bantam, Burst, Inquisitor, Navitas) and T2 logi (Scimitar, Basilisk, etc.).
-- **Engagement assessment** (read-only bullets below the table): EWAR threat (High/Medium/Low), logi-to-DPS Favorable/Unfavorable, tackle comparison, hull totals, and optional HAC range line (missile 40–70 km vs gun/drone 10–30 km). This is **local rules only** — it is not sent to A.U.R.A. Chat in v0.2.0.
+- **Engagement assessment** (read-only bullets below the table): EWAR threat (High/Medium/Low), logi-to-DPS Favorable/Unfavorable, tackle comparison, hull totals, and optional HAC range line (missile 40–70 km vs gun/drone 10–30 km). This is **local rules only** — it is not sent to A.U.R.A. Chat in v0.2.0-alpha1.
 - **Hints** under each paste: `N hulls · M unmatched`. Junk lines are counted as unmatched, not as fake hulls.
 - Recommended window size when this tab is active: about **960 × 620**.
 
@@ -135,7 +135,7 @@ Run the setup batch script in `A.U.R.A. Source/requirements/` corresponding to y
 
 Launch with `run.bat` in the root folder or `A.U.R.A. Source/run.bat`.
 
-Standalone package: `AURA_Setup_v0.2.0.exe` (bundled Python 3.12 and model weights).
+Standalone package: `AURA_Setup_v0.2.0-alpha1.exe` (bundled Python 3.12 and model weights).
 
 ---
 
@@ -159,9 +159,9 @@ If an anomaly occurs during tactical computation, A.U.R.A. presents a standardiz
 
 | Error Code | Title | Root Cause & Resolution |
 | :--- | :--- | :--- |
-| **`AURA-ERR-1001`** | **Neural Weights Missing** | `model_q4.gguf` was not found in `models/phi-4-mini/`. Run `AURA_Setup_v0.2.0.exe` to download weights or place the file manually. |
+| **`AURA-ERR-1001`** | **Neural Weights Missing** | `model_q4.gguf` was not found in `models/phi-4-mini/`. Run `AURA_Setup_v0.2.0-alpha1.exe` to download weights or place the file manually. |
 | **`AURA-ERR-1002`** | **Context Allocation Failure** | Host RAM/VRAM was insufficient to allocate KV cache tensors. Close heavy background apps or lower the context window size in Settings. |
-| **`AURA-ERR-1003`** | **Incompatible Python Architecture** | The active Python runtime is older than Python 3.12. Install the standalone package or run `AURA_Setup_v0.2.0.exe`. |
+| **`AURA-ERR-1003`** | **Incompatible Python Architecture** | The active Python runtime is older than Python 3.12. Install the standalone package or run `AURA_Setup_v0.2.0-alpha1.exe`. |
 | **`AURA-ERR-1004`** | **Inference Stream Timeout** | The neural token generator timed out. Check GPU driver stability or switch to CPU Vector Mesh mode. |
 | **`AURA-ERR-2001`** | **Intel NPU Coprocessor Failure** | OpenVINO Level Zero driver error. Update Intel NPU Driver (v32.0.100.3104+) via Intel Driver & Support Assistant. |
 | **`AURA-ERR-2002`** | **AMD Vulkan / DirectML Error** | Compute shader pipe failure. Ensure latest AMD Adrenalin graphics drivers with Vulkan 1.3 are installed. |
@@ -186,4 +186,4 @@ If an anomaly occurs during tactical computation, A.U.R.A. presents a standardiz
 - **Tab strip:** Live Intel Radar, Fitting, Map, Composition, A.U.R.A. Chat (selected tab shows an oxide accent stripe).
 - **Footer:** A.U.R.A. brand mark, author line, GitHub repo link, and **Report a bug** (GitHub Issues).
 
-Previous pre-release builds were labeled **v0.2.0-alpha1**; the standalone installer folder name may still use that path for model weights — v0.2.0 also searches `A.U.R.A. v0.2.0` install locations.
+The standalone installer deploys to `A.U.R.A. v0.2.0-alpha1` under `%LOCALAPPDATA%\Programs\` (or your chosen path). Model weights are stored in `models/phi-4-mini/model_q4.gguf` within that folder.

@@ -25,9 +25,9 @@ If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
  - OS: [e.g. Windows 11 64-bit]
- - A.U.R.A. version: [e.g. v0.2.0]
+ - A.U.R.A. version: [e.g. v0.2.0-alpha1]
  - Hardware profile: [e.g. NVIDIA CUDA, Intel NPU, CPU only]
- - Python: [e.g. 3.12 from venv or AURA_Setup_v0.2.0.exe]
+ - Python: [e.g. 3.12 from venv or AURA_Setup_v0.2.0-alpha1.exe]
 
 **Additional context**
 Add any other context about the problem here (tab name, error code such as AURA-ERR-xxxx, contents of `logs/crash.log` if relevant).

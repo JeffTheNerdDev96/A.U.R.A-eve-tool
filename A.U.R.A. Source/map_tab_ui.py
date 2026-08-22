@@ -17,6 +17,7 @@ from PyQt6.QtWidgets import (
 )
 
 from eve_map import EveMapGraph
+from input_safety import safe_display_text
 from theme import (
     BG_DEEP, BG_PANEL, BORDER, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT,
     ACCENT, ACCENT_HOVER, BORDER_FOCUS, btn_secondary_css,
@@ -261,6 +262,7 @@ class MapTabWidget(QWidget):
         self.info_title.setStyleSheet(f"color:{TEXT_PRIMARY}; font-size:14px; font-weight:bold;")
         rl.addWidget(self.info_title)
         self.info_body = QLabel("Select a system or wait for location.")
+        self.info_body.setTextFormat(Qt.TextFormat.PlainText)
         self.info_body.setWordWrap(True)
         self.info_body.setStyleSheet(f"color:{TEXT_SECONDARY}; font-size:12px;")
         rl.addWidget(self.info_body)
@@ -497,7 +499,7 @@ class MapTabWidget(QWidget):
             return
         rec = self.eve_map.resolve_system_name(token)
         if not rec:
-            self.info_body.setText(f"No system named “{token}”.")
+            self.info_body.setText(f'No system named "{safe_display_text(token, 128)}".')
             return
         sid = int(rec["id"])
         if sid not in self._node_items:

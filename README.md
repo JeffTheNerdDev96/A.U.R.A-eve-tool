@@ -1,5 +1,5 @@
 # A.U.R.A. — EVE Online AI Tactical Copilot
-**v0.2.0**
+**v0.2.0-alpha1**
 
 > **Adaptive Underworld Recon Array (A.U.R.A.)** — Your all-in-one, local tactical companion and shipboard assistant for *EVE Online*.
 
@@ -15,7 +15,7 @@ For full operational instructions, see the [Tactical User Guide (USER_GUIDE.md)]
 
 ---
 
-## What's New in v0.2.0
+## What's New in v0.2.0-alpha1
 
 * **Composition tab** — Paste friendly fleet vs hostile D-scan side-by-side; get a role breakdown table and local engagement assessment (rule-based, no LLM).
 * **Tactical Map tab** — Pan/zoom stargate graph around your current system with intel overlays and jump-range bubble.
@@ -91,7 +91,7 @@ A.U.R.A. is driven by a custom fine-tuned model:
    run.bat
    ```
 
-   Standalone installs: run `AURA_Setup_v0.2.0.exe` for bundled Python 3.12 and model weights.
+   Standalone installs: run `AURA_Setup_v0.2.0-alpha1.exe` for bundled Python 3.12 and model weights.
 
 For detailed hardware requirements and documentation, see [requirements/README.md](A.U.R.A.%20Source/requirements/README.md) and [USER_GUIDE.md](USER_GUIDE.md).
 

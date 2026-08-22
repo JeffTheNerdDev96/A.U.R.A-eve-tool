@@ -17,6 +17,7 @@ from intel_parser import IntelParser
 from location_tracker import LocationTracker
 from config import config
 from error_handler import AURAErrorCode, log_diagnostic_error
+from input_safety import is_safe_log_file
 
 DEFAULT_INTEL_PATTERNS = [
     "intel", "imperium", "horde", "frt", "winter", "init", "brave", "snuff",
@@ -212,10 +213,17 @@ class LiveChatMonitor(QThread):
             return True
         return False
 
+    def _allowed_log_roots(self) -> List[str]:
+        return [self.log_dir, self.gamelog_dir]
+
+    def _is_allowed_log_path(self, filepath: str) -> bool:
+        return any(is_safe_log_file(root, filepath) for root in self._allowed_log_roots())
+
     def _list_recent(self, directory: str, limit: int) -> List[str]:
         if not directory or not os.path.exists(directory):
             return []
         files = glob.glob(os.path.join(directory, "*.txt"))
+        files = [f for f in files if self._is_allowed_log_path(f)]
         files.sort(key=os.path.getmtime, reverse=True)
         return files[:limit]
 
@@ -227,7 +235,10 @@ class LiveChatMonitor(QThread):
         intel_files = []
         if os.path.exists(self.log_dir):
             pattern = os.path.join(self.log_dir, "*.txt")
-            intel_files = [f for f in glob.glob(pattern) if self._matches_intel_filter(f)]
+            intel_files = [
+                f for f in glob.glob(pattern)
+                if self._matches_intel_filter(f) and self._is_allowed_log_path(f)
+            ]
             intel_files.sort(key=os.path.getmtime, reverse=True)
             intel_files = intel_files[:20]
 
@@ -251,6 +262,9 @@ class LiveChatMonitor(QThread):
         self.location_changed.emit(hit["system"], int(hit["system_id"]))
 
     def _read_prefix(self, filepath: str, nbytes: int = 8192) -> str:
+        if not self._is_allowed_log_path(filepath):
+            return ""
+        nbytes = min(nbytes, config.max_log_read_bytes)
         try:
             with open(filepath, "rb") as fp:
                 return decode_log_bytes(fp.read(nbytes))
@@ -287,6 +301,8 @@ class LiveChatMonitor(QThread):
         bootstrapped_local = False
         bootstrapped_game = False
         for f in files:
+            if not self._is_allowed_log_path(f):
+                continue
             ch_name = extract_channel_name_from_filename(f)
             if ch_name not in active_names and not _is_gamelog_file(f):
                 active_names.append(ch_name)
@@ -326,6 +342,8 @@ class LiveChatMonitor(QThread):
         active_names = []
 
         for f in current_files:
+            if not self._is_allowed_log_path(f):
+                continue
             ch_name = extract_channel_name_from_filename(f)
             if ch_name not in active_names and not _is_gamelog_file(f):
                 active_names.append(ch_name)
@@ -346,10 +364,11 @@ class LiveChatMonitor(QThread):
                 last_pos = self.file_positions.get(f, 0)
 
                 if current_size > last_pos:
+                    read_len = min(current_size - last_pos, config.max_log_read_bytes)
                     with open(f, "rb") as fp:
                         fp.seek(last_pos)
-                        new_bytes = fp.read(current_size - last_pos)
-                        self.file_positions[f] = current_size
+                        new_bytes = fp.read(read_len)
+                        self.file_positions[f] = last_pos + len(new_bytes)
                     decoded_text = decode_log_bytes(new_bytes)
                     self._process_text(f, decoded_text, ch_name)
                 elif current_size < last_pos:

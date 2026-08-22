@@ -28,7 +28,7 @@ if not exist "%PYTHON_EXE%" (
             python -c "import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)" 2>nul
             if %ERRORLEVEL% NEQ 0 (
                 echo [X] Error: Python 3.12+ is required. Found an unsupported Python version.
-                echo [!] Please install Python 3.12 (64-bit) from python.org or run AURA_Setup_v0.2.0.exe.
+                echo [!] Please install Python 3.12 (64-bit) from python.org or run AURA_Setup_v0.2.0-alpha1.exe.
                 pause
                 exit /b 1
             )

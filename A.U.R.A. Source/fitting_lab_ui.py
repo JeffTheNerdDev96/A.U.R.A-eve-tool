@@ -76,6 +76,7 @@ class PasteEftDialog(QDialog):
         hint.setStyleSheet(f"color:{TEXT_SECONDARY};")
         lay.addWidget(hint)
         self.editor = QTextEdit()
+        self.editor.setAcceptRichText(False)
         self.editor.setPlaceholderText("[Hull Name, Fit Name]\nModule…")
         clip = QApplication.clipboard().text().strip()
         if clip:

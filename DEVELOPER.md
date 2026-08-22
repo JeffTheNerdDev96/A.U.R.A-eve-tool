@@ -1,6 +1,6 @@
 # A.U.R.A. Developer Guide
 
-Internal reference for contributors working on the v0.2 codebase.
+Internal reference for contributors working on the v0.2.0-alpha1 codebase.
 
 ## Module map
 
@@ -28,6 +28,26 @@ Internal reference for contributors working on the v0.2 codebase.
 | `threat_alerts.py` | Jump-range threat toasts |
 | `theme.py` | Angel Cartel stylesheets and palette |
 | `config.py` | Runtime settings singleton |
+| `input_safety.py` | HTML escape, length caps, path checks, LLM untrusted delimiters |
+
+## Input safety
+
+Untrusted text must pass through [`input_safety.py`](A.U.R.A. Source/input_safety.py):
+
+- **UI HTML** — `escape_html()` before `QTextEdit.append` with user content
+- **Labels / lists** — `safe_display_text()` or `Qt.TextFormat.PlainText`
+- **Attachments** — size-capped in `ingestion.py` (`config.max_attachment_bytes`)
+- **EVE logs** — `is_safe_log_file()` in `chat_monitor.py`
+- **LLM prompts** — `wrap_untrusted()` delimiters + `config.max_llm_context_chars`
+
+### Security checklist for new features
+
+1. Does user or log content reach HTML? → escape it
+2. Does content reach the LLM? → delimiter + clamp
+3. Does content read from disk? → size cap + path under expected root
+4. New `QTextEdit` for user input? → `setAcceptRichText(False)`
+
+Prompt injection cannot be eliminated for a local assistant; document behavior and avoid executing model output as code.
 
 ## Dependency flow
 
@@ -88,6 +108,7 @@ Or manually (Python 3.12+):
 
 ```bat
 python -m compileall -q -f "A.U.R.A. Source"
+python -m unittest tests.test_input_safety
 ```
 
 Launch the app:

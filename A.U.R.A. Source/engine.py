@@ -20,10 +20,12 @@ if sys.stderr and hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
 from config import config
+from version import INSTALL_DIR_NAME
 from hardware import HardwareDetector, DynamicHardwareRouter
 from error_handler import AURAErrorCode, AURAException, log_diagnostic_error, format_error_html
 from ingestion import DocumentParser, ImagePreprocessor
 from eve_data import get_tactical_grounding
+from input_safety import clamp_text, strip_control_chars, wrap_untrusted
 
 
 _CACHED_MODEL_PATH: Optional[str] = None
@@ -44,43 +46,24 @@ def find_model_file() -> Optional[str]:
     user_prof = os.environ.get("USERPROFILE", "")
 
     candidates = [
-        os.path.join(source_dir, "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(root_dir, "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(exe_dir, "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(os.path.dirname(exe_dir), "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(os.getcwd(), "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(local_app_data, "Programs", "A.U.R.A. v0.2.0", "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(local_app_data, "Programs", "A.U.R.A.", "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(local_app_data, "Programs", "A.U.R.A. v0.2.0-alpha1", "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(user_prof, "AppData", "Local", "Programs", "A.U.R.A. v0.2.0", "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(user_prof, "AppData", "Local", "Programs", "A.U.R.A. v0.2.0-alpha1", "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(user_prof, "AppData", "Local", "Programs", "A.U.R.A. v0.1.4-alpha6", "models", "phi-4-mini", "model_q4.gguf"),
-        r"C:\A.U.R.A. v0.2.0\models\phi-4-mini\model_q4.gguf",
-        r"C:\A.U.R.A. v0.2.0-alpha1\models\phi-4-mini\model_q4.gguf",
-        r"C:\A.U.R.A. v0.1.4-alpha6\models\phi-4-mini\model_q4.gguf",
-        r"C:\Program Files\A.U.R.A. v0.2.0\models\phi-4-mini\model_q4.gguf",
-        r"C:\Program Files\A.U.R.A. v0.2.0-alpha1\models\phi-4-mini\model_q4.gguf",
-        r"C:\Program Files\A.U.R.A. v0.1.4-alpha6\models\phi-4-mini\model_q4.gguf",
-        os.path.join(root_dir, "A.U.R.A Distro", "Installer", "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(source_dir, "models", "Phi-4-mini-instruct", "model_q4.gguf"),
-        os.path.join(root_dir, "models", "Phi-4-mini-instruct", "model_q4.gguf"),
+        os.path.join(source_dir, "models", config.model_folder, config.model_file),
+        os.path.join(root_dir, "models", config.model_folder, config.model_file),
+        os.path.join(exe_dir, "models", config.model_folder, config.model_file),
+        os.path.join(os.path.dirname(exe_dir), "models", config.model_folder, config.model_file),
+        os.path.join(local_app_data, "Programs", INSTALL_DIR_NAME, "models", config.model_folder, config.model_file),
+        os.path.join(user_prof, "AppData", "Local", "Programs", INSTALL_DIR_NAME, "models", config.model_folder, config.model_file),
+        os.path.join(f"C:\\{INSTALL_DIR_NAME}", "models", config.model_folder, config.model_file),
+        os.path.join("C:\\Program Files", INSTALL_DIR_NAME, "models", config.model_folder, config.model_file),
+        os.path.join(root_dir, "A.U.R.A Distro", "Installer", "models", config.model_folder, config.model_file),
     ]
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        candidates.insert(0, os.path.join(meipass, "models", config.model_folder, config.model_file))
     for p in candidates:
         if p and os.path.exists(p) and os.path.getsize(p) > 100000000:
             _CACHED_MODEL_PATH = os.path.abspath(p)
             _PATH_RESOLVED = True
             return _CACHED_MODEL_PATH
-            
-    # Search local models subfolder dynamically
-    for base in [source_dir, root_dir, exe_dir, os.path.dirname(exe_dir)]:
-        m_dir = os.path.join(base, "models")
-        if os.path.exists(m_dir):
-            for root, _, files in os.walk(m_dir):
-                for f in files:
-                    if f.endswith(".gguf") and os.path.getsize(os.path.join(root, f)) > 100000000:
-                        _CACHED_MODEL_PATH = os.path.abspath(os.path.join(root, f))
-                        _PATH_RESOLVED = True
-                        return _CACHED_MODEL_PATH
 
     _PATH_RESOLVED = True
     _CACHED_MODEL_PATH = None
@@ -97,18 +80,23 @@ def _init_vulkan_runtime():
     source_dir = os.path.dirname(os.path.abspath(__file__))
     root_dir = os.path.dirname(source_dir)
     exe_dir = os.path.dirname(sys.executable)
-    
-    candidates = [
+    meipass = getattr(sys, "_MEIPASS", None)
+
+    candidates = []
+    if meipass:
+        candidates.append(os.path.join(meipass, "llama_cpp", "lib", "llama.dll"))
+        candidates.append(os.path.join(meipass, "requirements", "vulkan_llama", "llama.dll"))
+    candidates.extend([
+        os.path.join(exe_dir, "llama_cpp", "lib", "llama.dll"),
+        os.path.join(exe_dir, "requirements", "vulkan_llama", "llama.dll"),
         os.path.join(source_dir, "requirements", "vulkan_llama", "llama.dll"),
         os.path.join(root_dir, "requirements", "vulkan_llama", "llama.dll"),
-        os.path.join(exe_dir, "requirements", "vulkan_llama", "llama.dll"),
         os.path.join(source_dir, "vulkan_llama", "llama.dll"),
-    ]
+    ])
     for p in candidates:
-        if os.path.exists(p):
+        if p and os.path.exists(p):
             v_dir = os.path.dirname(p)
             os.environ["LLAMA_CPP_LIB"] = p
-            os.environ["PATH"] = v_dir + ";" + os.environ.get("PATH", "")
             if hasattr(os, "add_dll_directory") and sys.platform == "win32":
                 try:
                     os.add_dll_directory(v_dir)
@@ -430,32 +418,48 @@ class UnifiedInferenceEngine:
 
     def _build_contextual_prompt(self, prompt: str, attachments: List[Dict[str, Any]], piloted_ship: Optional[str] = None) -> str:
         """Injects verified EVE mechanics, ship dossiers, and attachments into the tactical prompt context."""
-        # If the prompt is already a fully formed structured request (from D-Scan, Fitting Lab, or Intel tools), pass directly
-        if prompt.startswith("["):
-            return prompt
+        prompt = strip_control_chars(prompt or "")
+        budget = config.max_llm_context_chars
 
-        grounding = get_tactical_grounding(prompt, attachments, piloted_ship=piloted_ship)
+        if prompt.startswith("["):
+            return clamp_text(prompt, budget)
+
+        safe_query = clamp_text(prompt, min(config.max_chat_chars, budget // 4))
+        grounding = get_tactical_grounding(safe_query, attachments, piloted_ship=piloted_ship)
         
         attachment_blocks = []
+        remaining = budget - len(grounding)
         if attachments:
             for att in attachments:
-                fname = att.get("filename", "Attachment")
+                fname = strip_control_chars(str(att.get("filename", "Attachment")))[:256]
                 atype = att.get("type", "document")
-                content = att.get("text", "")
+                content = clamp_text(strip_control_chars(att.get("text", "")), remaining // max(1, len(attachments)))
+                remaining -= len(content)
                 
                 if atype == "image":
                     analysis = att.get("analysis", {})
                     dim = analysis.get("dimensions", "Image")
-                    attachment_blocks.append(f"[Attached Tactical Screenshot: {fname} ({dim})]\nVisual Elements & Extracted Text:\n{content}")
+                    block = wrap_untrusted(
+                        "UNTRUSTED_ATTACHMENT_IMAGE",
+                        f"Filename: {fname} ({dim})\n{content}",
+                        max_chars=len(content) + 128,
+                    )
                 else:
-                    attachment_blocks.append(f"[Attached Tactical Intel / Fit / D-Scan: {fname}]\nContent:\n{content}")
+                    block = wrap_untrusted(
+                        "UNTRUSTED_ATTACHMENT",
+                        f"Filename: {fname}\n{content}",
+                        max_chars=len(content) + 128,
+                    )
+                attachment_blocks.append(block)
                     
         joined_attachments = "\n\n".join(attachment_blocks)
+        user_block = wrap_untrusted("UNTRUSTED_USER_QUERY", safe_query, max_chars=len(safe_query) + 64)
         
         if joined_attachments:
-            return f"{grounding}\n\n{joined_attachments}\n\n[Capsuleer Tactical Command / Query]:\n{prompt}"
+            combined = f"{grounding}\n\n{joined_attachments}\n\n{user_block}"
         else:
-            return f"{grounding}\n\n[Capsuleer Tactical Command / Query]:\n{prompt}"
+            combined = f"{grounding}\n\n{user_block}"
+        return clamp_text(combined, budget)
 
 
     def _prune_context(self, history: List[Dict[str, str]], current_prompt: str, max_tokens: int = 1500) -> List[Dict[str, str]]:

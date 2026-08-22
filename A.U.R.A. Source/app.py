@@ -1,6 +1,6 @@
 """
 Main entry point for Adaptive Underworld Recon Array (A.U.R.A.).
-Angel Cartel EVE Online Tactical AI Assistant - v0.2.0.
+Angel Cartel EVE Online Tactical AI Assistant - v0.2.0-alpha1.
 """
 import sys
 import os
@@ -8,6 +8,8 @@ import traceback
 import time
 import atexit
 import gc
+
+from version import INSTALLER_EXE_NAME
 
 # Enforce no stale bytecode caching across all executions
 sys.dont_write_bytecode = True
@@ -24,7 +26,7 @@ if sys.version_info < (3, 12):
     err_text = (
         f"{_display_title} requires Python 3.12 or higher.\n\n"
         f"Detected: Python {sys.version.split()[0]}\n\n"
-        f"Legacy versions (< 3.12) are not supported. Please run the v0.2.0 installer."
+        f"Legacy versions (< 3.12) are not supported. Please run the {INSTALLER_EXE_NAME} installer."
     )
     try:
         _log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")

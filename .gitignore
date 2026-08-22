@@ -18,8 +18,6 @@ training/
 # 3. Local Builds, Distro Packages & Installers
 A.U.R.A Distro/
 **/A.U.R.A Distro/
-AURA_Standalone_Windows/
-A.U.R.A. Installer/
 build/
 dist/
 build_installer_temp/

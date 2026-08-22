@@ -4,6 +4,8 @@ High-throughput parser with zero generator allocations and C-level fast-paths.
 """
 import re
 from typing import Dict, List, Any, Optional
+from config import config
+from input_safety import clamp_text, strip_control_chars, safe_display_text
 from eve_data import _FAST_SHIP_LOOKUP, SHIP_DATABASE, THREAT_BUBBLE, THREAT_CYNO, THREAT_MARAUDER, THREAT_CAPITAL, THREAT_SUPER, THREAT_ECM
 from eve_map import get_eve_map
 
@@ -83,6 +85,8 @@ class IntelParser:
     @staticmethod
     def parse_single_line(line: str, channel_name: str = "Intel") -> Optional[Dict[str, Any]]:
         """Parses a single live line from an EVE chat log file with maximum throughput."""
+        line = clamp_text(strip_control_chars(line or ""), config.max_line_chars)
+        channel_name = safe_display_text(channel_name, 256)
         clean_line = line.strip(_STRIP_CHARS)
         if not clean_line or clean_line.startswith("---") or "Channel Name:" in clean_line or "Listener:" in clean_line:
             return None
@@ -302,7 +306,7 @@ class IntelParser:
         return {
             "timestamp": timestamp,
             "time_str": time_str,
-            "speaker": speaker,
+            "speaker": safe_display_text(speaker, 128),
             "system": found_system,
             "system_id": found_system_id,
             "est_count": est_count,
@@ -314,8 +318,8 @@ class IntelParser:
             "threat_color": threat_color,
             "is_critical": is_critical,
             "channel": channel_name,
-            "clean_msg": msg,
-            "raw_line": clean_line
+            "clean_msg": safe_display_text(msg, config.max_chat_chars),
+            "raw_line": safe_display_text(clean_line, config.max_line_chars)
         }
 
     @staticmethod
