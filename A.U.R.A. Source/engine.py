@@ -73,6 +73,21 @@ def find_model_file() -> Optional[str]:
 
 
 _VULKAN_INITIALIZED = False
+_CUDA_INITIALIZED = False
+
+
+def _init_cuda_runtime():
+    """Add llama_cpp/lib and CUDA toolkit paths before loading CUDA llama wheels."""
+    global _CUDA_INITIALIZED
+    if _CUDA_INITIALIZED:
+        return
+    try:
+        import bootstrap_llama
+        bootstrap_llama.configure_llama_dll_paths()
+    except Exception:
+        pass
+    _CUDA_INITIALIZED = True
+
 
 def _init_vulkan_runtime():
     """Initializes Vulkan backend libraries for direct GPU acceleration on Intel Arc/Iris, AMD, and NVIDIA."""
@@ -113,6 +128,7 @@ MODEL_LOAD_TIMEOUT_SEC = 60
 
 def _detect_llama_backend() -> Literal["cuda", "vulkan", "cpu"]:
     """Detect which GPU offload backend the installed llama-cpp-python wheel supports."""
+    _init_cuda_runtime()
     try:
         import llama_cpp
         if hasattr(llama_cpp, "llama_supports_gpu_offload"):
@@ -496,6 +512,7 @@ class UnifiedInferenceEngine:
         """Loads the local GGUF model into memory on-demand with optimized memory mapping and KV cache."""
         if self._abort_requested:
             return
+        _init_cuda_runtime()
         _init_vulkan_runtime()
         if getattr(sys, 'frozen', False):
             base_dir = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
