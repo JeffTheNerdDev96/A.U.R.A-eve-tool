@@ -1,5 +1,5 @@
 """
-Centralized Diagnostic Error Code Subsystem for A.U.R.A. Assist (v0.1.4-alpha6).
+Centralized Diagnostic Error Code Subsystem for Adaptive Underworld Recon Array (A.U.R.A.) - v0.2.0-alpha1.
 Angel Cartel Cybernetics Division.
 
 Provides standardized, searchable error codes (AURA-ERR-xxxx), rich diagnostic logging,
@@ -11,6 +11,9 @@ import sys
 import time
 import traceback
 from typing import Optional, Dict, Any
+
+from input_safety import clamp_text
+from version import INSTALLER_EXE_NAME
 
 # ==============================================================================
 # Standardized Error Code Definitions
@@ -61,7 +64,7 @@ ERROR_REGISTRY: Dict[str, Dict[str, str]] = {
     AURAErrorCode.ERR_1003_PYTHON_INCOMPATIBLE: {
         "title": "Incompatible Python Architecture",
         "description": "Active Python interpreter is older than Python 3.12.",
-        "resolution": "Run AURA_Setup_v0.1.4-alpha6.exe to install the bundled Python 3.12 64-bit runtime."
+        "resolution": f"Run {INSTALLER_EXE_NAME} to install the bundled Python 3.12 64-bit runtime."
     },
     AURAErrorCode.ERR_1004_INFERENCE_TIMEOUT: {
         "title": "Inference Stream Timeout",
@@ -147,7 +150,7 @@ ERROR_REGISTRY: Dict[str, Dict[str, str]] = {
 
 class AURAException(Exception):
     """
-    Standard structured exception for all A.U.R.A. Assist errors.
+    Standard structured exception for all Adaptive Underworld Recon Array (A.U.R.A.) errors.
     """
     def __init__(self, code: str, technical_details: str = "", original_exc: Optional[Exception] = None):
         self.code = code
@@ -182,6 +185,7 @@ def log_diagnostic_error(code: str, exc: Optional[Exception] = None, context: st
     
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     tb = traceback.format_exc() if exc else "No traceback available."
+    safe_context = clamp_text(context or "General Operation", 2_000)
     
     log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
     os.makedirs(log_dir, exist_ok=True)
@@ -191,7 +195,7 @@ def log_diagnostic_error(code: str, exc: Optional[Exception] = None, context: st
         f"\n{'='*75}\n"
         f"[ERROR CODE: {code}] - {meta['title']}\n"
         f"[TIMESTAMP: {timestamp}]\n"
-        f"[CONTEXT: {context or 'General Operation'}]\n"
+        f"[CONTEXT: {safe_context}]\n"
         f"[DESCRIPTION: {meta['description']}]\n"
         f"[RESOLUTION HINT: {meta['resolution']}]\n"
         f"[TECHNICAL DETAILS]: {str(exc) if exc else 'N/A'}\n"
@@ -218,7 +222,8 @@ def log_diagnostic_error(code: str, exc: Optional[Exception] = None, context: st
     except Exception:
         pass
         
-    sys.stderr.write(f"\n[!] A.U.R.A. Error [{code}] {meta['title']}: {meta['description']}\n")
+    if sys.stderr is not None:
+        sys.stderr.write(f"\n[!] A.U.R.A. Error [{code}] {meta['title']}: {meta['description']}\n")
     return code
 
 
@@ -226,25 +231,30 @@ def format_error_html(code: str, custom_msg: str = "") -> str:
     """
     Generates a dark-themed HTML diagnostic alert box for the UI.
     """
+    from input_safety import escape_html
+
     meta = ERROR_REGISTRY.get(code, {
         "title": "Tactical Anomaly",
         "description": custom_msg or "An error occurred during operation.",
         "resolution": "Inspect logs/crash.log for technical details."
     })
     
-    desc = custom_msg if custom_msg else meta["description"]
+    desc = escape_html(custom_msg if custom_msg else meta["description"])
+    title = escape_html(meta["title"])
+    resolution = escape_html(meta["resolution"])
+    code_esc = escape_html(code)
     
     return (
         f"<div style='background-color: #1e1b2e; border: 1px solid #e11d48; border-left: 5px solid #f43f5e; "
         f"border-radius: 6px; padding: 12px 16px; margin: 8px 0; font-family: Segoe UI, sans-serif;'>"
         f"<div style='display: flex; align-items: center; margin-bottom: 6px;'>"
         f"<span style='background-color: #881337; color: #fda4af; font-weight: bold; font-size: 11px; "
-        f"padding: 2px 8px; border-radius: 4px; letter-spacing: 0.5px;'>{code}</span>"
-        f"<span style='color: #f87171; font-weight: bold; font-size: 13.5px; margin-left: 10px;'>{meta['title']}</span>"
+        f"padding: 2px 8px; border-radius: 4px; letter-spacing: 0.5px;'>{code_esc}</span>"
+        f"<span style='color: #f87171; font-weight: bold; font-size: 13.5px; margin-left: 10px;'>{title}</span>"
         f"</div>"
         f"<div style='color: #cbd5e1; font-size: 12.5px; line-height: 1.5; margin-bottom: 6px;'>{desc}</div>"
         f"<div style='color: #38bdf8; font-size: 11.5px; line-height: 1.4; border-top: 1px solid #332d4a; padding-top: 6px;'>"
-        f"<b>Action / Fix:</b> {meta['resolution']}"
+        f"<b>Action / Fix:</b> {resolution}"
         f"</div>"
         f"</div>"
     )

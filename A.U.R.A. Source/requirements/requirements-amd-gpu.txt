@@ -1,2 +1,2 @@
-# AMD Radeon GPU & Ryzen AI NPU Acceleration (Vulkan / ROCm / OpenVINO)
+# AMD Radeon dedicated / integrated GPU (Vulkan llama-cpp wheel is installed by the setup bat)
 -r requirements.txt

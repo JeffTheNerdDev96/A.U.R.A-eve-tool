@@ -4,7 +4,7 @@ Parses ship fits, identifies tank/tackle/propulsion configurations, and offers t
 """
 import re
 from typing import Dict, List, Any, Optional
-from eve_data import lookup_ship
+from eve_data import lookup_ship, lookup_module
 
 
 class FittingParser:
@@ -49,6 +49,16 @@ class FittingParser:
 
         if current_block:
             blocks.append(current_block)
+
+        if len(blocks) == 1:
+            low_slots, mid_slots, high_slots, rig_slots, subsystems, cargo_items, drones = (
+                FittingParser._classify_mixed_block(blocks[0])
+            )
+            return FittingParser._build_result(
+                hull_name, fit_name, ship_info, s_class, eft_text,
+                high_slots, mid_slots, low_slots, rig_slots, subsystems,
+                drones, cargo_items,
+            )
 
         # Standard EFT block ordering:
         # Block 0: Low Slots
@@ -200,6 +210,82 @@ class FittingParser:
                 f"- 💡 **Tactical Combat Advisory:** *{ship_info.get('tactics', '')}*"
             ])
 
+        return FittingParser._build_result(
+            hull_name, fit_name, ship_info, s_class, eft_text,
+            high_slots, mid_slots, low_slots, rig_slots, subsystems,
+            drones, cargo_items,
+            tank_types=tank_types, prop_type=prop_type, tackle_mods=tackle_mods,
+            cap_mods=cap_mods, weapons=weapons, summary_lines=summary_lines,
+        )
+
+    @staticmethod
+    def _classify_mixed_block(lines: List[str]):
+        """Classify a single undelimited block by module slot or cargo pattern."""
+        low_slots: List[str] = []
+        mid_slots: List[str] = []
+        high_slots: List[str] = []
+        rig_slots: List[str] = []
+        subsystems: List[str] = []
+        cargo_items: List[str] = []
+        drones: List[str] = []
+        drone_kw = (
+            "warrior", "acolyte", "hobgoblin", "hornet", "valkyrie", "hammerhead",
+            "infiltrator", "vespa", "berserker", "ogre", "gecko", "curator", "garde",
+            "bouncer", "warden",
+        )
+        for raw in lines:
+            if FittingParser._RE_CARGO.match(raw):
+                if any(k in raw.lower() for k in drone_kw):
+                    drones.append(raw)
+                else:
+                    cargo_items.append(raw)
+                continue
+            cleaned = FittingParser._clean_mod(raw)
+            info = lookup_module(cleaned)
+            slot = str((info or {}).get("slot") or "").lower()
+            if "subsystem" in raw.lower() or "offensive" in raw.lower():
+                subsystems.append(cleaned)
+            elif slot.startswith("low"):
+                low_slots.append(cleaned)
+            elif slot.startswith("mid"):
+                mid_slots.append(cleaned)
+            elif slot.startswith("high"):
+                high_slots.append(cleaned)
+            elif slot.startswith("rig"):
+                rig_slots.append(cleaned)
+            elif any(k in raw.lower() for k in drone_kw):
+                drones.append(raw)
+            else:
+                cargo_items.append(raw)
+        return low_slots, mid_slots, high_slots, rig_slots, subsystems, cargo_items, drones
+
+    @staticmethod
+    def _build_result(
+        hull_name: str,
+        fit_name: str,
+        ship_info: Optional[Dict[str, Any]],
+        s_class: str,
+        eft_text: str,
+        high_slots: List[str],
+        mid_slots: List[str],
+        low_slots: List[str],
+        rig_slots: List[str],
+        subsystems: List[str],
+        drones: List[str],
+        cargo_items: List[str],
+        tank_types: Optional[List[str]] = None,
+        prop_type: str = "None Fitted",
+        tackle_mods: Optional[List[str]] = None,
+        cap_mods: Optional[List[str]] = None,
+        weapons: Optional[List[str]] = None,
+        summary_lines: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        tank_types = tank_types or []
+        tackle_mods = tackle_mods or []
+        cap_mods = cap_mods or []
+        weapons = weapons or []
+        if summary_lines is None:
+            summary_lines = [f"Parsed fit: {hull_name} ({fit_name})"]
         return {
             "hull_name": hull_name,
             "fit_name": fit_name,
@@ -219,7 +305,7 @@ class FittingParser:
             "weapons": weapons,
             "module_count": len(high_slots) + len(mid_slots) + len(low_slots) + len(rig_slots) + len(subsystems),
             "summary_md": "\n".join(summary_lines),
-            "raw_text": eft_text
+            "raw_text": eft_text,
         }
 
     @staticmethod

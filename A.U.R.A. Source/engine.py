@@ -3,12 +3,17 @@ Angel Cartel A.U.R.A. Neural Inference Engine.
 Combines Adaptive Underworld Recon Array tactical persona, NPU-prioritized hardware acceleration,
 and multi-turn combat reasoning for EVE Online.
 """
+# Responsibilities:
+# - UnifiedInferenceEngine: GGUF load/unload, generate_stream token yields
+# - NeuralHardwareCoProcessor: OpenVINO NPU/GPU mesh threads during inference
+# - Tactical prompt grounding via eve_data.get_tactical_grounding
 import os
 import sys
 import time
 import psutil
 import numpy as np
-from typing import Generator, Dict, List, Any, Optional
+from concurrent import futures
+from typing import Generator, Dict, List, Any, Optional, Literal
 
 if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -16,10 +21,13 @@ if sys.stderr and hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
 from config import config
+from version import INSTALL_DIR_NAME
 from hardware import HardwareDetector, DynamicHardwareRouter
+from hardware_profile import install_hint_for_gpu
 from error_handler import AURAErrorCode, AURAException, log_diagnostic_error, format_error_html
 from ingestion import DocumentParser, ImagePreprocessor
 from eve_data import get_tactical_grounding
+from input_safety import clamp_text, strip_control_chars, wrap_untrusted
 
 
 _CACHED_MODEL_PATH: Optional[str] = None
@@ -40,36 +48,24 @@ def find_model_file() -> Optional[str]:
     user_prof = os.environ.get("USERPROFILE", "")
 
     candidates = [
-        os.path.join(source_dir, "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(root_dir, "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(exe_dir, "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(os.path.dirname(exe_dir), "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(os.getcwd(), "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(local_app_data, "Programs", "A.U.R.A. v0.1.4-alpha6", "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(local_app_data, "Programs", "A.U.R.A.", "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(user_prof, "AppData", "Local", "Programs", "A.U.R.A. v0.1.4-alpha6", "models", "phi-4-mini", "model_q4.gguf"),
-        r"C:\A.U.R.A. v0.1.4-alpha6\models\phi-4-mini\model_q4.gguf",
-        r"C:\Program Files\A.U.R.A. v0.1.4-alpha6\models\phi-4-mini\model_q4.gguf",
-        os.path.join(root_dir, "A.U.R.A Distro", "Installer", "models", "phi-4-mini", "model_q4.gguf"),
-        os.path.join(source_dir, "models", "Phi-4-mini-instruct", "model_q4.gguf"),
-        os.path.join(root_dir, "models", "Phi-4-mini-instruct", "model_q4.gguf"),
+        os.path.join(source_dir, "models", config.model_folder, config.model_file),
+        os.path.join(root_dir, "models", config.model_folder, config.model_file),
+        os.path.join(exe_dir, "models", config.model_folder, config.model_file),
+        os.path.join(os.path.dirname(exe_dir), "models", config.model_folder, config.model_file),
+        os.path.join(local_app_data, "Programs", INSTALL_DIR_NAME, "models", config.model_folder, config.model_file),
+        os.path.join(user_prof, "AppData", "Local", "Programs", INSTALL_DIR_NAME, "models", config.model_folder, config.model_file),
+        os.path.join(f"C:\\{INSTALL_DIR_NAME}", "models", config.model_folder, config.model_file),
+        os.path.join("C:\\Program Files", INSTALL_DIR_NAME, "models", config.model_folder, config.model_file),
+        os.path.join(root_dir, "A.U.R.A Distro", "Installer", "models", config.model_folder, config.model_file),
     ]
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        candidates.insert(0, os.path.join(meipass, "models", config.model_folder, config.model_file))
     for p in candidates:
         if p and os.path.exists(p) and os.path.getsize(p) > 100000000:
             _CACHED_MODEL_PATH = os.path.abspath(p)
             _PATH_RESOLVED = True
             return _CACHED_MODEL_PATH
-            
-    # Search local models subfolder dynamically
-    for base in [source_dir, root_dir, exe_dir, os.path.dirname(exe_dir)]:
-        m_dir = os.path.join(base, "models")
-        if os.path.exists(m_dir):
-            for root, _, files in os.walk(m_dir):
-                for f in files:
-                    if f.endswith(".gguf") and os.path.getsize(os.path.join(root, f)) > 100000000:
-                        _CACHED_MODEL_PATH = os.path.abspath(os.path.join(root, f))
-                        _PATH_RESOLVED = True
-                        return _CACHED_MODEL_PATH
 
     _PATH_RESOLVED = True
     _CACHED_MODEL_PATH = None
@@ -77,6 +73,21 @@ def find_model_file() -> Optional[str]:
 
 
 _VULKAN_INITIALIZED = False
+_CUDA_INITIALIZED = False
+
+
+def _init_cuda_runtime():
+    """Add llama_cpp/lib and CUDA toolkit paths before loading CUDA llama wheels."""
+    global _CUDA_INITIALIZED
+    if _CUDA_INITIALIZED:
+        return
+    try:
+        import bootstrap_llama
+        bootstrap_llama.configure_llama_dll_paths()
+    except Exception:
+        pass
+    _CUDA_INITIALIZED = True
+
 
 def _init_vulkan_runtime():
     """Initializes Vulkan backend libraries for direct GPU acceleration on Intel Arc/Iris, AMD, and NVIDIA."""
@@ -86,18 +97,23 @@ def _init_vulkan_runtime():
     source_dir = os.path.dirname(os.path.abspath(__file__))
     root_dir = os.path.dirname(source_dir)
     exe_dir = os.path.dirname(sys.executable)
-    
-    candidates = [
+    meipass = getattr(sys, "_MEIPASS", None)
+
+    candidates = []
+    if meipass:
+        candidates.append(os.path.join(meipass, "llama_cpp", "lib", "llama.dll"))
+        candidates.append(os.path.join(meipass, "requirements", "vulkan_llama", "llama.dll"))
+    candidates.extend([
+        os.path.join(exe_dir, "llama_cpp", "lib", "llama.dll"),
+        os.path.join(exe_dir, "requirements", "vulkan_llama", "llama.dll"),
         os.path.join(source_dir, "requirements", "vulkan_llama", "llama.dll"),
         os.path.join(root_dir, "requirements", "vulkan_llama", "llama.dll"),
-        os.path.join(exe_dir, "requirements", "vulkan_llama", "llama.dll"),
         os.path.join(source_dir, "vulkan_llama", "llama.dll"),
-    ]
+    ])
     for p in candidates:
-        if os.path.exists(p):
+        if p and os.path.exists(p):
             v_dir = os.path.dirname(p)
             os.environ["LLAMA_CPP_LIB"] = p
-            os.environ["PATH"] = v_dir + ";" + os.environ.get("PATH", "")
             if hasattr(os, "add_dll_directory") and sys.platform == "win32":
                 try:
                     os.add_dll_directory(v_dir)
@@ -105,6 +121,61 @@ def _init_vulkan_runtime():
                     pass
             _VULKAN_INITIALIZED = True
             break
+
+
+MODEL_LOAD_TIMEOUT_SEC = 60
+
+
+def _detect_llama_backend() -> Literal["cuda", "vulkan", "cpu"]:
+    """Detect which GPU offload backend the installed llama-cpp-python wheel supports."""
+    _init_cuda_runtime()
+    try:
+        import llama_cpp
+        if hasattr(llama_cpp, "llama_supports_gpu_offload"):
+            try:
+                if not llama_cpp.llama_supports_gpu_offload():
+                    return "cpu"
+            except Exception:
+                pass
+        info = ""
+        if hasattr(llama_cpp, "llama_print_system_info"):
+            try:
+                raw = llama_cpp.llama_print_system_info()
+                info = raw.decode("utf-8", errors="replace") if isinstance(raw, bytes) else str(raw)
+            except Exception:
+                info = ""
+        info_upper = info.upper()
+        if "CUDA = 1" in info_upper or "CUBLAS" in info_upper:
+            return "cuda"
+        if "VULKAN" in info_upper:
+            return "vulkan"
+        if hasattr(llama_cpp, "llama_supports_gpu_offload"):
+            try:
+                if llama_cpp.llama_supports_gpu_offload():
+                    return "cuda"
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return "cpu"
+
+
+def _gpu_layer_budget(detector: HardwareDetector, backend: str) -> int:
+    """Choose a safe n_gpu_layers value based on installer profile, wheel, and hardware."""
+    if backend == "cpu" or detector.llama_wheel == "cpu":
+        return 0
+    if not detector.has_gpu:
+        return 0
+    if detector.has_dgpu:
+        return 35
+    if detector.has_igpu:
+        return 12
+    return 20
+
+
+def _create_llama_instance(kwargs: Dict[str, Any]):
+    from llama_cpp import Llama
+    return Llama(**kwargs)
 
 
 class NeuralHardwareCoProcessor:
@@ -120,6 +191,7 @@ class NeuralHardwareCoProcessor:
         self.active_backend = "Dynamic Hardware Acceleration"
         self.active_threads: List[Any] = []
         self.active_stop_event: Optional[Any] = None
+        self._dml_session = None
 
     def _ensure_core(self):
         if self.core is None:
@@ -140,6 +212,59 @@ class NeuralHardwareCoProcessor:
                 self.base_model = ov.Model([out], [param], "AURA_HighThroughput_NPU_Mesh")
             except Exception:
                 pass
+
+    def _ensure_directml(self) -> bool:
+        if self._dml_session is not None:
+            return True
+        try:
+            from onnx import TensorProto, helper
+            import onnxruntime as ort
+
+            weight = np.random.randn(512, 512).astype(np.float32)
+            x_info = helper.make_tensor_value_info("X", TensorProto.FLOAT, [8, 512])
+            y_info = helper.make_tensor_value_info("Y", TensorProto.FLOAT, [8, 512])
+            w_tensor = helper.make_tensor(
+                "W",
+                TensorProto.FLOAT,
+                [512, 512],
+                weight.tobytes(),
+                raw=True,
+            )
+            node = helper.make_node("MatMul", ["X", "W"], ["Y"])
+            graph = helper.make_graph([node], "AURA_DirectML_Mesh", [x_info], [y_info], [w_tensor])
+            model = helper.make_model(graph, opset_imports=[helper.make_opsetid("", 13)])
+            self._dml_session = ort.InferenceSession(
+                model.SerializeToString(),
+                providers=["DmlExecutionProvider", "CPUExecutionProvider"],
+            )
+            return True
+        except Exception as exc:
+            log_diagnostic_error(
+                AURAErrorCode.ERR_2002_VULKAN_PIPE_FAILED,
+                exc,
+                "NeuralHardwareCoProcessor._ensure_directml",
+            )
+            self._dml_session = None
+            return False
+
+    def arm_for_load(self, target_mode: str) -> None:
+        if not target_mode or target_mode in ("NONE", "CPU"):
+            return
+        if target_mode == "DIRECTML":
+            if self._ensure_directml():
+                print("[A.U.R.A.] AMD Ryzen AI DirectML coprocessor armed & ready for stream mesh.")
+            return
+        try:
+            self._ensure_core()
+            compiled = self._get_or_compile(target_mode)
+            if compiled is None:
+                return
+            if target_mode == "NPU":
+                print("[A.U.R.A.] Intel(R) AI Boost NPU coprocessor armed & ready for stream mesh.")
+            else:
+                print(f"[A.U.R.A.] OpenVINO coprocessor armed ({target_mode}).")
+        except Exception:
+            pass
 
     def _get_or_compile(self, mode: str):
         if mode in self.compiled_models:
@@ -182,7 +307,7 @@ class NeuralHardwareCoProcessor:
                 pass
         for t in self.active_threads:
             try:
-                t.join(timeout=0.05)
+                t.join(timeout=0.5)
             except Exception:
                 pass
         self.active_threads.clear()
@@ -194,12 +319,40 @@ class NeuralHardwareCoProcessor:
         self.compiled_models.clear()
         self.base_model = None
         self.core = None
+        self._dml_session = None
         import gc
         gc.collect()
 
+    def _start_directml_mesh(self):
+        if not self._ensure_directml() or self._dml_session is None:
+            return None
+        import threading
+        stop_event = threading.Event()
+        self.active_stop_event = stop_event
+        session = self._dml_session
+
+        def _dml_worker():
+            dummy = np.random.randn(8, 512).astype(np.float32)
+            while not stop_event.is_set():
+                try:
+                    session.run(None, {"X": dummy})
+                except Exception:
+                    pass
+                time.sleep(0.005)
+
+        for _ in range(2):
+            worker = threading.Thread(target=_dml_worker, daemon=True)
+            worker.start()
+            self.active_threads.append(worker)
+        return stop_event
+
     def start_stream_mesh(self, target_mode: str = "NPU"):
-        """Starts asynchronous continuous high-throughput tensor calculations across NPU and multi-vendor GPUs during streaming."""
+        """Starts asynchronous tensor work on the installer-selected coprocessor during streaming."""
+        if not target_mode or target_mode in ("NONE", "CPU", "none"):
+            return None
         self.stop_all_workers()
+        if target_mode == "DIRECTML":
+            return self._start_directml_mesh()
         compiled = self._get_or_compile(target_mode) or self._get_or_compile("FULL_MESH") or self._get_or_compile("CPU")
         if compiled is None:
             return None
@@ -289,9 +442,28 @@ class UnifiedInferenceEngine:
         self.is_loaded = False
         self.init_error = None
         self.error_code = None
+        self._abort_requested = False
+        self._llama_backend: str = "cpu"
+        self._active_gpu_layers: int = 0
         self.coprocessor = NeuralHardwareCoProcessor(self.detector)
         if eager_load:
             self._load_model()
+
+    def request_abort(self) -> None:
+        """Signal an in-flight load or stream to stop and release model resources."""
+        self._abort_requested = True
+        self.unload_model()
+
+    def clear_abort(self) -> None:
+        self._abort_requested = False
+
+    @property
+    def llama_backend(self) -> str:
+        return self._llama_backend
+
+    @property
+    def active_gpu_layers(self) -> int:
+        return self._active_gpu_layers
         
     @property
     def is_online(self) -> bool:
@@ -309,7 +481,7 @@ class UnifiedInferenceEngine:
         return self.llm is not None
 
     def unload_model(self):
-        """Releases the GGUF model and KV cache tensors from RAM/VRAM back to the OS."""
+        """Releases the GGUF model, KV cache, and coprocessor threads from RAM/VRAM."""
         if self.llm is not None:
             try:
                 if hasattr(self.llm, "reset"):
@@ -338,6 +510,9 @@ class UnifiedInferenceEngine:
 
     def _load_model(self):
         """Loads the local GGUF model into memory on-demand with optimized memory mapping and KV cache."""
+        if self._abort_requested:
+            return
+        _init_cuda_runtime()
         _init_vulkan_runtime()
         if getattr(sys, 'frozen', False):
             base_dir = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
@@ -346,22 +521,29 @@ class UnifiedInferenceEngine:
                 os.environ["LLAMA_CPP_LIB"] = lib_path
 
         model_file = find_model_file()
-        
+
         if model_file:
             try:
-                import llama_cpp
-                from llama_cpp import Llama
-                
-                # Multi-Hardware Mesh Parallel Workload Allocation:
-                # Fully utilizes all PC resources: NPU co-processor + GPU VRAM layers (Vulkan/CUDA) + physical CPU vector cores
                 phys_cores = psutil.cpu_count(logical=False) or 4
-                gpu_layers = 99 if self.detector.has_gpu else 0
+                self._llama_backend = _detect_llama_backend()
+                gpu_layers = _gpu_layer_budget(self.detector, self._llama_backend)
+                self._active_gpu_layers = gpu_layers
                 threads = max(4, min(8, phys_cores))
                 threads_batch = max(4, min(8, phys_cores))
-                
-                print(f"[A.U.R.A.] Initializing tactical neural model '{config.model_display_name}' from {model_file} ({threads} compute threads, {gpu_layers} GPU layers)...")
+
+                if self.detector.has_dgpu and self._llama_backend == "cpu":
+                    print(
+                        "[A.U.R.A.] Discrete GPU detected but llama-cpp CPU build is installed — "
+                        f"using CPU inference. Run {install_hint_for_gpu(self.detector.gpu_vendor)} for GPU acceleration."
+                    )
+
+                print(
+                    f"[A.U.R.A.] Initializing tactical neural model '{config.model_display_name}' "
+                    f"from {model_file} ({threads} compute threads, {gpu_layers} GPU layers, "
+                    f"backend={self._llama_backend})..."
+                )
                 print(f"[A.U.R.A.] Hardware Topology: {self.detector.get_summary_string()}")
-                
+
                 llama_kwargs = {
                     "model_path": model_file,
                     "n_ctx": config.context_window,
@@ -372,30 +554,67 @@ class UnifiedInferenceEngine:
                     "use_mmap": True,
                     "use_mlock": False,
                     "n_gpu_layers": gpu_layers,
-                    "verbose": False
+                    "verbose": False,
                 }
-                
+
                 try:
-                    self.llm = Llama(**llama_kwargs)
+                    with futures.ThreadPoolExecutor(max_workers=1) as pool:
+                        future = pool.submit(_create_llama_instance, llama_kwargs)
+                        self.llm = future.result(timeout=MODEL_LOAD_TIMEOUT_SEC)
+                except futures.TimeoutError:
+                    self.is_loaded = False
+                    self.llm = None
+                    self.init_error = f"Model load timed out after {MODEL_LOAD_TIMEOUT_SEC}s"
+                    self.error_code = AURAErrorCode.ERR_1004_INFERENCE_TIMEOUT
+                    log_diagnostic_error(
+                        AURAErrorCode.ERR_1004_INFERENCE_TIMEOUT,
+                        None,
+                        f"engine._load_model timeout after {MODEL_LOAD_TIMEOUT_SEC}s",
+                    )
+                    print(f"[A.U.R.A.] [{self.error_code}] {self.init_error}")
+                    return
                 except Exception as inner_e:
-                    # Fallback to pure CPU memory mapping if GPU offloading fails
-                    log_diagnostic_error(AURAErrorCode.ERR_2003_CUDA_OFFLOAD_FAILED, inner_e, "Llama GPU offload fallback to CPU")
+                    if self._abort_requested:
+                        return
+                    if self.detector.has_nvidia:
+                        gpu_err = AURAErrorCode.ERR_2003_CUDA_OFFLOAD_FAILED
+                    elif self.detector.has_amd_gpu:
+                        gpu_err = AURAErrorCode.ERR_2002_VULKAN_PIPE_FAILED
+                    else:
+                        gpu_err = AURAErrorCode.ERR_2003_CUDA_OFFLOAD_FAILED
+                    log_diagnostic_error(gpu_err, inner_e, "Llama GPU offload fallback to CPU")
                     llama_kwargs["n_gpu_layers"] = 0
-                    self.llm = Llama(**llama_kwargs)
+                    self._active_gpu_layers = 0
+                    self._llama_backend = "cpu"
+                    with futures.ThreadPoolExecutor(max_workers=1) as pool:
+                        future = pool.submit(_create_llama_instance, llama_kwargs)
+                        self.llm = future.result(timeout=MODEL_LOAD_TIMEOUT_SEC)
+
+                if self._abort_requested:
+                    self.unload_model()
+                    return
 
                 self.is_loaded = True
                 self.init_error = None
                 self.error_code = None
                 print(f"[A.U.R.A.] Tactical Neural Core '{config.model_display_name}' online & ready for combat!")
 
-                # Pre-arm the NPU co-processor alongside the model so token 1 begins computing on NPU instantly
-                if self.coprocessor and self.detector.has_npu:
+                if self.coprocessor:
                     try:
-                        self.coprocessor._ensure_core()
-                        self.coprocessor._get_or_compile("NPU")
-                        print("[A.U.R.A.] Intel(R) AI Boost NPU coprocessor armed & ready for stream mesh.")
+                        self.coprocessor.arm_for_load(self.detector.preferred_coprocessor_target(heavy=False))
                     except Exception:
                         pass
+            except futures.TimeoutError:
+                self.is_loaded = False
+                self.llm = None
+                self.init_error = f"Model load timed out after {MODEL_LOAD_TIMEOUT_SEC}s"
+                self.error_code = AURAErrorCode.ERR_1004_INFERENCE_TIMEOUT
+                log_diagnostic_error(
+                    AURAErrorCode.ERR_1004_INFERENCE_TIMEOUT,
+                    None,
+                    f"engine._load_model CPU fallback timeout after {MODEL_LOAD_TIMEOUT_SEC}s",
+                )
+                print(f"[A.U.R.A.] [{self.error_code}] {self.init_error}")
             except Exception as e:
                 self.is_loaded = False
                 self.init_error = str(e)
@@ -414,32 +633,48 @@ class UnifiedInferenceEngine:
 
     def _build_contextual_prompt(self, prompt: str, attachments: List[Dict[str, Any]], piloted_ship: Optional[str] = None) -> str:
         """Injects verified EVE mechanics, ship dossiers, and attachments into the tactical prompt context."""
-        # If the prompt is already a fully formed structured request (from D-Scan, Fitting Lab, or Intel tools), pass directly
-        if prompt.startswith("["):
-            return prompt
+        prompt = strip_control_chars(prompt or "")
+        budget = config.max_llm_context_chars
 
-        grounding = get_tactical_grounding(prompt, attachments, piloted_ship=piloted_ship)
+        if prompt.startswith("["):
+            return clamp_text(prompt, budget)
+
+        safe_query = clamp_text(prompt, min(config.max_chat_chars, budget // 4))
+        grounding = get_tactical_grounding(safe_query, attachments, piloted_ship=piloted_ship)
         
         attachment_blocks = []
+        remaining = budget - len(grounding)
         if attachments:
             for att in attachments:
-                fname = att.get("filename", "Attachment")
+                fname = strip_control_chars(str(att.get("filename", "Attachment")))[:256]
                 atype = att.get("type", "document")
-                content = att.get("text", "")
+                content = clamp_text(strip_control_chars(att.get("text", "")), remaining // max(1, len(attachments)))
+                remaining -= len(content)
                 
                 if atype == "image":
                     analysis = att.get("analysis", {})
                     dim = analysis.get("dimensions", "Image")
-                    attachment_blocks.append(f"[Attached Tactical Screenshot: {fname} ({dim})]\nVisual Elements & Extracted Text:\n{content}")
+                    block = wrap_untrusted(
+                        "UNTRUSTED_ATTACHMENT_IMAGE",
+                        f"Filename: {fname} ({dim})\n{content}",
+                        max_chars=len(content) + 128,
+                    )
                 else:
-                    attachment_blocks.append(f"[Attached Tactical Intel / Fit / D-Scan: {fname}]\nContent:\n{content}")
+                    block = wrap_untrusted(
+                        "UNTRUSTED_ATTACHMENT",
+                        f"Filename: {fname}\n{content}",
+                        max_chars=len(content) + 128,
+                    )
+                attachment_blocks.append(block)
                     
         joined_attachments = "\n\n".join(attachment_blocks)
+        user_block = wrap_untrusted("UNTRUSTED_USER_QUERY", safe_query, max_chars=len(safe_query) + 64)
         
         if joined_attachments:
-            return f"{grounding}\n\n{joined_attachments}\n\n[Capsuleer Tactical Command / Query]:\n{prompt}"
+            combined = f"{grounding}\n\n{joined_attachments}\n\n{user_block}"
         else:
-            return f"{grounding}\n\n[Capsuleer Tactical Command / Query]:\n{prompt}"
+            combined = f"{grounding}\n\n{user_block}"
+        return clamp_text(combined, budget)
 
 
     def _prune_context(self, history: List[Dict[str, str]], current_prompt: str, max_tokens: int = 1500) -> List[Dict[str, str]]:
@@ -481,7 +716,8 @@ class UnifiedInferenceEngine:
         """
         chat_history = chat_history or []
         attachments = attachments or []
-        
+        self.clear_abort()
+
         has_image = any(att.get("type") == "image" for att in attachments)
         has_doc = any(att.get("type") == "document" for att in attachments)
         
@@ -513,7 +749,30 @@ class UnifiedInferenceEngine:
         overall_start = time.time()
 
         if self.llm is None:
+            yield {
+                "type": "loading",
+                "text": "Loading neural core...",
+                "backend": self._llama_backend,
+            }
+            if self._abort_requested:
+                yield {
+                    "type": "done",
+                    "tokens_generated": 0,
+                    "time_elapsed": 0.0,
+                    "tokens_per_sec": 0.0,
+                    "stopped": True,
+                }
+                return
             self._load_model()
+            if self._abort_requested:
+                yield {
+                    "type": "done",
+                    "tokens_generated": 0,
+                    "time_elapsed": 0.0,
+                    "tokens_per_sec": 0.0,
+                    "stopped": True,
+                }
+                return
 
         try:
             if self.llm is not None:
@@ -541,8 +800,9 @@ class UnifiedInferenceEngine:
                 
                 # Asynchronous parallel NPU co-processor continuous stream dispatch
                 npu_stop_event = None
-                if self.coprocessor and self.detector.has_npu:
-                    npu_stop_event = self.coprocessor.start_stream_mesh("NPU")
+                coprocessor_target = hw_plan.get("coprocessor_target") or "NONE"
+                if self.coprocessor and coprocessor_target not in ("NONE", "CPU", "none", ""):
+                    npu_stop_event = self.coprocessor.start_stream_mesh(coprocessor_target)
 
                 try:
                     stream = self.llm.create_chat_completion(
@@ -560,6 +820,8 @@ class UnifiedInferenceEngine:
                     should_stop = False
 
                     for chunk in stream:
+                        if self._abort_requested:
+                            break
                         delta = chunk.get("choices", [{}])[0].get("delta", {})
                         token_text = delta.get("content", "")
                         if not token_text:
@@ -631,7 +893,7 @@ class UnifiedInferenceEngine:
                     "elapsed": 0.05
                 }
         except Exception as e:
-            err_code = AURAErrorCode.ERR_1004_INFERENCE_TIMEOUT
+            err_code = AURAErrorCode.ERR_5001_WORKER_CRASH
             log_diagnostic_error(err_code, e, "engine.generate_stream")
             err_html = format_error_html(err_code, f"Error during tactical neural computation: {str(e)}")
             yield {

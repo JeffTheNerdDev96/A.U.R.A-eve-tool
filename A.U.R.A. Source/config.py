@@ -1,17 +1,20 @@
 """
-Configuration settings for A.U.R.A. Assist (Adaptive Underworld Recon Array).
+Configuration settings for Adaptive Underworld Recon Array (A.U.R.A.).
 Angel Cartel EVE Online Tactical AI Assistant with NPU Acceleration & Dedicated Phi-4 Mini Neural Core.
 """
 import os
 import sys
 from typing import Dict, Any
 
+from version import VERSION
+
 
 class AppConfig:
     def __init__(self):
-        self.app_name = "A.U.R.A. Assist — Adaptive Underworld Recon Array"
+        self.app_name = "Adaptive Underworld Recon Array (A.U.R.A.)"
         self.faction = "Angel Cartel"
-        self.version = "v0.1.4-alpha6"
+        self.version = VERSION
+        self.display_title = f"Adaptive Underworld Recon Array (A.U.R.A.) - {self.version}"
         
         # Dedicated Neural Model: Microsoft Phi-4 Mini (3.8B Reasoning Core)
         self.model_name = "microsoft/Phi-4-mini-instruct"
@@ -36,6 +39,20 @@ class AppConfig:
 
         # Live Intel Radar Settings
         self.custom_intel_channels = "imperium, delve, horde, frt, winter, init, brave, snuff, standing"
+        self.alert_jump_range = 5
+        self.windows_alerts_enabled = True
+        self.alert_min_level = "MEDIUM"
+        self.alert_debounce_sec = 20
+
+        # Input safety limits (untrusted chat, logs, attachments)
+        self.max_chat_chars = 16_000
+        self.max_attachment_bytes = 8 * 1024 * 1024
+        self.max_log_read_bytes = 512 * 1024
+        self.max_llm_context_chars = 24_000
+        self.max_line_chars = 8_192
+        self.max_image_pixels = 25_000_000
+        self.max_pdf_pages = 200
+        self.max_docx_paragraphs = 2_000
 
         # Lore & System Personality Prompt (Versatile EVE Tactical Assistant)
         self.aura_system_prompt = (

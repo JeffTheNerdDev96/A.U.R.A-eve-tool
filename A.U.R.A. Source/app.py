@@ -1,14 +1,15 @@
 """
-Main entry point for A.U.R.A. Assist (Adaptive Underworld Recon Array).
-Angel Cartel EVE Online Tactical AI Assistant (v0.1.4-alpha6).
+Main entry point for Adaptive Underworld Recon Array (A.U.R.A.).
+Angel Cartel EVE Online Tactical AI Assistant - v0.2.0-alpha1.
 """
 import sys
 import os
 import traceback
 import time
-import shutil
 import atexit
 import gc
+
+from version import INSTALLER_EXE_NAME
 
 # Enforce no stale bytecode caching across all executions
 sys.dont_write_bytecode = True
@@ -21,12 +22,23 @@ if sys.stderr and hasattr(sys.stderr, "reconfigure"):
 
 # 0. Strict Python 3.12+ Architecture Requirement
 if sys.version_info < (3, 12):
+    _display_title = "A.U.R.A. Assist"
     err_text = (
-        f"A.U.R.A. v0.1.4-alpha6 requires Python 3.12 or higher.\n\n"
+        f"{_display_title} requires Python 3.12 or higher.\n\n"
         f"Detected: Python {sys.version.split()[0]}\n\n"
-        f"Legacy versions (< 3.12) are not supported. Please run the v0.1.4-alpha6 installer."
+        f"Legacy versions (< 3.12) are not supported. Please run the {INSTALLER_EXE_NAME} installer."
     )
-    sys.stderr.write(f"[FATAL] {err_text}\n")
+    try:
+        _log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+        os.makedirs(_log_dir, exist_ok=True)
+        with open(os.path.join(_log_dir, "crash.log"), "a", encoding="utf-8") as _f:
+            _f.write(
+                f"\n[AURA-ERR-1003] Python incompatible: {sys.version.split()[0]}\n"
+            )
+    except OSError:
+        pass
+    if sys.stderr is not None:
+        sys.stderr.write(f"[FATAL] {err_text}\n")
     if sys.platform == "win32":
         try:
             import ctypes
@@ -47,31 +59,16 @@ if sys.platform == "win32":
             pass
 
 # 2. Automated Stale Cache & Temporary File Cleaner
-def _cleanup_stale_caches():
-    """Purges orphaned __pycache__ and temporary logs to keep filesystem pristine."""
-    app_dir = os.path.dirname(os.path.abspath(__file__))
-    pc = os.path.join(app_dir, "__pycache__")
-    if os.path.exists(pc):
-        try:
-            shutil.rmtree(pc, ignore_errors=True)
-        except Exception:
-            pass
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-    log_dir = os.path.join(app_dir, "logs")
-    if os.path.exists(log_dir):
-        now = time.time()
-        for f in os.listdir(log_dir):
-            if f.endswith(".log") and f != "crash.log":
-                f_path = os.path.join(log_dir, f)
-                try:
-                    # Remove non-crash logs older than 3 days
-                    if os.stat(f_path).st_mtime < now - (3 * 86400):
-                        os.remove(f_path)
-                except Exception:
-                    pass
+import bootstrap_runtime
+bootstrap_runtime.configure_qt_paths()
 
-_cleanup_stale_caches()
-atexit.register(_cleanup_stale_caches)
+from lifecycle import cleanup_temp_files, install_thread_excepthook
+
+cleanup_temp_files()
+atexit.register(cleanup_temp_files)
+install_thread_excepthook()
 
 # 3. Global Uncaught Exception Trap & Crash Logger
 def _global_exception_handler(exc_type, exc_value, exc_traceback):
@@ -92,14 +89,52 @@ def _global_exception_handler(exc_type, exc_value, exc_traceback):
     except Exception:
         pass
 
-    sys.stderr.write(f"\n[!] A.U.R.A. Critical Error: {err_msg}\n")
+    if sys.stderr is not None:
+        sys.stderr.write(f"\n[!] A.U.R.A. Critical Error: {err_msg}\n")
 
 sys.excepthook = _global_exception_handler
 
-# Ensure local directory is at top of import path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from ui import run_app
+def _show_startup_error(exc: BaseException) -> None:
+    log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+    crash_log = os.path.join(log_dir, "crash.log")
+    err_msg = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+    try:
+        os.makedirs(log_dir, exist_ok=True)
+        with open(crash_log, "a", encoding="utf-8") as f:
+            f.write(f"\n[STARTUP FAILURE {time.strftime('%Y-%m-%d %H:%M:%S')}]\n{err_msg}\n")
+    except OSError:
+        pass
+    if sys.stderr is not None:
+        sys.stderr.write(f"\n[!] A.U.R.A. startup failed: {err_msg}\n")
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            ctypes.windll.user32.MessageBoxW(
+                0,
+                (
+                    "A.U.R.A. failed to start.\n\n"
+                    f"{type(exc).__name__}: {exc}\n\n"
+                    f"Details were written to:\n{crash_log}\n\n"
+                    "Try Launch_A.U.R.A_Debug.bat in the install folder."
+                ),
+                "A.U.R.A. Startup Error",
+                0x10,
+            )
+        except Exception:
+            pass
+
 
 if __name__ == "__main__":
-    run_app()
+    try:
+        from ui import run_app
+        run_app()
+    except Exception as startup_exc:
+        _show_startup_error(startup_exc)
+        sys.exit(1)
+else:
+    try:
+        from ui import run_app
+    except Exception as startup_exc:
+        _show_startup_error(startup_exc)
+        raise
