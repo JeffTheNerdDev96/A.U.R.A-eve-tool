@@ -1,0 +1,46 @@
+Release Notes — A.U.R.A. Assist v0.2.0-alpha1
+A.U.R.A. (Adaptive Underworld Recon Array) receives a major milestone overhaul. Version 0.2.0 transitions the project from a single-screen layout into a modular, multi-tab tactical suite featuring system proximity mapping, early fitting estimation tools, fleet matchup intelligence, and OS-level threat alerts.
+
+What's New in v0.2.0
+
+Modular Tabbed Navigation
+Replaced the split-view layout with a scalable tabbed navigation architecture (Live Intel Radar, Fitting, Map, Composition, A.U.R.A. Chat).
+Standardized design system across all views with custom dark/crimson UI accents and dedicated quick-action footers.
+
+Interactive Fitting Lab (Preview / Early Framework)
+Dedicated fitting interface with High, Medium, Low, and Rig slot visualizers.
+Preliminary calculations providing baseline estimates for Powergrid, CPU, Calibration, and raw Hull EHP.
+Module browser layout and role-based EFT import/export skeleton for future calculation backends.
+Direct tactical hook to pass fitting context to A.U.R.A.
+Note: The Fitting Lab currently utilizes placeholders and rough stat estimations while the full calculation engine is actively under development.
+
+Fleet Matchup & D-Scan Analyzer (Composition)
+Dual-input parser supporting raw Fleet Window exports and D-Scan pastes.
+Automatic entity sanitization and hull classification (HACs, Logistics, Recons, Command Ships, Dictors, Capitals).
+Real-time side-by-side composition comparison to quickly identify tactical deltas on grid.
+
+Proximity Topology & Range-Based Map (Preview / Early Framework)
+Dynamic Map view rendering systems within the user-defined jump radius relative to your current position.
+Automatic player location resolution parsed from Local chat and game client logs.
+Visual indicators for system security status (Highsec, Lowsec, Nullsec) and active threat rings.
+Note: The Map is currently actively under development with limited testing and data, so behavior may be experimental or incomplete.
+
+Proximity Threat Engine & OS Alerts (Preview / Early Framework)
+Jump-range filtering (Alert range (jumps)) to surface hostile activity within your immediate operational envelope.
+Native Windows toast notifications for critical hostile spikes and capital escalations within your configured range.
+Note: The Alerts is currently actively under development with limited testing and data, so behavior may be experimental or incomplete.
+
+Global HUD & Telemetry Bar
+Persistent top status bar displaying active Solar System, Hull configuration, Memory buffer usage, and LLM operational state.
+
+Improvements & Fixes
+Enhanced natural language log parsing for ambiguous system names and shorthand combat intel.
+Optimized string sanitization for large-scale D-Scan dumps to prevent UI lockup.
+Streamlined LLM context buffer management.
+Added clickable footer links for instant access to the GitHub Repository and Report a Bug issue tracker.
+
+Project Acknowledgments & Credits
+Added an in-app Credits modal button in the global HUD.
+Added CREDITS.md to formally acknowledge third-party tools, references, community projects, and inspirations that contributed to A.U.R.A.'s design.
+
+Roadmap Note: Features marked as Preview/Early Framework such as the Fitting Lab and Dynamic Map—are actively being engineered and will be expanded and refined across upcoming v0.2.0-alpha builds. Feedback and bug reports are welcome via the footer link.
