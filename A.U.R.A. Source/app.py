@@ -37,7 +37,8 @@ if sys.version_info < (3, 12):
             )
     except OSError:
         pass
-    sys.stderr.write(f"[FATAL] {err_text}\n")
+    if sys.stderr is not None:
+        sys.stderr.write(f"[FATAL] {err_text}\n")
     if sys.platform == "win32":
         try:
             import ctypes
@@ -59,6 +60,10 @@ if sys.platform == "win32":
 
 # 2. Automated Stale Cache & Temporary File Cleaner
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import bootstrap_runtime
+bootstrap_runtime.configure_qt_paths()
+
 from lifecycle import cleanup_temp_files, install_thread_excepthook
 
 cleanup_temp_files()
@@ -84,7 +89,8 @@ def _global_exception_handler(exc_type, exc_value, exc_traceback):
     except Exception:
         pass
 
-    sys.stderr.write(f"\n[!] A.U.R.A. Critical Error: {err_msg}\n")
+    if sys.stderr is not None:
+        sys.stderr.write(f"\n[!] A.U.R.A. Critical Error: {err_msg}\n")
 
 sys.excepthook = _global_exception_handler
 
@@ -99,7 +105,8 @@ def _show_startup_error(exc: BaseException) -> None:
             f.write(f"\n[STARTUP FAILURE {time.strftime('%Y-%m-%d %H:%M:%S')}]\n{err_msg}\n")
     except OSError:
         pass
-    sys.stderr.write(f"\n[!] A.U.R.A. startup failed: {err_msg}\n")
+    if sys.stderr is not None:
+        sys.stderr.write(f"\n[!] A.U.R.A. startup failed: {err_msg}\n")
     if sys.platform == "win32":
         try:
             import ctypes

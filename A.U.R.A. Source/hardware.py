@@ -13,6 +13,7 @@ Supports:
 import os
 import sys
 import json
+import importlib.util
 import subprocess
 import psutil
 import winreg
@@ -41,13 +42,78 @@ _OPENVINO_PROBE_SCRIPT = (
     "    print(json.dumps({'error': str(exc)}))\n"
 )
 
+_OPENVINO_PROFILE_KEYS = frozenset({"intel_npu", "intel_igpu", "intel_dgpu"})
+
+
+def _is_missing_openvino_error(err: str) -> bool:
+    low = (err or "").lower()
+    return "no module named 'openvino'" in low or "no module named openvino" in low
+
+
+def _openvino_importable() -> bool:
+    return importlib.util.find_spec("openvino") is not None
+
+
+def _openvino_probe_wanted(skip_openvino_probe: bool) -> bool:
+    """OpenVINO probe is optional; only run when profile or installed package expects it."""
+    if skip_openvino_probe:
+        return False
+    if _openvino_importable():
+        return True
+    profile = load_install_profile()
+    if profile:
+        installed = set(profile.get("profiles") or [])
+        if installed & _OPENVINO_PROFILE_KEYS:
+            return True
+    return False
+
+
+def _app_root_dir() -> str:
+    if getattr(sys, "frozen", False):
+        return os.path.dirname(os.path.abspath(sys.executable))
+    return os.path.dirname(os.path.abspath(__file__))
+
+
+def _is_frozen_stub_executable() -> bool:
+    """True when sys.executable is a PyInstaller stub, not a Python interpreter."""
+    if not getattr(sys, "frozen", False):
+        return False
+    name = os.path.basename(sys.executable).lower()
+    return (
+        "setup" in name
+        or "launcher" in name
+        or name.startswith("aura_setup")
+        or name.startswith("aura_launcher")
+    )
+
+
+def _resolve_probe_python() -> Optional[str]:
+    """Return a real python.exe for -c probes; never the frozen Setup/Launcher stub."""
+    app_dir = _app_root_dir()
+    candidates = [
+        os.path.join(app_dir, "requirements", "venv", "Scripts", "python.exe"),
+        os.path.join(app_dir, "runtime", "python.exe"),
+        os.path.join(app_dir, "venv", "Scripts", "python.exe"),
+    ]
+    for path in candidates:
+        if os.path.isfile(path):
+            return path
+    if not getattr(sys, "frozen", False):
+        return sys.executable
+    if _is_frozen_stub_executable():
+        return None
+    return sys.executable
+
 
 def _probe_openvino_devices(timeout_sec: float = 5.0) -> Tuple[List[str], Optional[str]]:
     """Enumerate OpenVINO devices in a child process to avoid startup hangs."""
+    python_exe = _resolve_probe_python()
+    if not python_exe:
+        return [], "OpenVINO probe skipped (no Python interpreter; frozen installer/launcher)"
     flags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
     try:
         result = subprocess.run(
-            [sys.executable, "-c", _OPENVINO_PROBE_SCRIPT],
+            [python_exe, "-c", _OPENVINO_PROBE_SCRIPT],
             capture_output=True,
             text=True,
             timeout=timeout_sec,
@@ -68,7 +134,10 @@ def _probe_openvino_devices(timeout_sec: float = 5.0) -> Tuple[List[str], Option
         return [], (result.stderr or result.stdout or "invalid probe output")[:500]
 
     if payload.get("error"):
-        return [], str(payload["error"])
+        err = str(payload["error"])
+        if _is_missing_openvino_error(err):
+            return [], None
+        return [], err
     devices = payload.get("devices") or []
     return [str(d) for d in devices], None
 
@@ -78,16 +147,29 @@ class HardwareDetector:
     Discovers and classifies available compute hardware units on the host machine.
     Scans for Intel & AMD & Qualcomm NPUs, Dedicated & Integrated GPUs (NVIDIA, AMD, Intel), and CPU capabilities.
     """
-    def __init__(self, force_rescan: bool = False, apply_profile: bool = True):
+    def __init__(
+        self,
+        force_rescan: bool = False,
+        apply_profile: bool = True,
+        skip_openvino_probe: bool = False,
+    ):
         global _CACHED_HARDWARE_DEVICES
+        self._skip_openvino_probe = skip_openvino_probe
         if _CACHED_HARDWARE_DEVICES is not None and not force_rescan and apply_profile:
             self.devices = _CACHED_HARDWARE_DEVICES
         else:
-            self.devices = self.scan_devices(apply_profile=apply_profile)
+            self.devices = self.scan_devices(
+                apply_profile=apply_profile,
+                skip_openvino_probe=skip_openvino_probe,
+            )
             if apply_profile:
                 _CACHED_HARDWARE_DEVICES = self.devices
 
-    def scan_devices(self, apply_profile: bool = True) -> Dict[str, Any]:
+    def scan_devices(
+        self,
+        apply_profile: bool = True,
+        skip_openvino_probe: bool = False,
+    ) -> Dict[str, Any]:
         # 1. CPU Detection
         cpu_name = "Host CPU"
         try:
@@ -131,8 +213,12 @@ class HardwareDetector:
 
         # 2. Check OpenVINO Runtime Devices (Intel NPU, Intel/Arc GPU, OpenVINO CPU)
         openvino_npu_found = False
-        available, ov_err = _probe_openvino_devices(timeout_sec=5.0)
-        if ov_err:
+        openvino_expected = _openvino_probe_wanted(skip_openvino_probe)
+        if openvino_expected:
+            available, ov_err = _probe_openvino_devices(timeout_sec=5.0)
+        else:
+            available, ov_err = [], None
+        if ov_err and not _is_missing_openvino_error(ov_err):
             log_diagnostic_error(
                 AURAErrorCode.ERR_2004_REGISTRY_PROBE_ERROR,
                 ov_err,

@@ -222,7 +222,8 @@ def log_diagnostic_error(code: str, exc: Optional[Exception] = None, context: st
     except Exception:
         pass
         
-    sys.stderr.write(f"\n[!] A.U.R.A. Error [{code}] {meta['title']}: {meta['description']}\n")
+    if sys.stderr is not None:
+        sys.stderr.write(f"\n[!] A.U.R.A. Error [{code}] {meta['title']}: {meta['description']}\n")
     return code
 
 
