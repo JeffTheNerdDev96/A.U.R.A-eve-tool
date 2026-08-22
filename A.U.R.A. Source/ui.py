@@ -1138,11 +1138,20 @@ class MainWindow(QMainWindow):
         card_text = f"{header}\n{detail_line}\n{quote_line}" if quote_line else f"{header}\n{detail_line}"
 
         row_widget = QWidget()
+        row_widget.setObjectName("IntelCardWidget")
         row_widget.setAutoFillBackground(True)
         row_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         row_widget.setStyleSheet(
-            f"background-color: {bg_color}; border: 1px solid {fg_color}; "
-            f"border-left: 4px solid {fg_color}; border-radius: 4px;"
+            f"QWidget#IntelCardWidget {{ "
+            f"background-color: {bg_color}; "
+            f"border: 1px solid {fg_color}; "
+            f"border-left: 4px solid {fg_color}; "
+            f"border-radius: 4px; "
+            f"}} "
+            f"QLabel {{ "
+            f"border: none; "
+            f"background-color: transparent; "
+            f"}}"
         )
         row_layout = QVBoxLayout(row_widget)
         row_layout.setContentsMargins(10, 8, 10, 6)
@@ -1155,7 +1164,7 @@ class MainWindow(QMainWindow):
         if parsed.get("location_known") and not parsed.get("in_range"):
             text_color = "#64748b"
         text_lbl.setStyleSheet(
-            f"color: {text_color}; background-color: transparent; "
+            f"color: {text_color}; background-color: transparent; border: none; "
             f"font-family: Consolas, monospace; font-size: 10pt;"
         )
         row_layout.addWidget(text_lbl)

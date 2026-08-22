@@ -68,6 +68,8 @@ dist_standalone_temp/
 *.zip
 *.7z
 *.tar.gz
+tools/
+**/tools/
 
 # 5. Local Runtime Hardware Telemetry & State
 hardware_profile.json
