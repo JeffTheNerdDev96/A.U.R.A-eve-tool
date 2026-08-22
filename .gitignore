@@ -46,12 +46,17 @@ htmlcov/
 # 4. Build Artifacts, Distros & Installers
 A.U.R.A Distro/
 **/A.U.R.A Distro/
+AURA_Standalone_Windows/
+**/AURA_Standalone_Windows/
 build/
 **/build/
 dist/
 **/dist/
 *.spec
 *.spec.bak
+warn-*.txt
+xref-*.html
+*.pkg
 build_installer_temp/
 **/build_installer_temp/
 build_launcher_temp/
