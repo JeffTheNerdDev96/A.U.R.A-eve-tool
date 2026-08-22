@@ -378,23 +378,16 @@ def main_stylesheet() -> str:
             padding: 4px;
         }}
         QListWidget#LiveIntelList::item {{
-            background-color: {BG_DEEP};
-            border: 1px solid {BORDER_MUTED};
-            border-left: 4px solid {ACCENT_DIM};
-            padding: 8px 10px;
-            border-radius: 4px;
+            background-color: transparent;
+            border: none;
+            padding: 0px;
             margin: 3px 2px;
-            color: {TEXT_PRIMARY};
         }}
         QListWidget#LiveIntelList::item:hover {{
-            border: 1px solid {BORDER};
-            border-left: 4px solid {ACCENT};
+            background-color: transparent;
         }}
         QListWidget#LiveIntelList::item:selected {{
-            background-color: {BG_PANEL};
-            border: 1px solid {ACCENT};
-            border-left: 4px solid {ACCENT};
-            color: {TEXT_PRIMARY};
+            background-color: transparent;
         }}
         QTextEdit#ChatDisplay {{
             background-color: {BG_DEEP};

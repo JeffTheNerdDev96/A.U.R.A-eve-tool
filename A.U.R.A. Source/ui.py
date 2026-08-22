@@ -26,9 +26,9 @@ from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTextEdit, QLineEdit, QPushButton, QLabel, QFrame, QProgressBar, QFileDialog,
     QDialog, QComboBox, QCheckBox, QListWidget, QListWidgetItem,
-    QTextBrowser, QTabWidget, QSpinBox, QSystemTrayIcon, QMenu,
+    QTextBrowser, QTabWidget, QSpinBox, QSystemTrayIcon, QMenu, QSizePolicy,
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QSize, QEvent
 from PyQt6.QtGui import QIcon, QTextCursor, QFont, QColor, QBrush, QAction, QPixmap
 
 from config import config
@@ -862,6 +862,7 @@ class MainWindow(QMainWindow):
         self.intel_list.setObjectName("LiveIntelList")
         self.intel_list.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.intel_list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.intel_list.viewport().installEventFilter(self)
         right_layout.addWidget(self.intel_list, stretch=1)
 
         # Feed Action Bar
@@ -1137,9 +1138,14 @@ class MainWindow(QMainWindow):
         card_text = f"{header}\n{detail_line}\n{quote_line}" if quote_line else f"{header}\n{detail_line}"
 
         row_widget = QWidget()
-        row_widget.setStyleSheet(f"background-color: {BG_DEEP};")
+        row_widget.setAutoFillBackground(True)
+        row_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        row_widget.setStyleSheet(
+            f"background-color: {bg_color}; border: 1px solid {fg_color}; "
+            f"border-left: 4px solid {fg_color}; border-radius: 4px;"
+        )
         row_layout = QVBoxLayout(row_widget)
-        row_layout.setContentsMargins(6, 6, 6, 4)
+        row_layout.setContentsMargins(10, 8, 10, 6)
         row_layout.setSpacing(4)
 
         text_lbl = QLabel(card_text)
@@ -1148,7 +1154,10 @@ class MainWindow(QMainWindow):
         text_color = TEXT_PRIMARY
         if parsed.get("location_known") and not parsed.get("in_range"):
             text_color = "#64748b"
-        text_lbl.setStyleSheet(f"color: {text_color}; font-family: Consolas, monospace; font-size: 10pt;")
+        text_lbl.setStyleSheet(
+            f"color: {text_color}; background-color: transparent; "
+            f"font-family: Consolas, monospace; font-size: 10pt;"
+        )
         row_layout.addWidget(text_lbl)
 
         btn_row = QHBoxLayout()
@@ -1163,10 +1172,10 @@ class MainWindow(QMainWindow):
         row_layout.addLayout(btn_row)
 
         item = QListWidgetItem()
-        row_widget.adjustSize()
-        item.setSizeHint(row_widget.sizeHint())
+        card_w = self._intel_card_width()
+        row_widget.setMinimumWidth(card_w)
+        item.setSizeHint(QSize(card_w, row_widget.sizeHint().height()))
         item.setData(Qt.ItemDataRole.UserRole, parsed)
-        item.setBackground(QBrush(QColor(BG_DEEP)))
 
         self.intel_list.insertItem(0, item)
         self.intel_list.setItemWidget(item, row_widget)
@@ -1284,6 +1293,27 @@ class MainWindow(QMainWindow):
             self._handle_live_intel_line(parsed)
             if parsed.get("is_critical", False):
                 self._handle_live_critical_threat(parsed)
+
+    def _intel_card_width(self) -> int:
+        return max(1, self.intel_list.viewport().width() - 8)
+
+    def _refresh_intel_card_widths(self) -> None:
+        if not hasattr(self, "intel_list"):
+            return
+        width = self._intel_card_width()
+        for i in range(self.intel_list.count()):
+            item = self.intel_list.item(i)
+            widget = self.intel_list.itemWidget(item) if item else None
+            if item is None or widget is None:
+                continue
+            widget.setMinimumWidth(width)
+            item.setSizeHint(QSize(width, widget.sizeHint().height()))
+
+    def eventFilter(self, obj, event):
+        intel = getattr(self, "intel_list", None)
+        if intel is not None and obj is intel.viewport() and event.type() == QEvent.Type.Resize:
+            self._refresh_intel_card_widths()
+        return super().eventFilter(obj, event)
 
     def _clear_intel_feed(self) -> None:
         self.intel_list.clear()
