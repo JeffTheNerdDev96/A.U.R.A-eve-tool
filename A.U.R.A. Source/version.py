@@ -1,4 +1,7 @@
 VERSION = "v0.2.0-alpha1"
+PUBLISHER = "JeffTheNerdDev96"
+COMPANY_URL = "https://github.com/JeffTheNerdDev96/A.U.R.A-eve-tool"
+PRODUCT_NAME = "Adaptive Underworld Recon Array (A.U.R.A.)"
 INSTALL_DIR_NAME = f"A.U.R.A. {VERSION}"
 INSTALLER_EXE_NAME = f"AURA_Setup_{VERSION}.exe"
 APP_EXE_NAME = f"A.U.R.A.-{VERSION}.exe"

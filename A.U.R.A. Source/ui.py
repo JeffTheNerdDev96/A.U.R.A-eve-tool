@@ -692,8 +692,8 @@ class MainWindow(QMainWindow):
         self.fit_btn = QPushButton("🛠️ Fitting Lab & Optimizer")
         self.fit_btn.setObjectName("ToolBtnFit")
         self.fit_btn.setFixedHeight(34)
-        self.fit_btn.setToolTip("Open the visual Fitting tab (PyFA-style slot builder + EFT import)")
-        self.fit_btn.clicked.connect(self._open_fitting_tab)
+        self.fit_btn.setToolTip("Paste EFT / in-game ship fits for role-based optimization analysis")
+        self.fit_btn.clicked.connect(self._open_fitting_dialog)
         tools_layout.addWidget(self.fit_btn)
 
         self.attach_btn = QPushButton("📁 Attach Screenshot")
@@ -882,18 +882,24 @@ class MainWindow(QMainWindow):
         right_layout.addLayout(feed_actions)
 
         self.fitting_lab = FittingLabWidget()
-        self.fitting_lab.evaluate_requested.connect(self._on_fitting_evaluate)
+        self.fitting_lab.evaluate_requested.connect(self._on_fitting_submitted)
 
         self.map_tab = MapTabWidget(self.eve_map)
         self.map_tab.set_jump_range(int(getattr(config, "alert_jump_range", 5)))
 
         self.composition_tab = CompositionTabWidget()
 
-        self.tabs.addTab(self._wrap_tab_card(right_panel), "Live Intel Radar")
-        self.tabs.addTab(self._wrap_tab_card(self.fitting_lab), "Fitting")
-        self.tabs.addTab(self._wrap_tab_card(self.map_tab), "Map")
-        self.tabs.addTab(self._wrap_tab_card(self.composition_tab), "Composition")
-        self.tabs.addTab(self._wrap_tab_card(self.chat_tab), "A.U.R.A. Chat")
+        self.radar_tab_page = self._wrap_tab_card(right_panel)
+        self.fitting_tab_page = self._wrap_tab_card(self.fitting_lab)
+        self.map_tab_page = self._wrap_tab_card(self.map_tab)
+        self.composition_tab_page = self._wrap_tab_card(self.composition_tab)
+        self.chat_tab_page = self._wrap_tab_card(self.chat_tab)
+
+        self.tabs.addTab(self.radar_tab_page, "Live Intel Radar")
+        self.tabs.addTab(self.fitting_tab_page, "Fitting")
+        self.tabs.addTab(self.map_tab_page, "Map")
+        self.tabs.addTab(self.composition_tab_page, "Composition")
+        self.tabs.addTab(self.chat_tab_page, "A.U.R.A. Chat")
         self.tabs.currentChanged.connect(self._on_main_tab_changed)
         main_layout.addWidget(self.tabs, stretch=1)
 
@@ -1043,11 +1049,8 @@ class MainWindow(QMainWindow):
         if hasattr(self, "map_tab"):
             self.map_tab.set_jump_range(int(value))
 
-    def _open_fitting_tab(self):
-        self.tabs.setCurrentWidget(self.fitting_lab)
-
-    def _on_fitting_evaluate(self, raw_text: str, parsed: dict, role: str):
-        self.tabs.setCurrentWidget(self.chat_tab)
+    def _on_fitting_submitted(self, raw_text: str, parsed: dict, role: str):
+        self.tabs.setCurrentWidget(self.chat_tab_page)
         self._handle_fit_submission(raw_text, parsed, role)
 
     def _handle_location_changed(self, system_name: str, system_id: int):
@@ -1343,8 +1346,8 @@ class MainWindow(QMainWindow):
         """Generate targeted tactical advice for a live intel ping (explicit button only)."""
         if not parsed:
             return
-        if hasattr(self, "chat_tab"):
-            self.tabs.setCurrentWidget(self.chat_tab)
+        if hasattr(self, "chat_tab_page"):
+            self.tabs.setCurrentWidget(self.chat_tab_page)
         sys_name = parsed.get("system", "Target System")
         raw = parsed.get("clean_msg", "")
         ships = ", ".join(parsed.get("ships", [])) or "Hostile elements"
@@ -1492,7 +1495,7 @@ class MainWindow(QMainWindow):
 
     def _open_fitting_dialog(self):
         dlg = FittingDialog(self)
-        dlg.fit_submitted.connect(self._handle_fit_submission)
+        dlg.fit_submitted.connect(self._on_fitting_submitted)
         dlg.exec()
 
     def _handle_fit_submission(self, raw_text: str, parsed: dict, role: str):
