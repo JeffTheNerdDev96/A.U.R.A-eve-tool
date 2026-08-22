@@ -1,6 +1,6 @@
 """
 Hardware Topology Detection & Dynamic Multi-Vendor Hardware Acceleration Router.
-Customized for A.U.R.A. Assist (Adaptive Underworld Recon Array).
+Customized for Adaptive Underworld Recon Array (A.U.R.A.).
 Supports:
   - Intel NPU (Intel AI Boost, Meteor Lake / Lunar Lake / Arrow Lake via OpenVINO NPU / Level Zero / PnP)
   - AMD NPU (AMD Ryzen AI, XDNA / XDNA 2 / Phoenix / Hawk Point / Strix Point / Strix Halo via DirectML / IPU / PnP)

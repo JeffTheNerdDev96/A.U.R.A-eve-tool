@@ -1,5 +1,5 @@
 """
-Configuration settings for A.U.R.A. Assist (Adaptive Underworld Recon Array).
+Configuration settings for Adaptive Underworld Recon Array (A.U.R.A.).
 Angel Cartel EVE Online Tactical AI Assistant with NPU Acceleration & Dedicated Phi-4 Mini Neural Core.
 """
 import os
@@ -9,10 +9,10 @@ from typing import Dict, Any
 
 class AppConfig:
     def __init__(self):
-        self.app_name = "A.U.R.A. Assist — Adaptive Underworld Recon Array"
+        self.app_name = "Adaptive Underworld Recon Array (A.U.R.A.)"
         self.faction = "Angel Cartel"
         self.version = "v0.2.0"
-        self.display_title = f"A.U.R.A. Assist - {self.version}"
+        self.display_title = f"Adaptive Underworld Recon Array (A.U.R.A.) - {self.version}"
         
         # Dedicated Neural Model: Microsoft Phi-4 Mini (3.8B Reasoning Core)
         self.model_name = "microsoft/Phi-4-mini-instruct"

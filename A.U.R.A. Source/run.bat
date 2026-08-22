@@ -7,11 +7,11 @@ set "SCRIPT_DIR=%~dp0"
 set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8
 set PYTHONDONTWRITEBYTECODE=1
-title A.U.R.A. Assist - v0.2.0
+title Adaptive Underworld Recon Array (A.U.R.A.) - v0.2.0
 
 cls
 echo ===================================================================
-echo   [+] A.U.R.A. ASSIST - v0.2.0
+echo   [+] Adaptive Underworld Recon Array (A.U.R.A.) - v0.2.0
 echo   Angel Cartel Cybernetics Division  ^|  by JeffTheNerdDev96
 echo ===================================================================
 echo [!] Initializing Phi-4 Mini Neural Core ^& Live Intel Radar...

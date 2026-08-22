@@ -2,7 +2,7 @@
 
 Feature documentation: [USER_GUIDE.md](../../USER_GUIDE.md) in the repository root.
 
-A.U.R.A. Assist features dynamic, vendor-agnostic hardware routing supporting **Intel NPUs/GPUs**, **AMD Ryzen AI NPUs**, **AMD Radeon GPUs**, **NVIDIA CUDA**, and **CPU Vector Mesh** computing.
+Adaptive Underworld Recon Array (A.U.R.A.) features dynamic, vendor-agnostic hardware routing supporting **Intel NPUs/GPUs**, **AMD Ryzen AI NPUs**, **AMD Radeon GPUs**, **NVIDIA CUDA**, and **CPU Vector Mesh** computing.
 
 ---
 

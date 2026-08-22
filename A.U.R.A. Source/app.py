@@ -1,5 +1,5 @@
 """
-Main entry point for A.U.R.A. Assist (Adaptive Underworld Recon Array).
+Main entry point for Adaptive Underworld Recon Array (A.U.R.A.).
 Angel Cartel EVE Online Tactical AI Assistant - v0.2.0.
 """
 import sys

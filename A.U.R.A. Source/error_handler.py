@@ -1,5 +1,5 @@
 """
-Centralized Diagnostic Error Code Subsystem for A.U.R.A. Assist - v0.2.0.
+Centralized Diagnostic Error Code Subsystem for Adaptive Underworld Recon Array (A.U.R.A.) - v0.2.0.
 Angel Cartel Cybernetics Division.
 
 Provides standardized, searchable error codes (AURA-ERR-xxxx), rich diagnostic logging,
@@ -147,7 +147,7 @@ ERROR_REGISTRY: Dict[str, Dict[str, str]] = {
 
 class AURAException(Exception):
     """
-    Standard structured exception for all A.U.R.A. Assist errors.
+    Standard structured exception for all Adaptive Underworld Recon Array (A.U.R.A.) errors.
     """
     def __init__(self, code: str, technical_details: str = "", original_exc: Optional[Exception] = None):
         self.code = code

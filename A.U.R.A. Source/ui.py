@@ -988,7 +988,7 @@ class MainWindow(QMainWindow):
 
     def _display_welcome(self):
         self._append_message("A.U.R.A.", (
-            "☠️ <b>A.U.R.A. Assist — Adaptive Underworld Recon Array</b>\n"
+            "☠️ <b>Adaptive Underworld Recon Array (A.U.R.A.)</b>\n"
             "<i>by JeffTheNerdDev96</i>\n\n"
             "🛰️ <b>Live Intel Radar, Chat, and Fitting are in the tabs above.</b> "
             "Location is read from Local / Gamelogs; threats within 5 jumps raise a Windows alert."
@@ -1791,6 +1791,8 @@ class MainWindow(QMainWindow):
 
 def run_app():
     app = QApplication(sys.argv)
+    app.setApplicationName(config.app_name)
+    app.setApplicationDisplayName(config.display_title)
     app.setQuitOnLastWindowClosed(True)
     window = MainWindow()
     window.show()

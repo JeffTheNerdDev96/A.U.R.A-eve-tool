@@ -1,4 +1,4 @@
-# A.U.R.A. Assist — v0.2.0 — Tactical User Guide
+# Adaptive Underworld Recon Array (A.U.R.A.) — v0.2.0 — Tactical User Guide
 
 **Adaptive Underworld Recon Array (A.U.R.A.)**  
 *Angel Cartel Cybernetics Division — by JeffTheNerdDev96*

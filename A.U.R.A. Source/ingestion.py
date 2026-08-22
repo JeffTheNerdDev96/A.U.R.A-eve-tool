@@ -1,5 +1,5 @@
 """
-Multiformat Tactical Ingestion Engine for EVE Online A.U.R.A. Assist.
+Multiformat Tactical Ingestion Engine for EVE Online Adaptive Underworld Recon Array (A.U.R.A.).
 Handles in-game screenshots (Overviews, D-Scans, Killmails), EFT fits, logs, and tactical briefs.
 """
 import os
