@@ -1,30 +1,65 @@
 # ==============================================================================
-# Git Ignore Rules for A.U.R.A. EVE Tool
+# Git Ignore Configuration for Adaptive Underworld Recon Array (A.U.R.A.)
 # ==============================================================================
 
-# 1. Neural Model Weights (Exceeds GitHub 100MB / 2GB limit; kept local only)
+# 1. Neural Model Weights & AI Artifacts (Large Binaries / Local Execution Only)
 *.gguf
 *.bin
 *.onnx
 *.safetensors
 *.pt
+*.pth
+*.ckpt
 models/
 **/models/
-
-# 2. Training Datasets & Cloud Pipelines (Internal development only)
 training/
 **/training/
 
-# 3. Local Builds, Distro Packages & Installers
+# 2. Virtual Environments & Embedded Python Runtimes
+venv/
+**/venv/
+venv_app/
+**/venv_app/
+.venv/
+**/.venv/
+env/
+ENV/
+requirements/venv/
+**/requirements/venv/
+runtime/
+**/runtime/
+python_runtime/
+**/python_runtime/
+
+# 3. Python Cache, Bytecode & Analysis Artifacts
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.cover
+
+# 4. Build Artifacts, Distros & Installers
 A.U.R.A Distro/
 **/A.U.R.A Distro/
 build/
+**/build/
 dist/
-build_installer_temp/
-build_standalone_temp/
-dist_standalone_temp/
+**/dist/
 *.spec
 *.spec.bak
+build_installer_temp/
+**/build_installer_temp/
+build_launcher_temp/
+**/build_launcher_temp/
+build_standalone_temp/
+**/build_standalone_temp/
+dist_standalone_temp/
+**/dist_standalone_temp/
 *.exe
 *.dll
 *.so
@@ -34,52 +69,21 @@ dist_standalone_temp/
 *.7z
 *.tar.gz
 
-# 4. Developer Tools, Build Output & Temporary Workspaces
-tests/
-**/test_*.py
-DEVELOPER.md
-check_syntax.bat
-TESTTXT.txt
-tools/
-**/tools/
-A.U.R.A. Source/tools/
-**/A.U.R.A. Source/tools/
-build_installer_temp/
-**/build_installer_temp/
-build_standalone_temp/
-**/build_standalone_temp/
-build_launcher_temp/
-**/build_launcher_temp/
-dist_standalone_temp/
-**/dist_standalone_temp/
-scratch/
-**/scratch/
-
-# 5. Python Cache, Bytecode & Virtual Environments
-__pycache__/
-**/__pycache__/
-*.py[cod]
-*$py.class
-.pytest_cache/
-venv/
-**/venv/
-venv_app/
-**/venv_app/
-env/
-ENV/
-.venv/
-requirements/venv/
-**/requirements/venv/
-runtime/
-**/runtime/
-python_runtime/
-**/python_runtime/
+# 5. Local Runtime Hardware Telemetry & State
+hardware_profile.json
+**/hardware_profile.json
 A.U.R.A. Source/requirements/hardware_profile.json
 
-# 6. Local Chat Logs & Temp Files
+# 6. Logs, Diagnostics & Temporary Files
 *.log
 logs/
 **/logs/
+*.tmp
+*.temp
+*.dmp
+*.bak
+scratch/
+**/scratch/
 
 # 7. OS & IDE Metadata
 .DS_Store
@@ -87,5 +91,7 @@ Thumbs.db
 desktop.ini
 .idea/
 .vscode/
+.cursor/
 *.swp
 *.swo
+*~
