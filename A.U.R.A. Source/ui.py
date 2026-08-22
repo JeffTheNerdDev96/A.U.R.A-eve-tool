@@ -554,10 +554,11 @@ class MainWindow(QMainWindow):
         return main_stylesheet()
 
     def _init_ui(self):
-        main_widget = QWidget()
+        main_widget = QFrame()
+        main_widget.setObjectName("AppShell")
         self.setCentralWidget(main_widget)
         main_layout = QVBoxLayout(main_widget)
-        main_layout.setContentsMargins(12, 12, 12, 12)
+        main_layout.setContentsMargins(8, 8, 8, 8)
         main_layout.setSpacing(16)
 
         # 1. Browser-style chrome strip

@@ -248,18 +248,20 @@ def main_stylesheet() -> str:
             font-family: 'Segoe UI', -apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif;
             font-size: 14px;
         }}
+        QFrame#AppShell {{
+            background-color: {BG_DEEP};
+            border: 1px solid {BORDER};
+            border-radius: 0;
+        }}
         QFrame#BrowserChrome {{
             background-color: {BG_TITLEBAR};
-            border: 1px solid {BORDER};
-            border-bottom: 1px solid {BORDER};
-            border-radius: 8px;
+            border: none;
             padding: 6px 12px;
         }}
         QFrame#BrowserFooter {{
             background-color: {BG_TITLEBAR};
-            border: 1px solid {BORDER};
+            border: none;
             border-top: 2px solid {ACCENT};
-            border-radius: 8px;
             padding: 6px 12px;
         }}
         QFrame#ChromeStripe {{
@@ -364,8 +366,8 @@ def main_stylesheet() -> str:
         }}
         QFrame#TabCard {{
             background: {BG_PANEL};
-            border: 1px solid {BORDER};
-            border-radius: 8px;
+            border: none;
+            border-radius: 0;
         }}
         QListWidget#LiveIntelList {{
             background-color: {BG_DEEP};
@@ -535,7 +537,7 @@ def main_stylesheet() -> str:
             border: 1px solid {BORDER};
             background: {BG_DEEP};
             top: -1px;
-            border-radius: 0 8px 8px 8px;
+            border-radius: 0;
             padding: 8px;
         }}
         QTabBar::tab {{
