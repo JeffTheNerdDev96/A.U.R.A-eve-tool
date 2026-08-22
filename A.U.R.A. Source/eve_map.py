@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from collections import defaultdict, deque
 from typing import Any, Dict, List, Optional, Set, Tuple
 
@@ -16,6 +17,11 @@ _MAP_INSTANCE: Optional["EveMapGraph"] = None
 
 
 def _default_map_path() -> str:
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        bundled = os.path.join(meipass, "data", "eve_map.json")
+        if os.path.isfile(bundled):
+            return bundled
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "eve_map.json")
 
 

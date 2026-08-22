@@ -915,6 +915,11 @@ class MainWindow(QMainWindow):
             "brand",
             "aura_mark.png",
         )
+        meipass = getattr(sys, "_MEIPASS", None)
+        if meipass:
+            bundled_mark = os.path.join(meipass, "assets", "brand", "aura_mark.png")
+            if os.path.isfile(bundled_mark):
+                mark_path = bundled_mark
         if os.path.isfile(mark_path):
             pix = QPixmap(mark_path)
             if not pix.isNull():
