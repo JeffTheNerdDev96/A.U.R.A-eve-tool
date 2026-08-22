@@ -11,7 +11,8 @@ class AppConfig:
     def __init__(self):
         self.app_name = "A.U.R.A. Assist — Adaptive Underworld Recon Array"
         self.faction = "Angel Cartel"
-        self.version = "v0.1.4-alpha6"
+        self.version = "v0.2.0"
+        self.display_title = f"A.U.R.A. Assist - {self.version}"
         
         # Dedicated Neural Model: Microsoft Phi-4 Mini (3.8B Reasoning Core)
         self.model_name = "microsoft/Phi-4-mini-instruct"
@@ -36,6 +37,10 @@ class AppConfig:
 
         # Live Intel Radar Settings
         self.custom_intel_channels = "imperium, delve, horde, frt, winter, init, brave, snuff, standing"
+        self.alert_jump_range = 5
+        self.windows_alerts_enabled = True
+        self.alert_min_level = "MEDIUM"
+        self.alert_debounce_sec = 20
 
         # Lore & System Personality Prompt (Versatile EVE Tactical Assistant)
         self.aura_system_prompt = (

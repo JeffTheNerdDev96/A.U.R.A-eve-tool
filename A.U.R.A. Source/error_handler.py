@@ -1,5 +1,5 @@
 """
-Centralized Diagnostic Error Code Subsystem for A.U.R.A. Assist (v0.1.4-alpha6).
+Centralized Diagnostic Error Code Subsystem for A.U.R.A. Assist - v0.2.0.
 Angel Cartel Cybernetics Division.
 
 Provides standardized, searchable error codes (AURA-ERR-xxxx), rich diagnostic logging,
@@ -61,7 +61,7 @@ ERROR_REGISTRY: Dict[str, Dict[str, str]] = {
     AURAErrorCode.ERR_1003_PYTHON_INCOMPATIBLE: {
         "title": "Incompatible Python Architecture",
         "description": "Active Python interpreter is older than Python 3.12.",
-        "resolution": "Run AURA_Setup_v0.1.4-alpha6.exe to install the bundled Python 3.12 64-bit runtime."
+        "resolution": "Run AURA_Setup_v0.2.0.exe to install the bundled Python 3.12 64-bit runtime."
     },
     AURAErrorCode.ERR_1004_INFERENCE_TIMEOUT: {
         "title": "Inference Stream Timeout",

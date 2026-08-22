@@ -1,4 +1,6 @@
-# A.U.R.A. Assist — Multi-Vendor Hardware Acceleration Ecosystem
+# A.U.R.A. v0.2.0 — Multi-Vendor Hardware Acceleration Ecosystem
+
+Feature documentation: [USER_GUIDE.md](../../USER_GUIDE.md) in the repository root.
 
 A.U.R.A. Assist features dynamic, vendor-agnostic hardware routing supporting **Intel NPUs/GPUs**, **AMD Ryzen AI NPUs**, **AMD Radeon GPUs**, **NVIDIA CUDA**, and **CPU Vector Mesh** computing.
 

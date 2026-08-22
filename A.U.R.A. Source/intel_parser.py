@@ -5,6 +5,7 @@ High-throughput parser with zero generator allocations and C-level fast-paths.
 import re
 from typing import Dict, List, Any, Optional
 from eve_data import _FAST_SHIP_LOOKUP, SHIP_DATABASE, THREAT_BUBBLE, THREAT_CYNO, THREAT_MARAUDER, THREAT_CAPITAL, THREAT_SUPER, THREAT_ECM
+from eve_map import get_eve_map
 
 # --- Module-level pre-computed constants ---
 _MULTI_WORD_SHIPS = [name for name in SHIP_DATABASE if " " in name]
@@ -113,11 +114,13 @@ class IntelParser:
         msg_l = msg.lower()
         words_in_msg = msg.split()
 
-        # 1. Fast Token & System Identification
+        # 1. Fast Token & System Identification (map-backed; no Titlecase guessing)
         found_system = "Unknown System"
+        found_system_id: Optional[int] = None
         detected_pilots: List[str] = []
         detected_ships: List[str] = []
         threat_tags: List[str] = []
+        eve_map = get_eve_map()
 
         # Check multi-word ships first if pattern exists and space is present
         if _MULTI_WORD_SHIP_PATTERN is not None and (" " in msg):
@@ -149,15 +152,20 @@ class IntelParser:
                 i += 1
                 continue
 
-            # Check if this token is a system candidate (hyphenated or title-case alphanumeric)
-            if found_system == "Unknown System" and not w.isdigit():
-                if ("-" in w or any(c.isdigit() for c in w)) and (w_lower not in _FAST_SHIP_LOOKUP):
-                    found_system = w
-                    i += 1
-                    continue
-                elif len(w) >= 3 and w[0].isupper() and (w_lower not in _FAST_SHIP_LOOKUP) and (w_lower not in IntelParser.INTEL_KEYWORDS):
-                    found_system = w
-                    i += 1
+            # Map-resolved solar system (prefer two-word names such as "New Caldari")
+            if found_system == "Unknown System" and not w.isdigit() and w_lower not in IntelParser.INTEL_KEYWORDS:
+                rec = None
+                used_two = False
+                if i + 1 < num_words:
+                    next_raw = words_in_msg[i + 1].strip(_STRIP_CHARS)
+                    rec = eve_map.resolve_system_name(f"{w} {next_raw}")
+                    used_two = rec is not None
+                if rec is None:
+                    rec = eve_map.resolve_system_name(w)
+                if rec is not None:
+                    found_system = rec["name"]
+                    found_system_id = rec["id"]
+                    i += 2 if used_two else 1
                     continue
 
             # Check if token is part of an already matched multi-word ship
@@ -296,6 +304,7 @@ class IntelParser:
             "time_str": time_str,
             "speaker": speaker,
             "system": found_system,
+            "system_id": found_system_id,
             "est_count": est_count,
             "ships": list(set(detected_ships)),
             "pilots": list(set(detected_pilots)),

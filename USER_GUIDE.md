@@ -1,4 +1,4 @@
-# A.U.R.A. Assist — Tactical User Guide (v0.1.4-alpha6)
+# A.U.R.A. Assist — v0.2.0 — Tactical User Guide
 
 **Adaptive Underworld Recon Array (A.U.R.A.)**  
 *Angel Cartel Cybernetics Division — by JeffTheNerdDev96*
@@ -10,7 +10,9 @@
 A.U.R.A. is an offline-first, tactical intelligence co-pilot designed for EVE Online capsuleers. Powered by an onboard **Phi-4 Mini (3.8B Reasoning)** neural core and multi-hardware parallel compute mesh (supporting Intel AI Boost NPUs, NVIDIA CUDA, AMD Vulkan / Ryzen AI, and CPU vector compute), A.U.R.A. provides:
 - Instant tactical combat analysis & counter-play
 - Directional scan (D-Scan) fleet threat ranking
+- Fleet vs hostile composition matchup (local rule-based assessment)
 - Ship fitting validation & doctrine reviews (EFT format)
+- Tactical stargate map with intel overlays
 - Visual OCR & document ingestion (screenshots, killmails)
 - Real-time live intel radar monitoring with zero cloud latency or external telemetry
 
@@ -37,9 +39,22 @@ A.U.R.A. engages host compute concurrently: offloading 33 neural layers to GPU V
 
 ## 3. Combat Systems & Modules
 
+### Workspace Tabs
+The main window uses five tabs. Live intel monitoring continues in the background on every tab:
+
+**Live Intel Radar → Fitting → Map → Composition → A.U.R.A. Chat**
+
+- **Live Intel Radar** — live intel feed, channel filters, jump-range alerts
+- **Fitting** — visual slot builder (import/export EFT, then Evaluate with A.U.R.A.)
+- **Map** — tactical stargate bubble around your current system with intel overlays
+- **Composition** — friendly fleet vs hostile D-scan matchup (local analysis)
+- **A.U.R.A. Chat** — tactical assistant, D-Scan paste, attachments
+
 ### Live Intel Radar & Threat Tiers
 - **Automatic Log Discovery**: Monitors active EVE Online chat logs in:
   `%USERPROFILE%\Documents\EVE\logs\Chatlogs`
+- **Current System**: Always tails Local (Channel ID = solarSystemID, `local changed to …`, `Connecting to …`) and Gamelogs (`Jumping from X to Y`). The header shows your system once it is known.
+- **5-Jump Alerts**: Intel systems are matched against the bundled stargate map. MEDIUM+ threats within the configured hop count (default 5) raise a **Windows notification**. Out-of-range cards stay in the feed (dimmed) unless **Show in-range only** is checked. Alerts stay silent until location is known.
 - **Threat Level Hierarchy**:
   - **CRITICAL**: Capital class vessels (Titan, Supercarrier, Dreadnought, FAX, Carrier, Rorqual, Freighter), active Cynos, or fleets > 20 players.
   - **HIGH**: 10 to 20 players, Battleship class fleets (Machariels, Rokhs, Megathrons, Marauders, Black Ops), and warp bubbles on grid.
@@ -50,18 +65,44 @@ A.U.R.A. engages host compute concurrently: offloading 33 neural layers to GPU V
 - **Custom Keywords**: Input arbitrary channel names or keywords to monitor corp or secret ops logs.
 
 ### D-Scan Fleet Threat Analyzer
-- Paste raw in-game Directional Scan tables (`Ctrl+A`, `Ctrl+C` from EVE client).
+- Paste raw in-game Directional Scan tables (`Ctrl+A`, `Ctrl+C` from EVE client) into **A.U.R.A. Chat** or use the dedicated analyzer dialog from the Intel Radar workflow.
 - Parses hundreds of vessels in milliseconds (<3ms for 500 ships).
 - Categorizes vessels into Capitals, Battleships, Cruisers, Tackle, Logistics, and Interdictors with threat ranking and counter-play.
 
-### Fitting Lab & Doctrine Review
-- Paste standard in-game EFT format fits (e.g. `[Wolf, Solo Brawl]`).
-- Analyzes capacitor stability, active vs. buffer tank synergy, and engagement envelopes.
-- **Strict Size Rules**: Enforces authentic EVE Online ammunition size rules (**S / M / L / XL** only) and authentic module sizing (prevents fictitious modules/ammo).
-- Select target combat roles: **Solo PvP Roaming**, **Fleet Mainline DPS**, **Fleet Fast Tackle**, **Faction Warfare Plexing**, **Abyssal Deadspace**, **C3/C5 Wormhole Brawler**, or **PVE Ratting**.
+### Fitting Lab (in-game style)
+- The **Fitting** tab follows the EVE hangar fitter: market list on the left, ship paperdoll and **Shield / Armor / Hull** bars in the center, **CPU / Powergrid / Calibration** plus **Cargo / ammo** on the right.
+- Hover a fitted slot for that module's CPU and PG. Cargo and ammo lines (e.g. `Hail S x2480`) appear in the right-panel list.
+- Bars go red if CPU, PG, or calibration overflow. Values are **class-baseline approximations** (not full dogma / skills).
+- **Import** reads the clipboard (or opens a paste dialog / file picker) — not the live EFT preview box, which is export-only. **Export EFT** writes the current fit. **Evaluate with A.U.R.A.** sends the fit to Chat.
+
+### Tactical Map
+- The **Map** tab renders a pan/zoom stargate graph centered on your current system (from Local / Gamelogs).
+- Systems within the **alert jump range** (same setting as Live Intel Radar) appear in the bubble; dense regions cap at 250 closest systems with a caption when truncated.
+- **Security colors**: blue highsec, orange lowsec, red nullsec. Your location has a gold ring.
+- **Intel overlays**: recent intel systems get a colored threat ring (CRITICAL / HIGH / MEDIUM / INFO). Intel-only systems outside the bubble appear at reduced opacity.
+- **Search** a system name to pan and select it. **Fit view** resets zoom. Click a node for region, sec, jump count, and latest intel snippet.
+
+### Composition (fleet vs D-scan)
+- The **Composition** tab compares your friendly fleet against a hostile D-scan or grid list without using the neural model.
+- **Left paste — Friendly fleet:** Fleet window copy, chat lines, comma lists, or `8 Muninn` style hull counts.
+- **Right paste — Hostile D-scan / grid:** Standard D-scan table paste, tab-separated rows, or quantity prefixes (`15x Ishtar`).
+- Both sides use the same hull parser as D-Scan (`DScanParser`). Unknown lines stay out of the table.
+- Click **Auto-Analyze Matchup** to build the tactical breakdown table:
+
+| Column | Content |
+| :--- | :--- |
+| Role / Category | Logistics, HAC, HIC, Recons/EWAR, Interdictors/Tackle, Command/Links, BC/BS, Capitals, Other combat, Non-combat |
+| Friendly (Count) | Total plus hull mix, e.g. `12 (Muninn: 8, Cerberus: 4)` |
+| Enemy (Count) | Same format for hostile side |
+| Delta | Friendly minus enemy; **Adv** (green) or **Disadv** (red) when `|delta| ≥ 2` or when logi/EWAR counts differ |
+
+- **Logistics bucket** includes T1 cruisers and frigates (Osprey, Scythe, Augoror, Exequror, Bantam, Burst, Inquisitor, Navitas) and T2 logi (Scimitar, Basilisk, etc.).
+- **Engagement assessment** (read-only bullets below the table): EWAR threat (High/Medium/Low), logi-to-DPS Favorable/Unfavorable, tackle comparison, hull totals, and optional HAC range line (missile 40–70 km vs gun/drone 10–30 km). This is **local rules only** — it is not sent to A.U.R.A. Chat in v0.2.0.
+- **Hints** under each paste: `N hulls · M unmatched`. Junk lines are counted as unmatched, not as fake hulls.
+- Recommended window size when this tab is active: about **960 × 620**.
 
 ### Recon Vision & Document Ingestion
-- Attach combat screenshots, killmail overviews, or tactical briefings.
+- Attach combat screenshots, killmail overviews, or tactical briefings in **A.U.R.A. Chat**.
 - Hardware-accelerated OCR extracts ship names, modules, and combat text.
 - **Supported Formats**: `PNG`, `JPG`, `JPEG`, `BMP`, `WEBP`, `PDF`, `DOCX`, `TXT`, `CSV`.
 
@@ -75,7 +116,10 @@ A.U.R.A. engages host compute concurrently: offloading 33 neural layers to GPU V
 | **Stop Generation** | Click **Stop** during token generation |
 | **Purge Memory** | Click **Purge Memory** in the top bar to reset conversation buffer |
 | **Piloted Ship Grounding** | State your ship (e.g. *"I am in a Wolf"* or *"Flying a Loki"*) to ground combat advice |
-| **Log Folder Selection** | Click **Log Folder** in the Intel panel to set a custom EVE log directory |
+| **Log Folder Selection** | Click **Log Folder** on the Intel Radar tab to set a custom EVE log directory |
+| **Jump Range Alerts** | Set hop count on the Intel Radar tab; enable **Windows threat alerts** |
+| **Visual Fitting** | Use the Fitting tab, or **Fitting Lab** on Chat to jump there |
+| **Composition analysis** | Paste friendly and hostile lists on the Composition tab, then **Auto-Analyze Matchup** |
 
 ---
 
@@ -90,6 +134,8 @@ Run the setup batch script in `A.U.R.A. Source/requirements/` corresponding to y
 - **CPU Vector Mesh**: `requirements/install_cpu.bat`
 
 Launch with `run.bat` in the root folder or `A.U.R.A. Source/run.bat`.
+
+Standalone package: `AURA_Setup_v0.2.0.exe` (bundled Python 3.12 and model weights).
 
 ---
 
@@ -113,9 +159,9 @@ If an anomaly occurs during tactical computation, A.U.R.A. presents a standardiz
 
 | Error Code | Title | Root Cause & Resolution |
 | :--- | :--- | :--- |
-| **`AURA-ERR-1001`** | **Neural Weights Missing** | `model_q4.gguf` was not found in `models/phi-4-mini/`. Run `AURA_Setup_v0.1.4-alpha6.exe` to download weights or place the file manually. |
+| **`AURA-ERR-1001`** | **Neural Weights Missing** | `model_q4.gguf` was not found in `models/phi-4-mini/`. Run `AURA_Setup_v0.2.0.exe` to download weights or place the file manually. |
 | **`AURA-ERR-1002`** | **Context Allocation Failure** | Host RAM/VRAM was insufficient to allocate KV cache tensors. Close heavy background apps or lower the context window size in Settings. |
-| **`AURA-ERR-1003`** | **Incompatible Python Architecture** | The active Python runtime is older than Python 3.12. Install the standalone package or run `AURA_Setup_v0.1.4-alpha6.exe`. |
+| **`AURA-ERR-1003`** | **Incompatible Python Architecture** | The active Python runtime is older than Python 3.12. Install the standalone package or run `AURA_Setup_v0.2.0.exe`. |
 | **`AURA-ERR-1004`** | **Inference Stream Timeout** | The neural token generator timed out. Check GPU driver stability or switch to CPU Vector Mesh mode. |
 | **`AURA-ERR-2001`** | **Intel NPU Coprocessor Failure** | OpenVINO Level Zero driver error. Update Intel NPU Driver (v32.0.100.3104+) via Intel Driver & Support Assistant. |
 | **`AURA-ERR-2002`** | **AMD Vulkan / DirectML Error** | Compute shader pipe failure. Ensure latest AMD Adrenalin graphics drivers with Vulkan 1.3 are installed. |
@@ -132,3 +178,12 @@ If an anomaly occurs during tactical computation, A.U.R.A. presents a standardiz
 | **`AURA-ERR-5002`** | **Model Switch Failure** | Dynamic hardware backend switch timed out. Restart A.U.R.A. to re-arm the desired hardware profile. |
 | **`AURA-ERR-5003`** | **UI Tactical Rendering Error** | Qt6 graphical component rendering failed. Check display DPI scaling settings. |
 
+---
+
+## 8. UI Layout
+
+- **Top bar:** Current system / hull / memory readout, **Purge Memory**, online status badge, and **Credits**.
+- **Tab strip:** Live Intel Radar, Fitting, Map, Composition, A.U.R.A. Chat (selected tab shows an oxide accent stripe).
+- **Footer:** A.U.R.A. brand mark, author line, GitHub repo link, and **Report a bug** (GitHub Issues).
+
+Previous pre-release builds were labeled **v0.2.0-alpha1**; the standalone installer folder name may still use that path for model weights — v0.2.0 also searches `A.U.R.A. v0.2.0` install locations.

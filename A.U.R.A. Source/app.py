@@ -1,6 +1,6 @@
 """
 Main entry point for A.U.R.A. Assist (Adaptive Underworld Recon Array).
-Angel Cartel EVE Online Tactical AI Assistant (v0.1.4-alpha6).
+Angel Cartel EVE Online Tactical AI Assistant - v0.2.0.
 """
 import sys
 import os
@@ -22,9 +22,9 @@ if sys.stderr and hasattr(sys.stderr, "reconfigure"):
 # 0. Strict Python 3.12+ Architecture Requirement
 if sys.version_info < (3, 12):
     err_text = (
-        f"A.U.R.A. v0.1.4-alpha6 requires Python 3.12 or higher.\n\n"
+        f"{config.display_title} requires Python 3.12 or higher.\n\n"
         f"Detected: Python {sys.version.split()[0]}\n\n"
-        f"Legacy versions (< 3.12) are not supported. Please run the v0.1.4-alpha6 installer."
+        f"Legacy versions (< 3.12) are not supported. Please run the v0.2.0 installer."
     )
     sys.stderr.write(f"[FATAL] {err_text}\n")
     if sys.platform == "win32":
