@@ -12,12 +12,22 @@ if SOURCE_DIR not in sys.path:
     sys.path.insert(0, SOURCE_DIR)
 
 from hardware_profile import compose_install_plan, save_install_profile  # noqa: E402
+import bootstrap_llama  # noqa: E402
 
 
 def _pip(python_exe: str, args: list[str]) -> int:
     cmd = [python_exe, "-m", "pip", *args]
     print("[*] " + " ".join(cmd))
     return subprocess.call(cmd)
+
+
+def _verify_llama_wheel(wheel: str) -> tuple[bool, str]:
+    require_cuda = wheel == "cuda"
+    require_vulkan = wheel == "vulkan"
+    return bootstrap_llama.probe_llama_backend(
+        require_cuda=require_cuda,
+        require_vulkan=require_vulkan,
+    )
 
 
 def _install_llama(python_exe: str, wheel: str) -> str:
@@ -27,18 +37,18 @@ def _install_llama(python_exe: str, wheel: str) -> str:
         "cpu": "https://abetlen.github.io/llama-cpp-python/whl/cpu",
     }
     extra = indexes.get(wheel, indexes["cpu"])
-    code = _pip(
-        python_exe,
-        [
-            "install",
-            "llama-cpp-python",
-            "--upgrade",
-            "--force-reinstall",
-            "--no-cache-dir",
-            "--extra-index-url",
-            extra,
-        ],
-    )
+    pip_args = [
+        "install",
+        "llama-cpp-python",
+        "--upgrade",
+        "--force-reinstall",
+        "--no-cache-dir",
+        "--extra-index-url",
+        extra,
+    ]
+    if wheel in ("cuda", "vulkan"):
+        pip_args.insert(1, "--only-binary=:all:")
+    code = _pip(python_exe, pip_args)
     if code != 0 and wheel != "cpu":
         print(f"[!] {wheel} llama-cpp wheel failed; falling back to CPU.")
         _pip(
@@ -54,7 +64,72 @@ def _install_llama(python_exe: str, wheel: str) -> str:
             ],
         )
         return "cpu"
-    return wheel if code == 0 else "cpu"
+
+    if wheel == "cpu":
+        return "cpu"
+
+    ok, detail = _verify_llama_wheel(wheel)
+    if ok:
+        return wheel
+
+    print(f"[!] {wheel} wheel pip install ok but bootstrap probe failed:\n{detail[:800]}")
+
+    if wheel == "cuda":
+        print("[*] CUDA wheel probe failed; retrying binary-only cu124 install...")
+        retry_code = _pip(
+            python_exe,
+            [
+                "install",
+                "llama-cpp-python",
+                "--upgrade",
+                "--force-reinstall",
+                "--no-cache-dir",
+                "--only-binary=:all:",
+                "--extra-index-url",
+                indexes["cuda"],
+            ],
+        )
+        if retry_code == 0:
+            ok, detail = _verify_llama_wheel("cuda")
+            if ok:
+                return "cuda"
+            print(f"[!] CUDA retry probe failed:\n{detail[:800]}")
+
+    if wheel == "vulkan":
+        print("[*] Vulkan wheel probe failed; retrying binary-only vulkan install...")
+        retry_code = _pip(
+            python_exe,
+            [
+                "install",
+                "llama-cpp-python",
+                "--upgrade",
+                "--force-reinstall",
+                "--no-cache-dir",
+                "--only-binary=:all:",
+                "--extra-index-url",
+                indexes["vulkan"],
+            ],
+        )
+        if retry_code == 0:
+            ok, detail = _verify_llama_wheel("vulkan")
+            if ok:
+                return "vulkan"
+            print(f"[!] Vulkan retry probe failed:\n{detail[:800]}")
+
+    print(f"[!] {wheel} llama wheel failed verification; falling back to CPU.")
+    _pip(
+        python_exe,
+        [
+            "install",
+            "llama-cpp-python",
+            "--upgrade",
+            "--force-reinstall",
+            "--no-cache-dir",
+            "--extra-index-url",
+            indexes["cpu"],
+        ],
+    )
+    return "cpu"
 
 
 def main() -> int:

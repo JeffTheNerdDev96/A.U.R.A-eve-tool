@@ -94,6 +94,11 @@ def _init_vulkan_runtime():
     global _VULKAN_INITIALIZED
     if _VULKAN_INITIALIZED:
         return
+    try:
+        import bootstrap_llama
+        bootstrap_llama.configure_llama_dll_paths()
+    except Exception:
+        pass
     source_dir = os.path.dirname(os.path.abspath(__file__))
     root_dir = os.path.dirname(source_dir)
     exe_dir = os.path.dirname(sys.executable)
@@ -129,6 +134,7 @@ MODEL_LOAD_TIMEOUT_SEC = 60
 def _detect_llama_backend() -> Literal["cuda", "vulkan", "cpu"]:
     """Detect which GPU offload backend the installed llama-cpp-python wheel supports."""
     _init_cuda_runtime()
+    _init_vulkan_runtime()
     try:
         import llama_cpp
         if hasattr(llama_cpp, "llama_supports_gpu_offload"):
@@ -147,7 +153,7 @@ def _detect_llama_backend() -> Literal["cuda", "vulkan", "cpu"]:
         info_upper = info.upper()
         if "CUDA = 1" in info_upper or "CUBLAS" in info_upper:
             return "cuda"
-        if "VULKAN" in info_upper:
+        if "VULKAN" in info_upper or "GGML_VULKAN" in info_upper or "VK = 1" in info_upper:
             return "vulkan"
         if hasattr(llama_cpp, "llama_supports_gpu_offload"):
             try:
