@@ -1,6 +1,7 @@
 # A.U.R.A. — EVE Online AI Tactical Copilot
 **v0.2.0-alpha1**
 
+
 > **Adaptive Underworld Recon Array (A.U.R.A.)** — Your all-in-one, local tactical companion and shipboard assistant for *EVE Online*.
 
 ---

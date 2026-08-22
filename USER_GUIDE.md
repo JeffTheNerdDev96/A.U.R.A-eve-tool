@@ -51,6 +51,8 @@ The main window uses five tabs. Live intel monitoring continues in the backgroun
 - **A.U.R.A. Chat** — tactical assistant, D-Scan paste, attachments
 
 ### Live Intel Radar & Threat Tiers
+
+![Intel Radar screenshot](docs/assets/Intel-Radar.png "Intel Radar Overview")
 - **Automatic Log Discovery**: Monitors active EVE Online chat logs in:
   `%USERPROFILE%\Documents\EVE\logs\Chatlogs`
 - **Current System**: Always tails Local (Channel ID = solarSystemID, `local changed to …`, `Connecting to …`) and Gamelogs (`Jumping from X to Y`). The header shows your system once it is known.
@@ -65,11 +67,15 @@ The main window uses five tabs. Live intel monitoring continues in the backgroun
 - **Custom Keywords**: Input arbitrary channel names or keywords to monitor corp or secret ops logs.
 
 ### D-Scan Fleet Threat Analyzer
+
+![D-Scan screenshot](docs/assets/dscan-tool.png "D-Scan UI Overview")
 - Paste raw in-game Directional Scan tables (`Ctrl+A`, `Ctrl+C` from EVE client) into **A.U.R.A. Chat** or use the dedicated analyzer dialog from the Intel Radar workflow.
 - Parses hundreds of vessels in milliseconds (<3ms for 500 ships).
 - Categorizes vessels into Capitals, Battleships, Cruisers, Tackle, Logistics, and Interdictors with threat ranking and counter-play.
 
 ### Fitting Lab (in-game style)
+
+![Fitting screenshot](docs/assets/Fitting-tool.png "Fitting UI Overview")
 - The **Fitting** tab follows the EVE hangar fitter: market list on the left, ship paperdoll and **Shield / Armor / Hull** bars in the center, **CPU / Powergrid / Calibration** plus **Cargo / ammo** on the right.
 - Hover a fitted slot for that module's CPU and PG. Cargo and ammo lines (e.g. `Hail S x2480`) appear in the right-panel list.
 - Bars go red if CPU, PG, or calibration overflow. Values are **class-baseline approximations** (not full dogma / skills).
@@ -83,6 +89,8 @@ The main window uses five tabs. Live intel monitoring continues in the backgroun
 - **Search** a system name to pan and select it. **Fit view** resets zoom. Click a node for region, sec, jump count, and latest intel snippet.
 
 ### Composition (fleet vs D-scan)
+
+![Composition screenshot](docs/assets/Comp-tool.png "Composition UI Overview")
 - The **Composition** tab compares your friendly fleet against a hostile D-scan or grid list without using the neural model.
 - **Left paste — Friendly fleet:** Fleet window copy, chat lines, comma lists, or `8 Muninn` style hull counts.
 - **Right paste — Hostile D-scan / grid:** Standard D-scan table paste, tab-separated rows, or quantity prefixes (`15x Ishtar`).
@@ -103,6 +111,8 @@ The main window uses five tabs. Live intel monitoring continues in the backgroun
 
 ### Recon Vision & Document Ingestion
 - Attach combat screenshots, killmail overviews, or tactical briefings in **A.U.R.A. Chat**.
+
+![Chat screenshot](docs/assets/chat-tool.png "Chat UI Overview")
 - Hardware-accelerated OCR extracts ship names, modules, and combat text.
 - **Supported Formats**: `PNG`, `JPG`, `JPEG`, `BMP`, `WEBP`, `PDF`, `DOCX`, `TXT`, `CSV`.
 
