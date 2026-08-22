@@ -5,7 +5,7 @@
 | Version | Supported | Python Runtime | Architecture |
 | :--- | :--- | :--- | :--- |
 | **v0.2.0+** | **Yes** | Python 3.12+ | 64-bit AMD64 |
-| <= v0.1.3-alpha5 | No | Python <= 3.11 | Deprecated |
+| <= v0.1.4-alpha6 | No | Python <= 3.11 | Deprecated |
 
 ## Reporting a Vulnerability
 
