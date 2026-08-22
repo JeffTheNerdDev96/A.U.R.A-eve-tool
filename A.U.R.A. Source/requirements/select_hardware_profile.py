@@ -11,7 +11,6 @@ REQ_DIR = os.path.dirname(os.path.abspath(__file__))
 if SOURCE_DIR not in sys.path:
     sys.path.insert(0, SOURCE_DIR)
 
-from hardware import HardwareDetector  # noqa: E402
 from hardware_profile import compose_install_plan, save_install_profile  # noqa: E402
 
 
@@ -64,6 +63,26 @@ def main() -> int:
     parser.add_argument("--json", action="store_true", help="Print composed plan JSON")
     args = parser.parse_args()
 
+    python_exe = sys.executable
+    req = lambda name: os.path.join(REQ_DIR, name)
+
+    if args.install:
+        _pip(python_exe, ["install", "--upgrade", "pip"])
+        _pip(python_exe, ["install", "--prefer-binary", "psutil>=5.9.0"])
+        _pip(
+            python_exe,
+            [
+                "install",
+                "--prefer-binary",
+                "--extra-index-url",
+                "https://abetlen.github.io/llama-cpp-python/whl/cpu",
+                "-r",
+                req("requirements.txt"),
+            ],
+        )
+
+    from hardware import HardwareDetector
+
     detector = HardwareDetector(force_rescan=True, apply_profile=False)
     plan = compose_install_plan(detector.devices)
     print("[*] Live topology: " + detector.get_live_summary_string())
@@ -78,11 +97,6 @@ def main() -> int:
 
     if not args.install:
         return 0
-
-    python_exe = sys.executable
-    req = lambda name: os.path.join(REQ_DIR, name)
-
-    _pip(python_exe, ["install", "--prefer-binary", "-r", req("requirements.txt")])
 
     if "intel_npu" in plan["profiles"]:
         _pip(python_exe, ["install", "--prefer-binary", "-r", req("requirements-intel-npu.txt")])
