@@ -3,6 +3,10 @@ Angel Cartel A.U.R.A. Neural Inference Engine.
 Combines Adaptive Underworld Recon Array tactical persona, NPU-prioritized hardware acceleration,
 and multi-turn combat reasoning for EVE Online.
 """
+# Responsibilities:
+# - UnifiedInferenceEngine: GGUF load/unload, generate_stream token yields
+# - NeuralHardwareCoProcessor: OpenVINO NPU/GPU mesh threads during inference
+# - Tactical prompt grounding via eve_data.get_tactical_grounding
 import os
 import sys
 import time
@@ -189,7 +193,7 @@ class NeuralHardwareCoProcessor:
                 pass
         for t in self.active_threads:
             try:
-                t.join(timeout=0.05)
+                t.join(timeout=0.5)
             except Exception:
                 pass
         self.active_threads.clear()
@@ -316,7 +320,7 @@ class UnifiedInferenceEngine:
         return self.llm is not None
 
     def unload_model(self):
-        """Releases the GGUF model and KV cache tensors from RAM/VRAM back to the OS."""
+        """Releases the GGUF model, KV cache, and coprocessor threads from RAM/VRAM."""
         if self.llm is not None:
             try:
                 if hasattr(self.llm, "reset"):
@@ -385,8 +389,13 @@ class UnifiedInferenceEngine:
                 try:
                     self.llm = Llama(**llama_kwargs)
                 except Exception as inner_e:
-                    # Fallback to pure CPU memory mapping if GPU offloading fails
-                    log_diagnostic_error(AURAErrorCode.ERR_2003_CUDA_OFFLOAD_FAILED, inner_e, "Llama GPU offload fallback to CPU")
+                    if self.detector.has_nvidia:
+                        gpu_err = AURAErrorCode.ERR_2003_CUDA_OFFLOAD_FAILED
+                    elif self.detector.has_amd:
+                        gpu_err = AURAErrorCode.ERR_2002_VULKAN_PIPE_FAILED
+                    else:
+                        gpu_err = AURAErrorCode.ERR_2003_CUDA_OFFLOAD_FAILED
+                    log_diagnostic_error(gpu_err, inner_e, "Llama GPU offload fallback to CPU")
                     llama_kwargs["n_gpu_layers"] = 0
                     self.llm = Llama(**llama_kwargs)
 
@@ -638,7 +647,7 @@ class UnifiedInferenceEngine:
                     "elapsed": 0.05
                 }
         except Exception as e:
-            err_code = AURAErrorCode.ERR_1004_INFERENCE_TIMEOUT
+            err_code = AURAErrorCode.ERR_5001_WORKER_CRASH
             log_diagnostic_error(err_code, e, "engine.generate_stream")
             err_html = format_error_html(err_code, f"Error during tactical neural computation: {str(e)}")
             yield {

@@ -16,6 +16,7 @@ import psutil
 import winreg
 from typing import Dict, List, Any, Optional
 from config import config
+from error_handler import AURAErrorCode, log_diagnostic_error
 
 
 # Global hardware scan cache to ensure instant O(1) hardware queries across the app
@@ -115,8 +116,12 @@ class HardwareDetector:
                         "type": "dGPU" if is_dgpu else "iGPU",
                         "backend": f"OpenVINO ({dev})"
                     })
-        except Exception:
-            pass
+        except Exception as exc:
+            log_diagnostic_error(
+                AURAErrorCode.ERR_2004_REGISTRY_PROBE_ERROR,
+                exc,
+                "HardwareDetector.scan_devices OpenVINO probe",
+            )
 
         # 3. Hardware Registry & PnP Scan for Intel NPU & AMD Ryzen AI NPU
         try:
@@ -171,8 +176,12 @@ class HardwareDetector:
                                     pass
                     except Exception:
                         pass
-        except Exception:
-            pass
+        except Exception as exc:
+            log_diagnostic_error(
+                AURAErrorCode.ERR_2004_REGISTRY_PROBE_ERROR,
+                exc,
+                "HardwareDetector.scan_devices PCI registry probe",
+            )
 
         # 4. Comprehensive Windows Display Adapter Enumeration (All NVIDIA, AMD, and Intel GPUs)
         try:
@@ -223,8 +232,12 @@ class HardwareDetector:
                                     })
                     except Exception:
                         pass
-        except Exception:
-            pass
+        except Exception as exc:
+            log_diagnostic_error(
+                AURAErrorCode.ERR_2004_REGISTRY_PROBE_ERROR,
+                exc,
+                "HardwareDetector.scan_devices display adapter probe",
+            )
 
         # 5. Set Primary GPU (Prioritize Dedicated GPU over Integrated GPU)
         if devices["gpus"]:

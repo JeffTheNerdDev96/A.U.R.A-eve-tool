@@ -9,6 +9,11 @@ Integrated Tactical Tools:
 - Dual Intel & AMD NPU Hardware Acceleration Telemetry
 - Automated Real-Time Threat Response Matrix
 """
+# Responsibilities:
+# - MainWindow shell: chrome, tabs (Intel, Fitting, Map, Composition, Chat), tray icon
+# - WorkerThread bridges Qt UI to UnifiedInferenceEngine.generate_stream
+# - Modal analyzers (D-Scan, Fitting, Intel batch) and attachment ingestion entry points
+# - closeEvent / run_app delegate ordered shutdown to lifecycle.shutdown_application
 import sys
 import os
 import time
@@ -41,6 +46,7 @@ from threat_alerts import ThreatAlerter
 from fitting_lab_ui import FittingLabWidget
 from map_tab_ui import MapTabWidget
 from composition_ui import CompositionTabWidget
+from lifecycle import cleanup_temp_files, shutdown_application
 from theme import (
     ACCENT, ACCENT_HOVER, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT, TEXT_BRAND,
     BG_DEEP, BG_ELEVATED, BORDER, BTN_SECONDARY_BG, BTN_SECONDARY_BORDER,
@@ -348,7 +354,12 @@ class DScanDialog(QDialog):
         text = self.input_edit.toPlainText().strip()
         if not text:
             return
-        parsed = DScanParser.parse_unified(text)
+        try:
+            parsed = DScanParser.parse_unified(text)
+        except Exception as exc:
+            from error_handler import AURAErrorCode, log_diagnostic_error
+            log_diagnostic_error(AURAErrorCode.ERR_3001_DSCAN_PARSE_FAILED, exc, "DScanDialog._on_analyze")
+            return
         self.dscan_submitted.emit(text, parsed)
         self.accept()
 
@@ -424,7 +435,12 @@ class FittingDialog(QDialog):
         if not text:
             return
         role = self.role_combo.currentText()
-        parsed = FittingParser.parse(text)
+        try:
+            parsed = FittingParser.parse(text)
+        except Exception as exc:
+            from error_handler import AURAErrorCode, log_diagnostic_error
+            log_diagnostic_error(AURAErrorCode.ERR_3003_FITTING_PARSE_FAILED, exc, "FittingDialog._on_analyze")
+            return
         self.fit_submitted.emit(text, parsed, role)
         self.accept()
 
@@ -494,7 +510,6 @@ class MainWindow(QMainWindow):
         self.current_assistant_tokens: List[str] = []
         self.current_piloted_ship: Optional[str] = None
         self.worker: Optional[WorkerThread] = None
-        self.switch_worker = None
         
         # Real-time Chatlog Monitor
         self.chat_monitor = LiveChatMonitor()
@@ -512,6 +527,7 @@ class MainWindow(QMainWindow):
             debounce_sec=getattr(config, "alert_debounce_sec", 20),
         )
         self.tray_icon: Optional[QSystemTrayIcon] = None
+        self._shutdown_done = False
         
         self.last_auto_response_time = 0
         self.auto_response_cooldown = 10  # Seconds between automated AURA voice alerts
@@ -1755,33 +1771,16 @@ class MainWindow(QMainWindow):
 
 
     def _perform_lifecycle_cleanup(self):
-        """Purges memory buffers, unloads neural cores, runs garbage collection, and cleans temporary files."""
-        try:
-            if hasattr(self, "engine") and self.engine and self.engine.llm is not None:
-                self.engine.unload_model()
-            if hasattr(self, "chat_history"):
-                self.chat_history.clear()
-            if hasattr(self, "attachments"):
-                self.attachments.clear()
-            gc.collect()
-        except Exception:
-            pass
+        """Purges memory buffers and neural cores (delegates to lifecycle module)."""
+        shutdown_application(self)
 
     def closeEvent(self, event):
         """Clean shutdown handler ensuring no ghost processes or VRAM/RAM allocations remain."""
         try:
-            if hasattr(self, "tray_icon") and self.tray_icon:
-                self.tray_icon.hide()
-            if hasattr(self, "chat_monitor") and self.chat_monitor:
-                self.chat_monitor.stop()
-                self.chat_monitor.wait(500)
-            if hasattr(self, "worker") and self.worker and self.worker.isRunning():
-                self.worker.stop()
-                self.worker.quit()
-                self.worker.wait(500)
-            self._perform_lifecycle_cleanup()
-        except Exception:
-            pass
+            shutdown_application(self)
+        except Exception as exc:
+            from error_handler import AURAErrorCode, log_diagnostic_error
+            log_diagnostic_error(AURAErrorCode.ERR_5001_WORKER_CRASH, exc, "MainWindow.closeEvent")
         event.accept()
 
 
@@ -1793,9 +1792,14 @@ def run_app():
     window = MainWindow()
     window.show()
     ret = app.exec()
-    # Ensure all background DLLs and thread pools exit cleanly with zero lingering processes
+    try:
+        shutdown_application(window)
+    except Exception as exc:
+        from error_handler import AURAErrorCode, log_diagnostic_error
+        log_diagnostic_error(AURAErrorCode.ERR_5001_WORKER_CRASH, exc, "run_app.shutdown")
+    cleanup_temp_files()
     gc.collect()
-    os._exit(ret)
+    sys.exit(ret)
 
 
 if __name__ == "__main__":

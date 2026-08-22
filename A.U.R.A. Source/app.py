@@ -6,7 +6,6 @@ import sys
 import os
 import traceback
 import time
-import shutil
 import atexit
 import gc
 
@@ -21,11 +20,21 @@ if sys.stderr and hasattr(sys.stderr, "reconfigure"):
 
 # 0. Strict Python 3.12+ Architecture Requirement
 if sys.version_info < (3, 12):
+    _display_title = "A.U.R.A. Assist"
     err_text = (
-        f"{config.display_title} requires Python 3.12 or higher.\n\n"
+        f"{_display_title} requires Python 3.12 or higher.\n\n"
         f"Detected: Python {sys.version.split()[0]}\n\n"
         f"Legacy versions (< 3.12) are not supported. Please run the v0.2.0 installer."
     )
+    try:
+        _log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+        os.makedirs(_log_dir, exist_ok=True)
+        with open(os.path.join(_log_dir, "crash.log"), "a", encoding="utf-8") as _f:
+            _f.write(
+                f"\n[AURA-ERR-1003] Python incompatible: {sys.version.split()[0]}\n"
+            )
+    except OSError:
+        pass
     sys.stderr.write(f"[FATAL] {err_text}\n")
     if sys.platform == "win32":
         try:
@@ -47,31 +56,12 @@ if sys.platform == "win32":
             pass
 
 # 2. Automated Stale Cache & Temporary File Cleaner
-def _cleanup_stale_caches():
-    """Purges orphaned __pycache__ and temporary logs to keep filesystem pristine."""
-    app_dir = os.path.dirname(os.path.abspath(__file__))
-    pc = os.path.join(app_dir, "__pycache__")
-    if os.path.exists(pc):
-        try:
-            shutil.rmtree(pc, ignore_errors=True)
-        except Exception:
-            pass
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from lifecycle import cleanup_temp_files, install_thread_excepthook
 
-    log_dir = os.path.join(app_dir, "logs")
-    if os.path.exists(log_dir):
-        now = time.time()
-        for f in os.listdir(log_dir):
-            if f.endswith(".log") and f != "crash.log":
-                f_path = os.path.join(log_dir, f)
-                try:
-                    # Remove non-crash logs older than 3 days
-                    if os.stat(f_path).st_mtime < now - (3 * 86400):
-                        os.remove(f_path)
-                except Exception:
-                    pass
-
-_cleanup_stale_caches()
-atexit.register(_cleanup_stale_caches)
+cleanup_temp_files()
+atexit.register(cleanup_temp_files)
+install_thread_excepthook()
 
 # 3. Global Uncaught Exception Trap & Crash Logger
 def _global_exception_handler(exc_type, exc_value, exc_traceback):
@@ -95,9 +85,6 @@ def _global_exception_handler(exc_type, exc_value, exc_traceback):
     sys.stderr.write(f"\n[!] A.U.R.A. Critical Error: {err_msg}\n")
 
 sys.excepthook = _global_exception_handler
-
-# Ensure local directory is at top of import path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from ui import run_app
 

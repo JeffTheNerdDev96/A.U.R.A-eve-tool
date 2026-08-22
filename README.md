@@ -97,6 +97,18 @@ For detailed hardware requirements and documentation, see [requirements/README.m
 
 ---
 
+## Developer checks
+
+Before committing changes, validate Python syntax across all modules:
+
+```bat
+check_syntax.bat
+```
+
+Requires Python 3.12+ on PATH (or the project venv at `A.U.R.A. Source/requirements/venv`). See [DEVELOPER.md](DEVELOPER.md) for the module map, error-code index, and shutdown lifecycle.
+
+---
+
 ## Credits & Thanks
 
 Full attributions live in **[CREDITS.md](CREDITS.md)** and in **Credits** inside the app.

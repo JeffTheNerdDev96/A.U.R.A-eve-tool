@@ -3,6 +3,10 @@ Real-Time EVE Online Live Chat Log Tailer & Intel Stream Monitor (RIFT-Style).
 Monitors EVE Online chat logs in `%USERPROFILE%\\Documents\\EVE\\logs\\Chatlogs`,
 always tails Local + Gamelogs for location, and intel channels for threat pings.
 """
+# Responsibilities:
+# - LiveChatMonitor QThread: poll chat/gamelog files, emit intel and location signals
+# - LocationTracker integration for current-system detection from Local/Gamelogs
+# - Channel filter patterns for intel vs corp/alliance/custom feeds
 import os
 import glob
 import time
@@ -12,6 +16,7 @@ from PyQt6.QtCore import QThread, pyqtSignal
 from intel_parser import IntelParser
 from location_tracker import LocationTracker
 from config import config
+from error_handler import AURAErrorCode, log_diagnostic_error
 
 DEFAULT_INTEL_PATTERNS = [
     "intel", "imperium", "horde", "frt", "winter", "init", "brave", "snuff",
@@ -137,11 +142,20 @@ class LiveChatMonitor(QThread):
         self.last_dir_scan_time = 0.0
 
     def stop(self):
+        """Signal the monitor loop to exit and wait for the QThread to finish."""
         self.running = False
         self.wait(1500)
 
     def run(self):
         self.running = True
+        if not os.path.isdir(self.log_dir):
+            log_diagnostic_error(
+                AURAErrorCode.ERR_4001_CHATLOG_DIR_MISSING,
+                None,
+                f"LiveChatMonitor.log_dir missing: {self.log_dir}",
+            )
+            self.status_updated.emit(f"Chat log directory not found: {self.log_dir}", False)
+            return
         self.status_updated.emit(f"Monitoring active on {self.log_dir}", True)
         self.cached_files = []
         self.last_dir_scan_time = 0.0
@@ -150,8 +164,24 @@ class LiveChatMonitor(QThread):
         while self.running:
             try:
                 self._check_for_new_data()
-            except Exception:
-                pass
+            except PermissionError as exc:
+                log_diagnostic_error(
+                    AURAErrorCode.ERR_4002_LOG_STREAM_LOCKED,
+                    exc,
+                    "LiveChatMonitor.run",
+                )
+            except OSError as exc:
+                log_diagnostic_error(
+                    AURAErrorCode.ERR_4002_LOG_STREAM_LOCKED,
+                    exc,
+                    "LiveChatMonitor.run",
+                )
+            except Exception as exc:
+                log_diagnostic_error(
+                    AURAErrorCode.ERR_5001_WORKER_CRASH,
+                    exc,
+                    "LiveChatMonitor.run",
+                )
             time.sleep(self.poll_interval)
 
         self.status_updated.emit("Monitoring paused", False)
@@ -224,7 +254,19 @@ class LiveChatMonitor(QThread):
         try:
             with open(filepath, "rb") as fp:
                 return decode_log_bytes(fp.read(nbytes))
-        except Exception:
+        except PermissionError as exc:
+            log_diagnostic_error(
+                AURAErrorCode.ERR_4002_LOG_STREAM_LOCKED,
+                exc,
+                f"LiveChatMonitor._read_prefix({filepath})",
+            )
+            return ""
+        except OSError as exc:
+            log_diagnostic_error(
+                AURAErrorCode.ERR_4002_LOG_STREAM_LOCKED,
+                exc,
+                f"LiveChatMonitor._read_prefix({filepath})",
+            )
             return ""
 
     def _ingest_location_prefix(self, filepath: str):
@@ -312,8 +354,18 @@ class LiveChatMonitor(QThread):
                     self._process_text(f, decoded_text, ch_name)
                 elif current_size < last_pos:
                     self.file_positions[f] = current_size
-            except Exception:
-                pass
+            except PermissionError as exc:
+                log_diagnostic_error(
+                    AURAErrorCode.ERR_4002_LOG_STREAM_LOCKED,
+                    exc,
+                    f"LiveChatMonitor._check_for_new_data({f})",
+                )
+            except OSError as exc:
+                log_diagnostic_error(
+                    AURAErrorCode.ERR_4002_LOG_STREAM_LOCKED,
+                    exc,
+                    f"LiveChatMonitor._check_for_new_data({f})",
+                )
 
         self.active_channels_updated.emit(active_names)
 

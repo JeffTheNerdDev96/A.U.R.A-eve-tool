@@ -1,6 +1,9 @@
 """
 Fleet vs D-scan composition matchup: role buckets, comparison table, local assessment.
 """
+# Responsibilities:
+# - parse_fleet_paste: extract hull counts from fleet window / D-scan / chat lines
+# - compare_fleets / assess_matchup: role table rows and rule-based engagement bullets
 from __future__ import annotations
 
 import re

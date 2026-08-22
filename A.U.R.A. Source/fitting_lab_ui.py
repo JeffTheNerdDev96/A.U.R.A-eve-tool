@@ -17,6 +17,7 @@ from PyQt6.QtWidgets import (
 
 from eve_data import SHIP_DATABASE, MODULE_DATABASE, lookup_ship, lookup_module
 from fitting_parser import FittingParser
+from error_handler import AURAErrorCode, log_diagnostic_error
 from fitting_stats import compute_fit, module_load
 from theme import (
     TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT, TEXT_HEADER,
@@ -838,8 +839,17 @@ class FittingLabWidget(QWidget):
                 )
                 if not path:
                     return
-                with open(path, "r", encoding="utf-8", errors="replace") as fh:
-                    text = fh.read().strip()
+                try:
+                    with open(path, "r", encoding="utf-8", errors="replace") as fh:
+                        text = fh.read().strip()
+                except OSError as exc:
+                    log_diagnostic_error(
+                        AURAErrorCode.ERR_4003_CACHE_IO_ERROR,
+                        exc,
+                        f"FittingLabWidget._import_eft({path})",
+                    )
+                    QMessageBox.warning(self, "Fitting", f"Could not read file:\n{exc}")
+                    return
         if not text:
             return
         parsed = FittingParser.parse(text)
@@ -855,8 +865,16 @@ class FittingLabWidget(QWidget):
         )
         if not path:
             return
-        with open(path, "w", encoding="utf-8") as fh:
-            fh.write(text)
+        try:
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(text)
+        except OSError as exc:
+            log_diagnostic_error(
+                AURAErrorCode.ERR_4003_CACHE_IO_ERROR,
+                exc,
+                f"FittingLabWidget._export_eft_file({path})",
+            )
+            QMessageBox.warning(self, "Fitting", f"Could not write file:\n{exc}")
 
     def _evaluate(self):
         text = self.current_eft()

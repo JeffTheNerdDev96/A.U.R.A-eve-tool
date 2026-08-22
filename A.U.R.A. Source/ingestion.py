@@ -6,6 +6,8 @@ import os
 from typing import Dict, Any, List
 from PIL import Image, ImageEnhance
 
+from error_handler import AURAErrorCode, log_diagnostic_error
+
 try:
     import llama_cpp
 except Exception:
@@ -146,6 +148,25 @@ class DocumentParser:
 
     @staticmethod
     def parse_file(file_path: str) -> Dict[str, Any]:
+        try:
+            return DocumentParser._parse_file_impl(file_path)
+        except Exception as exc:
+            log_diagnostic_error(
+                AURAErrorCode.ERR_3004_INGESTION_FAILED,
+                exc,
+                f"DocumentParser.parse_file({file_path})",
+            )
+            filename = os.path.basename(file_path)
+            return {
+                "filename": filename,
+                "path": file_path,
+                "type": "error",
+                "text": f"[Ingestion failed: {exc}]",
+                "summary": f"Ingestion failed for {filename}",
+            }
+
+    @staticmethod
+    def _parse_file_impl(file_path: str) -> Dict[str, Any]:
         filename = os.path.basename(file_path)
         ext = os.path.splitext(file_path)[1].lower()
         

@@ -1,6 +1,6 @@
 """
 Offline EVE Online stargate graph: name lookup, BFS jump distance, N-jump neighborhoods.
-Loads bundled data/eve_map.json (regenerate with tools/build_eve_map.py).
+Loads bundled data/eve_map.json (shipped with the app; sourced from Fuzzwork SDE dumps).
 
 Map source: Fuzzwork SDE dumps (https://www.fuzzwork.co.uk), derived from the
 CCP hf Static Data Export. See CREDITS.md.
@@ -50,11 +50,15 @@ class EveMapGraph:
             name = str(info.get("name") or "").strip()
             if not name:
                 continue
+            try:
+                security = float(info.get("security") or 0.0)
+            except (TypeError, ValueError):
+                security = 0.0
             rec = {
                 "id": sid,
                 "name": name,
                 "region": str(info.get("region") or ""),
-                "security": float(info.get("security") or 0.0),
+                "security": security,
             }
             self.systems[sid] = rec
             self.name_to_id[name.lower()] = sid

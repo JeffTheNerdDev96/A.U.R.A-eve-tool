@@ -1,6 +1,9 @@
 """
 Composition tab: paste friendly fleet vs hostile D-scan, role breakdown, local assessment.
 """
+# Responsibilities:
+# - CompositionTabWidget UI: dual paste panes, role table, local assessment panel
+# - Delegates parsing and matchup logic to composition.py (no LLM)
 from __future__ import annotations
 
 from typing import Optional
@@ -13,6 +16,7 @@ from PyQt6.QtWidgets import (
 )
 
 from composition import parse_fleet_paste, compare_fleets, assess_matchup
+from error_handler import AURAErrorCode, log_diagnostic_error
 from theme import (
     TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT, TEXT_HEADER,
     BG_PANEL, BG_DEEP, BG_ELEVATED, BORDER, BORDER_MUTED, ACCENT, ACCENT_DIM,
@@ -133,10 +137,22 @@ class CompositionTabWidget(QWidget):
         return lbl
 
     def _analyze(self):
-        f_raw = self.friendly_edit.toPlainText()
-        e_raw = self.enemy_edit.toPlainText()
-        f_parsed = parse_fleet_paste(f_raw)
-        e_parsed = parse_fleet_paste(e_raw)
+        """Parse both paste panes and refresh the role table and engagement assessment."""
+        try:
+            f_raw = self.friendly_edit.toPlainText()
+            e_raw = self.enemy_edit.toPlainText()
+            f_parsed = parse_fleet_paste(f_raw)
+            e_parsed = parse_fleet_paste(e_raw)
+        except Exception as exc:
+            log_diagnostic_error(
+                AURAErrorCode.ERR_3001_DSCAN_PARSE_FAILED,
+                exc,
+                "CompositionTabWidget._analyze",
+            )
+            self.assessment.setHtml(
+                f"<p style='color:{TEXT_HINT};'>Analysis failed — check paste format and try again.</p>"
+            )
+            return
         self.friendly_hint.setText(
             f"{f_parsed['total_ships']} hulls · {f_parsed['unmatched']} unmatched"
         )
