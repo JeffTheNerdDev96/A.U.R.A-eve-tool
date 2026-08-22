@@ -10,11 +10,6 @@ from config import config
 from error_handler import AURAErrorCode, log_diagnostic_error
 from input_safety import clamp_text, strip_control_chars
 
-try:
-    import llama_cpp
-except Exception:
-    pass
-
 
 def _check_file_size(file_path: str) -> None:
     size = os.path.getsize(file_path)

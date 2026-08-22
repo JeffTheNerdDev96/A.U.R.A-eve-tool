@@ -12,9 +12,11 @@ Supports:
 """
 import os
 import sys
+import json
+import subprocess
 import psutil
 import winreg
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Tuple
 from config import config
 from error_handler import AURAErrorCode, log_diagnostic_error
 from hardware_profile import (
@@ -28,6 +30,47 @@ from hardware_profile import (
 
 # Global hardware scan cache to ensure instant O(1) hardware queries across the app
 _CACHED_HARDWARE_DEVICES: Optional[Dict[str, Any]] = None
+
+_OPENVINO_PROBE_SCRIPT = (
+    "import json\n"
+    "try:\n"
+    "    import openvino as ov\n"
+    "    core = ov.Core()\n"
+    "    print(json.dumps({'devices': list(core.available_devices)}))\n"
+    "except Exception as exc:\n"
+    "    print(json.dumps({'error': str(exc)}))\n"
+)
+
+
+def _probe_openvino_devices(timeout_sec: float = 5.0) -> Tuple[List[str], Optional[str]]:
+    """Enumerate OpenVINO devices in a child process to avoid startup hangs."""
+    flags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+    try:
+        result = subprocess.run(
+            [sys.executable, "-c", _OPENVINO_PROBE_SCRIPT],
+            capture_output=True,
+            text=True,
+            timeout=timeout_sec,
+            creationflags=flags,
+        )
+    except subprocess.TimeoutExpired:
+        return [], "OpenVINO probe timed out"
+    except Exception as exc:
+        return [], str(exc)
+
+    output = (result.stdout or "").strip().splitlines()
+    if not output:
+        err = (result.stderr or "").strip() or f"exit code {result.returncode}"
+        return [], err
+    try:
+        payload = json.loads(output[-1])
+    except json.JSONDecodeError:
+        return [], (result.stderr or result.stdout or "invalid probe output")[:500]
+
+    if payload.get("error"):
+        return [], str(payload["error"])
+    devices = payload.get("devices") or []
+    return [str(d) for d in devices], None
 
 
 class HardwareDetector:
@@ -88,18 +131,17 @@ class HardwareDetector:
 
         # 2. Check OpenVINO Runtime Devices (Intel NPU, Intel/Arc GPU, OpenVINO CPU)
         openvino_npu_found = False
-        try:
-            import openvino as ov
-            core = ov.Core()
-            available = core.available_devices
-            
+        available, ov_err = _probe_openvino_devices(timeout_sec=5.0)
+        if ov_err:
+            log_diagnostic_error(
+                AURAErrorCode.ERR_2004_REGISTRY_PROBE_ERROR,
+                ov_err,
+                "HardwareDetector.scan_devices OpenVINO probe",
+            )
+        if available:
             # Intel NPU Check via OpenVINO
             if "NPU" in available and config.enable_intel_npu:
                 npu_full_name = "Intel(R) AI Boost"
-                try:
-                    npu_full_name = core.get_property("NPU", "FULL_DEVICE_NAME")
-                except Exception:
-                    pass
                 devices["npu"]["available"] = True
                 devices["npu"]["vendor"] = "Intel"
                 devices["npu"]["device_name"] = npu_full_name
@@ -108,28 +150,18 @@ class HardwareDetector:
                 devices["npu"]["is_amd"] = False
                 openvino_npu_found = True
 
-            # OpenVINO GPU checks
+            # OpenVINO GPU checks (device names resolved via registry if probe skipped details)
             for dev in available:
                 if dev.startswith("GPU"):
-                    gpu_full_name = "Intel Graphics"
-                    try:
-                        gpu_full_name = core.get_property(dev, "FULL_DEVICE_NAME")
-                    except Exception:
-                        pass
-                    vendor = "Intel" if "intel" in gpu_full_name.lower() else "Generic"
-                    is_dgpu = any(k in gpu_full_name.lower() for k in ["arc", "battlemage", "dg2", "a770", "a750", "a580", "a380", "a310"])
+                    gpu_full_name = f"OpenVINO {dev}"
+                    vendor = "Intel"
+                    is_dgpu = False
                     devices["gpus"].append({
                         "device_name": gpu_full_name,
                         "vendor": vendor,
                         "type": "dGPU" if is_dgpu else "iGPU",
                         "backend": f"OpenVINO ({dev})"
                     })
-        except Exception as exc:
-            log_diagnostic_error(
-                AURAErrorCode.ERR_2004_REGISTRY_PROBE_ERROR,
-                exc,
-                "HardwareDetector.scan_devices OpenVINO probe",
-            )
 
         # 3. Hardware Registry & PnP Scan for Intel NPU & AMD Ryzen AI NPU
         try:

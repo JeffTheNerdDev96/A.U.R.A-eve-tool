@@ -88,7 +88,46 @@ def _global_exception_handler(exc_type, exc_value, exc_traceback):
 
 sys.excepthook = _global_exception_handler
 
-from ui import run_app
+
+def _show_startup_error(exc: BaseException) -> None:
+    log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+    crash_log = os.path.join(log_dir, "crash.log")
+    err_msg = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+    try:
+        os.makedirs(log_dir, exist_ok=True)
+        with open(crash_log, "a", encoding="utf-8") as f:
+            f.write(f"\n[STARTUP FAILURE {time.strftime('%Y-%m-%d %H:%M:%S')}]\n{err_msg}\n")
+    except OSError:
+        pass
+    sys.stderr.write(f"\n[!] A.U.R.A. startup failed: {err_msg}\n")
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            ctypes.windll.user32.MessageBoxW(
+                0,
+                (
+                    "A.U.R.A. failed to start.\n\n"
+                    f"{type(exc).__name__}: {exc}\n\n"
+                    f"Details were written to:\n{crash_log}\n\n"
+                    "Try Launch_A.U.R.A_Debug.bat in the install folder."
+                ),
+                "A.U.R.A. Startup Error",
+                0x10,
+            )
+        except Exception:
+            pass
+
 
 if __name__ == "__main__":
-    run_app()
+    try:
+        from ui import run_app
+        run_app()
+    except Exception as startup_exc:
+        _show_startup_error(startup_exc)
+        sys.exit(1)
+else:
+    try:
+        from ui import run_app
+    except Exception as startup_exc:
+        _show_startup_error(startup_exc)
+        raise
