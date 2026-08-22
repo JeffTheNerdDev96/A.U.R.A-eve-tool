@@ -148,7 +148,7 @@ class CreditsDialog(QDialog):
         layout.setContentsMargins(14, 14, 14, 14)
         layout.setSpacing(10)
 
-        author = QLabel("A.U.R.A. is made by <b>JeffTheNerdDev96</b>")
+        author = QLabel("Adaptive Underworld Recon Array (A.U.R.A.) is made by <b>JeffTheNerdDev96</b>")
         author.setStyleSheet(dialog_header_css(15))
         layout.addWidget(author)
 
@@ -182,8 +182,8 @@ class CreditsDialog(QDialog):
         h = pal["h"]
         return f"""
         <div style="line-height:1.55;">
-          <p style="{h}"><b>A.U.R.A. is made by JeffTheNerdDev96</b></p>
-          <p>A.U.R.A. is a fan-made, unofficial EVE Online companion. It exists because of the
+          <p style="{h}"><b>Adaptive Underworld Recon Array (A.U.R.A.) is made by <b>JeffTheNerdDev96</b></p>
+          <p>Adaptive Underworld Recon Array (A.U.R.A.) is a fan-made, unofficial EVE Online companion. It exists because of the
           people, libraries, datasets, and community tools listed below.</p>
 
           <h3 style="{h}">EVE Online &amp; Game Data</h3>
@@ -204,7 +204,7 @@ class CreditsDialog(QDialog):
             data, redistributed via Fuzzwork dumps.</li>
           </ul>
 
-          <h3 style="{h}">Community Tools That Inspired A.U.R.A.</h3>
+          <h3 style="{h}">Community Tools That Inspired Adaptive Underworld Recon Array (A.U.R.A.)</h3>
           <ul>
             <li><a href="https://riftforeve.online" style="{link}">RIFT Intel Fusion Tool</a>
             — Live Intel Radar, chat-log tailing, and threat classification.</li>
@@ -250,13 +250,13 @@ class CreditsDialog(QDialog):
           <h3 style="{h}">Typography &amp; Fonts</h3>
           <ul>
             <li><a href="https://fonts.google.com/specimen/Orbitron" style="{link}">Orbitron</a>
-            — sci-fi display typeface for the A.U.R.A. chrome brand and action labels
+            — sci-fi display typeface for the Adaptive Underworld Recon Array (A.U.R.A.) chrome brand and action labels
             (Matt McInerney / Google Fonts; <b>SIL Open Font License 1.1</b>).</li>
             <li><a href="https://fonts.google.com" style="{link}">Google Fonts</a> — font distribution.</li>
           </ul>
 
           <h3 style="{h}">Brand mark</h3>
-          <p>The footer glyph and app icon are an original A.U.R.A. mark inspired by
+          <p>The footer glyph and app icon are an original Adaptive Underworld Recon Array (A.U.R.A.) mark inspired by
           Angel Cartel visual language (horns, winglets, hub). They are
           <b>fan-made and unofficial</b>. EVE Online, Angel Cartel, and related marks
           are trademarks of <b>CCP hf</b>. This project is not affiliated with,
@@ -280,7 +280,7 @@ class CreditsDialog(QDialog):
           </ul>
 
           <h3 style="{h}">Legal</h3>
-          <p>A.U.R.A. is released under the GNU General Public License v3.0. Third-party packages
+          <p>Adaptive Underworld Recon Array (A.U.R.A.) is released under the GNU General Public License v3.0. Third-party packages
           remain under their own licenses. PyQt6 is GPL-licensed, which is why this project is GPL-3.0.</p>
           <p style="{muted}">The Code of Conduct is adapted from the
           <a href="https://www.contributor-covenant.org" style="{link}">Contributor Covenant</a>, version 2.0.</p>
@@ -294,7 +294,7 @@ class DScanDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("📡 A.U.R.A. D-SCAN Analyzer")
+        self.setWindowTitle("📡 Adaptive Underworld Recon Array (A.U.R.A.) D-SCAN Analyzer")
         self.resize(680, 500)
         self.setMinimumSize(540, 380)
         self.setStyleSheet(dialog_stylesheet())
@@ -360,7 +360,7 @@ class FittingDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("🛠️ A.U.R.A. Fitting Lab & Optimization")
+        self.setWindowTitle("🛠️ Adaptive Underworld Recon Array (A.U.R.A.) Fitting Lab & Optimization")
         self.resize(650, 520)
         self.setStyleSheet(dialog_stylesheet())
         self._init_ui()
@@ -435,7 +435,7 @@ class IntelBatchDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("🛰️ A.U.R.A. Batch Intel Analysis")
+        self.setWindowTitle("🛰️ Adaptive Underworld Recon Array (A.U.R.A.) Batch Intel Analysis")
         self.resize(650, 480)
         self.setStyleSheet(dialog_stylesheet())
         self._init_ui()
@@ -594,7 +594,7 @@ class MainWindow(QMainWindow):
         self.credits_btn = QPushButton("Credits")
         self.credits_btn.setObjectName("ChromeAction")
         self.credits_btn.setFixedHeight(32)
-        self.credits_btn.setToolTip("Libraries, data sources, and community tools used to build A.U.R.A.")
+        self.credits_btn.setToolTip("Libraries, data sources, and community tools used to build Adaptive Underworld Recon Array (A.U.R.A.)")
         self.credits_btn.clicked.connect(self._open_credits_dialog)
         chrome_layout.addWidget(self.credits_btn)
 
@@ -693,7 +693,7 @@ class MainWindow(QMainWindow):
 
         self.input_edit = TacticalInputEdit()
         self.input_edit.setObjectName("InputEdit")
-        self.input_edit.setPlaceholderText("Command A.U.R.A. or ask tactical queries... (Press Enter to Send, Shift+Enter for newline)")
+        self.input_edit.setPlaceholderText("Command Adaptive Underworld Recon Array (A.U.R.A.) or ask tactical queries... (Press Enter to Send, Shift+Enter for newline)")
         self.input_edit.setFixedHeight(52)
         self.input_edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.input_edit.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -810,7 +810,7 @@ class MainWindow(QMainWindow):
         self.auto_response_cb = QCheckBox("⚡ Auto-Respond to Critical Threats")
         self.auto_response_cb.setChecked(False)
         self.auto_response_cb.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12.5px; font-weight: 500; padding: 2px 0px;")
-        self.auto_response_cb.setToolTip("When checked, A.U.R.A. automatically calculates combat countermeasures for Cynos, Bubbles, and Capital spikes in real time.")
+        self.auto_response_cb.setToolTip("When checked, Adaptive Underworld Recon Array (A.U.R.A.) automatically calculates combat countermeasures for Cynos, Bubbles, and Capital spikes in real time.")
         right_layout.addWidget(self.auto_response_cb)
 
         range_row = QHBoxLayout()
@@ -903,9 +903,9 @@ class MainWindow(QMainWindow):
                         Qt.TransformationMode.SmoothTransformation,
                     )
                 )
-        mark.setToolTip("A.U.R.A. mark — fan-made, unofficial")
+        mark.setToolTip("Adaptive Underworld Recon Array (A.U.R.A.) mark — fan-made, unofficial")
         footer_layout.addWidget(mark)
-        brand = QLabel("A.U.R.A.")
+        brand = QLabel("Adaptive Underworld Recon Array (A.U.R.A.)")
         brand.setObjectName("ChromeBrand")
         brand.setToolTip("Angel Cartel — Adaptive Underworld Recon Array")
         footer_layout.addWidget(brand)
