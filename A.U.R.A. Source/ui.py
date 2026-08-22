@@ -987,12 +987,7 @@ class MainWindow(QMainWindow):
         return tier_badge_standby_css()
 
     def _display_welcome(self):
-        self._append_message("A.U.R.A.", (
-            "☠️ <b>Adaptive Underworld Recon Array (A.U.R.A.)</b>\n"
-            "<i>by JeffTheNerdDev96</i>\n\n"
-            "🛰️ <b>Live Intel Radar, Chat, and Fitting are in the tabs above.</b> "
-            "Location is read from Local / Gamelogs; threats within 5 jumps raise a Windows alert."
-        ))
+        self._append_message("A.U.R.A.", "A.U.R.A AI Ready")
 
 
 
