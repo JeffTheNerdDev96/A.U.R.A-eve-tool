@@ -117,3 +117,13 @@ desktop.ini
 roadmap/
 **/roadmap/
 *.roadmap.*
+
+# 10. Local Release Notes & Standalone Build Artifacts (Private / Local Reference Only)
+RELEASE_NOTES.md
+RELEASE_NOTES.*
+release_notes.*
+release-notes/
+**/release-notes/
+standalone_build/
+**/standalone_build/
+*.tar.gz
