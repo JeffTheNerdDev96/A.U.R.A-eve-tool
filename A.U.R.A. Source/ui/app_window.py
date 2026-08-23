@@ -192,9 +192,9 @@ class CreditsDialog(QDialog):
         h = pal["h"]
         return f"""
         <div style="line-height:1.55;">
-          <p style="{h}"><b>Adaptive Underworld Recon Array (A.U.R.A.) is made by <b>JeffTheNerdDev96</b></p>
-          <p>Adaptive Underworld Recon Array (A.U.R.A.) is a fan-made, unofficial EVE Online companion. It exists because of the
-          people, libraries, datasets, and community tools listed below.</p>
+          <p style="{h}"><b>Adaptive Underworld Recon Array (A.U.R.A.) is made by JeffTheNerdDev96</b></p>
+          <p>Adaptive Underworld Recon Array (A.U.R.A.) is an unofficial, fan-made tactical companion for EVE Online. It exists thanks to the
+          open-source community, game data contributors, hardware architects, and third-party developer ecosystem listed below.</p>
 
           <h3 style="{h}">EVE Online &amp; Game Data</h3>
           <p><b>EVE Online</b>, the EVE logo, and related marks are trademarks of <b>CCP hf</b>.
@@ -202,96 +202,92 @@ class CreditsDialog(QDialog):
           <p>Ship, module, and mechanic information in the tactical database is compiled from
           publicly documented EVE Online game data for offline use.</p>
           <ul>
+            <li><a href="https://developers.eveonline.com" style="{link}">CCP Games Static Data Export (SDE)</a> —
+            foundational data source for New Eden solar systems, stargate jump graphs, item types, and dogma attributes.</li>
+            <li><a href="https://www.fuzzwork.co.uk" style="{link}">Fuzzwork (Steve Ronuken)</a> —
+            solar-system, item, and stargate dump data used to build the offline jump map (<code>eve_map.json</code>).</li>
             <li><a href="https://wiki.eveuniversity.org" style="{link}">EVE University Wiki</a> —
             ship mechanics, fitting guides, module stats, and alliance / coalition reference material.</li>
-            <li><a href="https://zkillboard.com" style="{link}">zKillboard</a> —
+            <li><a href="https://zkillboard.com" style="{link}">zKillboard (Squizz Caphinator)</a> —
             killmail data and ship / fit usage patterns for tactical dossiers and threat profiles.</li>
-            <li><a href="https://www.dotlan.net" style="{link}">DOTLAN EveMaps</a> —
+            <li><a href="https://www.dotlan.net" style="{link}">DOTLAN EveMaps (Wollari)</a> —
             jump routes, regional map context, and alliance / sovereignty reference data.</li>
-            <li><a href="https://www.fuzzwork.co.uk" style="{link}">Fuzzwork</a> —
-            solar-system and stargate dump data used to build the offline jump map.</li>
-            <li>CCP Static Data Export (SDE) — original New Eden system, region, and jump-graph
-            data, redistributed via Fuzzwork dumps.</li>
           </ul>
 
-          <h3 style="{h}">Community Tools That Inspired Adaptive Underworld Recon Array (A.U.R.A.)</h3>
+          <h3 style="{h}">Community Tools That Inspired A.U.R.A.</h3>
           <ul>
-            <li><a href="https://riftforeve.online" style="{link}">RIFT Intel Fusion Tool</a>
-            — Live Intel Radar, chat-log tailing, and threat classification.</li>
-            <li><a href="https://github.com/pyfa-org/Pyfa" style="{link}">PYFA</a>
-            (Python Fitting Assistant) — Fitting Lab workflow and EFT block parsing.</li>
+            <li><a href="https://riftforeve.online" style="{link}">RIFT Intel Fusion Tool (Stephen Swires / Dreae)</a>
+            — live intel radar, chat-log stream tailing, and threat classification.</li>
+            <li><a href="https://github.com/pyfa-org/Pyfa" style="{link}">PYFA (Kadesh Priestess, DarkFenX &amp; team)</a>
+            — Fitting Lab workflow, EFT block parsing, and Dogma attribute math.</li>
             <li><a href="https://dscan.info" style="{link}">dscan.info</a> —
             directional-scan fleet breakdown, threat ranking, and Composition fleet-vs-scan matchup.</li>
             <li><b>EVE Fitting Tool (EFT)</b> — standard <code>[Hull, Fit Name]</code> paste
             format used by Fitting Lab.</li>
           </ul>
 
-          <h3 style="{h}">Neural Model &amp; Inference</h3>
+          <h3 style="{h}">Neural Model &amp; Local Inference Stack</h3>
           <ul>
+            <li><a href="https://huggingface.co/microsoft/Phi-4-mini-instruct" style="{link}">Microsoft Phi-4 Mini Instruct</a>
+            — base 3.8B multilingual reasoning model.</li>
+            <li><a href="https://huggingface.co/JeffTheNerdDev96/AURA-Eve-Tactical-Instruct-3.8B" style="{link}">AURA-Eve-Tactical-Instruct-3.8B</a>
+            — fine-tuned tactical weights specialized for New Eden doctrine and combat analysis (JeffTheNerdDev96).</li>
+            <li><a href="https://github.com/ggerganov/llama.cpp" style="{link}">llama.cpp (Georgi Gerganov)</a>
+            — core GGUF tensor runtime, SIMD AVX2/AVX-512 vector math, and Q4_K_M quantization.</li>
+            <li><a href="https://github.com/abetlen/llama-cpp-python" style="{link}">llama-cpp-python (Andrei Betlen)</a>
+            — Python bindings for local inference and GPU layer offloading.</li>
+            <li><a href="https://huggingface.co" style="{link}">Hugging Face Hub</a> — model hosting and weight distribution.</li>
             <li><a href="https://colab.research.google.com" style="{link}">Google Colab</a>
             — cloud GPU notebooks used for fine-tuning, evaluation, and model development.</li>
-            <li><a href="https://huggingface.co/microsoft/Phi-4-mini-instruct" style="{link}">Microsoft Phi-4 Mini Instruct</a>
-            — base 3.8B reasoning model.</li>
-            <li><a href="https://github.com/ggerganov/llama.cpp" style="{link}">llama.cpp</a>
-            — GGUF runtime and Q4_K_M quantization.</li>
-            <li><a href="https://github.com/abetlen/llama-cpp-python" style="{link}">llama-cpp-python</a>
-            — Python bindings for local inference.</li>
-            <li><a href="https://huggingface.co" style="{link}">Hugging Face</a> — model hosting for
-            <a href="https://huggingface.co/JeffTheNerdDev96/AURA-Eve-Tactical-Instruct-3.8B" style="{link}">AURA-Eve-Tactical-Instruct-3.8B</a>.</li>
           </ul>
 
-          <h3 style="{h}">Python Libraries</h3>
+          <h3 style="{h}">Hardware Acceleration &amp; Coprocessors</h3>
+          <ul>
+            <li><a href="https://docs.openvino.ai" style="{link}">Intel OpenVINO Toolkit</a>
+            — Intel NPU (AI Boost Level Zero) and Intel Arc / Iris Xe GPU compute pipelines.</li>
+            <li><a href="https://onnxruntime.ai" style="{link}">ONNX Runtime DirectML</a>
+            — AMD Ryzen AI NPU (XDNA) and DirectML neural acceleration.</li>
+            <li><b>NVIDIA CUDA Toolkit (12.4+)</b> — dedicated GeForce / RTX GPU VRAM layer offloading.</li>
+            <li><a href="https://www.khronos.org/vulkan/" style="{link}">Khronos Vulkan 1.3</a> — cross-vendor compute shader pipeline for AMD Radeon and Intel GPUs.</li>
+            <li><b>Microsoft Windows Media OCR</b> — hardware-accelerated local optical character recognition.</li>
+          </ul>
+
+          <h3 style="{h}">Installer, Packaging &amp; Toolchains</h3>
+          <ul>
+            <li><a href="https://pyinstaller.org/" style="{link}">PyInstaller</a> — standalone Windows/Linux application and launcher stub freezing.</li>
+            <li><a href="https://github.com/indygreg/python-build-standalone" style="{link}">python-build-standalone (Gregory Szorc)</a> — relocatable CPython 3.12.14 distributions.</li>
+            <li><b>Microsoft Visual C++ 2015–2022 Redistributable</b> — bundled native runtime DLLs.</li>
+            <li><a href="https://jrsoftware.org/isinfo.php" style="{link}">Inno Setup</a> — packaging and installer architecture reference.</li>
+          </ul>
+
+          <h3 style="{h}">Python Core Libraries</h3>
           <ul>
             <li><a href="https://www.riverbankcomputing.com/software/pyqt/" style="{link}">PyQt6</a>
-            — desktop UI (Riverbank Computing / Qt).</li>
-            <li><a href="https://numpy.org" style="{link}">NumPy</a> — numeric helpers.</li>
-            <li><a href="https://github.com/giampaolo/psutil" style="{link}">psutil</a>
-            — CPU, RAM, and process telemetry.</li>
-            <li><a href="https://python-pillow.org" style="{link}">Pillow</a>
-            — screenshot and image preprocessing.</li>
+            — desktop UI framework (Riverbank Computing Ltd / The Qt Company).</li>
+            <li><a href="https://numpy.org" style="{link}">NumPy</a> — numerical array and vector math.</li>
+            <li><a href="https://github.com/giampaolo/psutil" style="{link}">psutil (Giampaolo Rodola)</a>
+            — real-time CPU, RAM, GPU, and process telemetry.</li>
+            <li><a href="https://python-pillow.org" style="{link}">Pillow (Alex Clark &amp; team)</a>
+            — multimodal screenshot and image preprocessing.</li>
             <li><a href="https://pypi.org/project/winocr/" style="{link}">winocr</a>
-            — Windows.Media.Ocr screenshot text extraction.</li>
+            — Windows.Media.Ocr ctypes wrapper.</li>
             <li><a href="https://github.com/py-pdf/pypdf" style="{link}">pypdf</a>,
             <a href="https://github.com/python-openxml/python-docx" style="{link}">python-docx</a>,
             <a href="https://openpyxl.readthedocs.io" style="{link}">openpyxl</a>
-            — PDF, Word, and spreadsheet ingestion.</li>
+            — PDF, Word, and spreadsheet document ingestion.</li>
           </ul>
 
-          <h3 style="{h}">Typography &amp; Fonts</h3>
+          <h3 style="{h}">Typography &amp; Aesthetics</h3>
           <ul>
             <li><a href="https://fonts.google.com/specimen/Orbitron" style="{link}">Orbitron</a>
-            — sci-fi display typeface for the Adaptive Underworld Recon Array (A.U.R.A.) chrome brand and action labels
+            — sci-fi display typeface for the A.U.R.A. chrome brand and action labels
             (Matt McInerney / Google Fonts; <b>SIL Open Font License 1.1</b>).</li>
-            <li><a href="https://fonts.google.com" style="{link}">Google Fonts</a> — font distribution.</li>
+            <li><b>A.U.R.A. Tactical Brand Mark</b> — original fan-made glyph inspired by Angel Cartel visual language.</li>
           </ul>
 
-          <h3 style="{h}">Brand mark</h3>
-          <p>The footer glyph and app icon are an original Adaptive Underworld Recon Array (A.U.R.A.) mark inspired by
-          Angel Cartel visual language (horns, winglets, hub). They are
-          <b>fan-made and unofficial</b>. EVE Online, Angel Cartel, and related marks
-          are trademarks of <b>CCP hf</b>. This project is not affiliated with,
-          endorsed by, or sponsored by CCP Games.</p>
-
-          <h3 style="{h}">Hardware Acceleration</h3>
-          <ul>
-            <li><a href="https://docs.openvino.ai" style="{link}">Intel OpenVINO</a>
-            — Intel NPU (AI Boost) and Arc / iGPU inference.</li>
-            <li><a href="https://onnxruntime.ai" style="{link}">ONNX Runtime DirectML</a>
-            — AMD Ryzen AI NPU (XDNA) path.</li>
-            <li>NVIDIA CUDA / cuBLAS — GeForce / RTX GPU layer offload.</li>
-            <li>Khronos Vulkan — AMD Radeon GPU compute path.</li>
-            <li>Microsoft Windows OCR — native screenshot / killmail text recognition.</li>
-          </ul>
-
-          <h3 style="{h}">Language &amp; Platform</h3>
-          <ul>
-            <li><a href="https://www.python.org" style="{link}">Python</a> 3.12+ — application runtime.</li>
-            <li><a href="https://www.qt.io" style="{link}">Qt</a> — UI toolkit underlying PyQt6.</li>
-          </ul>
-
-          <h3 style="{h}">Legal</h3>
-          <p>Adaptive Underworld Recon Array (A.U.R.A.) is released under the GNU General Public License v3.0. Third-party packages
-          remain under their own licenses. PyQt6 is GPL-licensed, which is why this project is GPL-3.0.</p>
+          <h3 style="{h}">Legal &amp; Open Source</h3>
+          <p>Adaptive Underworld Recon Array (A.U.R.A.) is released under the <b>GNU General Public License v3.0 (GPL-3.0)</b>. Third-party packages
+          remain under their respective open-source licenses (MIT, BSD-3-Clause, Apache-2.0, LGPL-3.0, GPL-3.0, and SIL Open Font License 1.1).</p>
           <p style="{muted}">The Code of Conduct is adapted from the
           <a href="https://www.contributor-covenant.org" style="{link}">Contributor Covenant</a>, version 2.0.</p>
         </div>
