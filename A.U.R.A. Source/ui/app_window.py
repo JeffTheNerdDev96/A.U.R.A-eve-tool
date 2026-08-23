@@ -52,7 +52,7 @@ from ui.tabs.map_tab import MapTabWidget
 from ui.tabs.composition_tab import CompositionTabWidget
 from ui.theme import (
     ACCENT, ACCENT_HOVER, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT, TEXT_BRAND,
-    BG_ELEVATED, BORDER, BTN_SECONDARY_BG, BTN_SECONDARY_BORDER,
+    BG_PANEL, BG_ELEVATED, BORDER, BTN_SECONDARY_BG, BTN_SECONDARY_BORDER,
     STATUS_ONLINE, STATUS_STANDBY_BG,
     load_display_font,
     dialog_stylesheet, dialog_header_css, dialog_sub_css, credits_html_palette,
@@ -140,6 +140,207 @@ class WorkerThread(QThread):
 
 
 # ---------------- Modal Tool Dialogs ----------------
+
+
+class RadarOptionsDialog(QDialog):
+    """Popout modal dialog for Live Intel Radar configuration, channels, alert radius, and auto-response."""
+
+    def __init__(self, main_window, parent=None):
+        super().__init__(parent or main_window)
+        self.main_window = main_window
+        self.setWindowTitle("A.U.R.A. — Live Intel Radar Options")
+        self.resize(580, 520)
+        self.setMinimumSize(480, 420)
+        self.setStyleSheet(dialog_stylesheet())
+        self._init_ui()
+
+    def _init_ui(self):
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(16, 16, 16, 16)
+        layout.setSpacing(12)
+
+        header = QLabel("⚙️ <b>Live Intel Radar Options</b>")
+        header.setStyleSheet(dialog_header_css(16))
+        layout.addWidget(header)
+
+        sub = QLabel("Configure tactical chatlog tracking, monitored channels, threat alert radius, and automated response.")
+        sub.setStyleSheet(dialog_sub_css())
+        layout.addWidget(sub)
+
+        # 1. Automated Tactical Response Section
+        auto_group = QFrame()
+        auto_group.setStyleSheet(f"QFrame {{ background: {BG_PANEL}; border: 1px solid {BORDER}; border-radius: 6px; padding: 10px; }}")
+        auto_layout = QVBoxLayout(auto_group)
+        auto_layout.setSpacing(6)
+
+        sec1_lbl = QLabel("AUTOMATED TACTICAL RESPONSE")
+        sec1_lbl.setStyleSheet(f"color: {TEXT_BRAND}; font-size: 11px; font-weight: bold; letter-spacing: 1px;")
+        auto_layout.addWidget(sec1_lbl)
+
+        self.auto_response_cb = QCheckBox("⚡ A.U.R.A. Auto-Respond to Critical Threats")
+        self.auto_response_cb.setChecked(self.main_window.auto_response_cb.isChecked())
+        self.auto_response_cb.setStyleSheet(f"color: {TEXT_PRIMARY}; font-size: 13px; font-weight: bold;")
+        self.auto_response_cb.setToolTip("When checked, Adaptive Underworld Recon Array (A.U.R.A.) automatically calculates combat countermeasures for Cynos, Bubbles, and Capital spikes in real time.")
+        self.auto_response_cb.toggled.connect(self._sync_auto_response)
+        auto_layout.addWidget(self.auto_response_cb)
+
+        auto_desc = QLabel("When enabled, A.U.R.A. will immediately synthesize combat advice upon detecting critical hostile spikes (cynos, warp disruption bubbles, hostile capital drops) in monitored systems.")
+        auto_desc.setWordWrap(True)
+        auto_desc.setStyleSheet(f"color: {TEXT_HINT}; font-size: 11px;")
+        auto_layout.addWidget(auto_desc)
+        layout.addWidget(auto_group)
+
+        # 2. Log Source & Monitored Channels Section
+        log_group = QFrame()
+        log_group.setStyleSheet(f"QFrame {{ background: {BG_PANEL}; border: 1px solid {BORDER}; border-radius: 6px; padding: 10px; }}")
+        log_layout = QVBoxLayout(log_group)
+        log_layout.setSpacing(8)
+
+        sec2_lbl = QLabel("LOG DIRECTORY & MONITORED CHANNELS")
+        sec2_lbl.setStyleSheet(f"color: {TEXT_BRAND}; font-size: 11px; font-weight: bold; letter-spacing: 1px;")
+        log_layout.addWidget(sec2_lbl)
+
+        folder_row = QHBoxLayout()
+        self.folder_path_lbl = QLabel(self.main_window.chat_monitor.log_dir or "EVE Online Chatlogs")
+        self.folder_path_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 11.5px; font-family: monospace; background: {BG_ELEVATED}; border: 1px solid {BORDER}; border-radius: 4px; padding: 4px 8px;")
+        folder_row.addWidget(self.folder_path_lbl, stretch=1)
+
+        browse_btn = QPushButton("📁 Browse Folder")
+        browse_btn.setFixedHeight(28)
+        browse_btn.setStyleSheet(radar_control_btn_css())
+        browse_btn.clicked.connect(self._browse_folder)
+        folder_row.addWidget(browse_btn)
+        log_layout.addLayout(folder_row)
+
+        filter_row = QHBoxLayout()
+        filter_lbl = QLabel("Channel Filter:")
+        filter_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px;")
+        filter_row.addWidget(filter_lbl)
+
+        self.channel_filter_combo = QComboBox()
+        self.channel_filter_combo.setFixedHeight(28)
+        self.channel_filter_combo.setStyleSheet(
+            f"font-size: 12px; background: {BTN_SECONDARY_BG}; color: {TEXT_PRIMARY}; "
+            f"border: 1px solid {BTN_SECONDARY_BORDER}; border-radius: 4px; padding: 2px 8px;"
+        )
+        self.channel_filter_combo.addItems([
+            "Intel Channels (*.intel, *.imperium, *.horde, etc.)",
+            "Custom Channel Keywords...",
+            "All Channels",
+            "Alliance Only",
+            "Corp Only",
+            "Local Only"
+        ])
+        self.channel_filter_combo.setCurrentIndex(self.main_window.channel_filter_combo.currentIndex())
+        self.channel_filter_combo.currentIndexChanged.connect(self._on_channel_filter_changed)
+        filter_row.addWidget(self.channel_filter_combo, stretch=1)
+        log_layout.addLayout(filter_row)
+
+        self.custom_channel_edit = QLineEdit()
+        self.custom_channel_edit.setFixedHeight(26)
+        self.custom_channel_edit.setStyleSheet(
+            f"font-size: 11.5px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
+            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 2px 8px;"
+        )
+        self.custom_channel_edit.setPlaceholderText("Custom channel keywords (e.g. imperium, delve, horde, standing)")
+        self.custom_channel_edit.setText(self.main_window.custom_channel_edit.text())
+        self.custom_channel_edit.textChanged.connect(self._on_custom_patterns_changed)
+        log_layout.addWidget(self.custom_channel_edit)
+        layout.addWidget(log_group)
+
+        # 3. Proximity & Notification Alerts Section
+        prox_group = QFrame()
+        prox_group.setStyleSheet(f"QFrame {{ background: {BG_PANEL}; border: 1px solid {BORDER}; border-radius: 6px; padding: 10px; }}")
+        prox_layout = QVBoxLayout(prox_group)
+        prox_layout.setSpacing(8)
+
+        sec3_lbl = QLabel("PROXIMITY & NOTIFICATION ALERTS")
+        sec3_lbl.setStyleSheet(f"color: {TEXT_BRAND}; font-size: 11px; font-weight: bold; letter-spacing: 1px;")
+        prox_layout.addWidget(sec3_lbl)
+
+        char_row = QHBoxLayout()
+        char_lbl = QLabel("Character Tracker:")
+        char_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px;")
+        char_row.addWidget(char_lbl)
+
+        self.character_combo = QComboBox()
+        self.character_combo.setFixedHeight(26)
+        self.character_combo.setStyleSheet(
+            f"font-size: 11.5px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
+            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 2px 6px;"
+        )
+        for i in range(self.main_window.character_combo.count()):
+            self.character_combo.addItem(self.main_window.character_combo.itemText(i))
+        self.character_combo.setCurrentIndex(self.main_window.character_combo.currentIndex())
+        self.character_combo.currentIndexChanged.connect(self._sync_character)
+        char_row.addWidget(self.character_combo, stretch=1)
+
+        range_lbl = QLabel("Alert Range (jumps):")
+        range_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px;")
+        char_row.addWidget(range_lbl)
+
+        self.jump_range_spin = QSpinBox()
+        self.jump_range_spin.setRange(0, 20)
+        self.jump_range_spin.setValue(self.main_window.jump_range_spin.value())
+        self.jump_range_spin.valueChanged.connect(self._sync_jump_range)
+        char_row.addWidget(self.jump_range_spin)
+        prox_layout.addLayout(char_row)
+
+        cbs_row = QHBoxLayout()
+        self.in_range_only_cb = QCheckBox("Show in-range only")
+        self.in_range_only_cb.setChecked(self.main_window.in_range_only_cb.isChecked())
+        self.in_range_only_cb.toggled.connect(self._sync_in_range_only)
+        cbs_row.addWidget(self.in_range_only_cb)
+
+        self.windows_alerts_cb = QCheckBox("Windows threat alerts")
+        self.windows_alerts_cb.setChecked(self.main_window.windows_alerts_cb.isChecked())
+        self.windows_alerts_cb.toggled.connect(self._sync_windows_alerts)
+        cbs_row.addWidget(self.windows_alerts_cb)
+
+        self.hide_clears_cb = QCheckBox("Hide System Clear (CLR)")
+        self.hide_clears_cb.setChecked(self.main_window.hide_clears_cb.isChecked())
+        self.hide_clears_cb.toggled.connect(self._sync_hide_clears)
+        cbs_row.addWidget(self.hide_clears_cb)
+        prox_layout.addLayout(cbs_row)
+        layout.addWidget(prox_group)
+
+        # Bottom Done Button
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+        done_btn = QPushButton("Done")
+        done_btn.setFixedHeight(34)
+        done_btn.setMinimumWidth(120)
+        done_btn.clicked.connect(self.accept)
+        btn_layout.addWidget(done_btn)
+        layout.addLayout(btn_layout)
+
+    def _sync_auto_response(self, checked: bool):
+        self.main_window.auto_response_cb.setChecked(checked)
+
+    def _browse_folder(self):
+        self.main_window._browse_log_dir()
+        self.folder_path_lbl.setText(self.main_window.chat_monitor.log_dir or "EVE Online Chatlogs")
+
+    def _on_channel_filter_changed(self, idx: int):
+        self.main_window.channel_filter_combo.setCurrentIndex(idx)
+
+    def _on_custom_patterns_changed(self, text: str):
+        self.main_window.custom_channel_edit.setText(text)
+
+    def _sync_character(self, idx: int):
+        self.main_window.character_combo.setCurrentIndex(idx)
+
+    def _sync_jump_range(self, val: int):
+        self.main_window.jump_range_spin.setValue(val)
+
+    def _sync_in_range_only(self, checked: bool):
+        self.main_window.in_range_only_cb.setChecked(checked)
+
+    def _sync_windows_alerts(self, checked: bool):
+        self.main_window.windows_alerts_cb.setChecked(checked)
+
+    def _sync_hide_clears(self, checked: bool):
+        self.main_window.hide_clears_cb.setChecked(checked)
 
 
 class CreditsDialog(QDialog):
@@ -560,7 +761,6 @@ class MainWindow(QMainWindow):
         self.tier_badge.setObjectName("TierBadge")
         self.tier_badge.setFixedHeight(32)
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
-        self.tier_badge.setToolTip(self.engine.detector.get_routing_tooltip())
         chrome_layout.addWidget(self.tier_badge)
 
         self.credits_btn = QPushButton("Credits")
@@ -679,6 +879,8 @@ class MainWindow(QMainWindow):
         self.send_btn = QPushButton("Send Command ➤")
         self.send_btn.setFixedHeight(52)
         self.send_btn.setMinimumWidth(140)
+        self.send_btn.setObjectName("SendBtn")
+        self.send_btn.setStyleSheet(f"font-weight: bold; background-color: {ACCENT}; font-size: 13.5px; border-radius: 6px; padding: 0 16px;")
         self.send_btn.clicked.connect(self._send_message)
         input_h_layout.addWidget(self.send_btn)
 
@@ -689,11 +891,11 @@ class MainWindow(QMainWindow):
             QPushButton {
                 background-color: #991b1b;
                 color: #ffffff;
-                border: 1px solid #ef4444;
-                border-radius: 6px;
                 font-weight: bold;
-                padding: 8px 16px;
-                font-size: 13px;
+                font-size: 13.5px;
+                border-radius: 6px;
+                padding: 0 16px;
+                border: 1px solid #ef4444;
             }
             QPushButton:hover {
                 background-color: #b91c1c;
@@ -732,103 +934,14 @@ class MainWindow(QMainWindow):
         )
         radar_header_layout.addWidget(self.monitor_pill)
         radar_header_layout.addStretch()
-        right_layout.addLayout(radar_header_layout)
 
-        # Active Channel Status
-        self.active_channels_lbl = QLabel("Channels: Auto-Detecting active EVE chatlogs...")
-        self.active_channels_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px;")
-        self.active_channels_lbl.setWordWrap(True)
-        right_layout.addWidget(self.active_channels_lbl)
+        filter_lbl = QLabel("Feed Filter:")
+        filter_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px; font-weight: bold;")
+        radar_header_layout.addWidget(filter_lbl)
 
-        # Directory / Filter Controls
-        ctrl_layout = QHBoxLayout()
-        self.folder_btn = QPushButton("📁 Log Folder")
-        self.folder_btn.setFixedHeight(28)
-        self.folder_btn.setStyleSheet(radar_control_btn_css())
-        self.folder_btn.clicked.connect(self._browse_log_dir)
-        ctrl_layout.addWidget(self.folder_btn)
-
-        self.channel_filter_combo = QComboBox()
-        self.channel_filter_combo.setFixedHeight(28)
-        self.channel_filter_combo.setStyleSheet(
-            f"font-size: 12px; background: {BTN_SECONDARY_BG}; color: {TEXT_PRIMARY}; "
-            f"border: 1px solid {BTN_SECONDARY_BORDER}; border-radius: 4px; padding: 2px 8px;"
-        )
-        self.channel_filter_combo.addItems([
-            "Intel Channels (*.intel, *.imperium, *.horde, etc.)",
-            "Custom Channel Keywords...",
-            "All Channels",
-            "Alliance Only",
-            "Corp Only",
-            "Local Only"
-        ])
-        self.channel_filter_combo.currentIndexChanged.connect(self._on_filter_changed)
-        ctrl_layout.addWidget(self.channel_filter_combo, stretch=1)
-        right_layout.addLayout(ctrl_layout)
-
-        # Custom Channel Pattern Input Field (e.g. imperium, delve, horde, standing)
-        custom_filter_layout = QHBoxLayout()
-        self.custom_channel_edit = QLineEdit()
-        self.custom_channel_edit.setFixedHeight(26)
-        self.custom_channel_edit.setStyleSheet(
-            f"font-size: 11.5px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
-            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 2px 8px;"
-        )
-        self.custom_channel_edit.setPlaceholderText("Custom channel keywords (e.g. imperium, delve, horde, standing)")
-        self.custom_channel_edit.setText(config.custom_intel_channels)
-        self.custom_channel_edit.setToolTip("Enter custom channel names or suffixes (comma-separated). Live Radar will monitor any chat log matching these terms.")
-        self.custom_channel_edit.textChanged.connect(self._on_custom_filter_text_changed)
-        custom_filter_layout.addWidget(self.custom_channel_edit)
-        right_layout.addLayout(custom_filter_layout)
-
-        # Auto-Response Checkbox (Off by default as requested)
-        self.auto_response_cb = QCheckBox("⚡ Auto-Respond to Critical Threats")
-        self.auto_response_cb.setChecked(False)
-        self.auto_response_cb.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12.5px; font-weight: 500; padding: 2px 0px;")
-        self.auto_response_cb.setToolTip("When checked, Adaptive Underworld Recon Array (A.U.R.A.) automatically calculates combat countermeasures for Cynos, Bubbles, and Capital spikes in real time.")
-        right_layout.addWidget(self.auto_response_cb)
-
-        range_row = QHBoxLayout()
-        range_row.addWidget(QLabel("Character:"))
-        self.character_combo = QComboBox()
-        self.character_combo.setFixedHeight(26)
-        self.character_combo.setMinimumWidth(150)
-        self.character_combo.setStyleSheet(
-            f"font-size: 11.5px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
-            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 2px 6px;"
-        )
-        self.character_combo.addItem("Auto (Latest Active)")
-        self.character_combo.setToolTip("Select specific character to track for location & jump alerts when multiboxing.")
-        self.character_combo.currentIndexChanged.connect(self._on_character_changed)
-        range_row.addWidget(self.character_combo)
-
-        range_row.addWidget(QLabel("Alert range (jumps):"))
-        self.jump_range_spin = QSpinBox()
-        self.jump_range_spin.setRange(0, 20)
-        self.jump_range_spin.setValue(int(getattr(config, "alert_jump_range", 5)))
-        self.jump_range_spin.setToolTip("Windows toasts fire for intel inside this stargate hop count of your current system.")
-        self.jump_range_spin.valueChanged.connect(self._on_jump_range_changed)
-        self.jump_range_spin.valueChanged.connect(self._reapply_feed_filters)
-        range_row.addWidget(self.jump_range_spin)
-
-        self.in_range_only_cb = QCheckBox("Show in-range only")
-        self.in_range_only_cb.setChecked(bool(getattr(config, "feed_in_range_only", False)))
-        self.in_range_only_cb.setToolTip("Hide intel cards outside the alert jump range. Out-of-range pings are still parsed.")
-        self.in_range_only_cb.toggled.connect(self._reapply_feed_filters)
-        range_row.addWidget(self.in_range_only_cb)
-
-        self.windows_alerts_cb = QCheckBox("Windows threat alerts")
-        self.windows_alerts_cb.setChecked(bool(getattr(config, "windows_alerts_enabled", True)))
-        self.windows_alerts_cb.setToolTip("Popup a Windows notification when a MEDIUM+ threat is within range.")
-        range_row.addWidget(self.windows_alerts_cb)
-        range_row.addStretch()
-        right_layout.addLayout(range_row)
-
-        filter_row = QHBoxLayout()
-        filter_row.addWidget(QLabel("Feed Filter:"))
         self.threat_filter_combo = QComboBox()
-        self.threat_filter_combo.setFixedHeight(26)
-        self.threat_filter_combo.setMinimumWidth(160)
+        self.threat_filter_combo.setFixedHeight(28)
+        self.threat_filter_combo.setMinimumWidth(150)
         self.threat_filter_combo.setStyleSheet(
             f"font-size: 11.5px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
             f"border: 1px solid {BORDER}; border-radius: 4px; padding: 2px 6px;"
@@ -842,20 +955,71 @@ class MainWindow(QMainWindow):
         ])
         self.threat_filter_combo.setToolTip("Filter live intel feed cards by threat level.")
         self.threat_filter_combo.currentIndexChanged.connect(self._reapply_feed_filters)
-        filter_row.addWidget(self.threat_filter_combo)
+        radar_header_layout.addWidget(self.threat_filter_combo)
 
-        self.hide_clears_cb = QCheckBox("Hide System Clear (CLR)")
-        self.hide_clears_cb.setChecked(bool(getattr(config, "feed_hide_system_clears", False)))
-        self.hide_clears_cb.setToolTip("Hide 'System Clear' (CLR) reports from the feed.")
-        self.hide_clears_cb.toggled.connect(self._reapply_feed_filters)
-        filter_row.addWidget(self.hide_clears_cb)
-        filter_row.addStretch()
-        right_layout.addLayout(filter_row)
+        self.tab_options_btn = QPushButton("⚙️ Radar Options")
+        self.tab_options_btn.setFixedHeight(28)
+        self.tab_options_btn.setStyleSheet(radar_control_btn_css())
+        self.tab_options_btn.setToolTip("Configure chatlogs, channels, jump alert range, and auto-response matrix")
+        self.tab_options_btn.clicked.connect(self._open_radar_options_dialog)
+        radar_header_layout.addWidget(self.tab_options_btn)
+
+        right_layout.addLayout(radar_header_layout)
+
+        # Active Channel Status
+        self.active_channels_lbl = QLabel("Channels: Auto-Detecting active EVE chatlogs...")
+        self.active_channels_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px;")
+        self.active_channels_lbl.setWordWrap(True)
+        right_layout.addWidget(self.active_channels_lbl)
 
         self.location_hint_lbl = QLabel("Location unknown — join Local / wait for a jump.")
         self.location_hint_lbl.setStyleSheet(f"color: {ACCENT_HOVER}; font-size: 12px;")
         self.location_hint_lbl.setWordWrap(True)
         right_layout.addWidget(self.location_hint_lbl)
+
+        # State widgets maintained on self for synchronization with RadarOptionsDialog
+        self.folder_btn = QPushButton("📁 Log Folder")
+        self.folder_btn.clicked.connect(self._browse_log_dir)
+
+        self.channel_filter_combo = QComboBox()
+        self.channel_filter_combo.addItems([
+            "Intel Channels (*.intel, *.imperium, *.horde, etc.)",
+            "Custom Channel Keywords...",
+            "All Channels",
+            "Alliance Only",
+            "Corp Only",
+            "Local Only"
+        ])
+        self.channel_filter_combo.currentIndexChanged.connect(self._on_filter_changed)
+
+        self.custom_channel_edit = QLineEdit()
+        self.custom_channel_edit.setText(config.custom_intel_channels)
+        self.custom_channel_edit.textChanged.connect(self._on_custom_filter_text_changed)
+
+        self.auto_response_cb = QCheckBox("⚡ A.U.R.A. Auto-Respond to Critical Threats")
+        self.auto_response_cb.setChecked(False)
+        self.auto_response_cb.setToolTip("When checked, Adaptive Underworld Recon Array (A.U.R.A.) automatically calculates combat countermeasures for Cynos, Bubbles, and Capital spikes in real time.")
+
+        self.character_combo = QComboBox()
+        self.character_combo.addItem("Auto (Latest Active)")
+        self.character_combo.currentIndexChanged.connect(self._on_character_changed)
+
+        self.jump_range_spin = QSpinBox()
+        self.jump_range_spin.setRange(0, 20)
+        self.jump_range_spin.setValue(int(getattr(config, "alert_jump_range", 5)))
+        self.jump_range_spin.valueChanged.connect(self._on_jump_range_changed)
+        self.jump_range_spin.valueChanged.connect(self._reapply_feed_filters)
+
+        self.in_range_only_cb = QCheckBox("Show in-range only")
+        self.in_range_only_cb.setChecked(bool(getattr(config, "feed_in_range_only", False)))
+        self.in_range_only_cb.toggled.connect(self._reapply_feed_filters)
+
+        self.windows_alerts_cb = QCheckBox("Windows threat alerts")
+        self.windows_alerts_cb.setChecked(bool(getattr(config, "windows_alerts_enabled", True)))
+
+        self.hide_clears_cb = QCheckBox("Hide System Clear (CLR)")
+        self.hide_clears_cb.setChecked(bool(getattr(config, "feed_hide_system_clears", False)))
+        self.hide_clears_cb.toggled.connect(self._reapply_feed_filters)
 
         # Real-time Intel Feed List Widget (Higher Legibility & Stabilized Scrolling)
         self.intel_list = QListWidget()
@@ -1539,6 +1703,10 @@ class MainWindow(QMainWindow):
         dlg = CreditsDialog(self)
         dlg.exec()
 
+    def _open_radar_options_dialog(self):
+        dlg = RadarOptionsDialog(self, parent=self)
+        dlg.exec()
+
     def _open_dscan_dialog(self):
         dlg = DScanDialog(self)
         dlg.dscan_submitted.connect(self._handle_dscan_submission)
@@ -1717,15 +1885,12 @@ class MainWindow(QMainWindow):
             self.worker = None
 
     def _force_stop_worker(self) -> None:
-        """Stop active inference and tear down the worker thread (does not unload model)."""
+        """Stop active inference and tear down the worker thread safely."""
         if self.worker is not None:
             if self.worker.isRunning():
                 self.worker.stop()
-                if not self.worker.wait(10000):
-                    self.worker.terminate()
-                    self.worker.wait(2000)
+                self.worker.wait(5000)
             self._cleanup_worker()
-        self.engine.request_abort()
         self.engine.clear_abort()
 
     def _execute_tactical_prompt(self, prompt: str, display_header: str):

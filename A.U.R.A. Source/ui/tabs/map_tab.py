@@ -21,7 +21,7 @@ from subsystems.map.models import RouteResult
 from core.input_safety import safe_display_text
 from ui.theme import (
     BG_DEEP, BG_PANEL, BG_ELEVATED, BORDER, BORDER_MUTED, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT,
-    TEXT_BRAND, ACCENT, ACCENT_HOVER, BORDER_FOCUS, STATUS_ONLINE,
+    TEXT_BRAND, ACCENT, ACCENT_HOVER, ACCENT_DIM, BTN_TEXT_ON_ACCENT, BORDER_FOCUS, STATUS_ONLINE,
     btn_secondary_css, radar_accent_btn_css,
 )
 
