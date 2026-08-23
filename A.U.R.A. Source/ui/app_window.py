@@ -527,12 +527,7 @@ class MainWindow(QMainWindow):
         self.worker: Optional[WorkerThread] = None
         self._intel_ask_buttons: List[QPushButton] = []
         self.chat_monitor = LiveChatMonitor()
-        self.chat_monitor.intel_received.connect(self._handle_live_intel_line)
-        self.chat_monitor.critical_threat_detected.connect(self._handle_live_critical_threat)
-        self.chat_monitor.active_channels_updated.connect(self._handle_active_channels)
-        self.chat_monitor.status_updated.connect(self._handle_monitor_status)
-        self.chat_monitor.location_changed.connect(self._handle_location_changed)
-        self.chat_monitor.characters_updated.connect(self._on_characters_discovered)
+        self._connect_chat_monitor(self.chat_monitor)
 
         self.eve_map = get_eve_map()
         self.alerter = ThreatAlerter(
@@ -1393,9 +1388,13 @@ class MainWindow(QMainWindow):
                 ch_str += f" (+{len(channels)-4} more)"
             self.active_channels_lbl.setText(f"Active Channels ({len(channels)}): {ch_str}")
         else:
-            self.active_channels_lbl.setText(f"Monitoring folder: {os.path.basename(self.chat_monitor.log_dir)} (Waiting for EVE logs...)")
+            self.active_channels_lbl.setText(
+                f"Monitoring folder: {os.path.basename(self.chat_monitor.log_dir)} "
+                "(Waiting for EVE logs — enable chat logging and join an intel channel)"
+            )
 
     def _handle_monitor_status(self, msg: str, is_active: bool):
+        self.monitor_pill.setToolTip(msg or "")
         if is_active:
             self.monitor_pill.setText("● WATCHING LOGS")
             self.monitor_pill.setStyleSheet(
@@ -1408,6 +1407,35 @@ class MainWindow(QMainWindow):
                 f"color: {ACCENT_HOVER}; font-weight: bold; font-size: 11px; background: {STATUS_STANDBY_BG}; "
                 f"border: 1px solid {ACCENT}; padding: 2px 6px; border-radius: 4px;"
             )
+            if msg:
+                self.active_channels_lbl.setText(msg)
+
+    def _connect_chat_monitor(self, monitor: LiveChatMonitor) -> None:
+        monitor.intel_received.connect(self._handle_live_intel_line)
+        monitor.critical_threat_detected.connect(self._handle_live_critical_threat)
+        monitor.active_channels_updated.connect(self._handle_active_channels)
+        monitor.status_updated.connect(self._handle_monitor_status)
+        monitor.location_changed.connect(self._handle_location_changed)
+        monitor.characters_updated.connect(self._on_characters_discovered)
+
+    def _ensure_chat_monitor_running(self) -> None:
+        """Restart the log tailer if the previous QThread already finished."""
+        current = getattr(self, "chat_monitor", None)
+        if current is not None and current.isRunning():
+            return
+        log_dir = current.log_dir if current is not None else None
+        channel_filter = current.channel_filter if current is not None else "intel"
+        custom = ",".join(current.custom_patterns) if current is not None else None
+        selected = current.selected_character if current is not None else None
+        self.chat_monitor = LiveChatMonitor(
+            log_dir=log_dir,
+            channel_filter=channel_filter,
+            custom_patterns=custom,
+        )
+        if selected:
+            self.chat_monitor.set_selected_character(selected)
+        self._connect_chat_monitor(self.chat_monitor)
+        self.chat_monitor.start()
 
     def _browse_log_dir(self):
         dir_path = QFileDialog.getExistingDirectory(
@@ -1417,6 +1445,7 @@ class MainWindow(QMainWindow):
         )
         if dir_path:
             self.chat_monitor.set_log_dir(dir_path)
+            self._ensure_chat_monitor_running()
 
     def _on_filter_changed(self, idx: int):
         mapping = {

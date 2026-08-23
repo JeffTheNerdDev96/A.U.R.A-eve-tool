@@ -327,7 +327,7 @@ class DScanParser:
         Unified analyzer for both D-Scan table dumps and Chat/Intel logs.
         Detects whether input is D-Scan, Intel, or a mixture, and combines the intelligence.
         """
-        from subsystems.intel.parser import IntelRegexParser as IntelParser
+        from subsystems.intel.parser import IntelParser
         
         raw_lines = [l.strip() for l in raw_text.strip().split("\n") if l.strip()]
         
