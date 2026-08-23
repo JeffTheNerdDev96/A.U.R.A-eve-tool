@@ -4,7 +4,6 @@ Angel Cartel EVE Online Tactical AI Assistant with NPU Acceleration & Dedicated 
 """
 import os
 import sys
-from typing import Dict, Any
 
 from version import VERSION
 

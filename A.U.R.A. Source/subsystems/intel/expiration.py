@@ -4,7 +4,7 @@ Decays threat levels and purges expired intel reports gracefully over time.
 """
 
 import time
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional
 from .models import IntelReport, ThreatStatus
 
 

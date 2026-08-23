@@ -9,7 +9,7 @@ from typing import Dict, List, Any, Optional
 from core.eve_data import (
     lookup_ship, SHIP_DATABASE,
     THREAT_BUBBLE, THREAT_CYNO, THREAT_ECM, THREAT_MARAUDER,
-    THREAT_CAPITAL, THREAT_SUPER, THREAT_LOGI, THREAT_PIRATE, THREAT_T2_COMBAT
+    THREAT_CAPITAL, THREAT_SUPER, THREAT_LOGI, THREAT_PIRATE
 )
 
 _RE_QTY_PREFIX = re.compile(r"^(\d+)\s*[xX*]\s*(.+)$")

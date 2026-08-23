@@ -45,12 +45,6 @@ TEXT_BRAND = BONE_WHITE
 BTN_SECONDARY_BG = BURNT_IRON
 BTN_SECONDARY_BORDER = BURNT_IRON_BORDER
 
-# Semantic (intel / map — gameplay signals, not faction chrome)
-THREAT_CRITICAL = "#f43f5e"
-THREAT_HIGH = "#fb923c"
-THREAT_MEDIUM = "#facc15"
-THREAT_INFO = "#38bdf8"
-THREAT_CLEAR = "#34d399"
 STATUS_ONLINE = "#34d399"
 STATUS_STANDBY_BG = BURNT_IRON
 STATUS_STANDBY_BORDER = BURNT_IRON_BORDER
@@ -60,6 +54,10 @@ BTN_TEXT_ON_ACCENT = BONE_WHITE
 FONT_DISPLAY = "'Orbitron', 'Segoe UI', sans-serif"
 _DISPLAY_FONT_LOADED = False
 _DISPLAY_FONT_FAMILY = "Orbitron"
+
+
+def tier_badge_font_css() -> str:
+    return f"font-family: {FONT_DISPLAY};"
 
 
 def _fonts_dir() -> str:
@@ -98,17 +96,6 @@ def load_display_font() -> str:
     return "Segoe UI"
 
 
-def threat_colors() -> Dict[str, str]:
-    return {
-        "CRITICAL": THREAT_CRITICAL,
-        "HIGH": THREAT_HIGH,
-        "MEDIUM": THREAT_MEDIUM,
-        "INFO": THREAT_INFO,
-        "LOW": THREAT_INFO,
-        "CLEAR": THREAT_CLEAR,
-    }
-
-
 def btn_secondary_css() -> str:
     return (
         f"QPushButton {{ background:{BTN_SECONDARY_BG}; color:{TEXT_PRIMARY}; "
@@ -116,19 +103,6 @@ def btn_secondary_css() -> str:
         f"padding:5px 12px; font-size:12px; }}"
         f"QPushButton:hover {{ background:{BURNT_IRON_LIGHT}; border:1px solid {ACCENT}; }}"
     )
-
-
-def chrome_action_btn_css() -> str:
-    return (
-        f"font-family: {FONT_DISPLAY}; color: {TEXT_PRIMARY}; "
-        f"background: {BTN_SECONDARY_BG}; border: 1px solid {BTN_SECONDARY_BORDER}; "
-        f"border-radius: 6px; padding: 6px 14px; font-size: 13px; font-weight: bold;"
-        f"QPushButton:hover {{ background: {BURNT_IRON_LIGHT}; border: 1px solid {ACCENT}; }}"
-    )
-
-
-def tier_badge_font_css() -> str:
-    return f"font-family: {FONT_DISPLAY};"
 
 
 def dialog_stylesheet() -> str:

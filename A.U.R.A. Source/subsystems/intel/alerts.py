@@ -4,7 +4,7 @@ Jump-range threat filter and Windows toast debounce for Live Intel Radar.
 from __future__ import annotations
 
 import time
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, Optional
 
 from subsystems.map import EveMapGraph, get_eve_map
 

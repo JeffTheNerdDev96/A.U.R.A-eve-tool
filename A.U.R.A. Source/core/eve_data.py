@@ -8,7 +8,7 @@ Ship and module facts are compiled from publicly documented EVE Online game data
 (CCP hf), with reference material from the EVE University Wiki, zKillboard, and
 DOTLAN EveMaps. See CREDITS.md.
 """
-from typing import Dict, List, Any, Optional, Set, Tuple
+from typing import Dict, List, Any, Optional
 import re
 import functools
 

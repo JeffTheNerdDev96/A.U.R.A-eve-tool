@@ -7,17 +7,16 @@ import math
 import time
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from PyQt6.QtCore import Qt, QRectF, QPointF, QTimer
+from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QBrush, QColor, QPen, QFont, QWheelEvent
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton,
     QFrame, QGraphicsView, QGraphicsScene, QGraphicsEllipseItem,
-    QGraphicsLineItem, QGraphicsTextItem, QGraphicsItem, QApplication,
+    QGraphicsLineItem, QGraphicsTextItem, QGraphicsItem,
     QSizePolicy,
 )
 
 from subsystems.map import EveMapGraph, MapSubsystem
-from core import get_event_bus
 from core.input_safety import safe_display_text
 from ui.theme import (
     BG_DEEP, BG_PANEL, BORDER, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT,

@@ -18,7 +18,6 @@ from PyQt6.QtWidgets import (
 from subsystems.fleet_comp import (
     FleetCompSubsystem, parse_fleet_paste, compare_fleets, assess_matchup
 )
-from core import get_event_bus
 from core.error_handler import AURAErrorCode, log_diagnostic_error
 from ui.theme import (
     TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT, TEXT_HEADER,

@@ -5,9 +5,9 @@ Provides high-speed matching for system names, ship classes, cyno/bubble indicat
 
 import re
 from typing import Dict, List, Any, Optional
-from core.eve_data import _FAST_SHIP_LOOKUP, SHIP_DATABASE
+from core.eve_data import _FAST_SHIP_LOOKUP
 from subsystems.map import get_eve_map
-from core.input_safety import clamp_text, strip_control_chars, safe_display_text
+from core.input_safety import clamp_text, strip_control_chars
 from .models import IntelReport
 
 _STRIP_CHARS = ".,;:!?\"'()[]{}<>`~*|\\/\ufeff\u200b\u200e\u200f\u00a0 \t\r\n"

@@ -6,7 +6,6 @@ from __future__ import annotations
 import html
 import os
 import re
-from typing import Optional
 
 # Default caps (overridden by config at runtime where applicable)
 MAX_CHAT_CHARS = 16_000

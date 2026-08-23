@@ -30,20 +30,19 @@ from PyQt6.QtWidgets import (
     QAbstractItemView,
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QSize, QEvent
-from PyQt6.QtGui import QIcon, QTextCursor, QFont, QColor, QBrush, QAction, QPixmap
+from PyQt6.QtGui import QIcon, QTextCursor, QFont, QAction, QPixmap
 
 from core.config import config
-from hardware.detector import HardwareDetector, DynamicHardwareRouter
 from subsystems.ai.ingestion import DocumentParser
 from subsystems.ai.engine import UnifiedInferenceEngine
 from subsystems.fleet_comp.dscan_parser import DScanParser
 from subsystems.fitting.parser import FittingParser
-from subsystems.intel.monitor import LiveChatMonitor, find_default_chatlog_dir
+from subsystems.intel.monitor import LiveChatMonitor
 from subsystems.intel.parser import IntelParser
 from core.eve_data import lookup_ship
 from subsystems.map import get_eve_map
 from subsystems.intel.alerts import ThreatAlerter, _LEVEL_RANK
-from core import get_event_bus, BaseEvent, cleanup_temp_files, shutdown_application
+from core import get_event_bus, cleanup_temp_files, shutdown_application
 from core.input_safety import escape_html, safe_display_text, clamp_text
 from subsystems.intel import IntelSubsystem
 from subsystems.map import MapSubsystem
@@ -53,7 +52,7 @@ from ui.tabs.map_tab import MapTabWidget
 from ui.tabs.composition_tab import CompositionTabWidget
 from ui.theme import (
     ACCENT, ACCENT_HOVER, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT, TEXT_BRAND,
-    BG_DEEP, BG_ELEVATED, BORDER, BTN_SECONDARY_BG, BTN_SECONDARY_BORDER,
+    BG_ELEVATED, BORDER, BTN_SECONDARY_BG, BTN_SECONDARY_BORDER,
     STATUS_ONLINE, STATUS_STANDBY_BG,
     load_display_font,
     dialog_stylesheet, dialog_header_css, dialog_sub_css, credits_html_palette,
@@ -445,61 +444,6 @@ class FittingDialog(QDialog):
             log_diagnostic_error(AURAErrorCode.ERR_3003_FITTING_PARSE_FAILED, exc, "FittingDialog._on_analyze")
             return
         self.fit_submitted.emit(text, parsed, role)
-        self.accept()
-
-
-class IntelBatchDialog(QDialog):
-    """Modal for batch pasting historical Intel logs."""
-    intel_submitted = pyqtSignal(str, dict)
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle("🛰️ Adaptive Underworld Recon Array (A.U.R.A.) Batch Intel Analysis")
-        self.resize(650, 480)
-        self.setStyleSheet(dialog_stylesheet())
-        self._init_ui()
-
-    def _init_ui(self):
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(14, 14, 14, 14)
-        layout.setSpacing(10)
-
-        header = QLabel("🛰️ <b>Batch Chat Log Ingestion</b>")
-        header.setStyleSheet(dialog_header_css())
-        layout.addWidget(header)
-
-        sub = QLabel("Paste chat or historical intel log lines:")
-        sub.setStyleSheet(dialog_sub_css())
-        layout.addWidget(sub)
-
-        self.input_edit = QTextEdit()
-        self.input_edit.setAcceptRichText(False)
-        self.input_edit.setPlaceholderText("Paste chat/intel log lines...\nExample:\n[ 19:15:23 ] ScoutPilot > V-3YG7 +5 Loki Cynabal gate bubbled\n[ 19:16:01 ] Wingman > 1DQ1-A red dreadnought in local\n[ 19:16:45 ] ScoutPilot > Amamake spike 10 hostiles")
-        layout.addWidget(self.input_edit)
-
-        btn_layout = QHBoxLayout()
-        btn_layout.setSpacing(10)
-        btn_layout.addStretch()
-
-        cancel_btn = QPushButton("Cancel")
-        cancel_btn.setObjectName("CancelBtn")
-        cancel_btn.setFixedHeight(34)
-        cancel_btn.clicked.connect(self.reject)
-        btn_layout.addWidget(cancel_btn)
-
-        analyze_btn = QPushButton("⚡ Decode Threat Vectors ➤")
-        analyze_btn.setFixedHeight(34)
-        analyze_btn.clicked.connect(self._on_analyze)
-        btn_layout.addWidget(analyze_btn)
-
-        layout.addLayout(btn_layout)
-
-    def _on_analyze(self):
-        text = self.input_edit.toPlainText().strip()
-        if not text:
-            return
-        parsed = IntelParser.parse(text)
-        self.intel_submitted.emit(text, parsed)
         self.accept()
 
 

@@ -26,7 +26,6 @@ from .profile import (
     load_install_profile,
     standby_label,
     summarize_devices,
-    install_hint_for_gpu,
     HardwareProfile,
     DeviceMap,
 )

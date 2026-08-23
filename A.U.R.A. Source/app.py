@@ -7,7 +7,6 @@ import os
 import traceback
 import time
 import atexit
-import gc
 
 from version import INSTALLER_EXE_NAME
 

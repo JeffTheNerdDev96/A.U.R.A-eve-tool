@@ -10,7 +10,6 @@ import os
 import sys
 import time
 import traceback
-from typing import Any
 
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 _APP_DIR = os.path.dirname(_THIS_DIR) if os.path.basename(_THIS_DIR) == "core" else _THIS_DIR

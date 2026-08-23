@@ -24,8 +24,7 @@ from core.config import config
 from version import INSTALL_DIR_NAME
 from hardware.detector import HardwareDetector, DynamicHardwareRouter
 from hardware.profile import install_hint_for_gpu
-from core.error_handler import AURAErrorCode, AURAException, log_diagnostic_error, format_error_html
-from .ingestion import DocumentParser, ImagePreprocessor
+from core.error_handler import AURAErrorCode, log_diagnostic_error, format_error_html
 from core.eve_data import get_tactical_grounding
 from core.input_safety import clamp_text, strip_control_chars, wrap_untrusted
 
