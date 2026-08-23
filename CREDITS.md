@@ -10,8 +10,10 @@ A.U.R.A. is an unofficial, fan-made tactical companion for EVE Online. It exists
 
 ## 1. Project Creator & Maintainers
 
-* **Lead Architect & Developer**: **JeffTheNerdDev96**
-* **Project Concept**: Offline-first, autonomous tactical recon array and combat copilot designed for New Eden capsuleers.
+| Role | Name | Contribution |
+| :--- | :--- | :--- |
+| **Lead Architect & Developer** | **JeffTheNerdDev96** | Design, implementation, and ongoing maintenance of A.U.R.A. |
+| **Project Concept** | **JeffTheNerdDev96** | Offline-first, autonomous tactical recon array and combat copilot designed for New Eden capsuleers |
 
 ---
 
@@ -21,11 +23,13 @@ A.U.R.A. is an unofficial, fan-made tactical companion for EVE Online. It exists
 
 Ship, module, item, and stellar mechanics in the tactical database are compiled from publicly documented EVE Online game data for offline tactical analysis:
 
-* **[CCP Games Static Data Export (SDE)](https://developers.eveonline.com)** — The foundational data source for New Eden solar systems, stargate jump graphs, item types, dogma attributes, and dogmatic modifiers.
-* **[Fuzzwork (Steve Ronuken)](https://www.fuzzwork.co.uk)** — SQLite and CSV conversions of the CCP SDE, used to build the offline stargate graph (`eve_map.json`) and system lookup indexes.
-* **[EVE University Wiki](https://wiki.eveuniversity.org)** — Authoritative community documentation for ship mechanics, fitting guides, weapon formulas, electronic warfare rules, and alliance / coalition references.
-* **[zKillboard (Squizz Caphinator)](https://zkillboard.com)** — Killmail telemetry, ship loss patterns, and fittings metadata used to inform tactical dossiers and threat classification profiles.
-* **[DOTLAN EveMaps (Wollari)](https://www.dotlan.net)** — Jump route algorithms, regional map layouts, sovereignty reference maps, and visual graph inspirations.
+| Source | Author / Team | Role in A.U.R.A. |
+| :--- | :--- | :--- |
+| **[CCP Games Static Data Export (SDE)](https://developers.eveonline.com)** | CCP hf | Foundational data for New Eden solar systems, stargate jump graphs, item types, dogma attributes, and dogmatic modifiers |
+| **[Fuzzwork](https://www.fuzzwork.co.uk)** | Steve Ronuken | SQLite and CSV conversions of the CCP SDE, used to build the offline stargate graph (`eve_map.json`) and system lookup indexes |
+| **[EVE University Wiki](https://wiki.eveuniversity.org)** | EVE University | Authoritative community documentation for ship mechanics, fitting guides, weapon formulas, electronic warfare rules, and alliance / coalition references |
+| **[zKillboard](https://zkillboard.com)** | Squizz Caphinator | Killmail telemetry, ship loss patterns, and fittings metadata used to inform tactical dossiers and threat classification profiles |
+| **[DOTLAN EveMaps](https://www.dotlan.net)** | Wollari | Jump route algorithms, regional map layouts, sovereignty reference maps, and visual graph inspirations |
 
 ---
 
