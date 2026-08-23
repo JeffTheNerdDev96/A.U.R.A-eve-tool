@@ -1,8 +1,9 @@
 # ==============================================================================
 # Git Ignore Configuration for Adaptive Underworld Recon Array (A.U.R.A.)
+# v0.2.1-alpha2 | Pure Modular Architecture
 # ==============================================================================
 
-# 1. Neural Model Weights & AI Artifacts (Large Binaries / Local Execution Only)
+# 1. Neural Model Weights & Large AI Artifacts (Local Execution Only)
 *.gguf
 *.bin
 *.onnx
@@ -10,8 +11,10 @@
 *.pt
 *.pth
 *.ckpt
-models/
-**/models/
+models/*
+**/models/*
+!models/.gitkeep
+!**/models/.gitkeep
 training/
 **/training/
 
@@ -65,6 +68,10 @@ build_standalone_temp/
 **/build_standalone_temp/
 dist_standalone_temp/
 **/dist_standalone_temp/
+tools/
+**/tools/
+
+# 5. Compiled Binaries, Wheels & Archives
 *.exe
 *.dll
 *.so
@@ -73,18 +80,21 @@ dist_standalone_temp/
 *.zip
 *.7z
 *.tar.gz
-tools/
-**/tools/
+vulkan_llama/
+**/vulkan_llama/
 
-# 5. Local Runtime Hardware Telemetry & State
+# 6. Local Runtime Hardware Telemetry & State
 hardware_profile.json
 **/hardware_profile.json
-A.U.R.A. Source/requirements/hardware_profile.json
+requirements/hardware_profile.json
+**/requirements/hardware_profile.json
 
-# 6. Logs, Diagnostics & Temporary Files
+# 7. Logs, Diagnostics & Crash Dumps
 *.log
-logs/
-**/logs/
+logs/*
+**/logs/*
+!logs/.gitkeep
+!**/logs/.gitkeep
 *.tmp
 *.temp
 *.dmp
@@ -92,7 +102,7 @@ logs/
 scratch/
 **/scratch/
 
-# 7. OS & IDE Metadata
+# 8. OS & IDE Metadata
 .DS_Store
 Thumbs.db
 desktop.ini
@@ -102,7 +112,3 @@ desktop.ini
 *.swp
 *.swo
 *~
-
-# 8. Local Planning & Roadmap Artifacts
-roadmap/
-**/roadmap/

@@ -1,4 +1,4 @@
-# Adaptive Underworld Recon Array (A.U.R.A.) — v0.2.0-alpha1 — Tactical User Guide
+# Adaptive Underworld Recon Array (A.U.R.A.) — v0.2.1-alpha2 — Tactical User Guide
 
 **Adaptive Underworld Recon Array (A.U.R.A.)**  
 *Angel Cartel Cybernetics Division — by JeffTheNerdDev96*

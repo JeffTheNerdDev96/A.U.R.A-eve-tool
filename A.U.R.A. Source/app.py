@@ -1,6 +1,6 @@
 """
 Main entry point for Adaptive Underworld Recon Array (A.U.R.A.).
-Angel Cartel EVE Online Tactical AI Assistant - v0.2.0-alpha1.
+Angel Cartel EVE Online Tactical AI Assistant - v0.2.1-alpha2.
 """
 import sys
 import os
@@ -61,10 +61,10 @@ if sys.platform == "win32":
 # 2. Automated Stale Cache & Temporary File Cleaner
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import bootstrap_runtime
-bootstrap_runtime.configure_qt_paths()
+from bootstrap import configure_qt_paths
+configure_qt_paths()
 
-from lifecycle import cleanup_temp_files, install_thread_excepthook
+from core import cleanup_temp_files, install_thread_excepthook
 
 cleanup_temp_files()
 atexit.register(cleanup_temp_files)

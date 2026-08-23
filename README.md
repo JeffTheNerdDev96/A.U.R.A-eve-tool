@@ -1,6 +1,5 @@
 # A.U.R.A. — EVE Online AI Tactical Copilot
-**v0.2.0-alpha1**
-
+**v0.2.1-alpha2**
 
 > **Adaptive Underworld Recon Array (A.U.R.A.)** — Your all-in-one, local tactical companion and shipboard assistant for *EVE Online*.
 
@@ -16,7 +15,7 @@ For full operational instructions, see the [Tactical User Guide (USER_GUIDE.md)]
 
 ---
 
-## What's New in v0.2.0-alpha1
+## What's New in v0.2.1-alpha2
 
 * **Composition tab** — Paste friendly fleet vs hostile D-scan side-by-side; get a role breakdown table and local engagement assessment (rule-based, no LLM).
 * **Tactical Map tab** — Pan/zoom stargate graph around your current system with intel overlays and jump-range bubble.
