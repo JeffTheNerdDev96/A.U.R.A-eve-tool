@@ -1162,6 +1162,8 @@ class MainWindow(QMainWindow):
             self.map_tab.note_intel(parsed)
 
         ts = parsed.get("time_str") or parsed.get("timestamp") or time.strftime("%H:%M:%S")
+        if " " in ts:
+            ts = ts.split()[-1]
         sys_name = (parsed.get("system") or "Unknown Space").upper()
         jumps = parsed.get("jumps")
         if jumps is None:
@@ -1214,7 +1216,11 @@ class MainWindow(QMainWindow):
 
         header = f"[{ts}]  {sys_name}  ·  {hop}  ·  {tag}  ·  [{ch}]"
         detail_line = f"  • {status_text}"
-        quote_line = f"  💬 \"{raw_msg}\"" if raw_msg else ""
+        speaker = parsed.get("speaker") or parsed.get("reporter")
+        if speaker and speaker != "Unknown":
+            quote_line = f"  💬 {speaker} > \"{raw_msg}\"" if raw_msg else ""
+        else:
+            quote_line = f"  💬 \"{raw_msg}\"" if raw_msg else ""
 
         card_text = f"{header}\n{detail_line}\n{quote_line}" if quote_line else f"{header}\n{detail_line}"
 

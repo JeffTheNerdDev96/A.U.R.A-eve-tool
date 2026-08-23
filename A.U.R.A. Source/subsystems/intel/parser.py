@@ -89,8 +89,8 @@ class IntelParser:
     @classmethod
     def parse_single_line(cls, line: str, channel_name: str = "Intel") -> Optional[Dict[str, Any]]:
         line = clamp_text(strip_control_chars(line or ""), 1024)
-        clean_line = line.strip(_STRIP_CHARS)
-        if not clean_line or clean_line.startswith("---") or "Channel Name:" in clean_line or "Listener:" in clean_line:
+        clean_line = line.strip(" \t\r\n\ufeff\u200b\u200e\u200f\u00a0")
+        if not clean_line or clean_line.startswith("---") or "Channel Name:" in clean_line or "Listener:" in clean_line or "Session Started:" in clean_line:
             return None
 
         speaker = "Unknown"
@@ -106,6 +106,8 @@ class IntelParser:
                 if gt_pos > 0:
                     speaker = rest[:gt_pos].strip()
                     msg = rest[gt_pos + 1:].strip()
+                else:
+                    msg = rest
 
         words = [w.strip(_STRIP_CHARS) for w in msg.split() if w.strip(_STRIP_CHARS)]
         if not words:

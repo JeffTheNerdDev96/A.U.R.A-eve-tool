@@ -61,3 +61,4 @@ class MapSubsystem(BaseSubsystem):
         return result
 
     calculate_route = plan_route
+    find_route = plan_route

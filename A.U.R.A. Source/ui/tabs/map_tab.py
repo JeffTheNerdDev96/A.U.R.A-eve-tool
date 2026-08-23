@@ -12,15 +12,17 @@ from PyQt6.QtGui import QBrush, QColor, QPen, QFont, QWheelEvent
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton,
     QFrame, QGraphicsView, QGraphicsScene, QGraphicsEllipseItem,
-    QGraphicsLineItem, QGraphicsTextItem, QGraphicsItem,
+    QGraphicsLineItem, QGraphicsTextItem, QGraphicsItem, QScrollArea,
     QSizePolicy,
 )
 
 from subsystems.map import EveMapGraph, MapSubsystem
+from subsystems.map.models import RouteResult
 from core.input_safety import safe_display_text
 from ui.theme import (
-    BG_DEEP, BG_PANEL, BORDER, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT,
-    ACCENT, ACCENT_HOVER, BORDER_FOCUS, btn_secondary_css,
+    BG_DEEP, BG_PANEL, BG_ELEVATED, BORDER, BORDER_MUTED, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT,
+    TEXT_BRAND, ACCENT, ACCENT_HOVER, BORDER_FOCUS, STATUS_ONLINE,
+    btn_secondary_css, radar_accent_btn_css,
 )
 
 INTEL_TTL_SEC = 10 * 60
@@ -198,7 +200,7 @@ class SystemNodeItem(QGraphicsEllipseItem):
 
 
 class MapTabWidget(QWidget):
-    """Tactical jump-range stargate map with intel overlays."""
+    """Tactical jump-range stargate map with intel overlays and BFS Route Planner."""
 
     def __init__(self, eve_map: Optional[EveMapGraph] = None, parent=None):
         super().__init__(parent)
@@ -218,6 +220,11 @@ class MapTabWidget(QWidget):
         self._bubble_total = 0
         self._selected_id: Optional[int] = None
         self._extra_ids: Set[int] = set()
+
+        # BFS Route Planning state
+        self._current_route: Optional[RouteResult] = None
+        self._route_node_ids: List[int] = []
+        self._route_edges: Set[Tuple[int, int]] = set()
 
         self._prune_timer = QTimer(self)
         self._prune_timer.setInterval(15000)  # Prune expired 10-min intel every 15s
@@ -258,12 +265,16 @@ class MapTabWidget(QWidget):
         self.scene.selectionChanged.connect(self._on_selection_changed)
         body.addWidget(self.view, stretch=1)
 
+        # Tactical Right Rail / Control Panel
         rail = QFrame()
-        rail.setFixedWidth(240)
+        rail.setFixedWidth(280)
         rail.setStyleSheet(f"QFrame {{ background:{BG_PANEL}; border:1px solid {BORDER}; }}")
         rl = QVBoxLayout(rail)
         rl.setContentsMargins(10, 10, 10, 10)
-        hdr = QLabel("SYSTEM")
+        rl.setSpacing(8)
+
+        # 1. System Info Section
+        hdr = QLabel("SYSTEM INTEL")
         hdr.setStyleSheet(f"color:{TEXT_HINT}; font-size:10px; font-weight:bold; letter-spacing:1px;")
         rl.addWidget(hdr)
         self.info_title = QLabel("—")
@@ -275,12 +286,82 @@ class MapTabWidget(QWidget):
         self.info_body.setWordWrap(True)
         self.info_body.setStyleSheet(f"color:{TEXT_SECONDARY}; font-size:12px;")
         rl.addWidget(self.info_body)
+
+        # Divider
+        div1 = QFrame()
+        div1.setFrameShape(QFrame.Shape.HLine)
+        div1.setStyleSheet(f"color: {BORDER}; background-color: {BORDER}; max-height: 1px;")
+        rl.addWidget(div1)
+
+        # 2. BFS Tactical Route Planner Section
+        route_hdr = QLabel("TACTICAL ROUTE PLANNER (BFS)")
+        route_hdr.setStyleSheet(f"color:{TEXT_BRAND}; font-size:10.5px; font-weight:bold; letter-spacing:1px;")
+        rl.addWidget(route_hdr)
+
+        self.route_origin_edit = QLineEdit()
+        self.route_origin_edit.setFixedHeight(26)
+        self.route_origin_edit.setStyleSheet(
+            f"font-size: 11.5px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
+            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 2px 6px;"
+        )
+        self.route_origin_edit.setPlaceholderText("Origin (e.g. Jita)")
+        rl.addWidget(self.route_origin_edit)
+
+        self.route_dest_edit = QLineEdit()
+        self.route_dest_edit.setFixedHeight(26)
+        self.route_dest_edit.setStyleSheet(
+            f"font-size: 11.5px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
+            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 2px 6px;"
+        )
+        self.route_dest_edit.setPlaceholderText("Destination (e.g. Amarr)")
+        self.route_dest_edit.returnPressed.connect(self._on_calculate_route)
+        rl.addWidget(self.route_dest_edit)
+
+        self.route_avoid_edit = QLineEdit()
+        self.route_avoid_edit.setFixedHeight(26)
+        self.route_avoid_edit.setStyleSheet(
+            f"font-size: 11.5px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
+            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 2px 6px;"
+        )
+        self.route_avoid_edit.setPlaceholderText("Avoid (e.g. Tama, Rancer)")
+        self.route_avoid_edit.returnPressed.connect(self._on_calculate_route)
+        rl.addWidget(self.route_avoid_edit)
+
+        route_btn_row = QHBoxLayout()
+        self.route_calc_btn = QPushButton("⚡ Plot Route")
+        self.route_calc_btn.setFixedHeight(28)
+        self.route_calc_btn.setStyleSheet(radar_accent_btn_css())
+        self.route_calc_btn.clicked.connect(self._on_calculate_route)
+        route_btn_row.addWidget(self.route_calc_btn, stretch=2)
+
+        self.route_clear_btn = QPushButton("Clear")
+        self.route_clear_btn.setFixedHeight(28)
+        self.route_clear_btn.setStyleSheet(self._btn_css())
+        self.route_clear_btn.clicked.connect(self._on_clear_route)
+        route_btn_row.addWidget(self.route_clear_btn, stretch=1)
+        rl.addLayout(route_btn_row)
+
+        self.route_summary_lbl = QLabel("")
+        self.route_summary_lbl.setWordWrap(True)
+        self.route_summary_lbl.setStyleSheet(f"color:{TEXT_SECONDARY}; font-size:11.5px;")
+        rl.addWidget(self.route_summary_lbl)
+
+        # Divider
+        div2 = QFrame()
+        div2.setFrameShape(QFrame.Shape.HLine)
+        div2.setStyleSheet(f"color: {BORDER}; background-color: {BORDER}; max-height: 1px;")
+        rl.addWidget(div2)
+
         rl.addStretch()
+
+        # Legend
         leg = QLabel(
-            "Legend\n"
+            "Map Legend\n"
             "● Highsec  ● Lowsec  ● Nullsec\n"
             "Ring: intel threat level\n"
-            "Gold ring: you are here"
+            "Gold ring: origin / current location\n"
+            "Cyan ring: destination\n"
+            "Gold path: plotted stargate route"
         )
         leg.setStyleSheet(f"color:{TEXT_HINT}; font-size:11px;")
         rl.addWidget(leg)
@@ -292,7 +373,7 @@ class MapTabWidget(QWidget):
         root.addWidget(self.caption_lbl)
 
         self.placeholder = QLabel(
-            "Location unknown — join Local or jump so A.U.R.A. can center the map on you."
+            "Location unknown — join Local or jump so A.U.R.A. can center the map on you.\nOr plot a route using the Route Planner."
         )
         self.placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.placeholder.setStyleSheet(f"color:{TEXT_HINT}; font-size:13px; padding:40px;")
@@ -302,9 +383,12 @@ class MapTabWidget(QWidget):
         return btn_secondary_css()
 
     def _show_placeholder(self) -> None:
-        self.placeholder.show()
-        self.placeholder.raise_()
-        self._resize_placeholder()
+        if self._origin_id is None and not self._route_node_ids:
+            self.placeholder.show()
+            self.placeholder.raise_()
+            self._resize_placeholder()
+        else:
+            self._hide_placeholder()
 
     def _hide_placeholder(self) -> None:
         self.placeholder.hide()
@@ -320,6 +404,8 @@ class MapTabWidget(QWidget):
     def set_location(self, system_name: str, system_id: int) -> None:
         self._origin_id = int(system_id)
         self._origin_name = system_name
+        if not self.route_origin_edit.text().strip():
+            self.route_origin_edit.setText(system_name)
         self._hide_placeholder()
         self._rebuild_graph(fit_view=True)
 
@@ -367,28 +453,38 @@ class MapTabWidget(QWidget):
         return self._intel_by_system.get(rec["name"].lower())
 
     def _collect_visible_ids(self) -> Set[int]:
-        if self._origin_id is None:
+        if self._origin_id is None and not self._route_node_ids:
             return set()
-        bubble, total = self.eve_map.systems_within_capped(
-            self._origin_id, self._jump_range, MAX_NODES
-        )
-        self._bubble_total = total
-        # Strict in-range rendering: only systems inside the configured jump range
-        return set(bubble.keys())
+        res: Set[int] = set()
+        if self._origin_id is not None:
+            bubble, total = self.eve_map.systems_within_capped(
+                self._origin_id, self._jump_range, MAX_NODES
+            )
+            self._bubble_total = total
+            res.update(bubble.keys())
+        res.update(self._extra_ids)
+        res.update(self._route_node_ids)
+        return res
 
     def _rebuild_graph(self, full_layout: bool = True, fit_view: bool = True) -> None:
         self._prune_intel()
-        if self._origin_id is None:
+        if self._origin_id is None and not self._route_node_ids:
             self._show_placeholder()
             return
 
+        self._hide_placeholder()
         visible = self._collect_visible_ids()
         self._visible_ids = visible
         edges = self.eve_map.subgraph_edges(visible)
 
-        cache_key = (self._origin_id, self._jump_range, frozenset(visible))
+        # Include route edges explicitly in subgraph
+        for r_edge in self._route_edges:
+            edges.append(r_edge)
+
+        anchor_id = self._origin_id if self._origin_id in visible else (self._route_node_ids[0] if self._route_node_ids else None)
+        cache_key = (anchor_id, self._jump_range, frozenset(visible), frozenset(self._route_edges))
         if cache_key != self._layout_cache_key or full_layout:
-            self._layout_cache = _force_layout(visible, edges, self._origin_id)
+            self._layout_cache = _force_layout(visible, edges, anchor_id)
             self._layout_cache_key = cache_key
 
         positions = self._layout_cache
@@ -401,17 +497,24 @@ class MapTabWidget(QWidget):
         self._edge_items.clear()
         self._label_items.clear()
 
+        # Render edges with route path highlighting
         for a, b in edges:
             pa = positions.get(a)
             pb = positions.get(b)
             if not pa or not pb:
                 continue
             line = QGraphicsLineItem(pa[0], pa[1], pb[0], pb[1])
-            line.setPen(QPen(QColor("#475569"), 1.2))
-            line.setZValue(0)
+            edge_key = (min(a, b), max(a, b))
+            if edge_key in self._route_edges:
+                line.setPen(QPen(QColor("#facc15"), 3.2))  # Glowing Gold route line
+                line.setZValue(5)
+            else:
+                line.setPen(QPen(QColor("#475569"), 1.2))
+                line.setZValue(0)
             self.scene.addItem(line)
             self._edge_items.append(line)
 
+        # Render system nodes
         for sid in visible:
             rec = self.eve_map.get_system(sid)
             if not rec:
@@ -419,28 +522,54 @@ class MapTabWidget(QWidget):
             pos = positions.get(sid)
             if not pos:
                 continue
-            is_current = sid == self._origin_id
+            is_current = (sid == self._origin_id)
+            is_route_origin = bool(self._route_node_ids and sid == self._route_node_ids[0])
+            is_route_dest = bool(self._route_node_ids and sid == self._route_node_ids[-1])
+            is_route_waypoint = bool(sid in self._route_node_ids and not is_route_origin and not is_route_dest)
+
             intel = self._intel_for_id(sid)
-            radius = 7.0 if is_current else 5.5
+            if is_current or is_route_origin or is_route_dest:
+                radius = 7.5
+                z_val = 6
+            elif is_route_waypoint:
+                radius = 6.2
+                z_val = 4
+            else:
+                radius = 5.5
+                z_val = 1
+
             node = SystemNodeItem(sid, rec["name"], radius)
             node.setPos(pos[0], pos[1])
-            node.setZValue(2 if is_current else 1)
+            node.setZValue(z_val)
 
             sec = float(rec.get("security") or 0.0)
             fill = _sec_color(sec)
             ring = None
             ring_w = 2.0
             has_threat = False
-            if intel:
+
+            if is_route_origin:
+                ring = QColor("#facc15")  # Gold origin ring
+                ring_w = 3.5
+            elif is_route_dest:
+                ring = QColor("#38bdf8")  # Electric cyan destination ring
+                ring_w = 3.5
+            elif is_route_waypoint:
+                ring = QColor("#fb923c")  # Orange transit waypoint
+                ring_w = 2.4
+            elif intel:
                 level = intel.get("level", "INFO")
                 ring = QColor(_THREAT_RING.get(level, "#38bdf8"))
                 ring_w = 2.8
                 has_threat = (level != "CLEAR")
 
             lbl = QGraphicsTextItem(rec["name"], node)
-            if is_current:
+            if is_current or is_route_origin or is_route_dest:
                 lbl.setDefaultTextColor(QColor("#ffffff"))
                 lbl.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+            elif is_route_waypoint:
+                lbl.setDefaultTextColor(QColor("#facc15"))
+                lbl.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
             elif has_threat and intel:
                 threat_col = _THREAT_RING.get(intel["level"], "#facc15")
                 lbl.setDefaultTextColor(QColor(threat_col))
@@ -448,15 +577,19 @@ class MapTabWidget(QWidget):
             else:
                 lbl.setDefaultTextColor(_sec_color(sec))
                 lbl.setFont(QFont("Segoe UI", 8))
-            lbl.setZValue(3)
+            lbl.setZValue(z_val + 1)
             node.set_label(lbl)
             self._label_items.append(lbl)
 
-            node.set_visual(fill, ring, ring_w, 1.0, is_current)
+            node.set_visual(fill, ring, ring_w, 1.0, is_current or is_route_origin)
             self.scene.addItem(node)
             self._node_items[sid] = node
 
-        if self._bubble_total > MAX_NODES:
+        if self._current_route:
+            self.caption_lbl.setText(
+                f"⚡ BFS Route: {self._current_route.origin} ➔ {self._current_route.destination} ({self._current_route.total_jumps} jumps) | Security: Min {self._current_route.security_min:.1f}, Avg {self._current_route.security_avg:.1f}"
+            )
+        elif self._bubble_total > MAX_NODES:
             self.caption_lbl.setText(
                 f"Showing {min(len(self._visible_ids), MAX_NODES)} of {self._bubble_total} systems within {self._jump_range} jumps."
             )
@@ -471,6 +604,61 @@ class MapTabWidget(QWidget):
 
         if self._selected_id and self._selected_id in self._node_items:
             self._node_items[self._selected_id].setSelected(True)
+
+    def _on_calculate_route(self) -> None:
+        """Executes sub-millisecond BFS graph routing between origin and destination."""
+        orig_str = self.route_origin_edit.text().strip() or (self._origin_name or "")
+        dest_str = self.route_dest_edit.text().strip()
+        avoid_raw = self.route_avoid_edit.text().strip()
+
+        if not orig_str or not dest_str:
+            self.route_summary_lbl.setText("<span style='color:#f87171;'>Please enter both Origin and Destination.</span>")
+            return
+
+        avoid_list = [s.strip() for s in avoid_raw.split(",") if s.strip()] if avoid_raw else None
+
+        route = self.map_subsystem.find_route(orig_str, dest_str, avoid_systems=avoid_list)
+        if not route:
+            self.route_summary_lbl.setText(f"<span style='color:#f87171;'>No route found between '{orig_str}' and '{dest_str}'.</span>")
+            return
+
+        self._current_route = route
+
+        # Map route system names to system IDs
+        node_ids: List[int] = []
+        for name in route.path:
+            rec = self.eve_map.resolve_system_name(name)
+            if rec:
+                node_ids.append(int(rec["id"]))
+
+        self._route_node_ids = node_ids
+        self._route_edges = {
+            (min(node_ids[i], node_ids[i + 1]), max(node_ids[i], node_ids[i + 1]))
+            for i in range(len(node_ids) - 1)
+        }
+
+        # Format route summary HTML
+        sec_color = "#38bdf8" if route.security_min >= 0.45 else ("#fbbf24" if route.security_min > 0.0 else "#f87171")
+        avoid_html = f"<br><b>Avoided:</b> {', '.join(route.avoided_systems)}" if route.avoided_systems else ""
+        path_str = " ➔ ".join(route.path)
+
+        self.route_summary_lbl.setText(
+            f"<b>Jumps:</b> <span style='color:#facc15; font-weight:bold;'>{route.total_jumps}</span> | "
+            f"<b>Min Sec:</b> <span style='color:{sec_color};'>{route.security_min:.1f}</span> | "
+            f"<b>Avg:</b> {route.security_avg:.1f}{avoid_html}<br>"
+            f"<span style='font-size:11px; color:#cbd5e1;'><b>Path:</b> {safe_display_text(path_str, 200)}</span>"
+        )
+
+        self._rebuild_graph(full_layout=True, fit_view=True)
+
+    def _on_clear_route(self) -> None:
+        """Clears active route highlights and resets map view."""
+        self._current_route = None
+        self._route_node_ids = []
+        self._route_edges = set()
+        self._extra_ids = set()
+        self.route_summary_lbl.setText("")
+        self._rebuild_graph(full_layout=True, fit_view=True)
 
     def _fit_view(self) -> None:
         rect = self.scene.itemsBoundingRect()

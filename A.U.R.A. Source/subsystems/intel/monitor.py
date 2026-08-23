@@ -67,11 +67,38 @@ def find_default_gamelog_dir(chatlog_dir: Optional[str] = None) -> str:
 
 
 def decode_log_bytes(raw: bytes) -> str:
-    for encoding in ("utf-16-le", "utf-16", "utf-8-sig", "utf-8", "cp1252", "latin-1"):
+    if not raw:
+        return ""
+    if raw.startswith(b"\xff\xfe"):
+        even_len = len(raw[2:]) - (len(raw[2:]) % 2)
+        return raw[2:2 + even_len].decode("utf-16-le", errors="replace")
+    if raw.startswith(b"\xfe\xff"):
+        even_len = len(raw[2:]) - (len(raw[2:]) % 2)
+        return raw[2:2 + even_len].decode("utf-16-be", errors="replace")
+    if raw.startswith(b"\xef\xbb\xbf"):
+        return raw[3:].decode("utf-8", errors="replace")
+
+    if len(raw) >= 4 and raw.count(b"\x00") > (len(raw) // 4):
+        even_len = len(raw) - (len(raw) % 2)
         try:
+            return raw[:even_len].decode("utf-16-le")
+        except UnicodeDecodeError:
+            pass
+
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError:
+        pass
+
+    for encoding in ("utf-16-le", "cp1252", "latin-1"):
+        try:
+            if encoding == "utf-16-le":
+                even_len = len(raw) - (len(raw) % 2)
+                return raw[:even_len].decode(encoding)
             return raw.decode(encoding)
         except (UnicodeDecodeError, LookupError):
             continue
+
     return raw.decode("utf-8", errors="ignore")
 
 
@@ -330,8 +357,18 @@ class LiveChatMonitor(QThread):
             if channel not in active_names and not _is_gamelog_file(path):
                 active_names.append(channel)
             try:
-                self.file_positions[path] = os.path.getsize(path)
+                sz = os.path.getsize(path)
+                self.file_positions[path] = sz
                 self.known_files.add(path)
+                if not _is_local_file(path) and not _is_gamelog_file(path) and sz > 0:
+                    tail_len = min(sz, 8192)
+                    with open(path, "rb") as fp:
+                        fp.seek(max(0, sz - tail_len))
+                        tail_bytes = fp.read(tail_len)
+                    tail_text = decode_log_bytes(tail_bytes)
+                    if tail_text:
+                        lines = tail_text.splitlines()[-25:]
+                        self._process_text(path, "\n".join(lines), channel)
             except OSError:
                 continue
             if path not in self._file_characters:
