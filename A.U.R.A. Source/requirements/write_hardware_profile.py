@@ -9,7 +9,7 @@ SOURCE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if SOURCE_DIR not in sys.path:
     sys.path.insert(0, SOURCE_DIR)
 
-from hardware_profile import PROFILE_IDS, build_named_profile, save_install_profile  # noqa: E402
+from hardware.profile import PROFILE_IDS, build_named_profile, save_install_profile  # noqa: E402
 
 
 def main() -> int:

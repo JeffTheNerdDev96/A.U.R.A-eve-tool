@@ -1,33 +1,64 @@
 ---
-name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: ''
-assignees: ''
+name: "🐛 Bug Report"
+about: "Report a bug, error code, or tactical anomaly in A.U.R.A."
+title: "[BUG]: <Short summary of issue>"
+labels: ["bug"]
+assignees: ""
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+## 📌 Tactical Anomaly Summary
+A clear and concise summary of the issue encountered.
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+---
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+## 🔁 Steps to Reproduce
+1. Launch A.U.R.A.
+2. Navigate to tab: `[e.g., Tactical Intel / Map & Routing / Fleet Comp / Fitting Lab / AI Copilot]`
+3. Perform action: `[e.g., Pasted D-Scan / Uploaded Screenshot / Calculated Route]`
+4. See error or unexpected behavior: `[e.g., UI freeze, error box, crash]`
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+---
 
-**Desktop (please complete the following information):**
- - OS: [e.g. Windows 11 64-bit]
- - A.U.R.A. version: [e.g. v0.2.0-alpha1]
- - Hardware profile: [e.g. NVIDIA CUDA, Intel NPU, CPU only]
- - Python: [e.g. 3.12 from venv or AURA_Setup_v0.2.0-alpha1.exe]
+## 🎯 Expected vs. Actual Behavior
+- **Expected**: `[What you expected to happen]`
+- **Actual**: `[What actually happened]`
 
-**Additional context**
-Add any other context about the problem here (tab name, error code such as AURA-ERR-xxxx, contents of `logs/crash.log` if relevant).
+---
+
+## 🖥️ System & Environment Details
+Please complete the checklist below:
+
+- **Operating System**:
+  - [ ] Windows 11 (64-bit)
+  - [ ] Windows 10 (64-bit)
+  - [ ] Fedora Linux (39 / 40 / 41)
+  - [ ] Ubuntu / Debian Linux (22.04 / 24.04 LTS)
+  - [ ] Arch Linux / Other Linux
+- **A.U.R.A. Release**: `[e.g., v0.3.0-alpha1]`
+- **Installation Method**:
+  - [ ] Windows Installer (`AURA_Setup_v0.3.0-alpha1.exe`)
+  - [ ] Linux Standalone Bundle (`aura-linux-standalone-v0.3.0-alpha1.tar.gz`)
+  - [ ] Source / Developer Checkout (`run.bat` or `app.py`)
+- **Hardware Acceleration Profile**:
+  - [ ] NVIDIA CUDA (Dedicated GPU)
+  - [ ] AMD Radeon / Vulkan (Dedicated GPU)
+  - [ ] AMD Radeon / DirectML (Integrated APU)
+  - [ ] Intel Arc / Iris Xe (Vulkan / OpenVINO)
+  - [ ] Intel NPU (AI Boost Level Zero)
+  - [ ] AMD Ryzen AI NPU (XDNA)
+  - [ ] CPU Vector Mesh (No GPU offload)
+
+---
+
+## 🔍 Diagnostic Error Codes & Logs
+- **Error Code (if displayed)**: `[e.g., AURA-ERR-1001, AURA-ERR-3001, AURA-ERR-5001]`
+- **Crash Log Output**:
+  ```text
+  <!-- Paste relevant trace from logs/crash.log if available -->
+  ```
+
+---
+
+## 📸 Screenshots / Telemetry
+If applicable, paste screenshots, D-Scan snippets, or EFT text blocks below to help diagnose.

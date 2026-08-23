@@ -2,9 +2,18 @@
 
 ## Supported Versions
 
-| Version | Supported | Python Runtime | Architecture |
-| :--- | :--- | :--- | :--- |
-| **v0.2.0-alpha1+** | **Yes** | Python 3.12+ | 64-bit AMD64 |
+> [!CAUTION]
+> **ALL PREVIOUS ALPHA RELEASES ARE DEPRECATED & UNSUPPORTED**
+>
+> All earlier development builds and alpha releases — including **v0.1.x** and **v0.2.x** — are officially **deprecated**. Version **v0.2.x** was superseded and deprecated due to the major v0.3.0 architectural overhaul (which introduced pure modular package namespaces, central EventBus isolation, and standardized input safety sanitization).
+>
+> **All users and testers must upgrade to v0.3.0-alpha1 or newer.**
+
+| Version | Supported | Status / Notes | Python Runtime | Architecture |
+| :--- | :--- | :--- | :--- | :--- |
+| **v0.3.0-alpha1+** | **Yes** | **Active / Supported** (Pure modular architecture, EventBus, input safety) | Python 3.12+ | 64-bit AMD64 |
+| **v0.2.x** | **No** | **Deprecated** (Superseded due to v0.3.0 major architecture overhaul) | Python 3.12+ | 64-bit AMD64 |
+| **v0.1.x** | **No** | **Deprecated** (Initial prototype builds) | Legacy Python | 64-bit AMD64 |
 
 ## Threat model (local desktop)
 

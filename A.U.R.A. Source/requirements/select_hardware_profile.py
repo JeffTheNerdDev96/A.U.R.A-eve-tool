@@ -11,8 +11,8 @@ REQ_DIR = os.path.dirname(os.path.abspath(__file__))
 if SOURCE_DIR not in sys.path:
     sys.path.insert(0, SOURCE_DIR)
 
-from hardware_profile import compose_install_plan, save_install_profile  # noqa: E402
-import bootstrap_llama  # noqa: E402
+from hardware.profile import compose_install_plan, save_install_profile  # noqa: E402
+from bootstrap.bootstrap_llama import probe_llama_backend  # noqa: E402
 
 
 def _pip(python_exe: str, args: list[str]) -> int:
@@ -24,7 +24,7 @@ def _pip(python_exe: str, args: list[str]) -> int:
 def _verify_llama_wheel(wheel: str) -> tuple[bool, str]:
     require_cuda = wheel == "cuda"
     require_vulkan = wheel == "vulkan"
-    return bootstrap_llama.probe_llama_backend(
+    return probe_llama_backend(
         require_cuda=require_cuda,
         require_vulkan=require_vulkan,
     )
@@ -156,7 +156,7 @@ def main() -> int:
             ],
         )
 
-    from hardware import HardwareDetector
+    from hardware.detector import HardwareDetector
 
     detector = HardwareDetector(force_rescan=True, apply_profile=False)
     plan = compose_install_plan(detector.devices)
