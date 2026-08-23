@@ -1,4 +1,4 @@
-# A.U.R.A. — EVE Online AI Tactical Copilot
+# Adaptive Underworld Recon Array (A.U.R.A.) — v0.3.0-alpha1
 **v0.3.0-alpha1**
 
 > **Adaptive Underworld Recon Array (A.U.R.A.)** — Your all-in-one, local tactical companion and shipboard assistant for *EVE Online*.
@@ -21,7 +21,8 @@ For full operational instructions, see the [Tactical User Guide (USER_GUIDE.md)]
 * **Central EventBus Messaging** — High-performance pub/sub event layer connecting all subsystem lifecycles.
 * **Composition Tab** — Side-by-side friendly fleet vs hostile D-scan analysis with 5-role taxonomy (Logistics, Tacklers, Mainline DPS, EWAR, Covert Ops).
 * **Tactical Map Tab** — Stargate graph routing with system avoidance and jump-range threat overlays.
-* **Angel Cartel UI Chrome** — Orbitron display typography, cybernetic status badges, and unified styling.
+* **Alert & Threat Filtering** — Added granular filtering for system clears, jump radius limits, and threat criticality scales.
+* **Multi-Character Enhancements & Fixes** — Added character selection to tactical map/notifications and resolved duplicate alerts when running multiple accounts.
 
 ---
 

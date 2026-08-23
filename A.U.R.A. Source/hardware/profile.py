@@ -176,8 +176,10 @@ def save_install_profile(payload: Dict[str, Any], path: Optional[str] = None) ->
     return target
 
 
-def compose_install_plan(devices: Dict[str, Any]) -> Dict[str, Any]:
+def compose_install_plan(devices: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Choose stacks from live PnP: one GGUF wheel plus additive NPU extras."""
+    if not isinstance(devices, dict):
+        devices = {}
     gpus = devices.get("gpus") or []
     npu = devices.get("npu") or {}
 

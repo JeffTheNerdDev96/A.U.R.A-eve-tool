@@ -112,3 +112,47 @@ class InferenceCompletedEvent(BaseEvent):
     full_response: str = ""
     tokens_per_second: float = 0.0
     total_tokens: int = 0
+
+
+# --- Wormhole Mapping Events ---
+
+@dataclass
+class WormholeChainUpdatedEvent(BaseEvent):
+    """Fired when an active wormhole chain structure or topology changes."""
+    chain_id: str = ""
+    home_system: str = ""
+    total_nodes: int = 0
+    total_connections: int = 0
+
+
+@dataclass
+class WormholeSystemAddedEvent(BaseEvent):
+    """Fired when a new system is mapped into the chain."""
+    chain_id: str = ""
+    system_name: str = ""
+    system_class: str = "Unknown"
+    parent_system: str = ""
+    is_home: bool = False
+
+
+@dataclass
+class WormholeConnectionUpdatedEvent(BaseEvent):
+    """Fired when a wormhole connection state (mass/time/lock) changes."""
+    chain_id: str = ""
+    connection_id: str = ""
+    source_system: str = ""
+    target_system: str = ""
+    wormhole_type: str = ""
+    mass_state: str = "Stage 1 (>50%)"
+    lifetime_state: str = "Stable"
+
+
+@dataclass
+class CosmicSignatureUpdatedEvent(BaseEvent):
+    """Fired when a signature is added, scanned, or deleted in a system."""
+    chain_id: str = ""
+    system_name: str = ""
+    sig_id: str = ""
+    sig_group: str = "Unscanned"
+    sig_name: str = ""
+    signal_strength: float = 0.0

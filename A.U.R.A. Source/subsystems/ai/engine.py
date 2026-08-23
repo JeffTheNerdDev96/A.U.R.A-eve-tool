@@ -84,8 +84,8 @@ def _init_cuda_runtime():
     if _CUDA_INITIALIZED:
         return
     try:
-        import bootstrap_llama
-        bootstrap_llama.configure_llama_dll_paths()
+        from bootstrap import configure_llama_dll_paths
+        configure_llama_dll_paths()
     except Exception:
         pass
     _CUDA_INITIALIZED = True
@@ -97,8 +97,8 @@ def _init_vulkan_runtime():
     if _VULKAN_INITIALIZED:
         return
     try:
-        import bootstrap_llama
-        bootstrap_llama.configure_llama_dll_paths()
+        from bootstrap import configure_llama_dll_paths
+        configure_llama_dll_paths()
     except Exception:
         pass
     source_dir = os.path.dirname(os.path.abspath(__file__))

@@ -39,6 +39,7 @@ A.U.R.A. Source/
 │   ├── map/                       # Stargate graph, BFS routing, navigation
 │   ├── fleet_comp/                # D-Scan parsing, 5-role fleet composition, matchup analysis
 │   ├── fitting/                   # EFT fitting parsing, Dogma math stats, slot layouts
+│   ├── wormhole/                  # Wormhole chain mapping, signature tracking & topology (Milestone)
 │   └── ai/                        # Local neural core GGUF inference & OCR document parsing
 │
 ├── ui/                            # Desktop Presentation Layer

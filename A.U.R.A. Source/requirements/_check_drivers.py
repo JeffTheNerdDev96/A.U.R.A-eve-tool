@@ -11,7 +11,7 @@ SOURCE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if SOURCE_DIR not in sys.path:
     sys.path.insert(0, SOURCE_DIR)
 
-from hardware_profile import load_install_profile  # noqa: E402
+from hardware.profile import load_install_profile  # noqa: E402
 
 NVIDIA_URL = "https://www.nvidia.com/Download/index.aspx"
 INTEL_NPU_URL = "https://www.intel.com/content/www/us/en/download/794734/intel-npu-driver-windows.html"
