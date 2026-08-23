@@ -99,7 +99,7 @@ The footer glyph (`A.U.R.A. Source/assets/brand/aura_mark.png`) and Windows icon
 
 ## Legal
 
-A.U.R.A. is released under the [GNU General Public License v3.0](LICENSE). Product version: **A.U.R.A. v0.2.0-alpha1**.
+A.U.R.A. is released under the [GNU General Public License v3.0](LICENSE). Product version: **A.U.R.A. v0.3.0-alpha1**.
 
 Third-party packages remain under their own licenses (typically MIT, BSD, Apache-2.0, LGPL, or GPL). PyQt6 is GPL-licensed, which is why this project is GPL-3.0.
 

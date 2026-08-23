@@ -1,6 +1,6 @@
 # ==============================================================================
 # Git Ignore Configuration for Adaptive Underworld Recon Array (A.U.R.A.)
-# v0.2.1-alpha2 | Pure Modular Architecture
+# v0.3.0-alpha1 | Pure Modular Architecture
 # ==============================================================================
 
 # 1. Neural Model Weights & Large AI Artifacts (Local Execution Only)

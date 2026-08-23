@@ -1,5 +1,5 @@
 """
-Centralized Diagnostic Error Code Subsystem for Adaptive Underworld Recon Array (A.U.R.A.) - v0.2.1-alpha2.
+Centralized Diagnostic Error Code Subsystem for Adaptive Underworld Recon Array (A.U.R.A.) - v0.3.0-alpha1.
 Angel Cartel Cybernetics Division.
 
 Provides standardized, searchable error codes (AURA-ERR-xxxx), rich diagnostic logging,

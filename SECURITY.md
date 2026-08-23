@@ -4,7 +4,7 @@
 
 | Version | Supported | Python Runtime | Architecture |
 | :--- | :--- | :--- | :--- |
-| **v0.2.0-alpha1+** | **Yes** | Python 3.12+ | 64-bit AMD64 |
+| **v0.3.0-alpha1+** | **Yes** | Python 3.12+ | 64-bit AMD64 |
 
 ## Threat model (local desktop)
 
