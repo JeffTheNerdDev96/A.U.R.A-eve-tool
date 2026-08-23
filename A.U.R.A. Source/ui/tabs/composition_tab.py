@@ -23,7 +23,7 @@ from core.error_handler import AURAErrorCode, log_diagnostic_error
 from ui.theme import (
     TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT, TEXT_HEADER,
     BG_PANEL, BG_DEEP, BG_ELEVATED, BORDER, BORDER_MUTED, ACCENT, ACCENT_DIM,
-    STATUS_ONLINE, BTN_TEXT_ON_ACCENT, btn_secondary_css,
+    STATUS_ONLINE, BTN_TEXT_ON_ACCENT, radar_accent_btn_css,
 )
 
 
@@ -71,7 +71,7 @@ class CompositionTabWidget(QWidget):
             "PilotName\tMuninn\t12 km"
         )
         self.friendly_edit.setMinimumHeight(72)
-        self.friendly_edit.setMaximumHeight(140)
+        self.friendly_edit.setMaximumHeight(120)
         ll.addWidget(self.friendly_edit)
         self.friendly_hint = QLabel("0 hulls · 0 unmatched")
         self.friendly_hint.setStyleSheet(f"color:{TEXT_HINT}; font-size:11px;")
@@ -94,7 +94,7 @@ class CompositionTabWidget(QWidget):
             "HostilePilot\tIshtar\t18 km"
         )
         self.enemy_edit.setMinimumHeight(72)
-        self.enemy_edit.setMaximumHeight(140)
+        self.enemy_edit.setMaximumHeight(120)
         rl.addWidget(self.enemy_edit)
         self.enemy_hint = QLabel("0 hulls · 0 unmatched")
         self.enemy_hint.setStyleSheet(f"color:{TEXT_HINT}; font-size:11px;")
@@ -113,10 +113,10 @@ class CompositionTabWidget(QWidget):
         analyze.clicked.connect(self._analyze)
         btn_row.addWidget(analyze, stretch=1)
 
-        ask_ai = QPushButton("Ask A.U.R.A.")
-        ask_ai.setFixedHeight(28)
+        ask_ai = QPushButton("⚡ ASK A.U.R.A.")
+        ask_ai.setFixedHeight(26)
         ask_ai.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
-        ask_ai.setStyleSheet(btn_secondary_css())
+        ask_ai.setStyleSheet(radar_accent_btn_css())
         ask_ai.clicked.connect(self._ask_aura_fleet)
         btn_row.addWidget(ask_ai)
         root.addLayout(btn_row)
@@ -133,8 +133,10 @@ class CompositionTabWidget(QWidget):
         self.table.verticalHeader().setVisible(False)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.table.setMinimumHeight(220)
+        self.table.setWordWrap(False)
+        self.table.setTextElideMode(Qt.TextElideMode.ElideRight)
         self.table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.table.setStyleSheet(
             f"QTableWidget {{ background:{BG_DEEP}; color:{TEXT_PRIMARY}; border:1px solid {BORDER}; "
             f"gridline-color:{BORDER_MUTED}; }}"
@@ -142,6 +144,7 @@ class CompositionTabWidget(QWidget):
             f"border:1px solid {BORDER}; padding:6px; font-weight:bold; }}"
         )
         root.addWidget(self.table, stretch=1)
+        self._fit_table_height()
 
         root.addWidget(self._section("Engagement assessment"))
         self.assessment = QTextEdit()
@@ -205,6 +208,7 @@ class CompositionTabWidget(QWidget):
                 items[3].setForeground(QBrush(QColor(STATUS_ONLINE)))
             elif kind == "disadv":
                 items[3].setForeground(QBrush(QColor(ACCENT)))
+        self._fit_table_height()
 
         bullets = assess_matchup(rows, f_parsed["total_ships"], e_parsed["total_ships"])
         if not f_parsed["total_ships"] and not e_parsed["total_ships"]:
@@ -219,6 +223,21 @@ class CompositionTabWidget(QWidget):
             f"<b>A.U.R.A. tactical advisor</b> (local, not neural)"
             f"<ul>{lis}</ul></div>"
         )
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self._fit_table_height()
+
+    def _fit_table_height(self) -> None:
+        """Size the breakdown table to six one-line rows so it does not grow a scrollbar."""
+        row_h = 28
+        for i in range(self.table.rowCount()):
+            self.table.setRowHeight(i, row_h)
+        header = self.table.horizontalHeader()
+        header_h = max(header.height(), header.sizeHint().height(), 28)
+        rows = max(self.table.rowCount(), 6)
+        frame = max(self.table.frameWidth() * 2, 2)
+        self.table.setFixedHeight(header_h + row_h * rows + frame)
 
     def _ask_aura_fleet(self):
         """Dispatches friendly and enemy fleet compositions to A.U.R.A. Neural AI."""

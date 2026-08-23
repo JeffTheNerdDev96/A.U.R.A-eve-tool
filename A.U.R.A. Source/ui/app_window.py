@@ -64,9 +64,9 @@ from ui.theme import (
 
 _TAB_MIN_SIZES = {
     0: (420, 480),   # Live Intel Radar
-    1: (960, 620),   # Fitting
+    1: (960, 620),   # Composition
     2: (720, 500),   # Map
-    3: (960, 620),   # Composition
+    3: (960, 620),   # Fitting
     4: (480, 500),   # A.U.R.A. Chat
 }
 
@@ -727,7 +727,9 @@ class MainWindow(QMainWindow):
         self.input_edit = TacticalInputEdit()
         self.input_edit.setAcceptRichText(False)
         self.input_edit.setObjectName("InputEdit")
-        self.input_edit.setPlaceholderText("Command Adaptive Underworld Recon Array (A.U.R.A.) or ask tactical queries... (Press Enter to Send, Shift+Enter for newline)")
+        self.input_edit.setPlaceholderText(
+            "How can I help? e.g. what's a warp disruptor do?, what ammo fits 150mm autocannons?, what is a WH?  (Enter to send, Shift+Enter for a new line)"
+        )
         self.input_edit.setFixedHeight(52)
         self.input_edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.input_edit.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -959,9 +961,9 @@ class MainWindow(QMainWindow):
         self.chat_tab_page = self._wrap_tab_card(self.chat_tab)
 
         self.tabs.addTab(self.radar_tab_page, "Live Intel Radar")
-        self.tabs.addTab(self.fitting_tab_page, "Fitting")
-        self.tabs.addTab(self.map_tab_page, "Map")
         self.tabs.addTab(self.composition_tab_page, "Composition")
+        self.tabs.addTab(self.map_tab_page, "Map")
+        self.tabs.addTab(self.fitting_tab_page, "Fitting")
         self.tabs.addTab(self.chat_tab_page, "A.U.R.A. Chat")
         self.tabs.currentChanged.connect(self._on_main_tab_changed)
         main_layout.addWidget(self.tabs, stretch=1)
@@ -1084,7 +1086,10 @@ class MainWindow(QMainWindow):
         return tier_badge_standby_css()
 
     def _display_welcome(self):
-        self._append_message("A.U.R.A.", "A.U.R.A AI Ready")
+        self._append_message(
+            "A.U.R.A.",
+            "How can I help? Try: what's a warp disruptor do?, what ammo fits 150mm autocannons?, what is a WH?",
+        )
 
 
 

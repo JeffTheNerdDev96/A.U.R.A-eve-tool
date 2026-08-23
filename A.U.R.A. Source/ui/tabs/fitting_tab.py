@@ -23,7 +23,7 @@ from ui.theme import (
     TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT, TEXT_HEADER,
     BG_PANEL, BG_DEEP, BG_ELEVATED, BORDER, BORDER_MUTED, ACCENT, ACCENT_DIM, BORDER_FOCUS,
     BURNT_IRON_LIGHT, BTN_TEXT_ON_ACCENT,
-    btn_secondary_css,
+    btn_secondary_css, radar_accent_btn_css,
 )
 
 COMBAT_ROLES = [
@@ -451,13 +451,9 @@ class FittingLabWidget(QWidget):
         exp.clicked.connect(self._export_eft_file)
         btn_row.addWidget(exp)
         rl.addLayout(btn_row)
-        ev = QPushButton("Evaluate with A.U.R.A.")
-        ev.setFixedHeight(36)
-        ev.setStyleSheet(
-            f"QPushButton {{ background:{ACCENT_DIM}; color:{TEXT_PRIMARY}; border:1px solid {ACCENT}; "
-            "font-weight:bold; border-radius:2px; }"
-            f"QPushButton:hover {{ background:{ACCENT}; color:{BTN_TEXT_ON_ACCENT}; }}"
-        )
+        ev = QPushButton("⚡ ASK A.U.R.A.")
+        ev.setFixedHeight(26)
+        ev.setStyleSheet(radar_accent_btn_css())
         ev.clicked.connect(self._evaluate)
         rl.addWidget(ev)
         split.addWidget(right)

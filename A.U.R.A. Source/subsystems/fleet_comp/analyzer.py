@@ -75,6 +75,11 @@ _ROLE_SEQUENCE = (
 
 _QTY_AT = re.compile(r"(\d+)\s*[xX*]?\s+")
 _SEG_SPLIT = re.compile(r"[,;|]+")
+_COL_SPLIT = re.compile(r"\t+|\s{2,}")
+_DIST_CELL = re.compile(
+    r"^[\d,.\s]+(?:km|au|m|m3)?$|^-$",
+    re.IGNORECASE,
+)
 
 _LOOKUP_KEYS = sorted(
     list(SHIP_DATABASE.keys()) + list(_COMMON_SHIP_ALIASES.keys()),
@@ -120,7 +125,8 @@ def _consume_ships(text: str) -> List[Tuple[str, int]]:
             break
         nxt = idx
         qty = 1
-        qm = _QTY_AT.match(text, idx)
+        qty_ok = idx == 0 or not text[idx - 1].isalnum()
+        qm = _QTY_AT.match(text, idx) if qty_ok else None
         if qm:
             n = int(qm.group(1))
             if 1 <= n < 200:
@@ -138,16 +144,40 @@ def _consume_ships(text: str) -> List[Tuple[str, int]]:
     return found
 
 
-def _dscan_type_cell(line: str) -> str:
-    cells = [c.strip() for c in line.split("\t")]
-    nonempty = [c for c in cells if c]
-    if len(nonempty) >= 3:
-        return nonempty[1]
-    if len(nonempty) == 2:
-        if _is_dist_or_id(nonempty[1]):
-            return nonempty[0]
-        return nonempty[1]
-    return nonempty[0] if nonempty else line.strip()
+def _overview_cells(line: str) -> List[str]:
+    if "\t" in line:
+        return [c.strip() for c in line.split("\t") if c.strip()]
+    return [c.strip() for c in _COL_SPLIT.split(line) if c.strip()]
+
+
+def _is_distance_cell(cell: str) -> bool:
+    return bool(_DIST_CELL.match(cell.strip()))
+
+
+def _type_from_overview_row(line: str) -> Optional[str]:
+    """
+    Fleet window / D-scan row: TypeID, Name, Type, Distance (or Name, Type, Distance).
+    Return the Type cell only so IDs and ship names are not counted as hulls.
+    """
+    cells = _overview_cells(line)
+    if len(cells) < 2:
+        return None
+    body = [c for c in cells if not _is_dist_or_id(c) and not _is_distance_cell(c)]
+    if not body:
+        return None
+    for cell in reversed(body):
+        if lookup_ship(cell):
+            return cell
+    return body[-1]
+
+
+def _is_columnar_overview(line: str) -> bool:
+    cells = _overview_cells(line)
+    if len(cells) < 3:
+        return False
+    if _is_dist_or_id(cells[0]) or _is_distance_cell(cells[-1]):
+        return True
+    return bool(_type_from_overview_row(line))
 
 
 class FleetCompAnalyzer:
@@ -159,9 +189,6 @@ class FleetCompAnalyzer:
         cls = info.get("class", "") if info else ""
         role = str(info.get("role", "") if info else "").lower()
         threat = str(info.get("threat", "") if info else "")
-        bonuses = info.get("bonuses") if info else None
-        bonus_blob = " ".join(bonuses).lower() if isinstance(bonuses, list) else str(bonuses or "").lower()
-        blob = f"{role} {bonus_blob}"
         name_l = ship_name.lower()
 
         if cls == _T3C_CLASS:
@@ -171,9 +198,10 @@ class FleetCompAnalyzer:
         if (
             cls in _LOGI_CLASSES
             or "THREAT_LOGI" in threat
-            or "logistics" in blob
-            or "remote shield" in blob
-            or "remote armor" in blob
+            or "logistics" in role
+            or "remote repair" in role
+            or "remote rep" in role
+            or "fax" in role
         ):
             return ROLE_LOGI
         if cls in _TACKLE_CLASSES or "dictor" in name_l or "sabre" in name_l:
@@ -270,18 +298,16 @@ def parse_fleet_paste(text: str) -> Dict[str, Any]:
         if not line:
             continue
         hits: List[Tuple[str, int]] = []
-        if "\t" in line:
-            cell = _dscan_type_cell(line)
-            qty, clean = DScanParser._extract_quantity_and_clean(cell)
+        type_cell = _type_from_overview_row(line) if _is_columnar_overview(line) else None
+        if type_cell is not None:
+            qty, clean = DScanParser._extract_quantity_and_clean(type_cell)
             info = lookup_ship(clean)
             if info:
-                hits.append((str(info.get("canonical_name", clean)), qty))
+                hits.append((str(info.get("canonical_name", clean)), 1))
             else:
                 walked = _consume_ships(clean)
                 if walked:
-                    first_name, _first_qty = walked[0]
-                    hits.append((first_name, qty))
-                    hits.extend(walked[1:])
+                    hits.append((walked[0][0], 1))
         else:
             for segment in _SEG_SPLIT.split(line) or [line]:
                 segment = segment.strip()
@@ -321,9 +347,12 @@ def _role_mix(ship_counts: Dict[str, int]) -> Tuple[Dict[str, int], Dict[str, Di
 def _format_cell(total: int, hulls: Dict[str, int]) -> str:
     if total <= 0:
         return "0"
-    parts = ", ".join(
-        f"{name}: {n}" for name, n in sorted(hulls.items(), key=lambda kv: (-kv[1], kv[0]))
-    )
+    ranked = sorted(hulls.items(), key=lambda kv: (-kv[1], kv[0]))
+    shown = ranked[:2]
+    extra = len(ranked) - len(shown)
+    parts = ", ".join(f"{name}: {n}" for name, n in shown)
+    if extra:
+        parts = f"{parts}, +{extra} more"
     return f"{total} ({parts})"
 
 
