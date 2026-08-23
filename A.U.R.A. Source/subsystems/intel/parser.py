@@ -21,13 +21,29 @@ _RE_COUNT_WITH_KEYWORD = re.compile(
     re.IGNORECASE
 )
 _RE_COUNT_X_PREFIX = re.compile(r"\bx\s*(\d{1,3})\b", re.IGNORECASE)
-_RE_CLEAR = re.compile(r"\b(?:clear|clr|clean|safe|nv|na|no\s*visual)\b", re.IGNORECASE)
+_RE_CLEAR = re.compile(r"\b(?:clear|clr|clean|safe)\b", re.IGNORECASE)
+_RE_NV = re.compile(r"\b(?:nv|na|no\s*visual|unlocated)\b", re.IGNORECASE)
 
-_RE_CYNO = re.compile(r"\b(?:cyno|cynos|cynou|lit|beacon)\b", re.IGNORECASE)
+_RE_CYNO = re.compile(r"\b(?:cyno|cynos|cynou|lit|beacon|dropper|hotdrop|hot-drop)\b", re.IGNORECASE)
 _RE_BUBBLE = re.compile(r"\b(?:bubble|bubbled|bubbles|drag)\b", re.IGNORECASE)
 
-_CAPITAL_KEYWORDS = frozenset({"titan", "super", "supercarrier", "dread", "dreadnought", "carrier", "fax", "rorqual"})
-_BATTLESHIP_KEYWORDS = frozenset({"battleship", "battleships", "bs", "marauder", "blops"})
+_CAPITAL_KEYWORDS = frozenset({"titan", "super", "supercarrier", "dread", "dreadnought", "carrier", "fax", "rorqual", "capital"})
+_BATTLESHIP_KEYWORDS = frozenset({"battleship", "battleships", "bs", "marauder", "blops", "black ops"})
+_MEDIUM_KEYWORDS = frozenset({"battlecruiser", "battlecruisers", "bc", "cruiser", "cruisers", "hac", "t3c", "recon", "command ship", "destroyer", "destroyers", "dictor", "hic"})
+_FRIGATE_KEYWORDS = frozenset({"frigate", "frigates", "frig", "interceptor", "interceptors", "ceptor", "af", "covops", "bomber", "eas", "shuttle", "corvette", "rookie"})
+
+_CAPITAL_CLASSES = frozenset({"Titan", "Supercarrier", "Dreadnought", "Carrier", "Force Auxiliary", "Lancer Dreadnought", "Faction Dreadnought", "Capital Industrial"})
+_BATTLESHIP_CLASSES = frozenset({"Battleship", "Faction Battleship", "Marauder", "Black Ops"})
+_MEDIUM_CLASSES = frozenset({
+    "Battlecruiser", "Faction Battlecruiser", "Attack Battlecruiser", "Command Ship",
+    "Cruiser", "Faction Cruiser", "Heavy Assault Cruiser", "Heavy Interdiction Cruiser",
+    "Strategic Cruiser", "Combat Recon", "Force Recon", "Logistics Cruiser",
+    "Destroyer", "Faction Destroyer", "Command Destroyer", "Tactical Destroyer", "Interdictor"
+})
+_FRIGATE_CLASSES = frozenset({
+    "Frigate", "Faction Frigate", "Assault Frigate", "Interceptor", "Covert Ops",
+    "Stealth Bomber", "Electronic Attack Ship", "Logistics Frigate", "Mining Frigate", "Expedition Frigate"
+})
 
 
 class IntelRegexParser:
@@ -125,25 +141,39 @@ class IntelParser:
             return None
 
         is_clear = bool(_RE_CLEAR.search(msg))
+        has_nv = bool(_RE_NV.search(msg))
         has_cyno = bool(_RE_CYNO.search(msg))
         has_bubble = bool(_RE_BUBBLE.search(msg))
 
         ships: List[str] = []
         msg_lower = msg.lower()
 
-        for kw in _CAPITAL_KEYWORDS:
-            if kw in msg_lower and "Capital" not in ships:
-                ships.append("Capital")
-        for kw in _BATTLESHIP_KEYWORDS:
-            if kw in msg_lower and "Battleship" not in ships:
-                ships.append("Battleship")
+        has_capital = any(kw in msg_lower for kw in _CAPITAL_KEYWORDS)
+        has_battleship = any(kw in msg_lower for kw in _BATTLESHIP_KEYWORDS)
+        has_medium_hull = any(kw in msg_lower for kw in _MEDIUM_KEYWORDS)
+        has_frigate = any(kw in msg_lower for kw in _FRIGATE_KEYWORDS)
 
         for word in words:
             w_lower = word.lower()
             if w_lower in _FAST_SHIP_LOOKUP:
-                canonical = _FAST_SHIP_LOOKUP[w_lower].get("canonical_name", word)
+                ship_data = _FAST_SHIP_LOOKUP[w_lower]
+                canonical = ship_data.get("canonical_name", word)
                 if canonical and canonical not in ships:
                     ships.append(canonical)
+                s_class = ship_data.get("class", "")
+                if s_class in _CAPITAL_CLASSES:
+                    has_capital = True
+                elif s_class in _BATTLESHIP_CLASSES:
+                    has_battleship = True
+                elif s_class in _MEDIUM_CLASSES:
+                    has_medium_hull = True
+                elif s_class in _FRIGATE_CLASSES:
+                    has_frigate = True
+
+        if has_capital and "Capital" not in ships:
+            ships.append("Capital")
+        elif has_battleship and not any(s in ships for s in ["Battleship", "Marauder", "Black Ops"]):
+            ships.append("Battleship")
 
         pilot_count = engine.extract_pilot_count(msg)
 
@@ -151,29 +181,51 @@ class IntelParser:
         if is_clear:
             threat_level = "CLEAR"
             status_flags.append("SYSTEM CLEAR")
-        elif has_cyno:
+        elif pilot_count >= 25 or has_capital:
             threat_level = "CRITICAL"
-            status_flags.append("CYNO LIT")
-        elif "Capital" in ships:
-            threat_level = "CRITICAL"
-            status_flags.append("CAPITAL SPIKE")
-        elif pilot_count >= 10:
-            threat_level = "CRITICAL"
-            status_flags.append("FLEET SPIKE")
-        elif has_bubble:
+            if has_capital:
+                status_flags.append("CAPITAL SPIKE")
+            if pilot_count >= 25:
+                status_flags.append("FLEET SPIKE (25+)")
+            if has_cyno:
+                status_flags.append("CYNO LIT")
+            if has_bubble:
+                status_flags.append("BUBBLE ON GATE")
+        elif pilot_count > 10 or has_cyno or has_battleship:
             threat_level = "HIGH"
-            status_flags.append("BUBBLE ON GATE")
-        elif "Battleship" in ships or "Marauder" in ships:
-            threat_level = "HIGH"
-            status_flags.append("BATTLESHIP CONTACT")
-        elif pilot_count >= 3:
+            if has_cyno:
+                status_flags.append("CYNO LIT")
+            if has_battleship:
+                status_flags.append("BATTLESHIP CONTACT")
+            if pilot_count > 10:
+                status_flags.append("FLEET SPIKE (10+)")
+            if has_bubble:
+                status_flags.append("BUBBLE ON GATE")
+        elif (pilot_count >= 2 and pilot_count <= 10) or has_medium_hull:
             threat_level = "MEDIUM"
-            status_flags.append("GANG IN LOCAL")
-        elif ships:
-            threat_level = "MEDIUM"
-            status_flags.append("HOSTILE CONTACT")
+            if pilot_count >= 2:
+                status_flags.append("GANG IN LOCAL")
+            elif has_medium_hull:
+                status_flags.append("HOSTILE CONTACT")
+            if has_bubble:
+                status_flags.append("BUBBLE ON GATE")
+            if has_nv:
+                status_flags.append("NO VISUAL / NV")
+        elif has_frigate or has_nv:
+            threat_level = "LOW"
+            if has_frigate:
+                status_flags.append("FRIGATE CONTACT")
+            if has_nv:
+                status_flags.append("NO VISUAL / NV")
+            if has_bubble:
+                status_flags.append("BUBBLE ON GATE")
         else:
-            threat_level = "INFO"
+            threat_level = "LOW"
+            status_flags.append("LOCAL ACTIVITY")
+            if has_bubble:
+                status_flags.append("BUBBLE ON GATE")
+
+        if not status_flags:
             status_flags.append("LOCAL ACTIVITY")
 
         is_critical = threat_level in ("CRITICAL", "HIGH")

@@ -34,9 +34,9 @@ class StaleIntelManager:
             status.active_reports.append(report)
             status.hostile_count += report.pilot_count
             # Re-evaluate maximum threat level among active reports
-            threat_ranks = {"CLEAR": 0, "SUSPICIOUS": 1, "HOSTILE": 2, "CRITICAL": 3}
+            threat_ranks = {"CLEAR": 0, "INFO": 1, "LOW": 1, "SUSPICIOUS": 1, "MEDIUM": 2, "HIGH": 3, "HOSTILE": 3, "CRITICAL": 4}
             highest_rank = max((threat_ranks.get(r.threat_level, 0) for r in status.active_reports), default=0)
-            inv_ranks = {0: "CLEAR", 1: "SUSPICIOUS", 2: "HOSTILE", 3: "CRITICAL"}
+            inv_ranks = {0: "CLEAR", 1: "LOW", 2: "MEDIUM", 3: "HIGH", 4: "CRITICAL"}
             status.threat_level = inv_ranks[highest_rank]
 
         status.last_updated = time.time()
@@ -62,9 +62,9 @@ class StaleIntelManager:
                     status.threat_level = "CLEAR"
                     status.hostile_count = 0
                 else:
-                    threat_ranks = {"CLEAR": 0, "SUSPICIOUS": 1, "HOSTILE": 2, "CRITICAL": 3}
+                    threat_ranks = {"CLEAR": 0, "INFO": 1, "LOW": 1, "SUSPICIOUS": 1, "MEDIUM": 2, "HIGH": 3, "HOSTILE": 3, "CRITICAL": 4}
                     highest_rank = max((threat_ranks.get(r.threat_level, 0) for r in status.active_reports), default=0)
-                    inv_ranks = {0: "CLEAR", 1: "SUSPICIOUS", 2: "HOSTILE", 3: "CRITICAL"}
+                    inv_ranks = {0: "CLEAR", 1: "LOW", 2: "MEDIUM", 3: "HIGH", 4: "CRITICAL"}
                     status.threat_level = inv_ranks[highest_rank]
                     status.hostile_count = sum(r.pilot_count for r in status.active_reports)
 

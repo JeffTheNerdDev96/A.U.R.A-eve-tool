@@ -835,7 +835,7 @@ class MainWindow(QMainWindow):
         )
         self.threat_filter_combo.addItems([
             "All Activity",
-            "Exclude Clears (NV/CLR)",
+            "Exclude Clears (CLR)",
             "Medium+ Threats",
             "High+ Threats",
             "Critical Only"
@@ -844,9 +844,9 @@ class MainWindow(QMainWindow):
         self.threat_filter_combo.currentIndexChanged.connect(self._reapply_feed_filters)
         filter_row.addWidget(self.threat_filter_combo)
 
-        self.hide_clears_cb = QCheckBox("Hide System Clear (NV/CLR)")
+        self.hide_clears_cb = QCheckBox("Hide System Clear (CLR)")
         self.hide_clears_cb.setChecked(bool(getattr(config, "feed_hide_system_clears", False)))
-        self.hide_clears_cb.setToolTip("Hide 'System Clear' and 'No Visual / NV' reports from the feed.")
+        self.hide_clears_cb.setToolTip("Hide 'System Clear' (CLR) reports from the feed.")
         self.hide_clears_cb.toggled.connect(self._reapply_feed_filters)
         filter_row.addWidget(self.hide_clears_cb)
         filter_row.addStretch()
@@ -1109,14 +1109,14 @@ class MainWindow(QMainWindow):
             return False
         level = (parsed.get("threat_level") or "LOW").upper()
         flags = parsed.get("status_flags") or []
-        is_clear = (level == "CLEAR" or "SYSTEM CLEAR" in flags or "NO VISUAL / SYSTEM CLEAR" in flags)
+        is_clear = (level == "CLEAR" or "SYSTEM CLEAR" in flags)
 
         if hasattr(self, "hide_clears_cb") and self.hide_clears_cb.isChecked() and is_clear:
             return False
 
         if hasattr(self, "threat_filter_combo"):
             filter_mode = self.threat_filter_combo.currentText()
-            if filter_mode == "Exclude Clears (NV/CLR)" and is_clear:
+            if filter_mode in ("Exclude Clears (CLR)", "Exclude Clears (NV/CLR)") and is_clear:
                 return False
             elif filter_mode == "Medium+ Threats":
                 if is_clear or _LEVEL_RANK.get(level, 0) < 1:
@@ -1183,8 +1183,8 @@ class MainWindow(QMainWindow):
             "CRITICAL": ("🚨 CRITICAL", "#f43f5e", "#2a0a10"),
             "HIGH":     ("⚠️ HIGH",     "#fb923c", "#281206"),
             "MEDIUM":   ("🔥 MEDIUM",   "#facc15", "#221c04"),
+            "LOW":      ("ℹ️ LOW",      "#38bdf8", "#081426"),
             "INFO":     ("ℹ️ INFO",     "#38bdf8", "#081426"),
-            "LOW":      ("ℹ️ INFO",     "#38bdf8", "#081426"),
             "CLEAR":    ("✓ CLEAR",     "#34d399", "#042018")
         }
 

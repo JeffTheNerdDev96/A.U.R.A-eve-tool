@@ -7,12 +7,12 @@ import math
 import time
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QBrush, QColor, QPen, QFont, QWheelEvent
+from PyQt6.QtCore import Qt, QTimer, QPointF
+from PyQt6.QtGui import QBrush, QColor, QPen, QFont, QWheelEvent, QPolygonF
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton,
     QFrame, QGraphicsView, QGraphicsScene, QGraphicsEllipseItem,
-    QGraphicsLineItem, QGraphicsTextItem, QGraphicsItem, QScrollArea,
+    QGraphicsLineItem, QGraphicsTextItem, QGraphicsPolygonItem, QGraphicsItem, QScrollArea,
     QSizePolicy,
 )
 
@@ -38,12 +38,12 @@ _LEVEL_RANK = {
 }
 
 _THREAT_RING = {
-    "CRITICAL": "#f43f5e",
-    "HIGH": "#fb923c",
-    "MEDIUM": "#facc15",
-    "INFO": "#38bdf8",
-    "LOW": "#38bdf8",
-    "CLEAR": "#34d399",
+    "CRITICAL": "#ef4444",  # Flaming Crimson
+    "HIGH": "#f97316",      # Vivid Amber-Orange
+    "MEDIUM": "#facc15",    # Golden Yellow
+    "INFO": "#38bdf8",      # Electric Cyan
+    "LOW": "#38bdf8",       # Electric Cyan
+    "CLEAR": "#34d399",     # Emerald Green
 }
 
 
@@ -56,26 +56,35 @@ def _sec_color(security: float) -> QColor:
     return QColor("#f87171")      # Null-sec: vibrant coral red
 
 
+def _make_star_polygon(outer_r: float, inner_r: float, num_points: int = 4) -> QPolygonF:
+    poly = QPolygonF()
+    for i in range(num_points * 2):
+        angle = i * math.pi / num_points - (math.pi / 2)
+        r = outer_r if (i % 2 == 0) else inner_r
+        poly.append(QPointF(r * math.cos(angle), r * math.sin(angle)))
+    return poly
+
+
 def _force_layout(
     node_ids: Set[int],
     edges: List[Tuple[int, int]],
     origin_id: Optional[int],
-    iterations: int = 80,
+    iterations: int = 100,
 ) -> Dict[int, Tuple[float, float]]:
-    """Fruchterman-Reingold layout; origin pinned at (0, 0)."""
+    """Fruchterman-Reingold layout with enhanced spacing and breathing room; origin pinned at (0, 0)."""
     if not node_ids:
         return {}
     ids = list(node_ids)
     n = len(ids)
-    area = max(40000.0, n * 800.0)
-    k = math.sqrt(area / max(n, 1))
+    area = max(180000.0, n * 4000.0)
+    k = math.sqrt(area / max(n, 1)) * 1.35
     pos: Dict[int, Tuple[float, float]] = {}
     for i, sid in enumerate(ids):
         if sid == origin_id:
             pos[sid] = (0.0, 0.0)
         else:
             angle = (2 * math.pi * i) / max(n, 1)
-            r = k * 2.5
+            r = k * 3.0
             pos[sid] = (math.cos(angle) * r, math.sin(angle) * r)
 
     adj: Dict[int, Set[int]] = {sid: set() for sid in ids}
@@ -130,7 +139,7 @@ def _force_layout(
                 continue
             dlen = math.hypot(disp_vec[v][0], disp_vec[v][1])
             if dlen > 0:
-                limit = min(dlen, 20.0)
+                limit = min(dlen, 25.0)
                 disp_vec[v][0] = disp_vec[v][0] / dlen * limit
                 disp_vec[v][1] = disp_vec[v][1] / dlen * limit
             set_disp(v, disp(v)[0] + disp_vec[v][0], disp(v)[1] + disp_vec[v][1])
@@ -161,7 +170,7 @@ class MapGraphicsView(QGraphicsView):
 
 
 class SystemNodeItem(QGraphicsEllipseItem):
-    """Clickable system node."""
+    """Clickable system node with optional tactical alert star backdrop."""
 
     def __init__(self, system_id: int, name: str, radius: float, parent=None):
         super().__init__(-radius, -radius, radius * 2, radius * 2, parent)
@@ -171,6 +180,7 @@ class SystemNodeItem(QGraphicsEllipseItem):
         self.setAcceptHoverEvents(True)
         self._base_radius = radius
         self._label: Optional[QGraphicsTextItem] = None
+        self._star_item: Optional[QGraphicsPolygonItem] = None
 
     def set_label(self, text_item: QGraphicsTextItem) -> None:
         self._label = text_item
@@ -182,10 +192,25 @@ class SystemNodeItem(QGraphicsEllipseItem):
         ring_width: float = 2.0,
         opacity: float = 1.0,
         is_current: bool = False,
+        star_color: Optional[QColor] = None,
     ) -> None:
         r = self._base_radius * (1.35 if is_current else 1.0)
         self.setRect(-r, -r, r * 2, r * 2)
         self.setBrush(QBrush(fill))
+
+        # Tactical Alert Star Backdrop (for all threat alert levels)
+        if star_color:
+            if self._star_item is None:
+                self._star_item = QGraphicsPolygonItem(self)
+                self._star_item.setZValue(-1)
+            star_poly = _make_star_polygon(r * 2.4, r * 1.3, num_points=4)
+            self._star_item.setPolygon(star_poly)
+            self._star_item.setBrush(QBrush(star_color))
+            self._star_item.setPen(QPen(QColor("#0a0e17"), 1.8))
+            self._star_item.show()
+        elif self._star_item is not None:
+            self._star_item.hide()
+
         if ring:
             pen = QPen(ring, ring_width)
         elif is_current:
@@ -195,8 +220,8 @@ class SystemNodeItem(QGraphicsEllipseItem):
         self.setPen(pen)
         self.setOpacity(opacity)
         if self._label:
-            r = self.rect().width() / 2.0
-            self._label.setPos(r + 2, -6)
+            r_w = self.rect().width() / 2.0
+            self._label.setPos(r_w + 3, -6)
 
 
 class MapTabWidget(QWidget):
@@ -328,9 +353,13 @@ class MapTabWidget(QWidget):
         rl.addWidget(self.route_avoid_edit)
 
         route_btn_row = QHBoxLayout()
-        self.route_calc_btn = QPushButton("⚡ Plot Route")
+        self.route_calc_btn = QPushButton("Plot Route")
         self.route_calc_btn.setFixedHeight(28)
-        self.route_calc_btn.setStyleSheet(radar_accent_btn_css())
+        self.route_calc_btn.setStyleSheet(
+            f"QPushButton {{ background:{ACCENT_DIM}; color:{TEXT_PRIMARY}; border:1px solid {ACCENT}; "
+            "font-weight:bold; border-radius:2px; font-size:12px; padding:2px 10px; }"
+            f"QPushButton:hover {{ background:{ACCENT}; color:{BTN_TEXT_ON_ACCENT}; }}"
+        )
         self.route_calc_btn.clicked.connect(self._on_calculate_route)
         route_btn_row.addWidget(self.route_calc_btn, stretch=2)
 
@@ -356,14 +385,22 @@ class MapTabWidget(QWidget):
 
         # Legend
         leg = QLabel(
-            "Map Legend\n"
-            "● Highsec  ● Lowsec  ● Nullsec\n"
-            "Ring: intel threat level\n"
-            "Gold ring: origin / current location\n"
-            "Cyan ring: destination\n"
-            "Gold path: plotted stargate route"
+            "<b style='color:#e2e8f0; font-size:11px;'>Map Legend</b><br>"
+            "<span style='color:#38bdf8;'>●</span> <span style='color:#cbd5e1;'>Highsec</span> &nbsp;"
+            "<span style='color:#fbbf24;'>●</span> <span style='color:#cbd5e1;'>Lowsec</span> &nbsp;"
+            "<span style='color:#f87171;'>●</span> <span style='color:#cbd5e1;'>Nullsec</span><br>"
+            "<span style='color:#ef4444;'>✦</span> <span style='color:#cbd5e1;'>Critical</span> &nbsp;"
+            "<span style='color:#f97316;'>✦</span> <span style='color:#cbd5e1;'>High</span> &nbsp;"
+            "<span style='color:#facc15;'>✦</span> <span style='color:#cbd5e1;'>Medium</span><br>"
+            "<span style='color:#38bdf8;'>✦</span> <span style='color:#cbd5e1;'>Info / Low</span> &nbsp;"
+            "<span style='color:#34d399;'>✦</span> <span style='color:#cbd5e1;'>Clear</span><br>"
+            "<span style='color:#facc15; font-size:12px;'>◎</span> <span style='color:#94a3b8;'>Gold ring: current location</span><br>"
+            "<span style='color:#ffffff; font-size:12px;'>◎</span> <span style='color:#94a3b8;'>White ring: destination</span><br>"
+            "<span style='color:#a855f7;'>━</span> <span style='color:#94a3b8;'>Purple path: stargate route</span><br>"
+            "<span style='color:#94a3b8;'>✦ Star backdrop: intel alert</span>"
         )
-        leg.setStyleSheet(f"color:{TEXT_HINT}; font-size:11px;")
+        leg.setTextFormat(Qt.TextFormat.RichText)
+        leg.setStyleSheet("font-size: 11px;")
         rl.addWidget(leg)
         body.addWidget(rail)
         root.addLayout(body, stretch=1)
@@ -424,7 +461,7 @@ class MapTabWidget(QWidget):
         ts = time.time()
         key = sys_name.lower()
         prev = self._intel_by_system.get(key)
-        if prev and _LEVEL_RANK.get(level, 0) < _LEVEL_RANK.get(prev.get("level", "INFO"), 0):
+        if level != "CLEAR" and prev and _LEVEL_RANK.get(level, 0) < _LEVEL_RANK.get(prev.get("level", "INFO"), 0):
             if ts - prev.get("ts", 0) < 120:
                 return
         self._intel_by_system[key] = {"level": level, "msg": msg, "ts": ts, "name": sys_name}
@@ -506,7 +543,7 @@ class MapTabWidget(QWidget):
             line = QGraphicsLineItem(pa[0], pa[1], pb[0], pb[1])
             edge_key = (min(a, b), max(a, b))
             if edge_key in self._route_edges:
-                line.setPen(QPen(QColor("#facc15"), 3.2))  # Glowing Gold route line
+                line.setPen(QPen(QColor("#a855f7"), 3.5))  # Vibrant Tactical Purple route line
                 line.setZValue(5)
             else:
                 line.setPen(QPen(QColor("#475569"), 1.2))
@@ -546,21 +583,26 @@ class MapTabWidget(QWidget):
             fill = _sec_color(sec)
             ring = None
             ring_w = 2.0
+            star_color = None
             has_threat = False
 
-            if is_route_origin:
-                ring = QColor("#facc15")  # Gold origin ring
+            if is_route_origin or is_current:
+                ring = QColor("#facc15")  # Gold origin / current ring
                 ring_w = 3.5
             elif is_route_dest:
-                ring = QColor("#38bdf8")  # Electric cyan destination ring
+                ring = QColor("#ffffff")  # Crisp White destination ring
                 ring_w = 3.5
             elif is_route_waypoint:
-                ring = QColor("#fb923c")  # Orange transit waypoint
-                ring_w = 2.4
-            elif intel:
+                ring = QColor("#c084fc")  # Tactical Purple transit waypoint
+                ring_w = 2.6
+
+            if intel:
                 level = intel.get("level", "INFO")
-                ring = QColor(_THREAT_RING.get(level, "#38bdf8"))
-                ring_w = 2.8
+                threat_hex = _THREAT_RING.get(level, "#38bdf8")
+                star_color = QColor(threat_hex)
+                if not (is_route_origin or is_current or is_route_dest):
+                    ring = QColor(threat_hex)
+                    ring_w = 2.8
                 has_threat = (level != "CLEAR")
 
             lbl = QGraphicsTextItem(rec["name"], node)
@@ -568,7 +610,7 @@ class MapTabWidget(QWidget):
                 lbl.setDefaultTextColor(QColor("#ffffff"))
                 lbl.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
             elif is_route_waypoint:
-                lbl.setDefaultTextColor(QColor("#facc15"))
+                lbl.setDefaultTextColor(QColor("#c084fc"))
                 lbl.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
             elif has_threat and intel:
                 threat_col = _THREAT_RING.get(intel["level"], "#facc15")
@@ -581,13 +623,13 @@ class MapTabWidget(QWidget):
             node.set_label(lbl)
             self._label_items.append(lbl)
 
-            node.set_visual(fill, ring, ring_w, 1.0, is_current or is_route_origin)
+            node.set_visual(fill, ring, ring_w, 1.0, is_current or is_route_origin, star_color=star_color)
             self.scene.addItem(node)
             self._node_items[sid] = node
 
         if self._current_route:
             self.caption_lbl.setText(
-                f"⚡ BFS Route: {self._current_route.origin} ➔ {self._current_route.destination} ({self._current_route.total_jumps} jumps) | Security: Min {self._current_route.security_min:.1f}, Avg {self._current_route.security_avg:.1f}"
+                f"🗺️ Route: {self._current_route.origin} ➔ {self._current_route.destination} ({self._current_route.total_jumps} jumps) | Security: Min {self._current_route.security_min:.1f}, Avg {self._current_route.security_avg:.1f}"
             )
         elif self._bubble_total > MAX_NODES:
             self.caption_lbl.setText(

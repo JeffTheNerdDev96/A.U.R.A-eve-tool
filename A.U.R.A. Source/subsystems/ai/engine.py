@@ -457,9 +457,13 @@ class UnifiedInferenceEngine:
             self._load_model()
 
     def request_abort(self) -> None:
-        """Signal an in-flight load or stream to stop and release model resources."""
+        """Signal an in-flight load or stream to stop cleanly without deallocating native context."""
         self._abort_requested = True
-        self.unload_model()
+        if self.coprocessor and getattr(self.coprocessor, "active_stop_event", None):
+            try:
+                self.coprocessor.active_stop_event.set()
+            except Exception:
+                pass
 
     def clear_abort(self) -> None:
         self._abort_requested = False
