@@ -2,7 +2,7 @@
 Subsystem Service Layer for Fleet Composition & Doctrine Counters.
 """
 
-from typing import Dict, Any
+from typing import Any, override
 from core.base_subsystem import BaseSubsystem
 from core.events import FleetCompUpdatedEvent
 from .analyzer import FleetCompAnalyzer
@@ -16,13 +16,16 @@ class FleetCompSubsystem(BaseSubsystem):
         super().__init__(name="FleetCompSubsystem")
         self.analyzer = FleetCompAnalyzer()
 
+    @override
     def initialize(self) -> bool:
         return True
 
+    @override
     def start(self) -> bool:
         super().start()
         return True
 
+    @override
     def stop(self) -> bool:
         super().stop()
         return True

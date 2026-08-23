@@ -9,37 +9,40 @@ import shutil
 import sys
 import threading
 import time
-from typing import Any, Optional
+from pathlib import Path
+from typing import Any
 
 WORKER_JOIN_MS = 2000
 CHAT_MONITOR_JOIN_MS = 1500
 
-_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-_APP_DIR = os.path.dirname(_THIS_DIR) if os.path.basename(_THIS_DIR) == "core" else _THIS_DIR
+_THIS_DIR = Path(__file__).resolve().parent
+_APP_DIR = _THIS_DIR.parent if _THIS_DIR.name == "core" else _THIS_DIR
 
 
 def cleanup_temp_files() -> None:
     """Purges orphaned __pycache__ and stale non-crash logs."""
-    pc = os.path.join(_APP_DIR, "__pycache__")
-    if os.path.exists(pc):
+    pc = _APP_DIR / "__pycache__"
+    if pc.exists():
         try:
             shutil.rmtree(pc, ignore_errors=True)
         except OSError:
             pass
 
-    log_dir = os.path.join(_APP_DIR, "logs")
-    if not os.path.exists(log_dir):
+    log_dir = _APP_DIR / "logs"
+    if not log_dir.exists():
         return
     now = time.time()
-    for name in os.listdir(log_dir):
-        if not name.endswith(".log") or name == "crash.log":
-            continue
-        path = os.path.join(log_dir, name)
-        try:
-            if os.stat(path).st_mtime < now - (3 * 86400):
-                os.remove(path)
-        except OSError:
-            pass
+    try:
+        for entry in log_dir.iterdir():
+            if not entry.is_file() or not entry.name.endswith(".log") or entry.name == "crash.log":
+                continue
+            try:
+                if entry.stat().st_mtime < now - (3 * 86400):
+                    entry.unlink(missing_ok=True)
+            except OSError:
+                pass
+    except OSError:
+        pass
 
 
 def _log_shutdown_error(exc: Exception, context: str) -> None:
@@ -50,7 +53,7 @@ def _log_shutdown_error(exc: Exception, context: str) -> None:
         sys.stderr.write(f"[A.U.R.A.] Shutdown error ({context}): {exc}\n")
 
 
-def shutdown_application(window: Optional[Any] = None) -> None:
+def shutdown_application(window: Any | None = None) -> None:
     """Stop timers, background workers, neural core, and purge in-memory buffers."""
     if window is not None and getattr(window, "_shutdown_done", False):
         cleanup_temp_files()

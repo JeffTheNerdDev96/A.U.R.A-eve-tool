@@ -2,7 +2,7 @@
 Subsystem Service Layer for Ship Fitting & EFT Calculations.
 """
 
-from typing import Dict, Any, Optional
+from typing import override
 from core.base_subsystem import BaseSubsystem
 from core.events import FittingCalculatedEvent
 from .parser import FittingParser
@@ -17,18 +17,21 @@ class FittingSubsystem(BaseSubsystem):
         super().__init__(name="FittingSubsystem")
         self.parser = FittingParser()
 
+    @override
     def initialize(self) -> bool:
         return True
 
+    @override
     def start(self) -> bool:
         super().start()
         return True
 
+    @override
     def stop(self) -> bool:
         super().stop()
         return True
 
-    def parse_eft(self, eft_text: str) -> Optional[ParsedFitting]:
+    def parse_eft(self, eft_text: str) -> ParsedFitting | None:
         """Parses raw EFT text and calculates defense, DPS, and capacitor stats."""
         raw_fit = self.parser.parse_eft_block(eft_text)
         if not raw_fit:

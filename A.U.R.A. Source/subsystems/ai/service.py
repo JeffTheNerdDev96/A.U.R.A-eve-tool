@@ -2,7 +2,7 @@
 Subsystem Service Layer for Local Neural Core & GGUF Inference.
 """
 
-from typing import Dict, Any, Optional, List
+from typing import override
 from core.base_subsystem import BaseSubsystem
 from core.events import InferenceStreamTokenEvent, InferenceCompletedEvent
 from .engine import UnifiedInferenceEngine
@@ -19,13 +19,16 @@ class AISubsystem(BaseSubsystem):
         self.doc_parser = DocumentParser()
         self.image_preprocessor = ImagePreprocessor()
 
+    @override
     def initialize(self) -> bool:
         return True
 
+    @override
     def start(self) -> bool:
         super().start()
         return True
 
+    @override
     def stop(self) -> bool:
         self.engine.unload_model()
         super().stop()

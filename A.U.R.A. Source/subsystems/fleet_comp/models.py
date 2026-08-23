@@ -2,18 +2,17 @@
 Fleet Composition Models & DTOs.
 """
 
-from dataclasses import dataclass, field
-from typing import Dict, List, Any
+from dataclasses import dataclass
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class FleetCompAnalysis:
     """Immutable DTO holding parsed fleet role breakdown and counter recommendations."""
     total_ships: int
-    role_counts: Dict[str, int]  # Logistics, Tacklers, Mainline DPS, EWAR, Covert Ops
-    ship_counts: Dict[str, int]
-    primary_threats: List[str]
-    counter_recommendations: List[str]
+    role_counts: dict[str, int]  # Logistics, Tacklers, Mainline DPS, EWAR, Covert Ops
+    ship_counts: dict[str, int]
+    primary_threats: list[str]
+    counter_recommendations: list[str]
     engagement_safety_score: str  # FAVORABLE, CAUTION, DISENGAGE
 
     @property

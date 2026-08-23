@@ -6,10 +6,9 @@ Defines strongly-typed dataclasses for cross-subsystem asynchronous messaging.
 from dataclasses import dataclass, field
 import time
 import uuid
-from typing import Dict, List, Any, Optional, Tuple
 
 
-@dataclass
+@dataclass(slots=True)
 class BaseEvent:
     """Base class for all system events."""
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
@@ -18,39 +17,39 @@ class BaseEvent:
 
 # --- Intel & Threat Events ---
 
-@dataclass
+@dataclass(slots=True)
 class IntelReportEvent(BaseEvent):
     """Fired when an intel line is ingested and parsed."""
     system: str = ""
-    pilots: List[str] = field(default_factory=list)
-    ship_classes: List[str] = field(default_factory=list)
+    pilots: list[str] = field(default_factory=list)
+    ship_classes: list[str] = field(default_factory=list)
     threat_level: str = "CLEAR"  # CLEAR, SUSPICIOUS, HOSTILE, CRITICAL
     raw_line: str = ""
     channel_name: str = ""
     reporter: str = ""
 
 
-@dataclass
+@dataclass(slots=True)
 class ThreatAlertEvent(BaseEvent):
     """Fired when a hostile threat threshold is breached."""
     system: str = ""
     threat_level: str = "HOSTILE"
-    pilots: List[str] = field(default_factory=list)
+    pilots: list[str] = field(default_factory=list)
     ship_summary: str = ""
-    distance_jumps: Optional[int] = None
+    distance_jumps: int | None = None
     trigger_sound: bool = True
 
 
-@dataclass
+@dataclass(slots=True)
 class IntelStaleExpiredEvent(BaseEvent):
     """Fired when an intel report decays past its validity window."""
     system: str = ""
-    expired_report_ids: List[str] = field(default_factory=list)
+    expired_report_ids: list[str] = field(default_factory=list)
 
 
 # --- Map & Navigation Events ---
 
-@dataclass
+@dataclass(slots=True)
 class SystemSelectedEvent(BaseEvent):
     """Fired when user or subsystem selects a solar system."""
     system_name: str = ""
@@ -59,31 +58,31 @@ class SystemSelectedEvent(BaseEvent):
     security_status: float = 0.0
 
 
-@dataclass
+@dataclass(slots=True)
 class RouteCalculatedEvent(BaseEvent):
     """Fired when a solar system graph route calculation finishes."""
     origin_system: str = ""
     destination_system: str = ""
-    route_path: List[str] = field(default_factory=list)
+    route_path: list[str] = field(default_factory=list)
     total_jumps: int = 0
-    avoid_systems: List[str] = field(default_factory=list)
+    avoid_systems: list[str] = field(default_factory=list)
 
 
 # --- Fleet Composition Events ---
 
-@dataclass
+@dataclass(slots=True)
 class FleetCompUpdatedEvent(BaseEvent):
     """Fired when fleet composition parser or manual D-scan is evaluated."""
     total_ships: int = 0
-    role_counts: Dict[str, int] = field(default_factory=dict)  # Logistics, Tacklers, Mainline DPS, EWAR, Covert Ops
-    ship_counts: Dict[str, int] = field(default_factory=dict)
-    primary_threats: List[str] = field(default_factory=list)
-    counter_recommendations: List[str] = field(default_factory=list)
+    role_counts: dict[str, int] = field(default_factory=dict)  # Logistics, Tacklers, Mainline DPS, EWAR, Covert Ops
+    ship_counts: dict[str, int] = field(default_factory=dict)
+    primary_threats: list[str] = field(default_factory=list)
+    counter_recommendations: list[str] = field(default_factory=list)
 
 
 # --- Fitting Events ---
 
-@dataclass
+@dataclass(slots=True)
 class FittingCalculatedEvent(BaseEvent):
     """Fired when a fitting configuration math calculation is completed."""
     ship_name: str = ""
@@ -98,14 +97,14 @@ class FittingCalculatedEvent(BaseEvent):
 
 # --- AI / Neural Inference Events ---
 
-@dataclass
+@dataclass(slots=True)
 class InferenceStreamTokenEvent(BaseEvent):
     """Fired when llama.cpp yields a token during async generation."""
     request_id: str = ""
     token: str = ""
 
 
-@dataclass
+@dataclass(slots=True)
 class InferenceCompletedEvent(BaseEvent):
     """Fired when local GGUF inference completes generation."""
     request_id: str = ""
@@ -116,7 +115,7 @@ class InferenceCompletedEvent(BaseEvent):
 
 # --- Wormhole Mapping Events ---
 
-@dataclass
+@dataclass(slots=True)
 class WormholeChainUpdatedEvent(BaseEvent):
     """Fired when an active wormhole chain structure or topology changes."""
     chain_id: str = ""
@@ -125,7 +124,7 @@ class WormholeChainUpdatedEvent(BaseEvent):
     total_connections: int = 0
 
 
-@dataclass
+@dataclass(slots=True)
 class WormholeSystemAddedEvent(BaseEvent):
     """Fired when a new system is mapped into the chain."""
     chain_id: str = ""
@@ -135,7 +134,7 @@ class WormholeSystemAddedEvent(BaseEvent):
     is_home: bool = False
 
 
-@dataclass
+@dataclass(slots=True)
 class WormholeConnectionUpdatedEvent(BaseEvent):
     """Fired when a wormhole connection state (mass/time/lock) changes."""
     chain_id: str = ""
@@ -147,7 +146,7 @@ class WormholeConnectionUpdatedEvent(BaseEvent):
     lifetime_state: str = "Stable"
 
 
-@dataclass
+@dataclass(slots=True)
 class CosmicSignatureUpdatedEvent(BaseEvent):
     """Fired when a signature is added, scanned, or deleted in a system."""
     chain_id: str = ""

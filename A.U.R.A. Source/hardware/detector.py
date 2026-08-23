@@ -17,7 +17,7 @@ import importlib.util
 import subprocess
 import psutil
 import winreg
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Any
 from core.config import config
 from core.error_handler import AURAErrorCode, log_diagnostic_error
 from .profile import (
@@ -27,11 +27,13 @@ from .profile import (
     standby_label,
     summarize_devices,
     install_hint_for_gpu,
+    HardwareProfile,
+    DeviceMap,
 )
 
 
 # Global hardware scan cache to ensure instant O(1) hardware queries across the app
-_CACHED_HARDWARE_DEVICES: Optional[Dict[str, Any]] = None
+_CACHED_HARDWARE_DEVICES: DeviceMap | None = None
 
 _OPENVINO_PROBE_SCRIPT = (
     "import json\n"
@@ -88,7 +90,7 @@ def _is_frozen_stub_executable() -> bool:
     )
 
 
-def _resolve_probe_python() -> Optional[str]:
+def _resolve_probe_python() -> str | None:
     """Return a real python.exe for -c probes; never the frozen Setup/Launcher stub."""
     app_dir = _app_root_dir()
     candidates = [
@@ -106,7 +108,7 @@ def _resolve_probe_python() -> Optional[str]:
     return sys.executable
 
 
-def _probe_openvino_devices(timeout_sec: float = 5.0) -> Tuple[List[str], Optional[str]]:
+def _probe_openvino_devices(timeout_sec: float = 5.0) -> tuple[list[str], str | None]:
     """Enumerate OpenVINO devices in a child process to avoid startup hangs."""
     python_exe = _resolve_probe_python()
     if not python_exe:
@@ -170,7 +172,7 @@ class HardwareDetector:
         self,
         apply_profile: bool = True,
         skip_openvino_probe: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> DeviceMap:
         # 1. CPU Detection
         cpu_name = "Host CPU"
         try:
@@ -474,7 +476,7 @@ class HardwareDetector:
         return self.devices["cpu"]["device_name"]
 
     @property
-    def install_profile(self) -> Optional[Dict[str, Any]]:
+    def install_profile(self) -> HardwareProfile | None:
         return self.devices.get("install_profile")
 
     @property
@@ -563,7 +565,7 @@ class DynamicHardwareRouter:
         has_image: bool = False,
         has_doc: bool = False,
         attachment_count: int = 0
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Routes workload across heterogeneous hardware mesh automatically:
         1. File/Vision Upload Override: Scales across all available compute units simultaneously.

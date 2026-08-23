@@ -4,8 +4,10 @@ Abstract base class for isolated domain services.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any
+from typing import Any
 from .event_bus import get_event_bus, EventBus
+
+type SubsystemStatus = dict[str, Any]
 
 
 class BaseSubsystem(ABC):
@@ -40,7 +42,7 @@ class BaseSubsystem(ABC):
         """Returns active running state."""
         return self._is_running
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> SubsystemStatus:
         """Returns subsystem health status dictionary."""
         return {
             "name": self.name,

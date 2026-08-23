@@ -3,19 +3,19 @@ Intel & Threat Data Models.
 """
 
 from dataclasses import dataclass, field
+from enum import StrEnum
 import time
 import uuid
-from typing import List, Optional
 
 
-class ThreatLevel:
+class ThreatLevel(StrEnum):
     CLEAR = "CLEAR"
     SUSPICIOUS = "SUSPICIOUS"
     HOSTILE = "HOSTILE"
     CRITICAL = "CRITICAL"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class IntelReport:
     """Immutable data record representing a single parsed intel message."""
     report_id: str = field(default_factory=lambda: str(uuid.uuid4()))
@@ -25,8 +25,8 @@ class IntelReport:
     timestamp_str: str = ""
     created_at: float = field(default_factory=time.time)
     threat_level: str = "CLEAR"  # CLEAR, SUSPICIOUS, HOSTILE, CRITICAL
-    pilots: List[str] = field(default_factory=list)
-    ship_classes: List[str] = field(default_factory=list)
+    pilots: list[str] = field(default_factory=list)
+    ship_classes: list[str] = field(default_factory=list)
     raw_message: str = ""
     pilot_count: int = 1
     has_cyno: bool = False
@@ -38,16 +38,16 @@ class IntelReport:
         return self.system_name
 
     @property
-    def ships(self) -> List[str]:
+    def ships(self) -> list[str]:
         return self.ship_classes
 
 
-@dataclass
+@dataclass(slots=True)
 class ThreatStatus:
     """Active threat status summary for a solar system."""
     system_name: str
     threat_level: str = "CLEAR"
-    active_reports: List[IntelReport] = field(default_factory=list)
+    active_reports: list[IntelReport] = field(default_factory=list)
     last_updated: float = field(default_factory=time.time)
     hostile_count: int = 0
 

@@ -3,10 +3,9 @@ Map Subsystem Models & DTOs.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class SystemNode:
     """Immutable record for a solar system in the map graph."""
     system_id: int
@@ -15,16 +14,16 @@ class SystemNode:
     security: float
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class RouteResult:
     """Immutable record for a calculated jump route."""
     origin: str
     destination: str
-    path: List[str]
+    path: list[str]
     total_jumps: int
     security_min: float
     security_avg: float
-    avoided_systems: List[str] = field(default_factory=list)
+    avoided_systems: list[str] = field(default_factory=list)
 
     @property
     def start_system(self) -> str:

@@ -3,7 +3,7 @@ A.U.R.A. Wormhole Mapping Subsystem Service Layer.
 Placeholder architecture for the v0.3.x Wormhole Mapping System milestone.
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Any, override
 import uuid
 import time
 from core.base_subsystem import BaseSubsystem
@@ -33,8 +33,9 @@ class WormholeSubsystem(BaseSubsystem):
 
     def __init__(self):
         super().__init__(name="WormholeSubsystem")
-        self.active_chain: Optional[WormholeChain] = None
+        self.active_chain: WormholeChain | None = None
 
+    @override
     def initialize(self) -> bool:
         """Initializes data structures and event subscriptions."""
         # Initial chain placeholder
@@ -44,11 +45,13 @@ class WormholeSubsystem(BaseSubsystem):
         )
         return True
 
+    @override
     def start(self) -> bool:
         """Starts active chain monitoring / timers."""
         super().start()
         return True
 
+    @override
     def stop(self) -> bool:
         """Cleans up timers and memory buffers."""
         super().stop()
@@ -83,10 +86,10 @@ class WormholeSubsystem(BaseSubsystem):
     def add_system(
         self,
         system_name: str,
-        parent_system: Optional[str] = None,
+        parent_system: str | None = None,
         wormhole_type: str = "",
         system_class: WormholeClass = WormholeClass.UNKNOWN,
-    ) -> Optional[WormholeNode]:
+    ) -> WormholeNode | None:
         """Adds a discovered wormhole system and optional connection link."""
         if self.active_chain is None:
             self.initialize()
@@ -158,7 +161,7 @@ class WormholeSubsystem(BaseSubsystem):
         )
         return True
 
-    def get_chain_summary(self) -> Dict[str, Any]:
+    def get_chain_summary(self) -> dict[str, Any]:
         """Returns diagnostic/state summary of the current chain."""
         if not self.active_chain:
             return {"status": "inactive", "nodes": 0, "connections": 0}

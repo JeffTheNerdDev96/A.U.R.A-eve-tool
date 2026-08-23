@@ -10,7 +10,7 @@ import os
 import sys
 import time
 import traceback
-from typing import Optional, Dict, Any
+from typing import Any
 
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 _APP_DIR = os.path.dirname(_THIS_DIR) if os.path.basename(_THIS_DIR) == "core" else _THIS_DIR
@@ -50,7 +50,7 @@ class AURAErrorCode:
     ERR_5003_UI_RENDER_ERROR = "AURA-ERR-5003"
 
 
-ERROR_REGISTRY: Dict[str, Dict[str, str]] = {
+ERROR_REGISTRY: dict[str, dict[str, str]] = {
     AURAErrorCode.ERR_1001_MODEL_NOT_FOUND: {
         "title": "Neural Weights Missing",
         "description": "Microsoft Phi-4 Mini weights file ('model_q4.gguf') was not found.",
@@ -148,7 +148,7 @@ class AURAException(Exception):
     """
     Standard structured exception for all Adaptive Underworld Recon Array (A.U.R.A.) errors.
     """
-    def __init__(self, code: str, technical_details: str = "", original_exc: Optional[Exception] = None):
+    def __init__(self, code: str, technical_details: str = "", original_exc: Exception | None = None):
         self.code = code
         self.meta = ERROR_REGISTRY.get(code, {
             "title": "Tactical Anomaly",
@@ -162,9 +162,13 @@ class AURAException(Exception):
         self.original_exc = original_exc
         
         super().__init__(f"[{self.code}] {self.title}: {self.description}")
+        self.add_note(f"A.U.R.A. Error Code: {self.code}")
+        self.add_note(f"Resolution: {self.resolution}")
+        if self.technical_details:
+            self.add_note(f"Details: {self.technical_details}")
 
 
-def log_diagnostic_error(code: str, exc: Optional[Exception] = None, context: str = "") -> str:
+def log_diagnostic_error(code: str, exc: Exception | None = None, context: str = "") -> str:
     """
     Records a structured diagnostic error into logs/crash.log with stack trace and context.
     Returns the formatted error code string.
@@ -174,6 +178,14 @@ def log_diagnostic_error(code: str, exc: Optional[Exception] = None, context: st
         "description": "Unspecified anomaly",
         "resolution": "Review application logs"
     })
+
+    if exc is not None:
+        try:
+            exc.add_note(f"A.U.R.A. Error Code: {code}")
+            if context:
+                exc.add_note(f"Context: {context}")
+        except Exception:
+            pass
     
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     tb = traceback.format_exc() if exc else "No traceback available."

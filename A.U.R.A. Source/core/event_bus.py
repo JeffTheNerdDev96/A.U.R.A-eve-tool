@@ -4,7 +4,7 @@ Decouples domain subsystems and PyQt6 UI using typed signals.
 """
 
 from PyQt6.QtCore import QObject, pyqtSignal, QThreadPool, QRunnable
-from typing import Type, Callable, Dict, List, TypeVar, Any, Optional
+from typing import Callable, Any
 import logging
 import traceback
 from collections import defaultdict
@@ -12,8 +12,6 @@ from collections import defaultdict
 from .events import BaseEvent
 
 logger = logging.getLogger("AURA.EventBus")
-
-E = TypeVar('E', bound=BaseEvent)
 
 
 class EventBus(QObject):
@@ -25,7 +23,7 @@ class EventBus(QObject):
 
     def __init__(self):
         super().__init__()
-        self._subscribers: Dict[Type[BaseEvent], List[Callable[[Any], None]]] = defaultdict(list)
+        self._subscribers: dict[type[BaseEvent], list[Callable[[Any], None]]] = defaultdict(list)
         self._thread_pool = QThreadPool.globalInstance()
         self._qt_event_signal.connect(self._dispatch_to_subscribers)
 
@@ -36,14 +34,14 @@ class EventBus(QObject):
         """
         self._qt_event_signal.emit(event)
 
-    def subscribe(self, event_type: Type[E], handler: Callable[[E], None]) -> None:
+    def subscribe[E: BaseEvent](self, event_type: type[E], handler: Callable[[E], None]) -> None:
         """
         Registers a callback handler for a specific event type.
         """
         if handler not in self._subscribers[event_type]:
             self._subscribers[event_type].append(handler)
 
-    def unsubscribe(self, event_type: Type[E], handler: Callable[[E], None]) -> None:
+    def unsubscribe[E: BaseEvent](self, event_type: type[E], handler: Callable[[E], None]) -> None:
         """
         Unregisters a callback handler for a specific event type.
         """
@@ -85,7 +83,7 @@ class EventBus(QObject):
 
 
 # Global Singleton Instance
-_EVENT_BUS_INSTANCE: Optional['EventBus'] = None
+_EVENT_BUS_INSTANCE: EventBus | None = None
 
 
 def get_event_bus() -> EventBus:

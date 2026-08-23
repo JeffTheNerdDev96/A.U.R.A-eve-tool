@@ -5,7 +5,10 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any
+
+type HardwareProfile = dict[str, Any]
+type DeviceMap = dict[str, Any]
 
 SCHEMA_VERSION = 1
 
@@ -20,7 +23,7 @@ PROFILE_IDS = (
     "cpu_mesh",
 )
 
-NAMED_PROFILE_DEFAULTS: Dict[str, Dict[str, Any]] = {
+NAMED_PROFILE_DEFAULTS: dict[str, HardwareProfile] = {
     "intel_npu": {
         "primary": "intel_npu",
         "profiles": ["intel_npu"],
@@ -112,7 +115,7 @@ def profile_json_path() -> str:
     return os.path.join(source_dir, "requirements", "hardware_profile.json")
 
 
-def empty_npu() -> Dict[str, Any]:
+def empty_npu() -> DeviceMap:
     return {
         "name": "NPU",
         "available": False,
@@ -124,8 +127,8 @@ def empty_npu() -> Dict[str, Any]:
     }
 
 
-def summarize_devices(devices: Dict[str, Any]) -> str:
-    parts: List[str] = []
+def summarize_devices(devices: DeviceMap) -> str:
+    parts: list[str] = []
     npu = devices.get("npu") or {}
     if npu.get("available"):
         parts.append(f"NPU: {npu.get('device_name')} ({npu.get('vendor')})")
@@ -137,7 +140,7 @@ def summarize_devices(devices: Dict[str, Any]) -> str:
     return " | ".join(parts) if parts else "CPU"
 
 
-def load_install_profile(path: Optional[str] = None) -> Optional[Dict[str, Any]]:
+def load_install_profile(path: str | None = None) -> HardwareProfile | None:
     target = path or profile_json_path()
     if not os.path.isfile(target):
         return None
@@ -154,7 +157,7 @@ def load_install_profile(path: Optional[str] = None) -> Optional[Dict[str, Any]]
         return None
 
 
-def build_named_profile(profile_id: str, llama_wheel: Optional[str] = None) -> Dict[str, Any]:
+def build_named_profile(profile_id: str, llama_wheel: str | None = None) -> HardwareProfile:
     if profile_id not in NAMED_PROFILE_DEFAULTS:
         raise ValueError(f"Unknown hardware profile: {profile_id}")
     payload = dict(NAMED_PROFILE_DEFAULTS[profile_id])
@@ -165,7 +168,7 @@ def build_named_profile(profile_id: str, llama_wheel: Optional[str] = None) -> D
     return payload
 
 
-def save_install_profile(payload: Dict[str, Any], path: Optional[str] = None) -> str:
+def save_install_profile(payload: HardwareProfile, path: str | None = None) -> str:
     target = path or profile_json_path()
     data = dict(payload)
     data["schema"] = SCHEMA_VERSION
@@ -176,7 +179,7 @@ def save_install_profile(payload: Dict[str, Any], path: Optional[str] = None) ->
     return target
 
 
-def compose_install_plan(devices: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def compose_install_plan(devices: DeviceMap | None = None) -> HardwareProfile:
     """Choose stacks from live PnP: one GGUF wheel plus additive NPU extras."""
     if not isinstance(devices, dict):
         devices = {}
@@ -194,7 +197,7 @@ def compose_install_plan(devices: Optional[Dict[str, Any]] = None) -> Dict[str, 
     intel_npu = bool(npu.get("available") and npu.get("is_intel"))
     amd_npu = bool(npu.get("available") and npu.get("is_amd"))
 
-    profiles: List[str] = []
+    profiles: list[str] = []
     llama_wheel = "cpu"
     coprocessor = "none"
     npu_kind = "none"
@@ -260,7 +263,7 @@ def compose_install_plan(devices: Optional[Dict[str, Any]] = None) -> Dict[str, 
     }
 
 
-def apply_install_mask(devices: Dict[str, Any], profile: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+def apply_install_mask(devices: DeviceMap, profile: HardwareProfile | None) -> DeviceMap:
     """Keep only live devices that the installer profile allowed."""
     if not profile:
         return devices
@@ -281,7 +284,7 @@ def apply_install_mask(devices: Dict[str, Any], profile: Optional[Dict[str, Any]
         }
         return devices
 
-    allowed_gpus: List[Dict[str, Any]] = []
+    allowed_gpus: list[dict[str, Any]] = []
     for gpu in devices.get("gpus") or []:
         if any(GPU_MATCHERS[pid](gpu) for pid in profiles if pid in GPU_MATCHERS):
             if not any(g.get("device_name") == gpu.get("device_name") for g in allowed_gpus):
@@ -322,7 +325,7 @@ def apply_install_mask(devices: Dict[str, Any], profile: Optional[Dict[str, Any]
     return devices
 
 
-def standby_label(profile: Optional[Dict[str, Any]]) -> str:
+def standby_label(profile: HardwareProfile | None) -> str:
     if not profile:
         return "Standby (Ready)"
     profiles = profile.get("profiles") or []
@@ -332,7 +335,7 @@ def standby_label(profile: Optional[Dict[str, Any]]) -> str:
     return "Standby (" + " + ".join(labels) + ")"
 
 
-def gpu_strategy_label(profile: Optional[Dict[str, Any]], gpu_vendor: str) -> str:
+def gpu_strategy_label(profile: HardwareProfile | None, gpu_vendor: str) -> str:
     if profile:
         gpu_class = profile.get("gpu_class") or ""
         wheel = profile.get("llama_wheel") or ""
@@ -342,21 +345,24 @@ def gpu_strategy_label(profile: Optional[Dict[str, Any]], gpu_vendor: str) -> st
             return "AMD Vulkan"
         if gpu_class in ("intel_dgpu", "intel_igpu") or (wheel == "vulkan" and gpu_vendor == "Intel"):
             return "Intel Arc Vulkan"
-    if gpu_vendor == "NVIDIA":
-        return "NVIDIA CUDA"
-    if gpu_vendor == "AMD":
-        return "AMD Vulkan"
-    if gpu_vendor == "Intel":
-        return "Intel Arc Vulkan"
-    return f"{gpu_vendor} GPU"
+    match gpu_vendor:
+        case "NVIDIA":
+            return "NVIDIA CUDA"
+        case "AMD":
+            return "AMD Vulkan"
+        case "Intel":
+            return "Intel Arc Vulkan"
+        case _:
+            return f"{gpu_vendor} GPU"
 
 
 def install_hint_for_gpu(vendor: str) -> str:
-    vendor_l = (vendor or "").lower()
-    if vendor_l == "nvidia":
-        return "install_nvidia_cuda.bat (NVIDIA CUDA)"
-    if vendor_l == "amd":
-        return "install_amd_dgpu.bat (AMD Vulkan)"
-    if vendor_l == "intel":
-        return "install_intel_dgpu.bat (Intel Arc Vulkan)"
-    return "install_cpu.bat (CPU Mesh)"
+    match (vendor or "").lower():
+        case "nvidia":
+            return "install_nvidia_cuda.bat (NVIDIA CUDA)"
+        case "amd":
+            return "install_amd_dgpu.bat (AMD Vulkan)"
+        case "intel":
+            return "install_intel_dgpu.bat (Intel Arc Vulkan)"
+        case _:
+            return "install_cpu.bat (CPU Mesh)"

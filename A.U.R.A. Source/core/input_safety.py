@@ -79,7 +79,7 @@ def is_safe_log_file(base_dir: str, filepath: str) -> bool:
         return False
 
 
-def wrap_untrusted(label: str, content: str, max_chars: Optional[int] = None) -> str:
+def wrap_untrusted(label: str, content: str, max_chars: int | None = None) -> str:
     """Delimit untrusted content for LLM prompts."""
     body = strip_control_chars(content or "")
     if max_chars is not None:

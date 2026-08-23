@@ -3,19 +3,19 @@ AI Subsystem Data Models & DTOs.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Any, Optional
+from typing import Any
 
 
-@dataclass
+@dataclass(slots=True)
 class InferenceRequest:
     request_id: str
     prompt: str
-    chat_history: List[Dict[str, str]] = field(default_factory=list)
-    attachments: List[Dict[str, Any]] = field(default_factory=list)
-    piloted_ship: Optional[str] = None
+    chat_history: list[dict[str, str]] = field(default_factory=list)
+    attachments: list[dict[str, Any]] = field(default_factory=list)
+    piloted_ship: str | None = None
 
 
-@dataclass
+@dataclass(slots=True)
 class InferenceResult:
     request_id: str
     response_text: str

@@ -3,8 +3,8 @@ Subsystem Service Layer for Intel & Threat Assessment.
 Extends BaseSubsystem, monitoring live chat logs and emitting EventBus events.
 """
 
-from typing import Dict, Any, Optional
-from core.base_subsystem import BaseSubsystem
+from typing import override
+from core.base_subsystem import BaseSubsystem, SubsystemStatus
 from core.events import IntelReportEvent, ThreatAlertEvent, IntelStaleExpiredEvent
 from .parser import IntelRegexParser
 from .expiration import StaleIntelManager
@@ -21,15 +21,18 @@ class IntelSubsystem(BaseSubsystem):
         self.parser = IntelRegexParser()
         self.stale_manager = StaleIntelManager(expiration_seconds=expiration_seconds)
 
+    @override
     def initialize(self) -> bool:
         """Initialize resources and prepare subsystem state."""
         return True
 
+    @override
     def start(self) -> bool:
         """Start monitoring."""
         super().start()
         return True
 
+    @override
     def stop(self) -> bool:
         """Stop monitoring."""
         super().stop()
@@ -39,7 +42,7 @@ class IntelSubsystem(BaseSubsystem):
         rep = self.process_raw_line(line, channel_name)
         return [rep] if rep else []
 
-    def process_raw_line(self, line: str, channel_name: str = "Intel") -> Optional[IntelReport]:
+    def process_raw_line(self, line: str, channel_name: str = "Intel") -> IntelReport | None:
         """
         Processes a raw chat log line.
         On success, emits IntelReportEvent and ThreatAlertEvent over EventBus.
@@ -85,7 +88,8 @@ class IntelSubsystem(BaseSubsystem):
             )
             self.event_bus.publish(evt)
 
-    def get_status(self) -> Dict[str, Any]:
+    @override
+    def get_status(self) -> SubsystemStatus:
         base_status = super().get_status()
         base_status.update({
             "tracked_systems": len(self.stale_manager.get_all_active_threats())

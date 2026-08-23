@@ -4,12 +4,11 @@ Placeholder architecture for v0.3.x Wormhole Mapping System milestone.
 """
 
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import List, Dict, Optional, Any
+from enum import StrEnum
 import time
 
 
-class WormholeClass(str, Enum):
+class WormholeClass(StrEnum):
     """EVE Online Solar System / Wormhole Classifications."""
     C1 = "Class 1"
     C2 = "Class 2"
@@ -25,7 +24,7 @@ class WormholeClass(str, Enum):
     UNKNOWN = "Unknown"
 
 
-class WormholeEffect(str, Enum):
+class WormholeEffect(StrEnum):
     """System-wide environmental effects in J-space."""
     NONE = "No Effect"
     PULSAR = "Pulsar"
@@ -36,7 +35,7 @@ class WormholeEffect(str, Enum):
     BLACK_HOLE = "Black Hole"
 
 
-class MassState(str, Enum):
+class MassState(StrEnum):
     """Connection mass stages."""
     FRESH = "Stage 1 (>50%)"
     DESTAB = "Stage 2 (10%-50%)"
@@ -44,14 +43,14 @@ class MassState(str, Enum):
     VERGE = "Verge of Collapse"
 
 
-class LifetimeState(str, Enum):
+class LifetimeState(StrEnum):
     """Connection lifetime decay stages."""
     STABLE = "Stable (>24h or >4h depending on type)"
     END_OF_LIFE = "End of Life (<4h remaining)"
     CRITICAL = "Critical / Imminent Collapse"
 
 
-class SignatureGroup(str, Enum):
+class SignatureGroup(StrEnum):
     """Cosmic signature categories."""
     UNKNOWN = "Unscanned"
     WORMHOLE = "Wormhole"
@@ -61,7 +60,7 @@ class SignatureGroup(str, Enum):
     COMBAT = "Combat Site"
 
 
-@dataclass
+@dataclass(slots=True)
 class CosmicSignature:
     """Represents a scanned or unscanned cosmic signature in a system."""
     sig_id: str                          # e.g. "ABC-123"
@@ -73,7 +72,7 @@ class CosmicSignature:
     comment: str = ""
 
 
-@dataclass
+@dataclass(slots=True)
 class WormholeConnection:
     """Represents an active wormhole link connecting two solar systems."""
     connection_id: str
@@ -82,15 +81,15 @@ class WormholeConnection:
     wormhole_type: str = ""              # e.g. "K162", "D845", "H296"
     mass_state: MassState = MassState.FRESH
     lifetime_state: LifetimeState = LifetimeState.STABLE
-    source_sig_id: Optional[str] = None
-    target_sig_id: Optional[str] = None
+    source_sig_id: str | None = None
+    target_sig_id: str | None = None
     created_at: float = field(default_factory=time.time)
-    expires_at: Optional[float] = None
+    expires_at: float | None = None
     is_locked: bool = False
     notes: str = ""
 
 
-@dataclass
+@dataclass(slots=True)
 class WormholeNode:
     """Represents a solar system in an active wormhole chain topology."""
     system_name: str                     # e.g. "J123456" or "Jita"
@@ -99,19 +98,19 @@ class WormholeNode:
     region: str = ""
     constellation: str = ""
     security_status: float = -0.99
-    statics: List[str] = field(default_factory=list)      # e.g. ["D845", "N432"]
-    signatures: Dict[str, CosmicSignature] = field(default_factory=dict)
+    statics: list[str] = field(default_factory=list)      # e.g. ["D845", "N432"]
+    signatures: dict[str, CosmicSignature] = field(default_factory=dict)
     custom_name: str = ""                # e.g. "Home", "Farm", "C3 Static"
     x: float = 0.0                       # Canvas coordinate
     y: float = 0.0                       # Canvas coordinate
 
 
-@dataclass
+@dataclass(slots=True)
 class WormholeChain:
     """Represents a full mapped chain topology."""
     chain_id: str
     home_system: str
-    nodes: Dict[str, WormholeNode] = field(default_factory=dict)
-    connections: List[WormholeConnection] = field(default_factory=list)
+    nodes: dict[str, WormholeNode] = field(default_factory=dict)
+    connections: list[WormholeConnection] = field(default_factory=list)
     created_at: float = field(default_factory=time.time)
     updated_at: float = field(default_factory=time.time)
