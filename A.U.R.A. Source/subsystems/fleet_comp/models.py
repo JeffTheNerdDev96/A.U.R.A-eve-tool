@@ -9,7 +9,7 @@ from dataclasses import dataclass
 class FleetCompAnalysis:
     """Immutable DTO holding parsed fleet role breakdown and counter recommendations."""
     total_ships: int
-    role_counts: dict[str, int]  # Logistics, Tacklers, Mainline DPS, EWAR, Covert Ops
+    role_counts: dict[str, int]  # Logistics, Tacklers, Strategic Cruisers, Mainline DPS, T2 Recons / EAS, Covert Ops
     ship_counts: dict[str, int]
     primary_threats: list[str]
     counter_recommendations: list[str]
@@ -28,8 +28,16 @@ class FleetCompAnalysis:
         return self.role_counts.get("Mainline DPS", 0)
 
     @property
+    def t3c_count(self) -> int:
+        return self.role_counts.get("Strategic Cruisers", 0)
+
+    @property
+    def recon_count(self) -> int:
+        return self.role_counts.get("T2 Recons / EAS", 0)
+
+    @property
     def ewar_count(self) -> int:
-        return self.role_counts.get("EWAR", 0)
+        return self.role_counts.get("T2 Recons / EAS", 0) or self.role_counts.get("EWAR", 0)
 
     @property
     def covert_ops_count(self) -> int:

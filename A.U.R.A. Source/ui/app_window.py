@@ -39,6 +39,7 @@ from subsystems.ai.engine import UnifiedInferenceEngine
 from subsystems.fleet_comp.dscan_parser import DScanParser
 from subsystems.fitting.parser import FittingParser
 from subsystems.intel.monitor import LiveChatMonitor, find_default_chatlog_dir
+from subsystems.intel.parser import IntelParser
 from core.eve_data import lookup_ship
 from subsystems.map import get_eve_map
 from subsystems.intel.alerts import ThreatAlerter, _LEVEL_RANK
@@ -949,6 +950,7 @@ class MainWindow(QMainWindow):
         self.map_tab.set_jump_range(int(getattr(config, "alert_jump_range", 5)))
 
         self.composition_tab = CompositionTabWidget()
+        self.composition_tab.fleet_eval_requested.connect(self._handle_fleet_eval_submission)
 
         self.radar_tab_page = self._wrap_tab_card(right_panel)
         self.fitting_tab_page = self._wrap_tab_card(self.fitting_lab)
@@ -1676,6 +1678,31 @@ class MainWindow(QMainWindow):
         self._execute_tactical_prompt(
             prompt,
             f"Fitting Lab Review: {safe_display_text(hull, 128)} ({safe_display_text(role, 64)})",
+        )
+
+    def _handle_fleet_eval_submission(self, f_raw: str, e_raw: str, f_parsed: dict, e_parsed: dict):
+        if hasattr(self, "chat_tab_page"):
+            self.tabs.setCurrentWidget(self.chat_tab_page)
+        f_ships = f_parsed.get("ship_counts", {})
+        e_ships = e_parsed.get("ship_counts", {})
+        f_total = f_parsed.get("total_ships", 0)
+        e_total = e_parsed.get("total_ships", 0)
+        f_desc = ", ".join(f"{count}x {ship}" for ship, count in f_ships.items()) or f_raw or "None listed"
+        e_desc = ", ".join(f"{count}x {ship}" for ship, count in e_ships.items()) or e_raw or "None listed"
+
+        prompt = (
+            f"[FLEET MATCHUP & COMPOSITION EVALUATION REQUEST]\n"
+            f"• Friendly Fleet ({f_total} ships): {f_desc}\n"
+            f"• Hostile Fleet / D-Scan ({e_total} ships): {e_desc}\n\n"
+            f"[TACTICAL DIRECTIVE]:\n"
+            f"Provide a decisive 3-part tactical fleet battle breakdown:\n"
+            f"1. Matchup Dynamics: Compare mainline DPS projection, alpha strike threats, and logistics sustain.\n"
+            f"2. Tackle & EWAR Vulnerabilities: Identify primary bubble/web/neut hazards on both sides.\n"
+            f"3. Engagement Order & Priority Targets: Give decisive primary target priority and engagement envelope (optimal range, anchor positioning, or retreat order)."
+        )
+        self._execute_tactical_prompt(
+            prompt,
+            f"Fleet Matchup Analysis: Friendly ({f_total} ships) vs Hostile ({e_total} ships)",
         )
 
 

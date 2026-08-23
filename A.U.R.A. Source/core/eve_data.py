@@ -7903,20 +7903,22 @@ ROLE_DOCTRINES: Dict[str, str] = {
     )
 }
 
-EVE_COMBAT_AXIOMS = """
-[EVE ONLINE COMBAT DOCTRINE & TACTICAL DIRECTIVES]:
-1. STRICT SINGLE RESPONSE (NO DUPLICATES): Output your tactical advice once in 2 to 4 concise bullet points total. NEVER repeat yourself, NEVER generate duplicate sections.
-2. NEVER ECHO SYSTEM HEADERS: Never repeat, quote, or output reference headers or tags (such as `[EVE TACTICAL INTELLIGENCE]`, `[TACTICAL DIRECTIVE]`).
-3. RIGOROUS TACKLE & EWAR DEFINITIONS:
-   - Warp Scrambler (Scram): Range <=10km (short point). Disables Microwarpdrive (MWD) & Micro Jump Drives (MJD).
-   - Warp Disruptor (Long Point): Range <=30km (up to 45km+ on Recons). Disables warp only (target retains full MWD speed).
-   - Tracking Disruptor: Scripts for Tracking Speed / Optimal Range applied to hostile turrets to make large guns miss high-transversal targets.
-   - Stasis Webifier: Range <=10km standard (up to 40km+ on Minmatar Recons & Loki). Slows target velocity by 50-60% (up to 90% with web bonuses).
-   - Heavy Energy Neutralizer: Drains raw capacitor per cycle, shutting down active reps.
-4. AUTHENTIC FITTING & TANK EXCLUSIVITY:
-   - Never dual-tank: A ship fit is either Shield Tanked (Extenders/Boosters) OR Armor Tanked (Plates/Repairers), never both.
-   - Match weapon and module classes to hull faction and size (e.g. Minmatar hulls use Projectiles/HAMs, not Lasers; Cruisers/T3Cs cannot fit Battleship MJDs or Battleship weapons).
+EVE_TACTICAL_RULES = """
+[AUTHENTIC EVE ONLINE DOCTRINE & GROUNDING RULES]:
+• STRICT SINGLE RESPONSE (NO DUPLICATES): Output your response directly. Do not repeat text or generate redundant sections.
+• NEVER ECHO SYSTEM HEADERS: Never repeat, quote, or output reference headers or tags (such as `[TACTICAL DATABASE REFERENCE]`, `[EVE ONLINE COMBAT DOCTRINE]`).
+• TACKLE & EWAR DEFINITIONS:
+  - Warp Scrambler (Scram): Range <=10km (short point). Disables Microwarpdrive (MWD) & Micro Jump Drives (MJD).
+  - Warp Disruptor (Long Point): Range <=30km (up to 45km+ on Recons). Disables warp only (target retains full MWD speed).
+  - Tracking Disruptor: Scripts for Tracking Speed / Optimal Range applied to hostile turrets to make large guns miss high-transversal targets.
+  - Stasis Webifier: Range <=10km standard (up to 40km+ on Minmatar Recons & Loki). Slows target velocity by 50-60% (up to 90% with web bonuses).
+  - Heavy Energy Neutralizer: Drains raw capacitor per cycle, shutting down active reps.
+• AUTHENTIC FITTING & TANK EXCLUSIVITY:
+  - Never dual-tank: A ship fit is either Shield Tanked (Extenders/Boosters) OR Armor Tanked (Plates/Repairers), never both.
+  - Match weapon and module classes to hull faction and size (e.g. Minmatar hulls use Projectiles/HAMs, not Lasers; Cruisers/T3Cs cannot fit Battleship MJDs or Battleship weapons).
 """
+
+EVE_COMBAT_AXIOMS = EVE_TACTICAL_RULES
 
 _RE_CLEAN_ALPHANUM = re.compile(r"[^a-z0-9]")
 _RE_WORDS = re.compile(r"\b[A-Za-z0-9\-]+\b")
@@ -7954,7 +7956,14 @@ _COMMON_SHIP_ALIASES: Dict[str, str] = {
     "megathron navy": "Megathron Navy Issue",
     "mega navy": "Megathron Navy Issue",
     "macha": "Machariel",
-    "rattle": "Rattlesnake"
+    "rattle": "Rattlesnake",
+    "oni": "Oneiros",
+    "kiki": "Kikimora",
+    "retri": "Retribution",
+    "scimi": "Scimitar",
+    "basil": "Basilisk",
+    "muni": "Muninn",
+    "cera": "Cerberus",
 }
 
 _FAST_SHIP_LOOKUP: Dict[str, Dict[str, Any]] = {}
@@ -8133,11 +8142,6 @@ def get_tactical_grounding(prompt: str, attachments: List[Dict[str, Any]] = None
 
     if grounding_blocks:
         joined_dossiers = "\n\n".join(grounding_blocks[:8])
-        return f"[Tactical Grounding Matrix]:\n{joined_dossiers}\n\n{EVE_COMBAT_AXIOMS}"
+        return f"[TACTICAL DATABASE REFERENCE]:\n{joined_dossiers}\n\n{EVE_TACTICAL_RULES}"
     
-    default_summary = (
-        "[GENERAL FLEET SCOUTING & COMBAT READINESS]:\n"
-        "• Hostile Composition: Unspecified / General hostile elements reported.\n"
-        "• Tactical Action: Maintain directional scan (14.3 AU at 360°), hold bookmark / gate perches, align out if uncloaked, and prepare defensive tackle or warp-out vectors."
-    )
-    return f"{default_summary}\n\n{EVE_COMBAT_AXIOMS}"
+    return f"[TACTICAL DATABASE REFERENCE]:\n• Tactical reference for New Eden ships, modules, navigation, and combat mechanics.\n\n{EVE_TACTICAL_RULES}"

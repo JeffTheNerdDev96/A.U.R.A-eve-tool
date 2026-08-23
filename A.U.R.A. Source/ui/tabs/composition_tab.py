@@ -3,12 +3,12 @@ Composition tab: paste friendly fleet vs hostile D-scan, role breakdown, local a
 """
 # Responsibilities:
 # - CompositionTabWidget UI: dual paste panes, role table, local assessment panel
-# - Delegates parsing and matchup logic to composition.py (no LLM)
+# - Delegates parsing and matchup logic to subsystems.fleet_comp.analyzer (no LLM)
 from __future__ import annotations
 
 from typing import Optional
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QColor, QBrush
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit, QPushButton,
@@ -23,11 +23,13 @@ from core.error_handler import AURAErrorCode, log_diagnostic_error
 from ui.theme import (
     TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT, TEXT_HEADER,
     BG_PANEL, BG_DEEP, BG_ELEVATED, BORDER, BORDER_MUTED, ACCENT, ACCENT_DIM,
-    STATUS_ONLINE, BTN_TEXT_ON_ACCENT,
+    STATUS_ONLINE, BTN_TEXT_ON_ACCENT, btn_secondary_css,
 )
 
 
 class CompositionTabWidget(QWidget):
+    fleet_eval_requested = pyqtSignal(str, str, dict, dict)
+
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.fleet_comp_subsystem = FleetCompSubsystem()
@@ -68,7 +70,9 @@ class CompositionTabWidget(QWidget):
             "[ 19:15:23 ] Scout > +3 Muninn Cerberus holding gate\n"
             "PilotName\tMuninn\t12 km"
         )
-        ll.addWidget(self.friendly_edit, stretch=1)
+        self.friendly_edit.setMinimumHeight(72)
+        self.friendly_edit.setMaximumHeight(140)
+        ll.addWidget(self.friendly_edit)
         self.friendly_hint = QLabel("0 hulls · 0 unmatched")
         self.friendly_hint.setStyleSheet(f"color:{TEXT_HINT}; font-size:11px;")
         ll.addWidget(self.friendly_hint)
@@ -89,13 +93,16 @@ class CompositionTabWidget(QWidget):
             "[ 19:16:01 ] Wingman > V-3YG7 +5 Loki Cerberus gate\n"
             "HostilePilot\tIshtar\t18 km"
         )
-        rl.addWidget(self.enemy_edit, stretch=1)
+        self.enemy_edit.setMinimumHeight(72)
+        self.enemy_edit.setMaximumHeight(140)
+        rl.addWidget(self.enemy_edit)
         self.enemy_hint = QLabel("0 hulls · 0 unmatched")
         self.enemy_hint.setStyleSheet(f"color:{TEXT_HINT}; font-size:11px;")
         rl.addWidget(self.enemy_hint)
         paste_row.addWidget(right, stretch=1)
-        root.addLayout(paste_row, stretch=2)
+        root.addLayout(paste_row, stretch=0)
 
+        btn_row = QHBoxLayout()
         analyze = QPushButton("Auto-Analyze Matchup")
         analyze.setFixedHeight(36)
         analyze.setStyleSheet(
@@ -104,7 +111,15 @@ class CompositionTabWidget(QWidget):
             f"QPushButton:hover {{ background:{ACCENT}; color:{BTN_TEXT_ON_ACCENT}; }}"
         )
         analyze.clicked.connect(self._analyze)
-        root.addWidget(analyze)
+        btn_row.addWidget(analyze, stretch=1)
+
+        ask_ai = QPushButton("Ask A.U.R.A.")
+        ask_ai.setFixedHeight(28)
+        ask_ai.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        ask_ai.setStyleSheet(btn_secondary_css())
+        ask_ai.clicked.connect(self._ask_aura_fleet)
+        btn_row.addWidget(ask_ai)
+        root.addLayout(btn_row)
 
         root.addWidget(self._section("Tactical breakdown"))
         self.table = QTableWidget(0, 4)
@@ -118,18 +133,21 @@ class CompositionTabWidget(QWidget):
         self.table.verticalHeader().setVisible(False)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.table.setMinimumHeight(220)
+        self.table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.table.setStyleSheet(
             f"QTableWidget {{ background:{BG_DEEP}; color:{TEXT_PRIMARY}; border:1px solid {BORDER}; "
             f"gridline-color:{BORDER_MUTED}; }}"
             f"QHeaderView::section {{ background:{BG_PANEL}; color:{TEXT_HEADER}; "
             f"border:1px solid {BORDER}; padding:6px; font-weight:bold; }}"
         )
-        root.addWidget(self.table, stretch=2)
+        root.addWidget(self.table, stretch=1)
 
         root.addWidget(self._section("Engagement assessment"))
         self.assessment = QTextEdit()
         self.assessment.setReadOnly(True)
         self.assessment.setPlaceholderText("Run Auto-Analyze Matchup to generate a local tactical readout.")
+        self.assessment.setMinimumHeight(80)
         self.assessment.setMaximumHeight(140)
         self.assessment.setStyleSheet(
             f"QTextEdit {{ background:{BG_DEEP}; color:{TEXT_PRIMARY}; border:1px solid {BORDER}; }}"
@@ -201,6 +219,19 @@ class CompositionTabWidget(QWidget):
             f"<b>A.U.R.A. tactical advisor</b> (local, not neural)"
             f"<ul>{lis}</ul></div>"
         )
+
+    def _ask_aura_fleet(self):
+        """Dispatches friendly and enemy fleet compositions to A.U.R.A. Neural AI."""
+        f_raw = self.friendly_edit.toPlainText().strip()
+        e_raw = self.enemy_edit.toPlainText().strip()
+        if not f_raw and not e_raw:
+            self.assessment.setHtml(
+                f"<p style='color:{TEXT_HINT};'>Paste at least one fleet or D-scan to request A.U.R.A. advice.</p>"
+            )
+            return
+        f_parsed = parse_fleet_paste(f_raw)
+        e_parsed = parse_fleet_paste(e_raw)
+        self.fleet_eval_requested.emit(f_raw, e_raw, f_parsed, e_parsed)
 
     @staticmethod
     def _esc(text: str) -> str:

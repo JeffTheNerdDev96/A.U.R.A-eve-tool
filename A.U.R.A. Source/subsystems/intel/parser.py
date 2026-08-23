@@ -57,6 +57,37 @@ class IntelRegexParser:
 
     def parse_line(self, line: str, channel_name: str = "Intel") -> Optional[IntelReport]:
         """Parses a single line into an IntelReport DTO."""
+        d = IntelParser.parse_single_line(line, channel_name=channel_name)
+        if not d:
+            return None
+        return IntelReport(
+            system_name=d.get("system", ""),
+            reporter=d.get("speaker", "Unknown"),
+            channel=d.get("channel", channel_name),
+            timestamp_str=d.get("time_str", ""),
+            threat_level=d.get("threat_level", "CLEAR"),
+            pilots=d.get("pilots", []),
+            ship_classes=d.get("ships", []),
+            raw_message=d.get("clean_msg", ""),
+            pilot_count=d.get("est_count", 1),
+            has_cyno=d.get("has_cyno", False),
+            has_bubble=d.get("has_bubble", False),
+            is_clear=d.get("is_clear", False)
+        )
+
+
+class IntelParser:
+    """Static helper and batch parser for Live Chat Monitor and UI Dialogs."""
+    _instance: Optional[IntelRegexParser] = None
+
+    @classmethod
+    def _get_engine(cls) -> IntelRegexParser:
+        if cls._instance is None:
+            cls._instance = IntelRegexParser()
+        return cls._instance
+
+    @classmethod
+    def parse_single_line(cls, line: str, channel_name: str = "Intel") -> Optional[Dict[str, Any]]:
         line = clamp_text(strip_control_chars(line or ""), 1024)
         clean_line = line.strip(_STRIP_CHARS)
         if not clean_line or clean_line.startswith("---") or "Channel Name:" in clean_line or "Listener:" in clean_line:
@@ -80,10 +111,10 @@ class IntelRegexParser:
         if not words:
             return None
 
-        # System lookup via EVE map graph
+        engine = cls._get_engine()
         found_system: Optional[str] = None
         for word in words:
-            record = self.eve_map.resolve_system_name(word)
+            record = engine.eve_map.resolve_system_name(word)
             if record:
                 found_system = record["name"].upper()
                 break
@@ -91,52 +122,113 @@ class IntelRegexParser:
         if not found_system:
             return None
 
-        # Check clear / NV status
         is_clear = bool(_RE_CLEAR.search(msg))
         has_cyno = bool(_RE_CYNO.search(msg))
         has_bubble = bool(_RE_BUBBLE.search(msg))
 
-        # Ship class extraction
-        ship_classes: List[str] = []
+        ships: List[str] = []
         msg_lower = msg.lower()
 
         for kw in _CAPITAL_KEYWORDS:
-            if kw in msg_lower and "Capital" not in ship_classes:
-                ship_classes.append("Capital")
+            if kw in msg_lower and "Capital" not in ships:
+                ships.append("Capital")
         for kw in _BATTLESHIP_KEYWORDS:
-            if kw in msg_lower and "Battleship" not in ship_classes:
-                ship_classes.append("Battleship")
+            if kw in msg_lower and "Battleship" not in ships:
+                ships.append("Battleship")
 
         for word in words:
             w_lower = word.lower()
             if w_lower in _FAST_SHIP_LOOKUP:
-                cls_name = _FAST_SHIP_LOOKUP[w_lower].get("class", "")
-                if cls_name and cls_name not in ship_classes:
-                    ship_classes.append(cls_name)
+                canonical = _FAST_SHIP_LOOKUP[w_lower].get("canonical_name", word)
+                if canonical and canonical not in ships:
+                    ships.append(canonical)
 
-        pilot_count = self.extract_pilot_count(msg)
+        pilot_count = engine.extract_pilot_count(msg)
 
-        # Threat Level Calculation
+        status_flags = []
         if is_clear:
             threat_level = "CLEAR"
-        elif has_cyno or "Capital" in ship_classes or pilot_count >= 10:
+            status_flags.append("SYSTEM CLEAR")
+        elif has_cyno:
             threat_level = "CRITICAL"
-        elif has_bubble or "Battleship" in ship_classes or pilot_count >= 3:
-            threat_level = "HOSTILE"
+            status_flags.append("CYNO LIT")
+        elif "Capital" in ships:
+            threat_level = "CRITICAL"
+            status_flags.append("CAPITAL SPIKE")
+        elif pilot_count >= 10:
+            threat_level = "CRITICAL"
+            status_flags.append("FLEET SPIKE")
+        elif has_bubble:
+            threat_level = "HIGH"
+            status_flags.append("BUBBLE ON GATE")
+        elif "Battleship" in ships or "Marauder" in ships:
+            threat_level = "HIGH"
+            status_flags.append("BATTLESHIP CONTACT")
+        elif pilot_count >= 3:
+            threat_level = "MEDIUM"
+            status_flags.append("GANG IN LOCAL")
+        elif ships:
+            threat_level = "MEDIUM"
+            status_flags.append("HOSTILE CONTACT")
         else:
-            threat_level = "SUSPICIOUS"
+            threat_level = "INFO"
+            status_flags.append("LOCAL ACTIVITY")
 
-        return IntelReport(
-            system_name=found_system,
-            reporter=speaker,
-            channel=channel_name,
-            timestamp_str=timestamp_str,
-            threat_level=threat_level,
-            pilots=[],
-            ship_classes=ship_classes,
-            raw_message=msg,
-            pilot_count=pilot_count,
-            has_cyno=has_cyno,
-            has_bubble=has_bubble,
-            is_clear=is_clear
-        )
+        is_critical = threat_level in ("CRITICAL", "HIGH")
+
+        return {
+            "system": found_system,
+            "system_name": found_system,
+            "speaker": speaker,
+            "reporter": speaker,
+            "channel": channel_name,
+            "time_str": timestamp_str,
+            "timestamp": timestamp_str,
+            "threat_level": threat_level,
+            "pilots": [],
+            "ships": ships,
+            "ship_classes": ships,
+            "clean_msg": msg,
+            "raw_message": msg,
+            "est_count": pilot_count,
+            "pilot_count": pilot_count,
+            "status_flags": status_flags,
+            "has_cyno": has_cyno,
+            "has_bubble": has_bubble,
+            "is_clear": is_clear,
+            "is_critical": is_critical
+        }
+
+    @classmethod
+    def parse(cls, text: str, channel_name: str = "Batch.Intel") -> Dict[str, Any]:
+        lines = [l.strip() for l in (text or "").splitlines() if l.strip()]
+        reports = []
+        systems_seen = set()
+        highest_threat = "INFO"
+        threat_order = {"CLEAR": 0, "INFO": 1, "LOW": 1, "MEDIUM": 2, "HIGH": 3, "CRITICAL": 4}
+
+        for line in lines:
+            parsed = cls.parse_single_line(line, channel_name)
+            if parsed:
+                reports.append(parsed)
+                systems_seen.add(parsed["system"])
+                lvl = parsed["threat_level"]
+                if threat_order.get(lvl, 0) > threat_order.get(highest_threat, 0):
+                    highest_threat = lvl
+
+        summary_lines = [f"• **Decoded Intel Reports ({len(reports)} entries across {len(systems_seen)} solar systems):**"]
+        for rep in reports[:15]:
+            flags = " ".join(f"[{f}]" for f in rep.get("status_flags", []))
+            ships = ", ".join(rep.get("ships", [])) or "Hostiles"
+            summary_lines.append(f"  - `[{rep['time_str'] or 'LOG'}]` **{rep['system']}** ({rep['threat_level']}): {ships} (+{rep['est_count']}) {flags} — \"{rep['clean_msg']}\"")
+        if len(reports) > 15:
+            summary_lines.append(f"  - *(+{len(reports) - 15} additional lines decoded)*")
+
+        return {
+            "type": "intel",
+            "reports": reports,
+            "total_ships": len(reports),
+            "threat_level": highest_threat,
+            "systems": list(systems_seen),
+            "summary_md": "\n".join(summary_lines)
+        }
