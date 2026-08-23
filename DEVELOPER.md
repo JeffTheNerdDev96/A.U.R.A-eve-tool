@@ -37,7 +37,7 @@ A.U.R.A. Source/
 ├── subsystems/                    # Domain Subsystem Services
 │   ├── intel/                     # Live chat monitoring, location tracking, threat alerts
 │   ├── map/                       # Stargate graph, BFS routing, navigation
-│   ├── fleet_comp/                # D-Scan parsing, 5-role fleet composition, matchup analysis
+│   ├── fleet_comp/                # D-Scan parsing, 6-role fleet composition, matchup analysis
 │   ├── fitting/                   # EFT fitting parsing, Dogma math stats, slot layouts
 │   ├── wormhole/                  # Wormhole chain mapping, signature tracking & topology (Milestone)
 │   └── ai/                        # Local neural core GGUF inference & OCR document parsing

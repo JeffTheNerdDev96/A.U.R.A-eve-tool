@@ -19,7 +19,7 @@ For full operational instructions, see the [Tactical User Guide (USER_GUIDE.md)]
 
 * **Pure Modular Codebase Architecture** — Complete architectural reorganization into compartmentalized domain packages (`core`, `bootstrap`, `hardware`, `subsystems`, `ui`, and `tools`).
 * **Central EventBus Messaging** — High-performance pub/sub event layer connecting all subsystem lifecycles.
-* **Composition Tab** — Side-by-side friendly fleet vs hostile D-scan analysis with 5-role taxonomy (Logistics, Tacklers, Mainline DPS, EWAR, Covert Ops).
+* **Composition Tab** — Side-by-side friendly fleet vs hostile D-scan analysis with a 6-role taxonomy (Logistics, Interdictors / Tackle, Strategic Cruisers, Mainline DPS, T2 Recons / EAS, Covert Ops / Stealth).
 * **Tactical Map Tab** — Stargate graph routing with system avoidance and jump-range threat overlays.
 * **Alert & Threat Filtering** — Added granular filtering for system clears, jump radius limits, and threat criticality scales.
 * **Multi-Character Enhancements & Fixes** — Added character selection to tactical map/notifications and resolved duplicate alerts when running multiple accounts.
@@ -36,14 +36,14 @@ For full operational instructions, see the [Tactical User Guide (USER_GUIDE.md)]
 
 ### Composition & Fleet Matchup
 * **Side-by-side paste:** Friendly fleet window / chat / hull lists on the left; hostile D-scan or grid list on the right.
-* **Auto-Analyze Matchup:** Role table with Logistics, HAC, HIC, EWAR, Tackle, Command, BC/BS, Capitals, Other combat, and Non-combat rows.
-* **Hull mix and deltas:** Per-row counts (e.g. `12 (Muninn: 8, Cerberus: 4)`), friendly minus enemy delta with Adv/Disadv highlighting.
-* **Local engagement assessment:** EWAR threat, logi-to-DPS ratio, tackle gap, hull totals, and optional HAC range heuristic (missile vs gun).
+* **Auto-Analyze Matchup:** Six-row role table — Logistics, Interdictors / Tackle, Strategic Cruisers, Mainline DPS, T2 Recons / EAS, Covert Ops / Stealth (local heuristics; compact **Ask A.U.R.A.** for neural review).
+* **Hull mix and deltas:** Per-row counts (e.g. `12 (Muninn: 8, Cerberus: 4, +2 more)`), friendly minus enemy delta with Adv/Disadv highlighting.
+* **Local engagement assessment:** Logistics vs mainline/T3C, recon/EAS presence, tackle gap, stealth/bomber note, and hull totals. Leshak / Ikitursa count as Mainline DPS.
 * **Unparsed hints:** `N hulls · M unmatched` under each paste box; junk lines never become fake hulls. Standalone from Chat D-scan paste.
 
 ### Fitting Lab
 * **In-game-style fitter:** Visual slot builder with market list, ship paperdoll, CPU/PG/calibration bars, cargo and ammo.
-* **EFT import/export:** Clipboard and file import; **Evaluate with A.U.R.A.** sends the fit to Chat for neural review.
+* **EFT import/export:** Clipboard and file import; **Ask A.U.R.A.** sends the fit to Chat for neural review.
 
 ### Tactical Map
 * **Stargate bubble** centered on your current system (from Local / Gamelogs).

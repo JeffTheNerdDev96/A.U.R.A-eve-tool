@@ -44,12 +44,12 @@ A.U.R.A. engages host compute concurrently: offloading 33 neural layers to GPU V
 ### Workspace Tabs
 The main window uses five tabs. Live intel monitoring continues in the background on every tab:
 
-**Live Intel Radar → Fitting → Map → Composition → A.U.R.A. Chat**
+**Live Intel Radar → Composition → Map → Fitting → A.U.R.A. Chat**
 
-- **Live Intel Radar** — live intel feed, channel filters, jump-range alerts
-- **Fitting** — visual slot builder (import/export EFT, then Evaluate with A.U.R.A.)
-- **Map** — tactical stargate bubble around your current system with intel overlays
+- **Live Intel Radar** — live intel feed, character picker, channel filters, jump-range alerts, threat-level filter
 - **Composition** — friendly fleet vs hostile D-scan matchup (local analysis)
+- **Map** — tactical stargate bubble around your current system with intel overlays
+- **Fitting** — visual slot builder (import/export EFT, then Ask A.U.R.A.)
 - **A.U.R.A. Chat** — tactical assistant, D-Scan paste, attachments
 
 ### Live Intel Radar & Threat Tiers
@@ -81,7 +81,7 @@ The main window uses five tabs. Live intel monitoring continues in the backgroun
 - The **Fitting** tab follows the EVE hangar fitter: market list on the left, ship paperdoll and **Shield / Armor / Hull** bars in the center, **CPU / Powergrid / Calibration** plus **Cargo / ammo** on the right.
 - Hover a fitted slot for that module's CPU and PG. Cargo and ammo lines (e.g. `Hail S x2480`) appear in the right-panel list.
 - Bars go red if CPU, PG, or calibration overflow. Values are **class-baseline approximations** (not full dogma / skills).
-- **Import** reads the clipboard (or opens a paste dialog / file picker) — not the live EFT preview box, which is export-only. **Export EFT** writes the current fit. **Evaluate with A.U.R.A.** sends the fit to Chat.
+- **Import** reads the clipboard (or opens a paste dialog / file picker) — not the live EFT preview box, which is export-only. **Export EFT** writes the current fit. **Ask A.U.R.A.** sends the fit to Chat.
 
 ### Tactical Map
 - The **Map** tab renders a pan/zoom stargate graph centered on your current system (from Local / Gamelogs).
@@ -101,13 +101,13 @@ The main window uses five tabs. Live intel monitoring continues in the backgroun
 
 | Column | Content |
 | :--- | :--- |
-| Role / Category | Logistics, HAC, HIC, Recons/EWAR, Interdictors/Tackle, Command/Links, BC/BS, Capitals, Other combat, Non-combat |
-| Friendly (Count) | Total plus hull mix, e.g. `12 (Muninn: 8, Cerberus: 4)` |
+| Role / Category | Logistics, Interdictors / Tackle, Strategic Cruisers, Mainline DPS, T2 Recons / EAS, Covert Ops / Stealth |
+| Friendly (Count) | Total plus hull mix, e.g. `12 (Muninn: 8, Cerberus: 4, +2 more)` |
 | Enemy (Count) | Same format for hostile side |
-| Delta | Friendly minus enemy; **Adv** (green) or **Disadv** (red) when `|delta| ≥ 2` or when logi/EWAR counts differ |
+| Delta | Friendly minus enemy; **Adv** (green) or **Disadv** (red) when counts differ |
 
-- **Logistics bucket** includes T1 cruisers and frigates (Osprey, Scythe, Augoror, Exequror, Bantam, Burst, Inquisitor, Navitas) and T2 logi (Scimitar, Basilisk, etc.).
-- **Engagement assessment** (read-only bullets below the table): EWAR threat (High/Medium/Low), logi-to-DPS Favorable/Unfavorable, tackle comparison, hull totals, and optional HAC range line (missile 40–70 km vs gun/drone 10–30 km). This is **local rules only** — it is not sent to A.U.R.A. Chat in v0.3.0-alpha1.
+- **Logistics** is dedicated logi class, `THREAT_LOGI`, or role text (`logistics` / `remote rep` / FAX). Remote-rep **bonus** lines on DPS hulls (Leshak, Ikitursa) do not count — those stay Mainline DPS.
+- **Engagement assessment** (read-only bullets below the table): logistics vs mainline/T3C, recon/EAS presence, tackle comparison, stealth/bomber note, and hull totals. This is **local rules only** — it is not sent to A.U.R.A. Chat unless you click **Ask A.U.R.A.**
 - **Hints** under each paste: `N hulls · M unmatched`. Junk lines are counted as unmatched, not as fake hulls.
 - Recommended window size when this tab is active: about **960 × 620**.
 
@@ -201,7 +201,7 @@ If an anomaly occurs during tactical computation, A.U.R.A. presents a standardiz
 ## 8. UI Layout
 
 - **Top bar:** Current system / hull / memory readout, **Purge Memory**, online status badge, and **Credits**.
-- **Tab strip:** Live Intel Radar, Fitting, Map, Composition, A.U.R.A. Chat (selected tab shows an oxide accent stripe).
+- **Tab strip:** Live Intel Radar, Composition, Map, Fitting, A.U.R.A. Chat (selected tab shows an oxide accent stripe).
 - **Footer:** A.U.R.A. brand mark, author line, GitHub repo link, and **Report a bug** (GitHub Issues).
 
 The standalone installer deploys to `A.U.R.A. v0.3.0-alpha1` under `%LOCALAPPDATA%\Programs\` (or your chosen path). Model weights are stored in `models/phi-4-mini/model_q4.gguf` within that folder.
