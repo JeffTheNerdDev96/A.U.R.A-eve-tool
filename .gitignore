@@ -102,3 +102,7 @@ desktop.ini
 *.swp
 *.swo
 *~
+
+# 8. Local Planning & Roadmap Artifacts
+roadmap/
+**/roadmap/
