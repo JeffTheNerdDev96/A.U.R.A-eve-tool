@@ -7,7 +7,7 @@ import math
 import time
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from PyQt6.QtCore import Qt, QRectF, QPointF
+from PyQt6.QtCore import Qt, QRectF, QPointF, QTimer
 from PyQt6.QtGui import QBrush, QColor, QPen, QFont, QWheelEvent
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton,
@@ -23,7 +23,7 @@ from theme import (
     ACCENT, ACCENT_HOVER, BORDER_FOCUS, btn_secondary_css,
 )
 
-INTEL_TTL_SEC = 30 * 60
+INTEL_TTL_SEC = 10 * 60
 MAX_NODES = 250
 
 _LEVEL_RANK = {
@@ -46,11 +46,12 @@ _THREAT_RING = {
 
 
 def _sec_color(security: float) -> QColor:
+    """High-contrast security status color palette for dark tactical backgrounds."""
     if security >= 0.45:
-        return QColor("#3b82f6")
+        return QColor("#38bdf8")  # High-sec: crisp electric cyan
     if security > 0.0:
-        return QColor("#d97706")
-    return QColor("#dc2626")
+        return QColor("#fbbf24")  # Low-sec: crisp warm amber
+    return QColor("#f87171")      # Null-sec: vibrant coral red
 
 
 def _force_layout(
@@ -216,6 +217,11 @@ class MapTabWidget(QWidget):
         self._selected_id: Optional[int] = None
         self._extra_ids: Set[int] = set()
 
+        self._prune_timer = QTimer(self)
+        self._prune_timer.setInterval(15000)  # Prune expired 10-min intel every 15s
+        self._prune_timer.timeout.connect(self._on_prune_timer)
+        self._prune_timer.start()
+
         self.setStyleSheet(f"MapTabWidget {{ background:{BG_DEEP}; color:{TEXT_PRIMARY}; }}")
         self._init_ui()
         self._show_placeholder()
@@ -344,6 +350,14 @@ class MapTabWidget(QWidget):
         for k in stale:
             del self._intel_by_system[k]
 
+    def _on_prune_timer(self) -> None:
+        if not self._intel_by_system:
+            return
+        prev_count = len(self._intel_by_system)
+        self._prune_intel()
+        if len(self._intel_by_system) != prev_count and self._origin_id is not None:
+            self._rebuild_graph(full_layout=False, fit_view=False)
+
     def _intel_for_id(self, system_id: int) -> Optional[Dict[str, Any]]:
         rec = self.eve_map.get_system(system_id)
         if not rec:
@@ -357,16 +371,8 @@ class MapTabWidget(QWidget):
             self._origin_id, self._jump_range, MAX_NODES
         )
         self._bubble_total = total
-        visible = set(bubble.keys())
-        self._extra_ids = set()
-        for intel in self._intel_by_system.values():
-            rec = self.eve_map.resolve_system_name(intel.get("name", ""))
-            if rec:
-                sid = int(rec["id"])
-                if sid not in visible:
-                    visible.add(sid)
-                    self._extra_ids.add(sid)
-        return visible
+        # Strict in-range rendering: only systems inside the configured jump range
+        return set(bubble.keys())
 
     def _rebuild_graph(self, full_layout: bool = True, fit_view: bool = True) -> None:
         self._prune_intel()
@@ -399,7 +405,7 @@ class MapTabWidget(QWidget):
             if not pa or not pb:
                 continue
             line = QGraphicsLineItem(pa[0], pa[1], pb[0], pb[1])
-            line.setPen(QPen(QColor("#4b5563"), 1.0))
+            line.setPen(QPen(QColor("#475569"), 1.2))
             line.setZValue(0)
             self.scene.addItem(line)
             self._edge_items.append(line)
@@ -412,7 +418,6 @@ class MapTabWidget(QWidget):
             if not pos:
                 continue
             is_current = sid == self._origin_id
-            is_extra = sid in self._extra_ids
             intel = self._intel_for_id(sid)
             radius = 7.0 if is_current else 5.5
             node = SystemNodeItem(sid, rec["name"], radius)
@@ -423,36 +428,38 @@ class MapTabWidget(QWidget):
             fill = _sec_color(sec)
             ring = None
             ring_w = 2.0
+            has_threat = False
             if intel:
-                ring = QColor(_THREAT_RING.get(intel["level"], "#38bdf8"))
-                ring_w = 2.5
-            opacity = 0.55 if is_extra else 1.0
+                level = intel.get("level", "INFO")
+                ring = QColor(_THREAT_RING.get(level, "#38bdf8"))
+                ring_w = 2.8
+                has_threat = (level != "CLEAR")
 
             lbl = QGraphicsTextItem(rec["name"], node)
             if is_current:
-                lbl.setDefaultTextColor(QColor(TEXT_PRIMARY))
+                lbl.setDefaultTextColor(QColor("#ffffff"))
                 lbl.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+            elif has_threat and intel:
+                threat_col = _THREAT_RING.get(intel["level"], "#facc15")
+                lbl.setDefaultTextColor(QColor(threat_col))
+                lbl.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
             else:
-                lbl.setDefaultTextColor(QColor(_sec_color(sec).name()))
+                lbl.setDefaultTextColor(_sec_color(sec))
                 lbl.setFont(QFont("Segoe UI", 8))
             lbl.setZValue(3)
             node.set_label(lbl)
             self._label_items.append(lbl)
 
-            node.set_visual(fill, ring, ring_w, opacity, is_current)
+            node.set_visual(fill, ring, ring_w, 1.0, is_current)
             self.scene.addItem(node)
             self._node_items[sid] = node
 
         if self._bubble_total > MAX_NODES:
             self.caption_lbl.setText(
-                f"Showing {min(len(self._visible_ids), MAX_NODES)} of {self._bubble_total} systems in range."
+                f"Showing {min(len(self._visible_ids), MAX_NODES)} of {self._bubble_total} systems within {self._jump_range} jumps."
             )
         else:
-            extra = len(self._extra_ids)
-            txt = f"{len(self._visible_ids)} systems in view."
-            if extra:
-                txt += f" ({extra} intel-only outside bubble)"
-            self.caption_lbl.setText(txt)
+            self.caption_lbl.setText(f"{len(self._visible_ids)} systems within {self._jump_range} jumps.")
 
         if fit_view:
             self._fit_view()

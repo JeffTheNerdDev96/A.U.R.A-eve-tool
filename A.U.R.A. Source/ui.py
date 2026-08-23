@@ -27,6 +27,7 @@ from PyQt6.QtWidgets import (
     QTextEdit, QLineEdit, QPushButton, QLabel, QFrame, QProgressBar, QFileDialog,
     QDialog, QComboBox, QCheckBox, QListWidget, QListWidgetItem,
     QTextBrowser, QTabWidget, QSpinBox, QSystemTrayIcon, QMenu, QSizePolicy,
+    QAbstractItemView,
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QSize, QEvent
 from PyQt6.QtGui import QIcon, QTextCursor, QFont, QColor, QBrush, QAction, QPixmap
@@ -41,7 +42,7 @@ from intel_parser import IntelParser
 from chat_monitor import LiveChatMonitor, find_default_chatlog_dir
 from eve_data import lookup_ship
 from eve_map import get_eve_map
-from threat_alerts import ThreatAlerter
+from threat_alerts import ThreatAlerter, _LEVEL_RANK
 from fitting_lab_ui import FittingLabWidget
 from map_tab_ui import MapTabWidget
 from composition_ui import CompositionTabWidget
@@ -521,6 +522,7 @@ class MainWindow(QMainWindow):
         self.chat_monitor.active_channels_updated.connect(self._handle_active_channels)
         self.chat_monitor.status_updated.connect(self._handle_monitor_status)
         self.chat_monitor.location_changed.connect(self._handle_location_changed)
+        self.chat_monitor.characters_updated.connect(self._on_characters_discovered)
 
         self.eve_map = get_eve_map()
         self.alerter = ThreatAlerter(
@@ -835,16 +837,34 @@ class MainWindow(QMainWindow):
         right_layout.addWidget(self.auto_response_cb)
 
         range_row = QHBoxLayout()
+        range_row.addWidget(QLabel("Character:"))
+        self.character_combo = QComboBox()
+        self.character_combo.setFixedHeight(26)
+        self.character_combo.setMinimumWidth(150)
+        self.character_combo.setStyleSheet(
+            f"font-size: 11.5px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
+            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 2px 6px;"
+        )
+        self.character_combo.addItem("Auto (Latest Active)")
+        self.character_combo.setToolTip("Select specific character to track for location & jump alerts when multiboxing.")
+        self.character_combo.currentIndexChanged.connect(self._on_character_changed)
+        range_row.addWidget(self.character_combo)
+
         range_row.addWidget(QLabel("Alert range (jumps):"))
         self.jump_range_spin = QSpinBox()
         self.jump_range_spin.setRange(0, 20)
         self.jump_range_spin.setValue(int(getattr(config, "alert_jump_range", 5)))
         self.jump_range_spin.setToolTip("Windows toasts fire for intel inside this stargate hop count of your current system.")
         self.jump_range_spin.valueChanged.connect(self._on_jump_range_changed)
+        self.jump_range_spin.valueChanged.connect(self._reapply_feed_filters)
         range_row.addWidget(self.jump_range_spin)
+
         self.in_range_only_cb = QCheckBox("Show in-range only")
+        self.in_range_only_cb.setChecked(bool(getattr(config, "feed_in_range_only", False)))
         self.in_range_only_cb.setToolTip("Hide intel cards outside the alert jump range. Out-of-range pings are still parsed.")
+        self.in_range_only_cb.toggled.connect(self._reapply_feed_filters)
         range_row.addWidget(self.in_range_only_cb)
+
         self.windows_alerts_cb = QCheckBox("Windows threat alerts")
         self.windows_alerts_cb.setChecked(bool(getattr(config, "windows_alerts_enabled", True)))
         self.windows_alerts_cb.setToolTip("Popup a Windows notification when a MEDIUM+ threat is within range.")
@@ -852,14 +872,45 @@ class MainWindow(QMainWindow):
         range_row.addStretch()
         right_layout.addLayout(range_row)
 
+        filter_row = QHBoxLayout()
+        filter_row.addWidget(QLabel("Feed Filter:"))
+        self.threat_filter_combo = QComboBox()
+        self.threat_filter_combo.setFixedHeight(26)
+        self.threat_filter_combo.setMinimumWidth(160)
+        self.threat_filter_combo.setStyleSheet(
+            f"font-size: 11.5px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
+            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 2px 6px;"
+        )
+        self.threat_filter_combo.addItems([
+            "All Activity",
+            "Exclude Clears (NV/CLR)",
+            "Medium+ Threats",
+            "High+ Threats",
+            "Critical Only"
+        ])
+        self.threat_filter_combo.setToolTip("Filter live intel feed cards by threat level.")
+        self.threat_filter_combo.currentIndexChanged.connect(self._reapply_feed_filters)
+        filter_row.addWidget(self.threat_filter_combo)
+
+        self.hide_clears_cb = QCheckBox("Hide System Clear (NV/CLR)")
+        self.hide_clears_cb.setChecked(bool(getattr(config, "feed_hide_system_clears", False)))
+        self.hide_clears_cb.setToolTip("Hide 'System Clear' and 'No Visual / NV' reports from the feed.")
+        self.hide_clears_cb.toggled.connect(self._reapply_feed_filters)
+        filter_row.addWidget(self.hide_clears_cb)
+        filter_row.addStretch()
+        right_layout.addLayout(filter_row)
+
         self.location_hint_lbl = QLabel("Location unknown — join Local / wait for a jump.")
         self.location_hint_lbl.setStyleSheet(f"color: {ACCENT_HOVER}; font-size: 12px;")
         self.location_hint_lbl.setWordWrap(True)
         right_layout.addWidget(self.location_hint_lbl)
 
-        # Real-time Intel Feed List Widget (Higher Legibility)
+        # Real-time Intel Feed List Widget (Higher Legibility & Stabilized Scrolling)
         self.intel_list = QListWidget()
         self.intel_list.setObjectName("LiveIntelList")
+        self.intel_list.setAutoScroll(False)
+        self.intel_list.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+        self.intel_list.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
         self.intel_list.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.intel_list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.intel_list.viewport().installEventFilter(self)
@@ -1064,9 +1115,81 @@ class MainWindow(QMainWindow):
         self._refresh_address_bar()
         if hasattr(self, "map_tab"):
             self.map_tab.set_location(system_name, system_id)
+        char_info = f" [{self.chat_monitor.selected_character}]" if self.chat_monitor.selected_character else ""
         self.location_hint_lbl.setText(
-            f"Current system: {system_name}{region_txt} — alerting within {self.alerter.jump_range} jumps."
+            f"Current system{char_info}: {system_name}{region_txt} — alerting within {self.alerter.jump_range} jumps."
         )
+        self._reapply_feed_filters()
+
+    def _on_characters_discovered(self, characters: List[str]):
+        if not hasattr(self, "character_combo"):
+            return
+        current = self.character_combo.currentText()
+        self.character_combo.blockSignals(True)
+        self.character_combo.clear()
+        self.character_combo.addItem("Auto (Latest Active)")
+        for ch in characters:
+            self.character_combo.addItem(ch)
+        idx = self.character_combo.findText(current)
+        if idx != -1:
+            self.character_combo.setCurrentIndex(idx)
+        else:
+            self.character_combo.setCurrentIndex(0)
+        self.character_combo.blockSignals(False)
+
+    def _on_character_changed(self, index: int):
+        if not hasattr(self, "character_combo"):
+            return
+        selected = self.character_combo.currentText()
+        if selected.startswith("Auto") or not selected:
+            self.chat_monitor.set_selected_character(None)
+            config.monitored_character = "Auto"
+        else:
+            self.chat_monitor.set_selected_character(selected)
+            config.monitored_character = selected
+
+    def _should_display_intel(self, parsed: dict) -> bool:
+        if not parsed:
+            return False
+        level = (parsed.get("threat_level") or "LOW").upper()
+        flags = parsed.get("status_flags") or []
+        is_clear = (level == "CLEAR" or "SYSTEM CLEAR" in flags or "NO VISUAL / SYSTEM CLEAR" in flags)
+
+        if hasattr(self, "hide_clears_cb") and self.hide_clears_cb.isChecked() and is_clear:
+            return False
+
+        if hasattr(self, "threat_filter_combo"):
+            filter_mode = self.threat_filter_combo.currentText()
+            if filter_mode == "Exclude Clears (NV/CLR)" and is_clear:
+                return False
+            elif filter_mode == "Medium+ Threats":
+                if is_clear or _LEVEL_RANK.get(level, 0) < 1:
+                    return False
+            elif filter_mode == "High+ Threats":
+                if is_clear or _LEVEL_RANK.get(level, 0) < 2:
+                    return False
+            elif filter_mode == "Critical Only":
+                if is_clear or _LEVEL_RANK.get(level, 0) < 3:
+                    return False
+
+        if hasattr(self, "in_range_only_cb") and self.in_range_only_cb.isChecked():
+            if parsed.get("location_known") and not parsed.get("in_range"):
+                return False
+
+        return True
+
+    def _reapply_feed_filters(self):
+        if not hasattr(self, "intel_list"):
+            return
+        for i in range(self.intel_list.count()):
+            item = self.intel_list.item(i)
+            if not item:
+                continue
+            parsed = item.data(Qt.ItemDataRole.UserRole)
+            if parsed:
+                parsed = self.alerter.annotate(parsed)
+                item.setData(Qt.ItemDataRole.UserRole, parsed)
+                item.setHidden(not self._should_display_intel(parsed))
 
     def _show_threat_toast(self, annotated: dict):
         if not self.windows_alerts_cb.isChecked():
@@ -1081,12 +1204,6 @@ class MainWindow(QMainWindow):
         parsed = self.alerter.annotate(parsed)
         if hasattr(self, "map_tab"):
             self.map_tab.note_intel(parsed)
-        if (
-            self.in_range_only_cb.isChecked()
-            and parsed.get("location_known")
-            and not parsed.get("in_range")
-        ):
-            return
 
         ts = parsed.get("time_str") or parsed.get("timestamp") or time.strftime("%H:%M:%S")
         sys_name = (parsed.get("system") or "Unknown Space").upper()
@@ -1193,14 +1310,22 @@ class MainWindow(QMainWindow):
         row_widget.setMinimumWidth(card_w)
         item.setSizeHint(QSize(card_w, row_widget.sizeHint().height()))
         item.setData(Qt.ItemDataRole.UserRole, parsed)
+        item.setHidden(not self._should_display_intel(parsed))
+
+        # Stabilize list scrolling to prevent snapping to bottom
+        vbar = self.intel_list.verticalScrollBar()
+        is_at_top = (vbar.value() == 0) if vbar else True
 
         self.intel_list.insertItem(0, item)
         self.intel_list.setItemWidget(item, row_widget)
-        self._intel_ask_buttons.append(ask_btn)
-        if self.intel_list.count() > 120:
+        self._intel_ask_buttons.insert(0, ask_btn)
+        if self.intel_list.count() > 150:
             removed = self.intel_list.takeItem(self.intel_list.count() - 1)
             if removed and self._intel_ask_buttons:
                 self._intel_ask_buttons.pop()
+
+        if is_at_top and vbar:
+            vbar.setValue(0)
 
         if getattr(config, "windows_alerts_enabled", True) and self.alerter.should_toast(parsed):
             self._show_threat_toast(parsed)

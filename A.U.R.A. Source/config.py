@@ -43,6 +43,10 @@ class AppConfig:
         self.windows_alerts_enabled = True
         self.alert_min_level = "MEDIUM"
         self.alert_debounce_sec = 20
+        self.feed_min_threat_level = "ALL"
+        self.feed_hide_system_clears = False
+        self.feed_in_range_only = False
+        self.monitored_character = "Auto"
 
         # Input safety limits (untrusted chat, logs, attachments)
         self.max_chat_chars = 16_000

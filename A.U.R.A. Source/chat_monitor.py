@@ -101,6 +101,7 @@ class LiveChatMonitor(QThread):
     intel_received = pyqtSignal(dict)
     critical_threat_detected = pyqtSignal(dict)
     active_channels_updated = pyqtSignal(list)
+    characters_updated = pyqtSignal(list)
     status_updated = pyqtSignal(str, bool)
     location_changed = pyqtSignal(str, int)
 
@@ -117,6 +118,24 @@ class LiveChatMonitor(QThread):
         self.cached_files: List[str] = []
         self.last_dir_scan_time: float = 0.0
         self.location = LocationTracker()
+        self._file_characters: Dict[str, str] = {}
+        self._character_locations: Dict[str, Dict[str, Any]] = {}
+        self._known_characters: Set[str] = set()
+        self.selected_character: Optional[str] = None
+        self._recent_intel_hashes: Dict[str, float] = {}
+
+    def set_selected_character(self, character_name: Optional[str]) -> None:
+        """Select a specific character to track for location and jump-range calculations."""
+        if not character_name or character_name.strip() in ("Auto", "All", "None", ""):
+            self.selected_character = None
+        else:
+            self.selected_character = character_name.strip()
+            if self.selected_character in self._character_locations:
+                loc = self._character_locations[self.selected_character]
+                self.location_changed.emit(loc["system"], int(loc["system_id"]))
+
+    def get_known_characters(self) -> List[str]:
+        return sorted(list(self._known_characters))
 
     def set_log_dir(self, new_dir: str):
         self.log_dir = os.path.abspath(new_dir)
@@ -256,10 +275,18 @@ class LiveChatMonitor(QThread):
         self.last_dir_scan_time = now
         return self.cached_files
 
-    def _emit_location(self, hit: Optional[Dict[str, Any]]):
+    def _emit_location(self, hit: Optional[Dict[str, Any]], filepath: Optional[str] = None):
         if not hit:
             return
-        self.location_changed.emit(hit["system"], int(hit["system_id"]))
+        char_name = self._file_characters.get(filepath) if filepath else None
+        if char_name:
+            self._character_locations[char_name] = {
+                "system": hit["system"],
+                "system_id": int(hit["system_id"]),
+                "ts": time.time(),
+            }
+        if self.selected_character is None or self.selected_character == char_name:
+            self.location_changed.emit(hit["system"], int(hit["system_id"]))
 
     def _read_prefix(self, filepath: str, nbytes: int = 8192) -> str:
         if not self._is_allowed_log_path(filepath):
@@ -287,13 +314,19 @@ class LiveChatMonitor(QThread):
         blob = self._read_prefix(filepath)
         if not blob:
             return
+        pilot = LocationTracker.extract_listener(blob)
+        if pilot:
+            self._file_characters[filepath] = pilot
+            if pilot not in self._known_characters:
+                self._known_characters.add(pilot)
+                self.characters_updated.emit(sorted(list(self._known_characters)))
         hit = self.location.parse_header_blob(blob)
         if not hit:
             for line in blob.splitlines():
                 hit = self.location.parse_line(line)
                 if hit:
                     break
-        self._emit_location(hit)
+        self._emit_location(hit, filepath)
 
     def _scan_and_seek_to_end(self):
         files = self._get_active_log_files(force_rescan=True)
@@ -312,6 +345,16 @@ class LiveChatMonitor(QThread):
                 self.known_files.add(f)
             except Exception:
                 continue
+
+            if f not in self._file_characters:
+                blob = self._read_prefix(f, 4096)
+                pilot = LocationTracker.extract_listener(blob)
+                if pilot:
+                    self._file_characters[f] = pilot
+                    if pilot not in self._known_characters:
+                        self._known_characters.add(pilot)
+                        self.characters_updated.emit(sorted(list(self._known_characters)))
+
             if not bootstrapped_local and _is_local_file(f):
                 self._ingest_location_prefix(f)
                 bootstrapped_local = True
@@ -328,11 +371,26 @@ class LiveChatMonitor(QThread):
         for raw_line in text.splitlines():
             if is_local or is_game:
                 hit = self.location.parse_line(raw_line)
-                self._emit_location(hit)
+                self._emit_location(hit, filepath)
             if not emit_intel:
                 continue
             parsed = IntelParser.parse_single_line(raw_line, channel_name)
             if parsed:
+                # Sliding-window deduplication for multi-character logs
+                time_key = parsed.get("time_str") or parsed.get("timestamp") or ""
+                speaker_key = (parsed.get("speaker") or "").lower()
+                clean_msg_key = (parsed.get("clean_msg") or "").lower()
+                ch_key = (parsed.get("channel") or channel_name).lower()
+                dedup_key = f"{ch_key}|{speaker_key}|{time_key}|{clean_msg_key}"
+                now = time.time()
+                last_seen = self._recent_intel_hashes.get(dedup_key, 0.0)
+                if now - last_seen < 25.0:
+                    continue
+                self._recent_intel_hashes[dedup_key] = now
+                if len(self._recent_intel_hashes) > 400:
+                    cutoff = now - 60.0
+                    self._recent_intel_hashes = {k: v for k, v in self._recent_intel_hashes.items() if v >= cutoff}
+
                 self.intel_received.emit(parsed)
                 if parsed["is_critical"]:
                     self.critical_threat_detected.emit(parsed)
@@ -347,6 +405,15 @@ class LiveChatMonitor(QThread):
             ch_name = extract_channel_name_from_filename(f)
             if ch_name not in active_names and not _is_gamelog_file(f):
                 active_names.append(ch_name)
+
+            if f not in self._file_characters:
+                blob = self._read_prefix(f, 4096)
+                pilot = LocationTracker.extract_listener(blob)
+                if pilot:
+                    self._file_characters[f] = pilot
+                    if pilot not in self._known_characters:
+                        self._known_characters.add(pilot)
+                        self.characters_updated.emit(sorted(list(self._known_characters)))
 
             if f not in self.file_positions:
                 try:

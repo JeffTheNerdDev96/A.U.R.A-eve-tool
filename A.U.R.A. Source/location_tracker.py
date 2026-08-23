@@ -15,6 +15,7 @@ _RE_LOCAL_CHANGED = re.compile(
 )
 _RE_CONNECTING = re.compile(r"Connecting to\s*[\"']?([^\n\"']+)", re.IGNORECASE)
 _RE_JUMPING = re.compile(r"Jumping from\s+(.+?)\s+to\s+(.+)", re.IGNORECASE)
+_RE_LISTENER = re.compile(r"(?:Gamelog\s+)?Listener\s*:\s*([^\r\n]+)", re.IGNORECASE)
 
 _SESSION_NOISE = frozenset({
     "tranquility", "singularity", "thunderdome", "serenity",
@@ -100,4 +101,17 @@ class LocationTracker:
             hit = self.parse_line(line)
             if hit:
                 return hit
+        return None
+
+    @staticmethod
+    def extract_listener(text: str) -> Optional[str]:
+        """Extract pilot / character name from a chatlog or gamelog header."""
+        if not text:
+            return None
+        for line in text.splitlines()[:30]:
+            m = _RE_LISTENER.search(line)
+            if m:
+                pilot = _strip_token(m.group(1))
+                if pilot and pilot.lower() not in _SESSION_NOISE:
+                    return pilot
         return None
