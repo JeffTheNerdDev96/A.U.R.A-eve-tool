@@ -1,4 +1,4 @@
-VERSION = "v0.3.1-alpha2"
+VERSION = "v0.3.2-alpha.1"
 PUBLISHER = "JeffTheNerdDev96"
 COMPANY_URL = "https://github.com/JeffTheNerdDev96/A.U.R.A-eve-tool"
 PRODUCT_NAME = "Adaptive Underworld Recon Array (A.U.R.A.)"

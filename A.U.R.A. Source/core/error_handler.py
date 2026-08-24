@@ -1,5 +1,5 @@
 """
-Centralized Diagnostic Error Code Subsystem for Adaptive Underworld Recon Array (A.U.R.A.) - v0.3.1-alpha2.
+Centralized Diagnostic Error Code Subsystem for Adaptive Underworld Recon Array (A.U.R.A.) - v0.3.2-alpha.1.
 Angel Cartel Cybernetics Division.
 
 Provides standardized, searchable error codes (AURA-ERR-xxxx), rich diagnostic logging,
@@ -11,9 +11,7 @@ import sys
 import time
 import traceback
 
-_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-_APP_DIR = os.path.dirname(_THIS_DIR) if os.path.basename(_THIS_DIR) == "core" else _THIS_DIR
-
+from .paths import get_logs_dir
 from .input_safety import clamp_text, escape_html
 
 from version import INSTALLER_EXE_NAME
@@ -190,8 +188,7 @@ def log_diagnostic_error(code: str, exc: Exception | None = None, context: str =
     tb = traceback.format_exc() if exc else "No traceback available."
     safe_context = clamp_text(context or "General Operation", 2_000)
     
-    log_dir = os.path.join(_APP_DIR, "logs")
-    os.makedirs(log_dir, exist_ok=True)
+    log_dir = get_logs_dir()
     crash_log = os.path.join(log_dir, "crash.log")
     
     log_entry = (

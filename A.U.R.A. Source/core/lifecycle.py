@@ -12,23 +12,22 @@ import time
 from pathlib import Path
 from typing import Any
 
+from .paths import get_app_root, get_logs_dir
+
 WORKER_JOIN_MS = 2000
 CHAT_MONITOR_JOIN_MS = 1500
-
-_THIS_DIR = Path(__file__).resolve().parent
-_APP_DIR = _THIS_DIR.parent if _THIS_DIR.name == "core" else _THIS_DIR
 
 
 def cleanup_temp_files() -> None:
     """Purges orphaned __pycache__ and stale non-crash logs."""
-    pc = _APP_DIR / "__pycache__"
+    pc = Path(get_app_root()) / "__pycache__"
     if pc.exists():
         try:
             shutil.rmtree(pc, ignore_errors=True)
         except OSError:
             pass
 
-    log_dir = _APP_DIR / "logs"
+    log_dir = Path(get_logs_dir())
     if not log_dir.exists():
         return
     now = time.time()

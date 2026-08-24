@@ -19,6 +19,7 @@ import psutil
 import winreg
 from typing import Any
 from core.config import config
+from core.paths import get_app_root
 from core.error_handler import AURAErrorCode, log_diagnostic_error
 from .profile import (
     apply_install_mask,
@@ -33,6 +34,8 @@ from .profile import (
 
 # Global hardware scan cache to ensure instant O(1) hardware queries across the app
 _CACHED_HARDWARE_DEVICES: DeviceMap | None = None
+_PHYS_CORES: int = psutil.cpu_count(logical=False) or 4
+_LOGICAL_CORES: int = psutil.cpu_count(logical=True) or 8
 
 _OPENVINO_PROBE_SCRIPT = (
     "import json\n"
@@ -71,9 +74,7 @@ def _openvino_probe_wanted(skip_openvino_probe: bool) -> bool:
 
 
 def _app_root_dir() -> str:
-    if getattr(sys, "frozen", False):
-        return os.path.dirname(os.path.abspath(sys.executable))
-    return os.path.dirname(os.path.abspath(__file__))
+    return get_app_root()
 
 
 def _is_frozen_stub_executable() -> bool:
@@ -91,7 +92,7 @@ def _is_frozen_stub_executable() -> bool:
 
 def _resolve_probe_python() -> str | None:
     """Return a real python.exe for -c probes; never the frozen Setup/Launcher stub."""
-    app_dir = _app_root_dir()
+    app_dir = get_app_root()
     candidates = [
         os.path.join(app_dir, "requirements", "venv", "Scripts", "python.exe"),
         os.path.join(app_dir, "runtime", "python.exe"),
@@ -182,8 +183,8 @@ class HardwareDetector:
         except Exception:
             pass
 
-        phys_cores = psutil.cpu_count(logical=False) or 4
-        logical_threads = psutil.cpu_count(logical=True) or 8
+        phys_cores = _PHYS_CORES
+        logical_threads = _LOGICAL_CORES
 
         devices = {
             "cpu": {
@@ -556,7 +557,10 @@ class DynamicHardwareRouter:
         self.detector = detector
 
     def estimate_tokens(self, text: str) -> int:
-        return max(1, int(len(text.split()) * 1.3))
+        if not text:
+            return 1
+        # Fast character heuristic: ~3.8 chars per token for dense technical text with zero heap allocations
+        return max(1, len(text) // 4)
 
     def route_workload(
         self,

@@ -1,6 +1,6 @@
 """
 EVE Online Tactical Database, Comprehensive Combat Matrix & Domain Grounding Engine.
-Customized for A.U.R.A. (Adaptive Underworld Recon Array) — ver.0.3.1-alpha2 & Core.
+Customized for A.U.R.A. (Adaptive Underworld Recon Array) — ver.0.3.2-alpha.1 & Core.
 Contains encyclopedic vessel dossiers (350+ hulls), module matrix (250+ modules),
 subsystems, weapon tracking mathematics, capacitor warfare, and tactical grounding.
 Covers all standard empire, navy, pirate, faction, industrial, capital, and T3 vessels.
@@ -8024,6 +8024,21 @@ for _mk, _mv in MODULE_DATABASE.items():
             _FAST_MODULE_LOOKUP[_RE_CLEAN_ALPHANUM.sub("", _base)] = _mv_copy
 
 
+_MODULE_BASE_NAMES = [
+    (_mk.split("(")[0].strip().lower(), _mv)
+    for _mk, _mv in MODULE_DATABASE.items()
+]
+
+_COMMON_STOPWORDS = frozenset({
+    "the", "and", "is", "in", "to", "of", "a", "an", "on", "for", "with", "at", "by",
+    "from", "it", "this", "that", "are", "was", "be", "or", "as", "if", "not", "my",
+    "we", "you", "they", "he", "she", "me", "us", "him", "her", "them", "what", "which",
+    "who", "whom", "how", "when", "where", "why", "all", "any", "both", "each", "few",
+    "more", "most", "other", "some", "such", "no", "nor", "too", "very", "can", "will",
+    "just", "should", "now", "d-scan", "dscan", "scan", "intel", "gate", "local", "system"
+})
+
+
 @functools.lru_cache(maxsize=4096)
 def lookup_ship(name: str) -> Optional[Dict[str, Any]]:
     """O(1) canonical ship retrieval with C-level LRU caching."""
@@ -8038,7 +8053,7 @@ def lookup_ship(name: str) -> Optional[Dict[str, Any]]:
 
 @functools.lru_cache(maxsize=4096)
 def lookup_module(name: str) -> Optional[Dict[str, Any]]:
-    """O(1) canonical module retrieval with C-level LRU caching and fuzzy fallback."""
+    """O(1) canonical module retrieval with C-level LRU caching and pre-indexed fuzzy fallback."""
     if not name:
         return None
     raw_lower = name.strip().lower()
@@ -8047,8 +8062,7 @@ def lookup_module(name: str) -> Optional[Dict[str, Any]]:
     clean = _RE_CLEAN_ALPHANUM.sub("", raw_lower)
     if clean in _FAST_MODULE_LOOKUP:
         return _FAST_MODULE_LOOKUP[clean]
-    for mk, mv in MODULE_DATABASE.items():
-        base_name = mk.split("(")[0].strip().lower()
+    for base_name, mv in _MODULE_BASE_NAMES:
         if base_name in raw_lower or raw_lower in base_name:
             return mv
     return None
@@ -8088,7 +8102,7 @@ def get_tactical_grounding(prompt: str, attachments: List[Dict[str, Any]] = None
         full_text = prompt
 
     lower_text = full_text.lower()
-    words = _RE_WORDS.findall(full_text)
+    raw_words = _RE_WORDS.findall(full_text)
     
     grounding_blocks = []
     detected_hulls = set()
@@ -8124,7 +8138,9 @@ def get_tactical_grounding(prompt: str, attachments: List[Dict[str, Any]] = None
                 detected_hulls.add(ship_lower)
                 grounding_blocks.append(s_info.get("pre_rendered_dossier", f"• {ship_name}"))
 
-    for w in words:
+    # Deduplicate non-stopwords before querying ship dictionary
+    unique_words = {w for w in raw_words if len(w) >= 2 and w.lower() not in _COMMON_STOPWORDS}
+    for w in unique_words:
         s_info = lookup_ship(w)
         if s_info:
             cname = s_info.get("canonical_name", w.capitalize())
@@ -8145,3 +8161,4 @@ def get_tactical_grounding(prompt: str, attachments: List[Dict[str, Any]] = None
         return f"[TACTICAL DATABASE REFERENCE]:\n{joined_dossiers}\n\n{EVE_TACTICAL_RULES}"
     
     return f"[TACTICAL DATABASE REFERENCE]:\n• Tactical reference for New Eden ships, modules, navigation, and combat mechanics.\n\n{EVE_TACTICAL_RULES}"
+
