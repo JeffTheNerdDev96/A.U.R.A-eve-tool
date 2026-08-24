@@ -21,6 +21,8 @@ A.U.R.A. is an unofficial, fan-made tactical companion for EVE Online. It exists
 
 **EVE Online**, the EVE logo, and related marks are trademarks of **CCP hf**. This project is not affiliated with, endorsed by, or sponsored by CCP Games.
 
+"EVE Online and the EVE logo are the registered trademarks of CCP hf. All rights are reserved worldwide. All other trademarks are the property of their respective owners. EVE Online, the EVE logo, EVE and all associated logos and designs are the intellectual property of CCP hf. All artwork, screenshots, characters, vehicles, storylines, world facts or other recognizable features of the intellectual property relating to these trademarks are likewise the intellectual property of CCP hf."
+
 Ship, module, item, and stellar mechanics in the tactical database are compiled from publicly documented EVE Online game data for offline tactical analysis:
 
 | Source | Author / Team | Role in A.U.R.A. |
