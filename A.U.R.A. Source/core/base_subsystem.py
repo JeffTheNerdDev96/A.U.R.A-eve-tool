@@ -4,8 +4,10 @@ Abstract base class for isolated domain services.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any
-from .event_bus import get_event_bus, EventBus
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .event_bus import EventBus
 
 type SubsystemStatus = dict[str, Any]
 
@@ -19,7 +21,8 @@ class BaseSubsystem(ABC):
     def __init__(self, name: str):
         self.name = name
         self._is_running: bool = False
-        self.event_bus: EventBus = get_event_bus()
+        from .event_bus import get_event_bus
+        self.event_bus = get_event_bus()
 
     @abstractmethod
     def initialize(self) -> bool:

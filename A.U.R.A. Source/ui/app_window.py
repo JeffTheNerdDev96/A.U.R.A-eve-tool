@@ -782,6 +782,7 @@ class MainWindow(QMainWindow):
         self.tier_badge.setObjectName("TierBadge")
         self.tier_badge.setFixedHeight(32)
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
+        self.tier_badge.setToolTip(self._get_badge_tooltip())
         chrome_layout.addWidget(self.tier_badge)
 
         self.credits_btn = QPushButton("Credits")
@@ -1198,16 +1199,24 @@ class MainWindow(QMainWindow):
 
     def _get_idle_badge_text(self) -> str:
         if self.engine.llm is not None:
-            return "● Online"
-        label = self.engine.detector.routing_standby_label()
-        if self.engine.detector.has_dgpu and self.engine.llama_backend == "cpu":
-            return f"⚡ {label} [CPU llama]"
-        return f"⚡ {label}"
+            return "⚡ Online"
+        return "⚡ Standby"
 
     def _get_idle_badge_style(self) -> str:
         if self.engine.llm is not None:
             return tier_badge_online_css()
         return tier_badge_standby_css()
+
+    def _get_badge_tooltip(self) -> str:
+        summary = self.engine.detector.get_live_summary_string()
+        if self.engine.llm is not None:
+            return f"Status: Online (Neural Core Loaded)\nHardware Topology:\n{summary}"
+        label = self.engine.detector.routing_standby_label()
+        if self.engine.detector.has_dgpu and self.engine.llama_backend == "cpu":
+            backend_info = f"{label} [CPU llama]"
+        else:
+            backend_info = label
+        return f"Status: Standby ({backend_info})\nHardware Topology:\n{summary}"
 
     def _display_welcome(self):
         self._append_message(
@@ -2074,6 +2083,7 @@ class MainWindow(QMainWindow):
             self._update_context_display(0)
             self.tier_badge.setText(self._get_idle_badge_text())
             self.tier_badge.setStyleSheet(self._get_idle_badge_style())
+            self.tier_badge.setToolTip(self._get_badge_tooltip())
             self.chat_display.append("<br><small style='color: #64748b;'>💤 <i>[Idle Inactivity (5m): Neural core parked in Standby & memory purged. Auto-arms on next command.]</i></small><br>")
             sb = self.chat_display.verticalScrollBar()
             sb.setValue(sb.maximum())
@@ -2091,6 +2101,7 @@ class MainWindow(QMainWindow):
         self.engine.unload_model()
         self.tier_badge.setText(self._get_idle_badge_text())
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
+        self.tier_badge.setToolTip(self._get_badge_tooltip())
         self.progress_container.setVisible(False)
         self.stop_btn.hide()
         self.send_btn.show()
@@ -2179,12 +2190,14 @@ class MainWindow(QMainWindow):
 
         if meta.get("type") == "loading" or meta.get("phase") == "loading":
             status = meta.get("status") or meta.get("text") or "Loading neural core..."
-            self.tier_badge.setText("● Loading...")
+            self.tier_badge.setText("⚡ Loading...")
             self.tier_badge.setStyleSheet(tier_badge_busy_css())
+            self.tier_badge.setToolTip(f"Status: Loading\n{status}")
             self.progress_status_lbl.setText(status)
         else:
-            self.tier_badge.setText("● Thinking...")
+            self.tier_badge.setText("⚡ Thinking...")
             self.tier_badge.setStyleSheet(tier_badge_busy_css())
+            self.tier_badge.setToolTip("Status: Thinking (Generating Neural Stream)")
             self.progress_status_lbl.setText("Processing...")
 
     def _on_token(self, packet: dict):
@@ -2203,6 +2216,7 @@ class MainWindow(QMainWindow):
         self.chat_display.append(f"<br><small style='color: #64748b;'>⚡ {toks} tokens in {elapsed}s ({tps:.1f} t/s)</small><br>")
         self.tier_badge.setText(self._get_idle_badge_text())
         self.tier_badge.setStyleSheet(self._get_idle_badge_style())
+        self.tier_badge.setToolTip(self._get_badge_tooltip())
 
         self.progress_container.setVisible(False)
         self.stop_btn.hide()
