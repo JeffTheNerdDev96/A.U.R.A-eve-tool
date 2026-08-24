@@ -4,11 +4,18 @@ import sys
 import site
 
 _QT_PRELOAD_DLLS = (
+    "ucrtbase.dll",
+    "msvcp_win.dll",
     "msvcp140.dll",
     "msvcp140_1.dll",
     "msvcp140_2.dll",
     "vcruntime140.dll",
     "vcruntime140_1.dll",
+    "concrt140.dll",
+    "vccorlib140.dll",
+    "icu.dll",
+    "icuuc.dll",
+    "icuin.dll",
     "d3dcompiler_47.dll",
     "opengl32sw.dll",
     "Qt6Core.dll",
@@ -109,6 +116,13 @@ def _preload_qt_dlls(qt_bin: str, meipass: str | None = None) -> list[str]:
         if os.path.isdir(pyqt6_dir):
             search_dirs.append(pyqt6_dir)
         search_dirs.append(meipass)
+
+    _this_dir = os.path.dirname(os.path.abspath(__file__))
+    app_root = os.path.dirname(_this_dir) if os.path.basename(_this_dir) == "bootstrap" else _this_dir
+    bootstrap_dlls = os.path.join(app_root, "bootstrap", "dlls")
+    if os.path.isdir(bootstrap_dlls):
+        search_dirs.append(bootstrap_dlls)
+
     if qt_bin and os.path.isdir(qt_bin) and qt_bin not in search_dirs:
         search_dirs.append(qt_bin)
 
@@ -138,6 +152,15 @@ def _apply_qt_dirs(
     if meipass:
         _add_dll_dir(meipass)
         _add_dll_dir(os.path.join(meipass, "PyQt6"))
+
+    _this_dir = os.path.dirname(os.path.abspath(__file__))
+    app_root = os.path.dirname(_this_dir) if os.path.basename(_this_dir) == "bootstrap" else _this_dir
+    bootstrap_dlls = os.path.join(app_root, "bootstrap", "dlls")
+    if os.path.isdir(bootstrap_dlls):
+        _add_dll_dir(bootstrap_dlls)
+        path_env = os.environ.get("PATH", "")
+        if bootstrap_dlls not in path_env:
+            os.environ["PATH"] = bootstrap_dlls + os.pathsep + path_env
 
     for path in (qt_bin, qt_plugins, qt_platforms):
         _add_dll_dir(path)
