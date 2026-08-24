@@ -3,7 +3,18 @@ import os
 import sys
 import site
 
-_QT_PRELOAD_DLLS = ("Qt6Core.dll", "Qt6Gui.dll", "Qt6Widgets.dll")
+_QT_PRELOAD_DLLS = (
+    "msvcp140.dll",
+    "msvcp140_1.dll",
+    "msvcp140_2.dll",
+    "vcruntime140.dll",
+    "vcruntime140_1.dll",
+    "d3dcompiler_47.dll",
+    "opengl32sw.dll",
+    "Qt6Core.dll",
+    "Qt6Gui.dll",
+    "Qt6Widgets.dll",
+)
 _DLL_DIR_HANDLES: list = []
 
 
@@ -28,23 +39,23 @@ def _add_dll_dir(path: str) -> None:
             pass
 
 
-def _win_isolate_dll_search(qt_bin: str) -> None:
-    """Prefer bundled Qt6 DLLs over copies on user PATH on native Windows."""
-    if sys.platform != "win32" or is_wine_or_proton():
-        # Wine / Proton does not implement restricted DLL directories properly
-        # and relies on standard PATH resolution.
+def _win_isolate_dll_search(qt_bin: str, meipass: str | None = None) -> None:
+    """Ensure kernel DLL directory search is set on Windows & Wine/Proton."""
+    if sys.platform != "win32":
         return
     try:
         import ctypes
         kernel32 = ctypes.windll.kernel32
-        # LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_USER_DIRS | LOAD_LIBRARY_SEARCH_SYSTEM32
-        try:
-            kernel32.SetDefaultDllDirectories(0x1000 | 0x400 | 0x800)
-        except OSError:
-            pass
-        if qt_bin and os.path.isdir(qt_bin):
+        if not is_wine_or_proton():
+            # LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_USER_DIRS | LOAD_LIBRARY_SEARCH_SYSTEM32
             try:
-                kernel32.SetDllDirectoryW(qt_bin)
+                kernel32.SetDefaultDllDirectories(0x1000 | 0x400 | 0x800)
+            except OSError:
+                pass
+        target_dir = qt_bin if (qt_bin and os.path.isdir(qt_bin)) else (meipass if (meipass and os.path.isdir(meipass)) else None)
+        if target_dir:
+            try:
+                kernel32.SetDllDirectoryW(target_dir)
             except OSError:
                 pass
     except Exception:
@@ -86,31 +97,34 @@ def _sanitize_path_for_qt(qt_bin: str, meipass: str | None = None) -> None:
 
 
 def _preload_qt_dlls(qt_bin: str, meipass: str | None = None) -> list[str]:
-    """Load bundled Qt6 DLLs by absolute path before PyQt extension import."""
-    if sys.platform != "win32" or not qt_bin:
+    """Load bundled Qt6 and graphics DLLs by absolute path before PyQt extension import."""
+    if sys.platform != "win32":
         return []
     errors: list[str] = []
     import ctypes
 
-    # Preload MSVC CRT DLLs if present in meipass
+    search_dirs: list[str] = []
     if meipass and os.path.isdir(meipass):
-        for crt_dll in ("vcruntime140.dll", "vcruntime140_1.dll", "msvcp140.dll", "msvcp140_1.dll", "msvcp140_2.dll"):
-            crt_path = os.path.join(meipass, crt_dll)
-            if os.path.isfile(crt_path):
-                try:
-                    ctypes.WinDLL(crt_path)
-                except OSError:
-                    pass
+        pyqt6_dir = os.path.join(meipass, "PyQt6")
+        if os.path.isdir(pyqt6_dir):
+            search_dirs.append(pyqt6_dir)
+        search_dirs.append(meipass)
+    if qt_bin and os.path.isdir(qt_bin) and qt_bin not in search_dirs:
+        search_dirs.append(qt_bin)
 
+    loaded: set[str] = set()
     for name in _QT_PRELOAD_DLLS:
-        path = os.path.join(qt_bin, name)
-        if not os.path.isfile(path):
-            errors.append(f"{name}: file not found at {path}")
-            continue
-        try:
-            ctypes.WinDLL(path)
-        except OSError as exc:
-            errors.append(f"{name}: {exc} ({path})")
+        for sdir in search_dirs:
+            path = os.path.join(sdir, name)
+            if os.path.isfile(path) and name not in loaded:
+                try:
+                    # 0x00000008 = LOAD_WITH_ALTERED_SEARCH_PATH
+                    ctypes.WinDLL(path, mode=0x00000008)
+                    loaded.add(name)
+                except OSError as exc:
+                    errors.append(f"{name}: {exc} ({path})")
+                break
+
     return errors
 
 
@@ -133,14 +147,13 @@ def _apply_qt_dirs(
         if qt_platforms and os.path.isdir(qt_platforms):
             os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = qt_platforms
 
-    if qt_bin and os.path.isdir(qt_bin):
-        _win_isolate_dll_search(qt_bin)
-        if sanitize_path:
-            _sanitize_path_for_qt(qt_bin, meipass=meipass)
-        else:
-            path_env = os.environ.get("PATH", "")
-            if qt_bin not in path_env:
-                os.environ["PATH"] = qt_bin + os.pathsep + path_env
+    _win_isolate_dll_search(qt_bin, meipass=meipass)
+    if sanitize_path:
+        _sanitize_path_for_qt(qt_bin, meipass=meipass)
+    elif qt_bin and os.path.isdir(qt_bin):
+        path_env = os.environ.get("PATH", "")
+        if qt_bin not in path_env:
+            os.environ["PATH"] = qt_bin + os.pathsep + path_env
 
     return _preload_qt_dlls(qt_bin, meipass=meipass)
 

@@ -73,7 +73,12 @@ def shutdown_application(window: Any | None = None) -> None:
         except Exception as exc:
             _log_shutdown_error(exc, "shutdown: tray_icon")
 
+        # 1. Immediately abort active inference and stop worker thread
         try:
+            engine = getattr(window, "engine", None)
+            if engine is not None:
+                engine.request_abort()
+
             worker = getattr(window, "worker", None)
             if worker is not None and worker.isRunning():
                 if hasattr(worker, "stop"):
@@ -83,6 +88,7 @@ def shutdown_application(window: Any | None = None) -> None:
         except Exception as exc:
             _log_shutdown_error(exc, "shutdown: worker_thread")
 
+        # 2. Stop live chat monitor thread
         try:
             monitor = getattr(window, "chat_monitor", None)
             if monitor is not None and monitor.isRunning():
@@ -90,21 +96,34 @@ def shutdown_application(window: Any | None = None) -> None:
         except Exception as exc:
             _log_shutdown_error(exc, "shutdown: chat_monitor")
 
+        # 3. Unload neural model and coprocessors
         try:
-            engine = getattr(window, "engine", None)
             if engine is not None:
                 engine.unload_model()
                 coprocessor = getattr(engine, "coprocessor", None)
                 if coprocessor is not None:
                     coprocessor.stop_all_workers()
+                    coprocessor.unload_coprocessor()
         except Exception as exc:
             _log_shutdown_error(exc, "shutdown: engine")
 
+        # 4. Stop all attached subsystems
+        for sub_attr in ("intel_subsystem", "map_subsystem", "fleet_comp_subsystem", "fitting_subsystem", "wormhole_subsystem", "ai_subsystem"):
+            try:
+                sub = getattr(window, sub_attr, None)
+                if sub is not None and hasattr(sub, "stop"):
+                    sub.stop()
+            except Exception as exc:
+                _log_shutdown_error(exc, f"shutdown: {sub_attr}")
+
+        # 5. Clear chat history and memory buffers
         try:
             if hasattr(window, "chat_history"):
                 window.chat_history.clear()
             if hasattr(window, "attachments"):
                 window.attachments.clear()
+            if hasattr(window, "current_assistant_tokens"):
+                window.current_assistant_tokens.clear()
         except Exception as exc:
             _log_shutdown_error(exc, "shutdown: memory_buffers")
 

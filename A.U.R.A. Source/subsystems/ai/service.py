@@ -49,16 +49,16 @@ class AISubsystem(BaseSubsystem):
         ):
             chunk_type = chunk.get("type")
             if chunk_type == "token":
-                tok = chunk.get("token", "")
+                tok = chunk.get("text", chunk.get("token", ""))
                 tokens.append(tok)
                 self.event_bus.publish(InferenceStreamTokenEvent(
                     request_id=request.request_id,
                     token=tok
                 ))
             elif chunk_type == "done":
-                tokens_per_sec = float(chunk.get("tok_sec", 0.0))
-                total_tokens = int(chunk.get("total_tokens", len(tokens)))
-                duration = float(chunk.get("duration", 0.0))
+                tokens_per_sec = float(chunk.get("tokens_per_sec", chunk.get("tok_sec", 0.0)))
+                total_tokens = int(chunk.get("tokens_generated", chunk.get("total_tokens", len(tokens))))
+                duration = float(chunk.get("time_elapsed", chunk.get("duration", 0.0)))
 
         full_text = "".join(tokens)
         result = InferenceResult(
