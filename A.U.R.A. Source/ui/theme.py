@@ -112,6 +112,16 @@ def dialog_stylesheet() -> str:
             color: {TEXT_PRIMARY};
             font-family: 'Segoe UI', system-ui, sans-serif;
         }}
+        QLabel {{
+            background: transparent;
+            border: none;
+        }}
+        QFrame#OptionCard {{
+            background-color: {BG_PANEL};
+            border: 1px solid {BORDER};
+            border-radius: 6px;
+            padding: 10px;
+        }}
         QTextEdit, QTextBrowser {{
             background-color: {BG_ELEVATED};
             border: 1px solid {BORDER};
@@ -127,6 +137,45 @@ def dialog_stylesheet() -> str:
             border-radius: 4px;
             color: {TEXT_PRIMARY};
             padding: 4px 8px;
+            font-size: 12px;
+        }}
+        QLineEdit {{
+            background-color: {BG_ELEVATED};
+            border: 1px solid {BORDER};
+            border-radius: 4px;
+            color: {TEXT_PRIMARY};
+            padding: 4px 8px;
+            font-size: 12px;
+        }}
+        QSpinBox {{
+            background-color: {BG_ELEVATED};
+            border: 1px solid {BORDER};
+            border-radius: 4px;
+            color: {TEXT_PRIMARY};
+            padding: 2px 6px;
+            font-size: 12px;
+        }}
+        QCheckBox {{
+            color: {TEXT_SECONDARY};
+            font-size: 12.5px;
+            font-weight: 500;
+            spacing: 6px;
+            background: transparent;
+            border: none;
+        }}
+        QCheckBox::indicator {{
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            border: 1px solid {BONE_MUTED};
+            background-color: {BG_DEEP};
+        }}
+        QCheckBox::indicator:hover {{
+            border: 1px solid {ACCENT_HOVER};
+        }}
+        QCheckBox::indicator:checked {{
+            background-color: {ACCENT};
+            border: 1px solid {ACCENT_HOVER};
         }}
         QPushButton {{
             background-color: {ACCENT};
@@ -134,7 +183,7 @@ def dialog_stylesheet() -> str:
             font-weight: bold;
             border: none;
             border-radius: 6px;
-            padding: 10px 16px;
+            padding: 6px 14px;
         }}
         QPushButton:hover {{
             background-color: {ACCENT_HOVER};

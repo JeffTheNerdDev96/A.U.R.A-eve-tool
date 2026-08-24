@@ -1,5 +1,5 @@
 # A.U.R.A. Developer Guide
-**v0.3.0-alpha1 — Pure Modular Architecture**
+**v0.3.1-alpha2 — Pure Modular Architecture**
 
 Internal reference for contributors and engineers working on the A.U.R.A. codebase.
 
@@ -12,7 +12,7 @@ The codebase is organized into domain-specific packages with strict separation o
 ```
 A.U.R.A. Source/
 ├── app.py                         # Single desktop application entrypoint
-├── version.py                     # Single source of truth for version (v0.3.0-alpha1)
+├── version.py                     # Single source of truth for version (v0.3.1-alpha2)
 ├── Launch_A.U.R.A_Debug.bat       # Low-level debug launcher with runtime probe
 ├── run.bat                        # Production launcher script
 │

@@ -169,8 +169,9 @@ class RadarOptionsDialog(QDialog):
 
         # 1. Automated Tactical Response Section
         auto_group = QFrame()
-        auto_group.setStyleSheet(f"QFrame {{ background: {BG_PANEL}; border: 1px solid {BORDER}; border-radius: 6px; padding: 10px; }}")
+        auto_group.setObjectName("OptionCard")
         auto_layout = QVBoxLayout(auto_group)
+        auto_layout.setContentsMargins(12, 10, 12, 10)
         auto_layout.setSpacing(6)
 
         sec1_lbl = QLabel("AUTOMATED TACTICAL RESPONSE")
@@ -192,8 +193,9 @@ class RadarOptionsDialog(QDialog):
 
         # 2. Log Source & Monitored Channels Section
         log_group = QFrame()
-        log_group.setStyleSheet(f"QFrame {{ background: {BG_PANEL}; border: 1px solid {BORDER}; border-radius: 6px; padding: 10px; }}")
+        log_group.setObjectName("OptionCard")
         log_layout = QVBoxLayout(log_group)
+        log_layout.setContentsMargins(12, 10, 12, 10)
         log_layout.setSpacing(8)
 
         sec2_lbl = QLabel("LOG DIRECTORY & MONITORED CHANNELS")
@@ -201,27 +203,35 @@ class RadarOptionsDialog(QDialog):
         log_layout.addWidget(sec2_lbl)
 
         folder_row = QHBoxLayout()
+        folder_row.setSpacing(8)
         self.folder_path_lbl = QLabel(self.main_window.chat_monitor.log_dir or "EVE Online Chatlogs")
-        self.folder_path_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 11.5px; font-family: monospace; background: {BG_ELEVATED}; border: 1px solid {BORDER}; border-radius: 4px; padding: 4px 8px;")
+        self.folder_path_lbl.setFixedHeight(30)
+        self.folder_path_lbl.setStyleSheet(
+            f"color: {TEXT_SECONDARY}; font-size: 12px; font-family: monospace; "
+            f"background: {BG_ELEVATED}; border: 1px solid {BORDER}; border-radius: 4px; padding: 4px 8px;"
+        )
         folder_row.addWidget(self.folder_path_lbl, stretch=1)
 
         browse_btn = QPushButton("📁 Browse Folder")
-        browse_btn.setFixedHeight(28)
+        browse_btn.setFixedHeight(30)
+        browse_btn.setFixedWidth(130)
         browse_btn.setStyleSheet(radar_control_btn_css())
         browse_btn.clicked.connect(self._browse_folder)
         folder_row.addWidget(browse_btn)
         log_layout.addLayout(folder_row)
 
         filter_row = QHBoxLayout()
+        filter_row.setSpacing(8)
         filter_lbl = QLabel("Channel Filter:")
-        filter_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px;")
+        filter_lbl.setFixedWidth(115)
+        filter_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px; font-weight: bold;")
         filter_row.addWidget(filter_lbl)
 
         self.channel_filter_combo = QComboBox()
-        self.channel_filter_combo.setFixedHeight(28)
+        self.channel_filter_combo.setFixedHeight(30)
         self.channel_filter_combo.setStyleSheet(
-            f"font-size: 12px; background: {BTN_SECONDARY_BG}; color: {TEXT_PRIMARY}; "
-            f"border: 1px solid {BTN_SECONDARY_BORDER}; border-radius: 4px; padding: 2px 8px;"
+            f"font-size: 12px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
+            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 4px 8px;"
         )
         self.channel_filter_combo.addItems([
             "Intel Channels (*.intel, *.imperium, *.horde, etc.)",
@@ -237,10 +247,10 @@ class RadarOptionsDialog(QDialog):
         log_layout.addLayout(filter_row)
 
         self.custom_channel_edit = QLineEdit()
-        self.custom_channel_edit.setFixedHeight(26)
+        self.custom_channel_edit.setFixedHeight(30)
         self.custom_channel_edit.setStyleSheet(
-            f"font-size: 11.5px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
-            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 2px 8px;"
+            f"font-size: 12px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
+            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 4px 8px;"
         )
         self.custom_channel_edit.setPlaceholderText("Custom channel keywords (e.g. imperium, delve, horde, standing)")
         self.custom_channel_edit.setText(self.main_window.custom_channel_edit.text())
@@ -250,8 +260,9 @@ class RadarOptionsDialog(QDialog):
 
         # 3. Proximity & Notification Alerts Section
         prox_group = QFrame()
-        prox_group.setStyleSheet(f"QFrame {{ background: {BG_PANEL}; border: 1px solid {BORDER}; border-radius: 6px; padding: 10px; }}")
+        prox_group.setObjectName("OptionCard")
         prox_layout = QVBoxLayout(prox_group)
+        prox_layout.setContentsMargins(12, 10, 12, 10)
         prox_layout.setSpacing(8)
 
         sec3_lbl = QLabel("PROXIMITY & NOTIFICATION ALERTS")
@@ -259,15 +270,17 @@ class RadarOptionsDialog(QDialog):
         prox_layout.addWidget(sec3_lbl)
 
         char_row = QHBoxLayout()
+        char_row.setSpacing(8)
         char_lbl = QLabel("Character Tracker:")
-        char_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px;")
+        char_lbl.setFixedWidth(115)
+        char_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px; font-weight: bold;")
         char_row.addWidget(char_lbl)
 
         self.character_combo = QComboBox()
-        self.character_combo.setFixedHeight(26)
+        self.character_combo.setFixedHeight(30)
         self.character_combo.setStyleSheet(
-            f"font-size: 11.5px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
-            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 2px 6px;"
+            f"font-size: 12px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
+            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 4px 8px;"
         )
         for i in range(self.main_window.character_combo.count()):
             self.character_combo.addItem(self.main_window.character_combo.itemText(i))
@@ -276,10 +289,16 @@ class RadarOptionsDialog(QDialog):
         char_row.addWidget(self.character_combo, stretch=1)
 
         range_lbl = QLabel("Alert Range (jumps):")
-        range_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px;")
+        range_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px; font-weight: bold;")
         char_row.addWidget(range_lbl)
 
         self.jump_range_spin = QSpinBox()
+        self.jump_range_spin.setFixedHeight(30)
+        self.jump_range_spin.setFixedWidth(70)
+        self.jump_range_spin.setStyleSheet(
+            f"font-size: 12px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
+            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 2px 6px;"
+        )
         self.jump_range_spin.setRange(0, 20)
         self.jump_range_spin.setValue(self.main_window.jump_range_spin.value())
         self.jump_range_spin.valueChanged.connect(self._sync_jump_range)
@@ -287,6 +306,7 @@ class RadarOptionsDialog(QDialog):
         prox_layout.addLayout(char_row)
 
         cbs_row = QHBoxLayout()
+        cbs_row.setSpacing(16)
         self.in_range_only_cb = QCheckBox("Show in-range only")
         self.in_range_only_cb.setChecked(self.main_window.in_range_only_cb.isChecked())
         self.in_range_only_cb.toggled.connect(self._sync_in_range_only)
@@ -301,6 +321,7 @@ class RadarOptionsDialog(QDialog):
         self.hide_clears_cb.setChecked(self.main_window.hide_clears_cb.isChecked())
         self.hide_clears_cb.toggled.connect(self._sync_hide_clears)
         cbs_row.addWidget(self.hide_clears_cb)
+        cbs_row.addStretch()
         prox_layout.addLayout(cbs_row)
         layout.addWidget(prox_group)
 
@@ -309,7 +330,7 @@ class RadarOptionsDialog(QDialog):
         btn_layout.addStretch()
         done_btn = QPushButton("Done")
         done_btn.setFixedHeight(34)
-        done_btn.setMinimumWidth(120)
+        done_btn.setMinimumWidth(130)
         done_btn.clicked.connect(self.accept)
         btn_layout.addWidget(done_btn)
         layout.addLayout(btn_layout)
@@ -1436,7 +1457,6 @@ class MainWindow(QMainWindow):
         row_widget.setMinimumWidth(card_w)
         item.setSizeHint(QSize(card_w, row_widget.sizeHint().height()))
         item.setData(Qt.ItemDataRole.UserRole, parsed)
-        item.setHidden(not self._should_display_intel(parsed))
 
         # Stabilize list scrolling to prevent snapping to bottom
         vbar = self.intel_list.verticalScrollBar()
@@ -1444,6 +1464,7 @@ class MainWindow(QMainWindow):
 
         self.intel_list.insertItem(0, item)
         self.intel_list.setItemWidget(item, row_widget)
+        item.setHidden(not self._should_display_intel(parsed))
         self._intel_ask_buttons.insert(0, ask_btn)
         if self.intel_list.count() > 150:
             removed = self.intel_list.takeItem(self.intel_list.count() - 1)
@@ -1575,9 +1596,11 @@ class MainWindow(QMainWindow):
         if f_val == "custom":
             self.custom_channel_edit.setFocus()
             self.custom_channel_edit.selectAll()
+        self._reapply_feed_filters()
 
     def _on_custom_filter_text_changed(self, text: str):
         self.chat_monitor.set_custom_patterns(text)
+        self._reapply_feed_filters()
 
     def _simulate_test_ping(self):
         """Simulates a live EVE Online intel ping for testing."""

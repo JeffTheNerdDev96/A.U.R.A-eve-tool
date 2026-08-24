@@ -1,7 +1,7 @@
-# Adaptive Underworld Recon Array (A.U.R.A.) — v0.3.0-alpha1 — User Guide
+# Adaptive Underworld Recon Array (A.U.R.A.) — v0.3.1-alpha2 — User Guide
 
 **Adaptive Underworld Recon Array (A.U.R.A.)**
-*v0.3.0-alpha1*
+*v0.3.1-alpha2*
 
 *Angel Cartel Cybernetics Division — by JeffTheNerdDev96*
 
@@ -269,7 +269,7 @@ Backend detail: [A.U.R.A. Source/requirements/README.md](A.U.R.A.%20Source/requi
 
 Launch with `run.bat` in the repo root or `A.U.R.A. Source/run.bat`. Missing Python/deps can self-heal via `install_auto.bat`. Python **3.12+** is required.
 
-Standalone package: `AURA_Setup_v0.3.0-alpha1.exe` (bundled Python 3.12 and model weights). Default install path is under `%LOCALAPPDATA%\Programs\` (or the path you choose). Weights: `models/phi-4-mini/model_q4.gguf`.
+Standalone package: `AURA_Setup_v0.3.1-alpha2.exe` (bundled Python 3.12 and model weights). Default install path is under `%LOCALAPPDATA%\Programs\` (or the path you choose). Weights: `models/phi-4-mini/model_q4.gguf`.
 
 ---
 
@@ -279,7 +279,7 @@ Codes appear in the UI. Stack traces go to `logs/crash.log`. There is **no Setti
 
 | Error Code | Title | What to do |
 | :--- | :--- | :--- |
-| **`AURA-ERR-1001`** | Neural Weights Missing | Put `model_q4.gguf` in `models/phi-4-mini/` or rerun `AURA_Setup_v0.3.0-alpha1.exe`. |
+| **`AURA-ERR-1001`** | Neural Weights Missing | Put `model_q4.gguf` in `models/phi-4-mini/` or rerun `AURA_Setup_v0.3.1-alpha2.exe`. |
 | **`AURA-ERR-1002`** | Context Allocation Failure | Close heavy apps. Re-run a lighter install profile (`install_cpu.bat`) if VRAM/RAM is tight. Context size is not exposed in the UI. |
 | **`AURA-ERR-1003`** | Incompatible Python Architecture | Need Python 3.12+. Use the standalone installer. |
 | **`AURA-ERR-1004`** | Inference Stream Timeout | Check GPU drivers or switch to the CPU install script and restart. |
