@@ -298,4 +298,34 @@ Codes appear in the UI. Stack traces go to `logs/crash.log`. There is **no Setti
 | **`AURA-ERR-5002`** | Model Switch Failure | Restart A.U.R.A. after changing the hardware install profile. |
 | **`AURA-ERR-5003`** | UI Tactical Rendering Error | Check display DPI scaling; restart the app. |
 
+---
+
+## 12. Linux, Steam Deck & Proton 11 Compatibility Layer
+
+A.U.R.A. features built-in, native support for **Valve's Proton 11 API / Compatibility Layer**, GE-Proton, Proton Experimental, Bottles, and standard Wine prefixes on Linux and Steam Deck.
+
+### Proton 11 Architecture & Dual-Mode Runtime Bootstrapper
+
+When running under Linux via Proton or Wine, A.U.R.A. automatically activates its **Dual-Mode Bootstrapper**. This isolates the environment from host DLL conflicts while dynamically preloading all 17 runtime, ICU, DirectX, and OpenGL helper libraries:
+- **C Runtime & Standard Libraries:** `ucrtbase.dll`, `msvcp_win.dll`, `msvcp140.dll`, `msvcp140_1.dll`, `msvcp140_2.dll`, `vcruntime140.dll`, `vcruntime140_1.dll`, `concrt140.dll`, `vccorlib140.dll`
+- **Internationalization (ICU):** `icu.dll`, `icuuc.dll`, `icuin.dll`
+- **Graphics & Qt6 Presentation:** `d3dcompiler_47.dll`, `opengl32sw.dll`, `Qt6Core.dll`, `Qt6Gui.dll`, `Qt6Widgets.dll`
+
+> [!NOTE]
+> No manual `protontricks`, `winetricks`, or prefix registry edits are required. The Dual-Mode bootstrapper auto-remediates bare prefixes upon launch.
+
+### Steam Deck & Non-Steam Game Setup
+
+To run A.U.R.A. on Steam Deck (SteamOS) or a desktop Steam Linux installation:
+
+1. **Install:** Run `AURA_Setup_v0.3.1-alpha2.exe` via Proton 11 / Proton Experimental, or copy the installed folder to your Linux drive.
+2. **Add Non-Steam Game:** In the Steam Desktop Client, select **Games** → **Add a Non-Steam Game to My Library...** and browse to `AURA_Launcher.exe` (or `Launch_A.U.R.A_Debug.bat`).
+3. **Compatibility Mode:** Right-click the shortcut in Steam → **Properties** → **Compatibility** → Check **Force the use of a specific Steam Play compatibility tool** → Select **Proton 11** (or Proton Experimental / GE-Proton).
+4. **EVE Online Chatlog Auto-Discovery:** When EVE Online is installed via Steam (App ID `8500`), A.U.R.A. automatically discovers the Steam Proton Chatlogs directory:
+   `~/.steam/steam/steamapps/compatdata/8500/pfx/drive_c/users/steamuser/Documents/EVE/logs/Chatlogs`
+   You can also click **Log Folder** on the Live Intel Radar tab to choose a custom path.
+5. **Vulkan GPU Acceleration:** On AMD RDNA2/RDNA3 (Steam Deck GPU), Intel Arc, and NVIDIA on Linux, inference passes through Wine's `vulkan-1.dll` directly to the host Mesa/RADV or NVIDIA proprietary Vulkan drivers for hardware-accelerated local AI inference.
+
+---
+
 Treat intel channels, pastes, and attachments as untrusted. See [SECURITY.md](SECURITY.md).

@@ -1,9 +1,17 @@
 """Bootstrap Qt6 DLL and plugin paths for venv and frozen PyInstaller installs."""
+from __future__ import annotations
+
 import os
 import sys
 import site
+from typing import List, Optional
 
 _QT_PRELOAD_DLLS = (
+    "Qt6Core.dll",
+    "Qt6Gui.dll",
+    "Qt6Widgets.dll",
+)
+_WINE_PRELOAD_DLLS = (
     "ucrtbase.dll",
     "msvcp_win.dll",
     "msvcp140.dll",
@@ -26,14 +34,19 @@ _DLL_DIR_HANDLES: list = []
 
 
 def is_wine_or_proton() -> bool:
-    """Detect if running under Wine or Proton compatibility layer."""
+    """Detect if running under Wine or Proton compatibility layer on Linux."""
     if sys.platform != "win32":
         return False
     try:
         import ctypes
-        return hasattr(ctypes.cdll.ntdll, "wine_get_version")
+        if hasattr(ctypes.cdll.ntdll, "wine_get_version"):
+            return True
     except Exception:
-        return False
+        pass
+    for var in ("WINEPREFIX", "PROTON_VERSION", "STEAM_COMPAT_DATA_PATH", "WINEDLLOVERRIDES"):
+        if os.environ.get(var):
+            return True
+    return False
 
 
 def _add_dll_dir(path: str) -> None:
@@ -46,7 +59,7 @@ def _add_dll_dir(path: str) -> None:
             pass
 
 
-def _win_isolate_dll_search(qt_bin: str, meipass: str | None = None) -> None:
+def _win_isolate_dll_search(qt_bin: str, meipass: Optional[str] = None) -> None:
     """Ensure kernel DLL directory search is set on Windows & Wine/Proton."""
     if sys.platform != "win32":
         return
@@ -60,7 +73,7 @@ def _win_isolate_dll_search(qt_bin: str, meipass: str | None = None) -> None:
             except OSError:
                 pass
         target_dir = qt_bin if (qt_bin and os.path.isdir(qt_bin)) else (meipass if (meipass and os.path.isdir(meipass)) else None)
-        if target_dir:
+        if target_dir and not is_wine_or_proton():
             try:
                 kernel32.SetDllDirectoryW(target_dir)
             except OSError:
@@ -69,24 +82,27 @@ def _win_isolate_dll_search(qt_bin: str, meipass: str | None = None) -> None:
         pass
 
 
-def _sanitize_path_for_qt(qt_bin: str, meipass: str | None = None) -> None:
+def _sanitize_path_for_qt(qt_bin: str, meipass: Optional[str] = None) -> None:
     """Ensure bundled Qt6 DLLs and _MEIPASS take precedence on PATH."""
     system_root = os.environ.get("SystemRoot", "C:\\Windows")
     system32 = os.path.join(system_root, "System32")
 
-    prepend_dirs: list[str] = []
+    prepend_dirs: List[str] = []
     if meipass and os.path.isdir(meipass):
         prepend_dirs.append(meipass)
         pyqt6_dir = os.path.join(meipass, "PyQt6")
         if os.path.isdir(pyqt6_dir):
             prepend_dirs.append(pyqt6_dir)
+        wine_meipass = os.path.join(meipass, "wine_dlls")
+        if is_wine_or_proton() and os.path.isdir(wine_meipass):
+            prepend_dirs.append(wine_meipass)
     if qt_bin and os.path.isdir(qt_bin) and qt_bin not in prepend_dirs:
         prepend_dirs.append(qt_bin)
 
     current_path = os.environ.get("PATH", "")
 
     if is_wine_or_proton():
-        # In Wine / Proton, keep existing PATH intact and prepend bundled directories
+        # In Wine / Proton, prepend bundled directories without rewriting system paths
         parts = [d for d in prepend_dirs if d not in current_path]
         if parts:
             os.environ["PATH"] = os.pathsep.join(parts) + os.pathsep + current_path
@@ -103,31 +119,37 @@ def _sanitize_path_for_qt(qt_bin: str, meipass: str | None = None) -> None:
         os.environ["PATH"] = os.pathsep.join(safe_parts)
 
 
-def _preload_qt_dlls(qt_bin: str, meipass: str | None = None) -> list[str]:
-    """Load bundled Qt6 and graphics DLLs by absolute path before PyQt extension import."""
+def _preload_qt_dlls(qt_bin: str, meipass: Optional[str] = None) -> List[str]:
+    """Load bundled Qt6 DLLs by absolute path before PyQt extension import."""
     if sys.platform != "win32":
         return []
-    errors: list[str] = []
+    errors: List[str] = []
     import ctypes
 
-    search_dirs: list[str] = []
+    search_dirs: List[str] = []
     if meipass and os.path.isdir(meipass):
         pyqt6_dir = os.path.join(meipass, "PyQt6")
         if os.path.isdir(pyqt6_dir):
             search_dirs.append(pyqt6_dir)
+        wine_meipass = os.path.join(meipass, "wine_dlls")
+        if is_wine_or_proton() and os.path.isdir(wine_meipass):
+            search_dirs.append(wine_meipass)
         search_dirs.append(meipass)
 
     _this_dir = os.path.dirname(os.path.abspath(__file__))
     app_root = os.path.dirname(_this_dir) if os.path.basename(_this_dir) == "bootstrap" else _this_dir
-    bootstrap_dlls = os.path.join(app_root, "bootstrap", "dlls")
-    if os.path.isdir(bootstrap_dlls):
-        search_dirs.append(bootstrap_dlls)
+    wine_dlls = os.path.join(app_root, "bootstrap", "wine_dlls")
+
+    # In Wine / Proton, include fallback DLLs directory in preload search
+    if is_wine_or_proton() and os.path.isdir(wine_dlls):
+        search_dirs.append(wine_dlls)
 
     if qt_bin and os.path.isdir(qt_bin) and qt_bin not in search_dirs:
         search_dirs.append(qt_bin)
 
+    preload_list = _WINE_PRELOAD_DLLS if is_wine_or_proton() else _QT_PRELOAD_DLLS
     loaded: set[str] = set()
-    for name in _QT_PRELOAD_DLLS:
+    for name in preload_list:
         for sdir in search_dirs:
             path = os.path.join(sdir, name)
             if os.path.isfile(path) and name not in loaded:
@@ -146,21 +168,26 @@ def _apply_qt_dirs(
     qt_bin: str,
     qt_plugins: str,
     qt_platforms: str,
-    meipass: str | None = None,
+    meipass: Optional[str] = None,
     sanitize_path: bool = False,
-) -> list[str]:
+) -> List[str]:
     if meipass:
         _add_dll_dir(meipass)
         _add_dll_dir(os.path.join(meipass, "PyQt6"))
+        wine_meipass = os.path.join(meipass, "wine_dlls")
+        if is_wine_or_proton() and os.path.isdir(wine_meipass):
+            _add_dll_dir(wine_meipass)
 
     _this_dir = os.path.dirname(os.path.abspath(__file__))
     app_root = os.path.dirname(_this_dir) if os.path.basename(_this_dir) == "bootstrap" else _this_dir
-    bootstrap_dlls = os.path.join(app_root, "bootstrap", "dlls")
-    if os.path.isdir(bootstrap_dlls):
-        _add_dll_dir(bootstrap_dlls)
+    wine_dlls = os.path.join(app_root, "bootstrap", "wine_dlls")
+
+    # In Wine / Proton, register fallback DLL directory and prepend to PATH
+    if is_wine_or_proton() and os.path.isdir(wine_dlls):
+        _add_dll_dir(wine_dlls)
         path_env = os.environ.get("PATH", "")
-        if bootstrap_dlls not in path_env:
-            os.environ["PATH"] = bootstrap_dlls + os.pathsep + path_env
+        if wine_dlls not in path_env:
+            os.environ["PATH"] = wine_dlls + os.pathsep + path_env
 
     for path in (qt_bin, qt_plugins, qt_platforms):
         _add_dll_dir(path)
@@ -182,7 +209,7 @@ def _apply_qt_dirs(
 
 
 def _find_pyqt6_qt6_dirs() -> tuple:
-    candidates: list[str] = []
+    candidates: List[str] = []
     try:
         candidates.extend(site.getsitepackages())
     except Exception:
@@ -228,9 +255,9 @@ def _find_pyqt6_qt6_dirs() -> tuple:
     return None, None, None
 
 
-def configure_frozen_qt_paths() -> list[str]:
+def configure_frozen_qt_paths() -> List[str]:
     """Configure Qt6 DLL paths for PyInstaller onefile (_MEIPASS) installs."""
-    diagnostics: list[str] = []
+    diagnostics: List[str] = []
     meipass = getattr(sys, "_MEIPASS", None)
     if not meipass:
         diagnostics.append("_MEIPASS not set")
@@ -269,4 +296,5 @@ def configure_qt_paths() -> None:
     if not qt_bin:
         return
     _apply_qt_dirs(qt_bin, qt_plugins, qt_platforms, sanitize_path=False)
+
 
