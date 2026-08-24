@@ -141,9 +141,7 @@ Renders a pan/zoom **stargate graph** around the system inferred from Local / Ga
 
 ### Cannot
 
-- Plan a route in the UI (a BFS helper exists in code; it is unused)
 - Show wormholes, jump bridges, or ansiblex
-- Add a searched system **outside** the bubble
 - Show live sovereignty — the graph is bundled `data/eve_map.json` (Fuzzwork ← CCP SDE snapshot)
 - Draw anything useful until location is known (placeholder: join Local or jump)
 
