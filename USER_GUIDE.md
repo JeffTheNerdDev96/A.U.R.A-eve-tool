@@ -1,7 +1,7 @@
-# Adaptive Underworld Recon Array (A.U.R.A.) — v0.3.0-alpha1 — User Guide
+# Adaptive Underworld Recon Array (A.U.R.A.) — v0.3.1-alpha2 — User Guide
 
 **Adaptive Underworld Recon Array (A.U.R.A.)**
-*v0.3.0-alpha1*
+*v0.3.1-alpha2*
 
 *Angel Cartel Cybernetics Division — by JeffTheNerdDev96*
 
@@ -269,7 +269,7 @@ Backend detail: [A.U.R.A. Source/requirements/README.md](A.U.R.A.%20Source/requi
 
 Launch with `run.bat` in the repo root or `A.U.R.A. Source/run.bat`. Missing Python/deps can self-heal via `install_auto.bat`. Python **3.12+** is required.
 
-Standalone package: `AURA_Setup_v0.3.0-alpha1.exe` (bundled Python 3.12 and model weights). Default install path is under `%LOCALAPPDATA%\Programs\` (or the path you choose). Weights: `models/phi-4-mini/model_q4.gguf`.
+Standalone package: `AURA_Setup_v0.3.1-alpha2.exe` (bundled Python 3.12 and model weights). Default install path is under `%LOCALAPPDATA%\Programs\` (or the path you choose). Weights: `models/phi-4-mini/model_q4.gguf`.
 
 ---
 
@@ -279,7 +279,7 @@ Codes appear in the UI. Stack traces go to `logs/crash.log`. There is **no Setti
 
 | Error Code | Title | What to do |
 | :--- | :--- | :--- |
-| **`AURA-ERR-1001`** | Neural Weights Missing | Put `model_q4.gguf` in `models/phi-4-mini/` or rerun `AURA_Setup_v0.3.0-alpha1.exe`. |
+| **`AURA-ERR-1001`** | Neural Weights Missing | Put `model_q4.gguf` in `models/phi-4-mini/` or rerun `AURA_Setup_v0.3.1-alpha2.exe`. |
 | **`AURA-ERR-1002`** | Context Allocation Failure | Close heavy apps. Re-run a lighter install profile (`install_cpu.bat`) if VRAM/RAM is tight. Context size is not exposed in the UI. |
 | **`AURA-ERR-1003`** | Incompatible Python Architecture | Need Python 3.12+. Use the standalone installer. |
 | **`AURA-ERR-1004`** | Inference Stream Timeout | Check GPU drivers or switch to the CPU install script and restart. |
@@ -297,5 +297,35 @@ Codes appear in the UI. Stack traces go to `logs/crash.log`. There is **no Setti
 | **`AURA-ERR-5001`** | Worker Thread Fault | Inspect `logs/crash.log`. |
 | **`AURA-ERR-5002`** | Model Switch Failure | Restart A.U.R.A. after changing the hardware install profile. |
 | **`AURA-ERR-5003`** | UI Tactical Rendering Error | Check display DPI scaling; restart the app. |
+
+---
+
+## 12. Linux, Steam Deck & Proton 11 Compatibility Layer
+
+A.U.R.A. features built-in, native support for **Valve's Proton 11 API / Compatibility Layer**, GE-Proton, Proton Experimental, Bottles, and standard Wine prefixes on Linux and Steam Deck.
+
+### Proton 11 Architecture & Dual-Mode Runtime Bootstrapper
+
+When running under Linux via Proton or Wine, A.U.R.A. automatically activates its **Dual-Mode Bootstrapper**. This isolates the environment from host DLL conflicts while dynamically preloading all 17 runtime, ICU, DirectX, and OpenGL helper libraries:
+- **C Runtime & Standard Libraries:** `ucrtbase.dll`, `msvcp_win.dll`, `msvcp140.dll`, `msvcp140_1.dll`, `msvcp140_2.dll`, `vcruntime140.dll`, `vcruntime140_1.dll`, `concrt140.dll`, `vccorlib140.dll`
+- **Internationalization (ICU):** `icu.dll`, `icuuc.dll`, `icuin.dll`
+- **Graphics & Qt6 Presentation:** `d3dcompiler_47.dll`, `opengl32sw.dll`, `Qt6Core.dll`, `Qt6Gui.dll`, `Qt6Widgets.dll`
+
+> [!NOTE]
+> No manual `protontricks`, `winetricks`, or prefix registry edits are required. The Dual-Mode bootstrapper auto-remediates bare prefixes upon launch.
+
+### Steam Deck & Non-Steam Game Setup
+
+To run A.U.R.A. on Steam Deck (SteamOS) or a desktop Steam Linux installation:
+
+1. **Install:** Run `AURA_Setup_v0.3.1-alpha2.exe` via Proton 11 / Proton Experimental, or copy the installed folder to your Linux drive.
+2. **Add Non-Steam Game:** In the Steam Desktop Client, select **Games** → **Add a Non-Steam Game to My Library...** and browse to `AURA_Launcher.exe` (or `Launch_A.U.R.A_Debug.bat`).
+3. **Compatibility Mode:** Right-click the shortcut in Steam → **Properties** → **Compatibility** → Check **Force the use of a specific Steam Play compatibility tool** → Select **Proton 11** (or Proton Experimental / GE-Proton).
+4. **EVE Online Chatlog Auto-Discovery:** When EVE Online is installed via Steam (App ID `8500`), A.U.R.A. automatically discovers the Steam Proton Chatlogs directory:
+   `~/.steam/steam/steamapps/compatdata/8500/pfx/drive_c/users/steamuser/Documents/EVE/logs/Chatlogs`
+   You can also click **Log Folder** on the Live Intel Radar tab to choose a custom path.
+5. **Vulkan GPU Acceleration:** On AMD RDNA2/RDNA3 (Steam Deck GPU), Intel Arc, and NVIDIA on Linux, inference passes through Wine's `vulkan-1.dll` directly to the host Mesa/RADV or NVIDIA proprietary Vulkan drivers for hardware-accelerated local AI inference.
+
+---
 
 Treat intel channels, pastes, and attachments as untrusted. See [SECURITY.md](SECURITY.md).

@@ -4,7 +4,6 @@ Provides the async EventBus, typed event definitions, subsystem base contracts, 
 """
 
 from .events import BaseEvent
-from .event_bus import get_event_bus, EventBus
 from .base_subsystem import BaseSubsystem
 from .config import config, AppConfig
 from .error_handler import AURAErrorCode, AURAException, log_diagnostic_error, format_error_html
@@ -24,3 +23,13 @@ __all__ = [
     "cleanup_temp_files", "shutdown_application", "install_thread_excepthook",
     "lookup_ship", "get_tactical_grounding", "SHIP_DATABASE",
 ]
+
+
+def __getattr__(name: str):
+    if name in ("get_event_bus", "EventBus"):
+        from .event_bus import get_event_bus, EventBus
+        globals()["get_event_bus"] = get_event_bus
+        globals()["EventBus"] = EventBus
+        return globals()[name]
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+

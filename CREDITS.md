@@ -1,7 +1,7 @@
 # Credits & Acknowledgements
 
 **Adaptive Underworld Recon Array (A.U.R.A.)**  
-Angel Cartel Cybernetics Division | Product Version: `v0.3.0-alpha1`  
+Angel Cartel Cybernetics Division | Product Version: `v0.3.1-alpha2`  
 Author & Lead Maintainer: **JeffTheNerdDev96**
 
 A.U.R.A. is an unofficial, fan-made tactical companion for EVE Online. It exists thanks to the open-source community, game data contributors, hardware architects, and third-party developer ecosystem listed below.

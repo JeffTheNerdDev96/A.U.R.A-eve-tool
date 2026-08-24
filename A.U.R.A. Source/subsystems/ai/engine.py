@@ -459,11 +459,8 @@ class UnifiedInferenceEngine:
     def request_abort(self) -> None:
         """Signal an in-flight load or stream to stop cleanly without deallocating native context."""
         self._abort_requested = True
-        if self.coprocessor and getattr(self.coprocessor, "active_stop_event", None):
-            try:
-                self.coprocessor.active_stop_event.set()
-            except Exception:
-                pass
+        if self.coprocessor is not None:
+            self.coprocessor.stop_all_workers()
 
     def clear_abort(self) -> None:
         self._abort_requested = False
@@ -493,6 +490,7 @@ class UnifiedInferenceEngine:
 
     def unload_model(self):
         """Releases the GGUF model, KV cache, and coprocessor threads from RAM/VRAM."""
+        self.request_abort()
         if self.llm is not None:
             try:
                 if hasattr(self.llm, "reset"):
@@ -515,6 +513,7 @@ class UnifiedInferenceEngine:
                 self.coprocessor.unload_coprocessor()
             except Exception:
                 pass
+        self.clear_abort()
         import gc
         gc.collect()
         print("[A.U.R.A.] Neural Core & Co-processor unloaded. All CPU, iGPU, dGPU, and NPU resources released.")
