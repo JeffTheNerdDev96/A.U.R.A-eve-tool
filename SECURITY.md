@@ -5,18 +5,16 @@
 > [!CAUTION]
 > **ALL PREVIOUS ALPHA RELEASES ARE DEPRECATED & UNSUPPORTED**
 >
-> All earlier development builds and alpha releases — including **v0.1.x**, **v0.2.x**, and **v0.3.x** — are officially **deprecated**. Version **v0.4.0-alpha.1** introduces the Anokis wormhole mapping engine, XMPP tactical communications with ephemeral session security, and full 7-tab UI integration.
+> All earlier development builds and alpha releases — including **v0.3.x** (`v0.3.0-alpha1`, `v0.3.1-alpha2`, `v0.3.2-alpha.1`), **v0.2.x**, and **v0.1.x** — are officially **deprecated and unsupported**.
 >
-> **All users and testers must upgrade to v0.4.0-alpha.1 or newer.**
+> **Version `v0.4.0-alpha.1` is the sole actively supported release.** All users and testers must upgrade to **`v0.4.0-alpha.1`** to receive security patches, bug fixes, and active maintenance.
 
 | Version | Supported | Status / Notes | Python Runtime | Architecture |
 | :--- | :--- | :--- | :--- | :--- |
-| **v0.4.0-alpha.1+** | **Yes** | **Active / Supported** (Anokis, XMPP Chat, Ephemeral Auth, 7-Tab Layout) | Python 3.12+ | 64-bit AMD64 |
-| **v0.3.2-alpha.1** | **No** | **Deprecated** (Superseded by v0.4.0) | Python 3.12+ | 64-bit AMD64 |
-| **v0.3.1-alpha2** | **No** | **Deprecated** (Superseded by v0.3.2) | Python 3.12+ | 64-bit AMD64 |
-| **v0.3.0-alpha1** | **No** | **Deprecated** (Superseded by v0.3.1) | Python 3.12+ | 64-bit AMD64 |
-| **v0.2.x** | **No** | **Deprecated** (Superseded due to major architecture overhaul) | Python 3.12+ | 64-bit AMD64 |
-| **v0.1.x** | **No** | **Deprecated** (Initial prototype builds) | Legacy Python | 64-bit AMD64 |
+| **`v0.4.0-alpha.1`** | **Yes** | **Active / Sole Supported Release** (Anokis WH mapper, XMPP Client, Ephemeral Auth, 7-Tab Layout) | Python 3.12+ | 64-bit AMD64 |
+| **`v0.3.x`** | **No** | **Deprecated & Unsupported** (Superseded by v0.4.0-alpha.1) | Python 3.12+ | 64-bit AMD64 |
+| **`v0.2.x`** | **No** | **Deprecated & Unsupported** (Superseded due to major modular architecture overhaul) | Python 3.12+ | 64-bit AMD64 |
+| **`v0.1.x`** | **No** | **Deprecated & Unsupported** (Initial prototype builds) | Legacy Python | 64-bit AMD64 |
 
 ---
 
