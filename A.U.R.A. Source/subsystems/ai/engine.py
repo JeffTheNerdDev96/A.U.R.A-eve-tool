@@ -21,6 +21,7 @@ if sys.stderr and hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
 from core.config import config
+from core.paths import get_app_root, find_model_path
 from version import INSTALL_DIR_NAME
 from hardware.detector import HardwareDetector, DynamicHardwareRouter
 from hardware.profile import install_hint_for_gpu
@@ -39,34 +40,11 @@ def find_model_file() -> Optional[str]:
     if _PATH_RESOLVED and _CACHED_MODEL_PATH and os.path.exists(_CACHED_MODEL_PATH):
         return _CACHED_MODEL_PATH
 
-    source_dir = os.path.dirname(os.path.abspath(__file__))
-    root_dir = os.path.dirname(source_dir)
-    exe_dir = os.path.dirname(sys.executable)
-    local_app_data = os.environ.get("LOCALAPPDATA", "")
-    app_data = os.environ.get("APPDATA", "")
-    user_prof = os.environ.get("USERPROFILE", "")
-
-    candidates = [
-        os.path.join(source_dir, "models", config.model_folder, config.model_file),
-        os.path.join(source_dir, "..", "models", config.model_folder, config.model_file),
-        os.path.join(source_dir, "..", "..", "models", config.model_folder, config.model_file),
-        os.path.join(root_dir, "models", config.model_folder, config.model_file),
-        os.path.join(exe_dir, "models", config.model_folder, config.model_file),
-        os.path.join(os.path.dirname(exe_dir), "models", config.model_folder, config.model_file),
-        os.path.join(local_app_data, "Programs", INSTALL_DIR_NAME, "models", config.model_folder, config.model_file),
-        os.path.join(user_prof, "AppData", "Local", "Programs", INSTALL_DIR_NAME, "models", config.model_folder, config.model_file),
-        os.path.join(f"C:\\{INSTALL_DIR_NAME}", "models", config.model_folder, config.model_file),
-        os.path.join("C:\\Program Files", INSTALL_DIR_NAME, "models", config.model_folder, config.model_file),
-        os.path.join(root_dir, "A.U.R.A Distro", "Installer", "models", config.model_folder, config.model_file),
-    ]
-    meipass = getattr(sys, "_MEIPASS", None)
-    if meipass:
-        candidates.insert(0, os.path.join(meipass, "models", config.model_folder, config.model_file))
-    for p in candidates:
-        if p and os.path.exists(p) and os.path.getsize(p) > 100000000:
-            _CACHED_MODEL_PATH = os.path.abspath(p)
-            _PATH_RESOLVED = True
-            return _CACHED_MODEL_PATH
+    resolved = find_model_path(config.model_folder, config.model_file)
+    if resolved:
+        _CACHED_MODEL_PATH = resolved
+        _PATH_RESOLVED = True
+        return _CACHED_MODEL_PATH
 
     _PATH_RESOLVED = True
     _CACHED_MODEL_PATH = None
@@ -339,7 +317,7 @@ class NeuralHardwareCoProcessor:
         session = self._dml_session
 
         def _dml_worker():
-            dummy = np.random.randn(8, 512).astype(np.float32)
+            dummy = np.zeros((8, 512), dtype=np.float32)
             while not stop_event.is_set():
                 try:
                     session.run(None, {"X": dummy})
@@ -368,10 +346,10 @@ class NeuralHardwareCoProcessor:
         self.active_stop_event = stop_event
         
         def _hardware_worker(batch_sz=8):
+            dummy = np.zeros((batch_sz, 512), dtype=np.float32)
             try:
                 import openvino as ov
                 infer_queue = ov.AsyncInferQueue(compiled, 8)
-                dummy = np.random.randn(batch_sz, 512).astype(np.float32)
                 while not stop_event.is_set():
                     try:
                         infer_queue.start_async({0: dummy})
@@ -383,7 +361,6 @@ class NeuralHardwareCoProcessor:
                 except Exception:
                     pass
             except Exception:
-                dummy = np.random.randn(batch_sz, 512).astype(np.float32)
                 while not stop_event.is_set():
                     try:
                         compiled([dummy])
@@ -403,10 +380,10 @@ class NeuralHardwareCoProcessor:
             gpu_compiled = self._get_or_compile("GPU")
             if gpu_compiled is not None and gpu_compiled != compiled:
                 def _gpu_worker():
+                    g_dummy = np.zeros((8, 512), dtype=np.float32)
                     try:
                         import openvino as ov
                         g_queue = ov.AsyncInferQueue(gpu_compiled, 8)
-                        g_dummy = np.random.randn(8, 512).astype(np.float32)
                         while not stop_event.is_set():
                             try:
                                 g_queue.start_async({0: g_dummy})
@@ -429,7 +406,7 @@ class NeuralHardwareCoProcessor:
         compiled = self._get_or_compile(target_mode) or self._get_or_compile("FULL_MESH") or self._get_or_compile("CPU")
         if compiled is not None:
             try:
-                dummy_input = np.random.randn(16, 512).astype(np.float32)
+                dummy_input = np.zeros((16, 512), dtype=np.float32)
                 for _ in range(iterations):
                     compiled([dummy_input])
             except Exception as e:
@@ -800,13 +777,6 @@ class UnifiedInferenceEngine:
                 
                 gen_start_time = time.time()
                 first_token_time = None
-                
-                # Dynamic Full Compute Mesh: Maximize parallel workloads across all CPU cores + NPU co-processor + GPU
-                if hasattr(self.llm, "n_threads"):
-                    try:
-                        self.llm.n_threads = max(4, min(8, psutil.cpu_count(logical=False) or 4))
-                    except Exception:
-                        pass
                 
                 # Asynchronous parallel NPU co-processor continuous stream dispatch
                 npu_stop_event = None

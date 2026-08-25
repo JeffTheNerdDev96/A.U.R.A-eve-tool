@@ -1,7 +1,7 @@
 # Credits & Acknowledgements
 
 **Adaptive Underworld Recon Array (A.U.R.A.)**  
-Angel Cartel Cybernetics Division | Product Version: `v0.3.1-alpha2`  
+Angel Cartel Cybernetics Division | Product Version: `v0.3.2-alpha.1`  
 Author & Lead Maintainer: **JeffTheNerdDev96**
 
 A.U.R.A. is an unofficial, fan-made tactical companion for EVE Online. It exists thanks to the open-source community, game data contributors, hardware architects, and third-party developer ecosystem listed below.
@@ -19,7 +19,9 @@ A.U.R.A. is an unofficial, fan-made tactical companion for EVE Online. It exists
 
 ## 2. EVE Online & Game Data
 
-**EVE Online**, the EVE logo, and related marks are trademarks of **CCP hf**. This project is not affiliated with, endorsed by, or sponsored by CCP Games.
+**EVE Online**, the **EVE logo**, and related marks are trademarks of **Fenris Creations** (FC Games / formerly CCP Games / CCP hf). All rights are reserved worldwide. All other trademarks are the property of their respective owners. EVE Online, the EVE logo, and all associated logos, designs, artwork, screenshots, character models, hulls, storylines, world lore, and game mechanics are the intellectual property of Fenris Creations.
+
+A.U.R.A. is an unofficial, community-developed, fan-made tactical companion. It is **not** affiliated with, endorsed by, sponsored by, or operated in partnership with **Fenris Creations**, **FC Games**, or their affiliates.
 
 Ship, module, item, and stellar mechanics in the tactical database are compiled from publicly documented EVE Online game data for offline tactical analysis:
 

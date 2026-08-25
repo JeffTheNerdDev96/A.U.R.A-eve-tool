@@ -13,6 +13,10 @@ from .input_safety import (
 )
 from .lifecycle import cleanup_temp_files, shutdown_application, install_thread_excepthook
 from .eve_data import lookup_ship, get_tactical_grounding, SHIP_DATABASE
+from .paths import (
+    get_app_root, get_models_dir, get_data_dir, get_logs_dir,
+    get_assets_dir, get_bootstrap_dir, find_model_path
+)
 
 __all__ = [
     "BaseEvent", "get_event_bus", "EventBus", "BaseSubsystem",
@@ -22,6 +26,8 @@ __all__ = [
     "is_path_under", "is_safe_log_file", "wrap_untrusted",
     "cleanup_temp_files", "shutdown_application", "install_thread_excepthook",
     "lookup_ship", "get_tactical_grounding", "SHIP_DATABASE",
+    "get_app_root", "get_models_dir", "get_data_dir", "get_logs_dir",
+    "get_assets_dir", "get_bootstrap_dir", "find_model_path",
 ]
 
 

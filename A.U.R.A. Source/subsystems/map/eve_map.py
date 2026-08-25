@@ -13,10 +13,15 @@ import sys
 from collections import defaultdict, deque
 from typing import Any, Dict, List, Optional, Set, Tuple
 
+from core.paths import get_data_dir
+
 _MAP_INSTANCE: Optional["EveMapGraph"] = None
 
 
 def _default_map_path() -> str:
+    primary = os.path.join(get_data_dir(), "eve_map.json")
+    if os.path.isfile(primary):
+        return primary
     meipass = getattr(sys, "_MEIPASS", None)
     if meipass:
         bundled = os.path.join(meipass, "data", "eve_map.json")
@@ -32,7 +37,7 @@ def _default_map_path() -> str:
         norm = os.path.abspath(c)
         if os.path.isfile(norm):
             return norm
-    return os.path.abspath(candidates[2])
+    return primary
 
 
 class EveMapGraph:
