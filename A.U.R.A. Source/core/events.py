@@ -155,3 +155,54 @@ class CosmicSignatureUpdatedEvent(BaseEvent):
     sig_group: str = "Unscanned"
     sig_name: str = ""
     signal_strength: float = 0.0
+
+
+# --- XMPP Tactical Communications Events ---
+
+@dataclass(slots=True)
+class XMPPConnectionStateChangedEvent(BaseEvent):
+    """Fired when XMPP client connection state transitions."""
+    state: str = "DISCONNECTED"
+    jid: str = ""
+    server: str = ""
+    error_message: str = ""
+
+
+@dataclass(slots=True)
+class XMPPMessageReceivedEvent(BaseEvent):
+    """Fired when a new XMPP direct or groupchat message arrives."""
+    msg_id: str = ""
+    sender_jid: str = ""
+    sender_nick: str = ""
+    room_jid: str = ""
+    body: str = ""
+    is_broadcast: bool = False
+    priority: str = "INFO"
+
+
+@dataclass(slots=True)
+class XMPPBroadcastAlertEvent(BaseEvent):
+    """Fired when an alliance fleet broadcast ping is detected and parsed."""
+    msg_id: str = ""
+    sender_nick: str = ""
+    target_system: str = ""
+    doctrine_ships: list[str] = field(default_factory=list)
+    fc_name: str = ""
+    formup_timer: str = ""
+    priority: str = "STRATOP"
+    raw_text: str = ""
+
+
+@dataclass(slots=True)
+class XMPPRoomJoinedEvent(BaseEvent):
+    """Fired when XMPP client successfully joins a MUC room or broadcast channel."""
+    room_jid: str = ""
+    nickname: str = ""
+    subject: str = ""
+
+
+@dataclass(slots=True)
+class XMPPRosterUpdatedEvent(BaseEvent):
+    """Fired when XMPP roster contacts or presence statuses change."""
+    contacts_count: int = 0
+

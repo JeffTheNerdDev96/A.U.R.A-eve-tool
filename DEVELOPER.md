@@ -1,5 +1,5 @@
 # A.U.R.A. Developer Guide
-**v0.3.2-alpha.1 — Pure Modular Architecture**
+**v0.4.0-alpha.1 — Pure Modular Architecture**
 
 Internal reference for contributors and engineers working on the A.U.R.A. codebase.
 
@@ -12,7 +12,7 @@ The codebase is organized into domain-specific packages with strict separation o
 ```
 A.U.R.A. Source/
 ├── app.py                         # Single desktop application entrypoint
-├── version.py                     # Single source of truth for version (v0.3.2-alpha.1)
+├── version.py                     # Single source of truth for version (v0.4.0-alpha.1)
 ├── Launch_A.U.R.A_Debug.bat       # Low-level debug launcher with runtime probe
 ├── run.bat                        # Production launcher script
 │
@@ -39,13 +39,19 @@ A.U.R.A. Source/
 │   ├── map/                       # Stargate graph, BFS routing, navigation
 │   ├── fleet_comp/                # D-Scan parsing, 6-role fleet composition, matchup analysis
 │   ├── fitting/                   # EFT fitting parsing, Dogma math stats, slot layouts
-│   ├── wormhole/                  # Wormhole chain mapping, signature tracking & topology (Milestone)
+│   ├── wormhole/                  # Wormhole chain mapping, signature tracking & topology (Anokis)
+│   ├── xmpp_chat/                 # Alliance XMPP messaging, MUC broadcast receiver & ping extraction
 │   └── ai/                        # Local neural core GGUF inference & OCR document parsing
 │
 ├── ui/                            # Desktop Presentation Layer
-│   ├── app_window.py              # MainWindow shell & browser-chrome strip
+│   ├── app_window.py              # MainWindow shell & browser-chrome strip (7 tabs)
 │   ├── theme.py                   # Theme palette & stylesheets
-│   └── tabs/                      # Tab components (map_tab.py, composition_tab.py, fitting_tab.py)
+│   └── tabs/                      # Tab components:
+│       ├── map_tab.py             # Stargate neighborhood bubble graph
+│       ├── composition_tab.py     # Friendly fleet vs hostile D-scan analysis
+│       ├── fitting_tab.py         # Fitting Lab & visual EFT editor
+│       ├── wormhole_tab.py        # Anokis chain topology & cosmic signature tracker
+│       └── xmpp_tab.py            # XMPP tactical communications & broadcast pings
 │
 └── tools/                         # Build, Packaging, Manifests & Automated Test Suites (Local / Private)
     ├── run_all_tests.py           # Master automated test runner CLI
@@ -63,15 +69,16 @@ A.U.R.A. Source/
 
 ---
 
-## 2. Input Safety & Security
+## 2. Input Safety, OpSec & Credential Security
 
 Untrusted text must pass through [`core/input_safety.py`](file:///c:/GIT-Projects/A.U.R.A-eve-tool/A.U.R.A.%20Source/core/input_safety.py):
 
-- **UI HTML** — `escape_html()` before `QTextEdit.append` with user/log content.
+- **UI HTML** — `escape_html()` before `QTextEdit.append` with user/log/chat content.
 - **Labels / Lists** — `safe_display_text()` or `Qt.TextFormat.PlainText`.
 - **Attachments** — size-capped in `subsystems/ai/ingestion.py` (`config.max_attachment_bytes`).
 - **EVE Logs** — sanitized path validation and decoding checks.
 - **LLM Prompts** — `wrap_untrusted()` delimiters + `config.max_llm_context_chars`.
+- **XMPP Credentials** — strictly **ephemeral in-memory only**. Passwords and JID authentication parameters are NEVER serialized to disk, written to logs, or persisted across sessions.
 
 ---
 
@@ -81,15 +88,15 @@ Subsystems communicate via strongly-typed event dataclasses dispatched over the 
 
 ```python
 from core.event_bus import get_event_bus
-from core.events import IntelReportEvent, RouteCalculatedEvent
+from core.events import IntelReportEvent, XMPPBroadcastAlertEvent
 
 eb = get_event_bus()
 
 # Subscribe
-eb.subscribe(IntelReportEvent, handle_intel_report)
+eb.subscribe(XMPPBroadcastAlertEvent, handle_alliance_ping)
 
 # Publish
-eb.publish(IntelReportEvent(system="1DQ1-A", threat_level="CRITICAL"))
+eb.publish(XMPPBroadcastAlertEvent(target_system="1DQ1-A", priority="STRATOP"))
 ```
 
 ---
@@ -104,9 +111,10 @@ Run the master test runner from `A.U.R.A. Source`:
 
 The automated test runner executes:
 1. `tools/tests/test_codebase_integrity.py` (Full compilation, EventBus, Map routing, Fleet comp, Fitting stats, Version integrity)
-2. `tools/tests/test_all_subsystems.py` (Subsystem service lifecycle validation)
-3. `tools/tests/test_ui_integration.py` (Headless Qt UI + Subsystem integration)
-4. `tools/smoke_test_llama_bootstrap.py` (Vulkan/CUDA DLL loader validation)
+2. `tools/tests/test_all_subsystems.py` (Subsystem service lifecycle, Anokis, and XMPP Chat validation)
+3. `tools/tests/test_ui_integration.py` (Headless Qt UI + 7-Tab integration)
+4. `tools/tests/test_lifecycle_and_memory.py` (Lifecycle teardown and memory purge)
+5. `tools/smoke_test_llama_bootstrap.py` (Vulkan/CUDA DLL loader validation)
 
 ---
 
@@ -121,3 +129,5 @@ All standardized error codes live in [`core/error_handler.py`](file:///c:/GIT-Pr
 | **3xxx** | Parsers & Tactical Ingestion (D-Scan, EFT Fitting, OCR) |
 | **4xxx** | Chat Logs & File I/O Streams |
 | **5xxx** | UI, Subsystem Lifecycle & Worker Threads |
+| **6xxx** | Wormhole & Anokis Chain Mapping Topology |
+| **7xxx** | XMPP Tactical Communications & Network TLS |

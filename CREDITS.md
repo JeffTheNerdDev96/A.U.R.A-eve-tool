@@ -1,7 +1,7 @@
 # Credits & Acknowledgements
 
 **Adaptive Underworld Recon Array (A.U.R.A.)**  
-Angel Cartel Cybernetics Division | Product Version: `v0.3.2-alpha.1`  
+Angel Cartel Cybernetics Division | Product Version: `v0.4.0-alpha.1`  
 Author & Lead Maintainer: **JeffTheNerdDev96**
 
 A.U.R.A. is an unofficial, fan-made tactical companion for EVE Online. It exists thanks to the open-source community, game data contributors, hardware architects, and third-party developer ecosystem listed below.
@@ -13,7 +13,7 @@ A.U.R.A. is an unofficial, fan-made tactical companion for EVE Online. It exists
 | Role | Name | Contribution |
 | :--- | :--- | :--- |
 | **Lead Architect & Developer** | **JeffTheNerdDev96** | Design, implementation, and ongoing maintenance of A.U.R.A. |
-| **Project Concept** | **JeffTheNerdDev96** | Offline-first, autonomous tactical recon array and combat copilot designed for New Eden capsuleers |
+| **Project Concept** | **JeffTheNerdDev96** | Offline-first, autonomous tactical recon array, wormhole mapper, and combat copilot designed for New Eden capsuleers |
 
 ---
 
@@ -44,7 +44,11 @@ A.U.R.A. synthesizes and unifies core concepts from the most trusted tools in th
 | **[RIFT Intel Fusion Tool](https://riftforeve.online)** | Stephen Swires / Dreae | Real-time chatlog stream tailing, regex heuristics, and audio threat radar |
 | **[PYFA](https://github.com/pyfa-org/Pyfa)** (Python Fitting Assistant) | Kadesh Priestess, DarkFenX & team | Fitting Lab workflow, EFT block parsing, and Dogma attribute math |
 | **[dscan.info](https://dscan.info)** | dscan.info community | Directional scan clipboard ingestion, fleet role categorization, and doctrine matchup breakdown |
-| **EVE Fitting Tool (EFT)** | EFT Developers | Standard `[ShipName, FitName]` plain-text configuration format used across Fitting Lab |
+| **[Tripwire](https://tripwire.eve-apps.com)** | Daimian Mercer | Wormhole chain mapping, system logging, and cosmic signature tracking inspiration |
+| **[Pathfinder](https://www.pathfinder-w.space)** | exodus442 & Pathfinder Community | Dynamic wormhole chain visualization, mass tracking, and chain topology inspiration |
+| **[Wanderer](https://github.com/the-wanderer-project)** | Wanderer Team & Community | Wormhole navigation, signature lifecycle management, and mapping interface inspiration |
+| **[XMPP Standards Foundation (XSF)](https://xmpp.org)** | XSF & RFC 6120/6121 Authors | Open protocol specifications for extensible messaging, presence, and Multi-User Chat (XEP-0045) |
+| **EVE Fitting Tool (EFT)** | EFT Developers | Standard `[ShipName, Fit Name]` plain-text configuration format used across Fitting Lab |
 
 ---
 
@@ -118,7 +122,33 @@ The installation and distribution pipelines rely on high-grade packaging tools:
 
 ---
 
-## 9. License & Open Source Compliance
+## 9. Trademarks, Copyrights & Rightsholders
+
+The table below highlights the trademarked names, copyrighted technologies, and respective legal rightsholders referenced within this application:
+
+| Name / Brand / Technology | Rightsholder / Legal Owner | Explicit Note / Usage Context in A.U.R.A. |
+| :--- | :--- | :--- |
+| **EVE Online**, the **EVE Logo**, **New Eden** | **Fenris Creations / FC Games (CCP hf)** | EVE Online game mechanics, ship hulls, systems, storylines, and SDE tactical metadata. A.U.R.A. is an unofficial community companion not affiliated with or endorsed by CCP Games. |
+| **Jabber** | **Cisco Systems, Inc. / XSF** | Registered trademark of Cisco Systems, Inc. A.U.R.A. features an **XMPP Client** implementing open standard RFC 6120/6121 protocols and does not use proprietary Jabber software. |
+| **Steam**, **Valve**, **Proton**, **SteamOS**, **Steam Deck** | **Valve Corporation** | Registered trademarks of Valve Corporation. Relates to Linux, Steam Deck, and Proton 11 compatibility layers. |
+| **Linux** | **Linus Torvalds / Linux Foundation** | Registered trademark of Linus Torvalds in the U.S. and other countries. |
+| **Microsoft**, **Windows**, **DirectX**, **DirectML**, **Windows Media OCR**, **Word**, **Excel** | **Microsoft Corporation** | Registered trademarks of Microsoft Corporation. Relates to Windows OS integration, DirectML AI acceleration, native OCR, and document format parsing (.docx, .xlsx). |
+| **NVIDIA**, **GeForce**, **RTX**, **Quadro**, **CUDA** | **NVIDIA Corporation** | Registered trademarks of NVIDIA Corporation. Relates to CUDA GPU acceleration and tensor layer offloading. |
+| **Intel**, **OpenVINO**, **Intel Arc**, **Iris Xe**, **Intel AI Boost** | **Intel Corporation** | Registered trademarks of Intel Corporation or its subsidiaries. Relates to OpenVINO NPU and GPU acceleration pipelines. |
+| **AMD**, **Radeon**, **Ryzen**, **Ryzen AI**, **XDNA**, **Adrenalin** | **Advanced Micro Devices, Inc. (AMD)** | Registered trademarks of Advanced Micro Devices, Inc. Relates to Ryzen AI NPU and Radeon Vulkan acceleration. |
+| **Khronos**, **Vulkan** | **Khronos Group Inc. & LunarG** | Registered trademarks of the Khronos Group Inc. Relates to cross-vendor GPU compute shader pipelines. |
+| **Python**, the **Python Logo** | **Python Software Foundation (PSF)** | Registered trademarks of the Python Software Foundation. Relates to the core application runtime. |
+| **Qt**, **PyQt** | **The Qt Company / Riverbank Computing Ltd** | Registered trademarks of The Qt Company and Riverbank Computing Ltd. Relates to the desktop UI presentation framework. |
+| **Google**, **Google Colab**, **Google Fonts** | **Google LLC** | Registered trademarks of Google LLC. Relates to development cloud GPU notebooks and typography distribution. |
+| **Hugging Face** | **Hugging Face Inc.** | Registered trademark of Hugging Face Inc. Relates to open model weight hosting and distribution. |
+| **Adobe**, **PDF** | **Adobe Systems Inc.** | Registered trademarks of Adobe Systems Inc. in the U.S. and/or other countries. Relates to briefing document parsing (.pdf). |
+| **Inno Setup** | **Jordan Russell / Martijn Laan** | Copyright © Jordan Russell and Martijn Laan. Relates to packaging architecture references. |
+| **PyInstaller** | **PyInstaller Development Team** | Copyright © PyInstaller Development Team. Relates to standalone executable freezing. |
+| **SIL Open Font License** | **SIL International** | Copyright © SIL International. Relates to typeface licensing. |
+
+---
+
+## 10. License & Open Source Compliance
 
 A.U.R.A. is free and open-source software distributed under the terms of the **[GNU General Public License v3.0 (GPL-3.0)](LICENSE)**.
 

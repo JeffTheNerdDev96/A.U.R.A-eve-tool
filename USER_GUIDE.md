@@ -1,52 +1,51 @@
-# Adaptive Underworld Recon Array (A.U.R.A.) — v0.3.2-alpha.1 — User Guide
+# Adaptive Underworld Recon Array (A.U.R.A.) — v0.4.0-alpha.1 — User Guide
 
-**Adaptive Underworld Recon Array (A.U.R.A.)**
-*v0.3.2-alpha.1*
-
+**Adaptive Underworld Recon Array (A.U.R.A.)**  
+*v0.4.0-alpha.1*  
 *Angel Cartel Cybernetics Division — by JeffTheNerdDev96*
 
-Not affiliated with or endorsed by CCP Games. EVE Online is a trademark of CCP.
+Not affiliated with or endorsed by CCP Games / Fenris Creations. EVE Online is a trademark of CCP / Fenris Creations.
 
 ---
 
 ## 1. Overview
 
-A.U.R.A. is a **local Windows companion** for EVE Online. It tails **Chatlogs** and **Gamelogs** on disk, parses **pastes** (intel, D-scan, fleet lists, EFT), draws a **stargate neighborhood** from a bundled map snapshot, and chats with an onboard **Phi-4 Mini 4-bit GGUF** (llama.cpp). There is no cloud telemetry at runtime.
+A.U.R.A. is an **offline-first Windows & Linux companion** for EVE Online. It tails local **Chatlogs** and **Gamelogs** on disk, parses clipboard **pastes** (intel, D-scan, fleet rosters, EFT), renders **stargate bubble graphs** from a bundled map snapshot, provides **wormhole chain topology and signature tracking**, integrates **Alliance XMPP tactical communications**, and provides onboard AI reasoning via a local **Phi-4 Mini 4-bit GGUF** (`llama.cpp`). There is no cloud telemetry at runtime.
 
 ### What it is
 
-- An unofficial, offline-first tactical helper while you fly
-- Five tabs: **Live Intel Radar**, **Composition**, **Map**, **Fitting**, **A.U.R.A. Chat**
-- Live intel tailing continues in the background on every tab
+- An unofficial, offline-first tactical helper while you fly New Eden.
+- Designed with local architecture: **A.U.R.A. can be used as an offline-only app** without internet access.
+- Seven tabs arranged in operational sequence:
+  1. **Live Intel Radar** — Log tailer, threat classification, and proximity hop rings
+  2. **Composition** — Friendly fleet vs hostile D-scan matchup analysis
+  3. **Map** — Stargate bubble graph around your current solar system
+  4. **Anokis** — Wormhole chain mapping, mass/life decay, and cosmic signature tracker
+  5. **Fitting** — Fitting Lab & EFT ship optimizer
+  6. **XMPP** — Alliance broadcast ping stream and MUC channel listener (ephemeral session)
+  7. **A.U.R.A. Chat** — Local GGUF neural core for tactical briefings and OCR ingestion
+- Background log monitoring continues seamlessly regardless of which tab is active.
 
 ### What it is not
 
-- Not a CCP product, overlay, or in-client tool
-- No ESI / SSO login, no reading of game memory or the Local *pilot list*
-- No live zKill, DOTLAN, or market APIs
-- Not a route planner, not PYFA, not a wormhole mapper
-- Radar and chat options are **in-memory for the session**. Install writes `hardware_profile.json`; those UI choices do not persist across restarts
-
-### Planned (not in this build)
-
-**Wormhole mapper** — chain/signature models exist under `A.U.R.A. Source/subsystems/wormhole/`. There is **no UI tab** and it is **not started at runtime**.
-
-Custom tactical weights (`AURA-Eve-Tactical-Instruct-3.8B`) are work in progress. The installer runs **Phi-4 Mini 4-bit**, not those weights.
+- Not a CCP product, overlay, or in-client injection tool.
+- No ESI / SSO login, no reading of game memory (RAM), and no packet interception.
+- No live zKill, DOTLAN, or market server queries.
+- Not a market trader, not a bot, and contains zero automation/macro harnesses.
+- XMPP credentials exist **in-memory for the active session only**. To preserve operational security, A.U.R.A. **never saves XMPP passwords or JIDs to disk**.
 
 ---
 
-## 2. Window chrome
+## 2. Window Chrome & Controls
 
-- **Top bar:** current system (security / region once known), piloted hull if you grounded it in chat, context memory readout, **Purge**, online / standby badge, **Credits**
-- **Tab strip:** Live Intel Radar → Composition → Map → Fitting → A.U.R.A. Chat
-- **Footer:** brand mark, author, GitHub repo, **Report a bug** (GitHub Issues)
-- **System tray:** restore the window; Windows threat toasts when enabled
+- **Top Bar:** Current system (with security status & region once known), piloted hull grounding, context memory allocation, **Purge** action, live hardware status badge (Online / Standby), and **Credits**.
+- **Tab Strip:** `Live Intel Radar` → `Composition` → `Map` → `Anokis` → `Fitting` → `XMPP` → `A.U.R.A. Chat`.
+- **Footer:** Angel Cartel brand mark, author attribution, GitHub repository link, and issue reporting.
+- **System Tray:** Minimize-to-tray capability with optional Windows threat notifications.
 
-**Purge** stops inference, unloads the GGUF, and clears chat history, attachments, and piloted-ship grounding.
+**Purge:** Instantly halts neural token generation, unloads the local GGUF model from VRAM/RAM, purges conversation history, wipes attachments, and clears ephemeral session memory.
 
-**Idle:** after **5 minutes** with no input (and no running generation), the model unloads and chat history is cleared. The next command loads the model again.
-
-There is **no Settings page**. Use Radar controls, Chat tools, and install scripts for hardware.
+**Inactivity Standby:** After **5 minutes** of inactivity (no user input and no active generation), the local model automatically unloads to free GPU/CPU resources. The next prompt re-arms the core on demand.
 
 ---
 
@@ -54,276 +53,162 @@ There is **no Settings page**. Use Radar controls, Chat tools, and install scrip
 
 ![Intel Radar screenshot](docs/assets/Intel-Radar.png "Intel Radar Overview")
 
-Tails local EVE log files, classifies each ping with heuristics, and shows cards with hop distance from your current system.
+Tails local EVE log files, classifies incoming intel lines with heuristic regex patterns, and displays cards ranked by hop distance from your current system.
 
-### Can
+### Capabilities & Controls
 
-- Auto-find Chatlogs (`Documents\EVE\logs\Chatlogs`, OneDrive, Saved Games, Steam Proton/Wine paths, and similar) and sibling **Gamelogs**
-- Always tail **Local** and **Gamelogs** for location even when intel channel filters are on (`local changed to …`, `Connecting to …`, `Jumping from X to Y`)
-- **Log Folder** to pick a custom Chatlogs directory
-- **Character** combo when multiboxing (**Auto (Latest Active)** = newest listener)
-- Channel filename filters: Intel Channels / Custom keywords / All / Alliance Only / Corp Only / Local Only
-- Custom comma-separated **filename** keywords (default includes terms such as imperium, delve, horde, frt, winter, init, brave, snuff, standing). These match log *names*, not live coalition membership
-- Alert hop count **0–20** (default **5**), shared with the Map bubble
-- **Show in-range only**, **Windows threat alerts** (MEDIUM+ in range, ~20s debounce)
-- Feed filters: All Activity / Exclude Clears / Medium+ / High+ / Critical, plus **Hide System Clear (NV/CLR)**
-- Cards: time, system, hops, threat badge, channel, ships/count, quote. Out-of-range cards stay dimmed unless hidden
-- **Ask A.U.R.A.** on a card; optional **Auto-Respond to Critical Threats** (~10s cooldown)
-- **Clear Feed**; **Test Threat Ping** (synthetic samples)
-- Cap **150** cards; alerts stay **silent until location is known**
-
-### Cannot
-
-- Read overview, Local who, or client memory
-- Use ESI, zKill, or live map APIs
-- Guarantee alliance or coalition identity (filename heuristics only)
-- Parse lines with **no recognized system name** (those are dropped)
-- Export the intel feed
-- Persist Radar options after you quit
-
-### Threat heuristics (parser, not ground truth)
-
-First matching rule wins. A line that looks like a clear (`clear`, `clr`, `clean`, `safe`, `nv`, `na`, `no visual`) is **CLEAR** even if other keywords appear.
-
-| Level | When |
-| :--- | :--- |
-| **CLEAR** | Explicit clear / NV / NA style language |
-| **CRITICAL** | Cyno-style keywords (`cyno`, `lit`, `beacon`, …), capital keywords (titan / super / dread / carrier / FAX / rorqual, …), or extracted pilot count **≥ 10** |
-| **HIGH** | Bubble / drag language, or battleship / marauder / blops keywords |
-| **MEDIUM** | Pilot count **≥ 3**, or at least one recognized hull name |
-| **INFO** | Recognized system, none of the above |
-
-These are regex guesses. A “fleet of 20” only becomes CRITICAL if the count extractor sees a number it understands. Freighters are **not** treated as capitals. Treat every card as untrusted intel.
+- **Auto-Discovery:** Automatically locates EVE Chatlogs (`Documents\EVE\logs\Chatlogs`, OneDrive, Saved Games, Steam Proton prefixes) and sibling Gamelogs.
+- **Active System Tracking:** Monitors `Local` chat logs and `Gamelogs` for system transitions (`Connecting to …`, `Jumping from X to Y`, `local changed to …`).
+- **Channel Filters:** Filter log streams by Intel Channels, Custom Keywords, All Channels, Alliance Only, Corp Only, or Local Only.
+- **Proximity Alerts:** Configurable hop radius (**0–20 jumps**, default **5**), shared dynamically with the Stargate Map bubble.
+- **Windows Threat Alerts:** Desktop toast notifications for MEDIUM, HIGH, or CRITICAL hostiles entering your defined jump radius (~20s debounce).
+- **Feed Filters:** Filter cards by All Activity, Exclude Clears, Medium+, High+, or Critical, plus **Hide System Clear (NV/CLR)**.
+- **Automated Response:** Optional **Auto-Respond to Critical Threats** triggers immediate tactical AI briefings for hostile cynos, bubbles, or capital drops.
 
 ---
 
 ## 4. Composition
 
-![Composition screenshot](docs/assets/Comp-tool.png "Composition UI Overview")
+Dual-pane fleet analysis comparing your friendly fleet composition against a hostile Directional Scan (D-Scan) snapshot.
 
-Compares a friendly fleet paste to a hostile D-scan / grid paste using **local rules**. The neural model is not used unless you click **ASK A.U.R.A.**
-
-### Can
-
-- **Left — Friendly fleet:** fleet window copy, chat lines, comma lists, or `8 Muninn` style counts
-- **Right — Hostile D-scan / grid:** D-scan table, tab-separated rows, quantity prefixes (`15x Ishtar`)
-- **Auto-Analyze Matchup** builds a six-role table: Logistics, Interdictors / Tackle, Strategic Cruisers, Mainline DPS, T2 Recons / EAS, Covert Ops / Stealth
-- Delta column: **Adv** / **Disadv** when counts differ
-- Engagement bullets under the table (logi vs mainline/T3C, recon/EAS, tackle, stealth, hull totals)
-- Hints under each paste: `N hulls · M unmatched`
-- **ASK A.U.R.A.** sends the matchup to Chat for a prose review
-
-### Cannot
-
-- Identify pilots, doctrines, skills, or real DPS
-- Count remote-rep *bonus* on DPS hulls (Leshak, Ikitursa, …) as Logistics — those stay **Mainline DPS**
-- Turn unknown / junk lines into hulls (they stay unmatched)
-- Replace a human reading the grid
-
-Recommended window size on this tab: about **960 × 620**.
+- **Six-Role Classification:** Evaluates fleet rosters across Logistics, Mainline DPS, Tacklers, EWAR, Covert Ops, and Support roles.
+- **Matchup Assessment:** Instant local heuristic evaluation of alpha strike risks, rep sustainability, and electronic warfare vulnerabilities.
+- **Ask A.U.R.A.:** One-click button to dispatch the matchup comparison to A.U.R.A. Chat for a deep tactical doctrine breakdown.
 
 ---
 
 ## 5. Map
 
-Renders a pan/zoom **stargate graph** around the system inferred from Local / Gamelogs.
+Interactive stargate neighborhood bubble centered on your current solar system.
 
-### Can
-
-- Center on your location once it is known
-- Show systems within the **same alert hop range** as Radar (default 5)
-- Cap at the **250** closest systems in dense space (caption when truncated)
-- Pan / zoom (~0.2–4×); **Fit view** resets zoom
-- **Search** a system name that is **already in the bubble**, then select it
-- Click a node: region, security, jump count, latest intel snippet
-- Security colors: blue highsec, orange lowsec, red nullsec; gold ring = you are here
-- Intel threat rings on recent pings (TTL about **10 minutes** on the map)
-
-### Cannot
-
-- Show wormholes, jump bridges, or ansiblex
-- Show live sovereignty — the graph is bundled `data/eve_map.json` (Fuzzwork ← CCP SDE snapshot)
-- Draw anything useful until location is known (placeholder: join Local or jump)
+- **BFS Pathfinding:** Built-in breadth-first routing engine utilizing bundled offline graph data (`data/eve_map.json`).
+- **Intel Rings:** Hostile intel reports illuminate systems on the map with color-coded threat rings (Red: Critical, Orange: High, Yellow: Medium, Cyan: Info, Green: Clear).
+- **Avoidance Routing:** Add dangerous systems to an avoidance set to calculate detour routes around camped choke points.
 
 ---
 
-## 6. Fitting (experimental)
+## 6. Anokis (Wormhole Chain & Signature Tracker)
 
-![Fitting screenshot](docs/assets/Fitting-tool.png "Fitting UI Overview")
+Dedicated tactical management tab for wormhole exploration, chain mapping, and cosmic signature tracking.
 
-Visual EFT sketch: hull list, slot paperdoll, resource bars. **Not PYFA.** There is **no Dogma backend**.
+### Chain Topology Management
 
-### Can
+- **Home System Configuration:** Set your home J-space system (e.g. `J105382`) with wormhole class classification (**C1–C6, Thera, Pochven, High/Low/Null**) and environmental effects (**Wolf-Rayet, Pulsar, Magnetar, Cataclysmic Variable, Red Giant, Black Hole**).
+- **Add Connections:** Link child systems with connection codes (e.g. `K162`, `D845`, `N432`, `Z988`), mass stage (**Fresh >50%**, **Destab 10%-50%**, **Critical <10%**), and lifetime decay (**Stable**, **End of Life <4h**, **Critical**).
+- **Visual Node Tree:** Hierarchical explorer showing depth, leading hole type, and connection decay status.
 
-- Pick a hull from the bundled dossier list; search modules; fill highs / mids / lows / rigs, drones, cargo
-- Hover a slot for that module’s guessed CPU / PG
-- **CPU / Powergrid / Calibration** and **Shield / Armor / Hull** bars (class baselines + keyword guesses). Bars go red on overflow. Caption: values are **approximate**
-- **Import:** clipboard, paste dialog, or `.txt` (not the read-only EFT preview box)
-- **Export** current fit to `.txt`
-- Role dropdown + **ASK A.U.R.A.** for a chat review of the EFT block
+### Cosmic Signature Manager
 
-### Cannot
-
-- Full Dogma, skills, charges, stacking penalties, real DPS, or a working capacitor sim (`total_dps` is stubbed **0**; capacitor helper is stubbed)
-- Keep extra modules that do not fit slots on import (dropped with a warning)
-- Replace in-game fitting or PYFA
+- **Signature Table:** Real-time tracking of active signatures in the selected system: Sig ID (`ABC-123`), Group (Wormhole, Relic, Data, Gas, Combat), Name, Signal Strength (%), and Timestamp.
+- **Probe Scanner Ingestion:** Copy rows directly from the in-game Probe Scanner (`Ctrl+A` → `Ctrl+C`) and click **Ingest Probe Paste** to automatically extract signature IDs, groups, and scan percentages.
+- **Ask A.U.R.A. WH Brief:** Request an instant local neural briefing summarizing chain hazards, hole stability, and site recommendations.
 
 ---
 
-## 7. A.U.R.A. Chat
+## 7. Fitting (Fitting Lab & Optimizer)
 
-![Chat screenshot](docs/assets/chat-tool.png "Chat UI Overview")
+Visual EFT fitting lab and role evaluation console.
 
-Local GGUF assistant. Advice is **not** guaranteed EVE mechanics. The system prompt tells the model **not to recommend ECM / jammers**.
-
-### Can
-
-- Free-form questions; **Enter** sends, **Shift+Enter** newline; **Send Command** / **Stop**
-- Ground advice by stating your hull (*I am in a Wolf*, *Flying a Loki*)
-- **D-SCAN Analyzer** and **Fitting Lab & Optimizer** dialogs on this tab (paste D-scan / intel or EFT + intended role, then send to the model)
-- **Attach Screenshot** (and other files — see below)
-- Radar / Composition / Fitting **ASK A.U.R.A.** buttons jump the review into this chat
-
-### Cannot
-
-- Cloud chat or pick another model in the UI
-- Treat output as doctrine, killboard truth, or a substitute for the Composition table
-- Fully block prompt injection from logs, pastes, or attachments — treat those as untrusted
-
-### D-SCAN Analyzer dialog
-
-![D-Scan screenshot](docs/assets/dscan-tool.png "D-Scan UI Overview")
-
-Paste an in-game Directional Scan (`Ctrl+A`, `Ctrl+C`) and/or intel text. The app parses hull lines quickly and asks the **local model** for threat talk and counter-play. That is not a Dogma sim and not the same as the Composition tab’s local table.
-
-### Attachments
-
-File picker lists PNG, JPG, JPEG, BMP, WEBP, PDF, DOCX, TXT, CSV. The parser also accepts MD, JSON, LOG, EFT, XML if you use All Files.
-
-| Limit | Value |
-| :--- | :--- |
-| File size | **8 MB** |
-| Image pixels | ~25 million |
-| PDF | 200 pages |
-| DOCX | 2000 paragraphs |
-
-OCR uses Windows `winocr` when it works. Screenshots may return **no text**. `.doc` is handled like DOCX and often fails. Spreadsheets (XLSX) are not parsed.
+- **EFT Ingestion:** Paste ship fits in standard EFT block format (`[Hull, Fit Name]`).
+- **Visual Slot Layout:** Categorizes modules into High, Medium, Low, Rig, and Subsystem racks.
+- **Dogma Attribute Estimation:** Heuristic calculations for baseline Effective HP (EHP), CPU/Powergrid load percentages, and module sizing validity.
+- **Role Evaluation:** Submit fits for role-based review against intended combat doctrines (Solo PvP, Small Gang, Nano Kiting, Abyssal Deadspace, Fleet Anchor, WH Combat).
 
 ---
 
-## 8. Controls
+## 8. XMPP (Alliance Tactical Messaging & Fleet Pings)
 
-| Action | Control |
-| :--- | :--- |
-| Send chat | Input box + **Enter** or **Send Command** |
-| New line in chat | **Shift+Enter** |
-| Stop generation | **Stop** (does not unload the model) |
-| Purge chat + unload model | **Purge** in the top bar |
-| Idle unload | 5 minutes with no input |
-| Ground piloted hull | Say it in chat (e.g. *I am in a Wolf*) |
-| Log folder | **Log Folder** on Live Intel Radar |
-| Jump-range alerts | Hop spinner + **Windows threat alerts** on Radar (also drives the Map bubble) |
-| Visual fitting | **Fitting** tab, or **Fitting Lab & Optimizer** on Chat |
-| Composition | Paste both sides → **Auto-Analyze Matchup**; optional **ASK A.U.R.A.** |
+Dedicated out-of-game tactical communications tab (`subsystems/xmpp_chat`) for monitoring alliance broadcast channels, fleet pings, and coalition operations.
 
----
+### Ephemeral Security Architecture
 
-## 9. Data sources
+> [!IMPORTANT]
+> **Zero Disk Credential Persistence**:
+> For operational security (OpSec), **XMPP logins and passwords are NEVER saved to disk, configuration files, or the OS registry**. Authentication credentials exist strictly in volatile memory for the active session and are wiped immediately upon disconnect, purge, or application exit.
 
-| Source | Role | Freshness |
-| :--- | :--- | :--- |
-| EVE Chatlogs / Gamelogs | Location + intel | Live tail of local files |
-| Pastes (D-scan, fleet, EFT) | Composition, Fitting, Chat dialogs | Whatever you copy |
-| `data/eve_map.json` | Systems, stargates, sec, region | Bundled snapshot — not live sovereignty |
-| Hull / module dossiers | Names, roles, chat grounding | Hardcoded / approximate, not live SDE |
-| Intel threat level | Radar badges | Heuristic regex |
-| Jump distance | Alerts + Map | BFS on the bundled stargate graph |
-| Fitting CPU / PG / HP | Bars | Approximate |
-| Fitting DPS / capacitor | Helper | Stubs |
-| Phi-4 Mini GGUF | Chat | Local weights; not live game data |
-| zKill / DOTLAN (Credits) | Attribution | **Not queried at runtime** |
+### Connecting to Alliance XMPP Servers
+
+1. Enter your pilot JID (e.g. `pilot@goonfleet.com` or `user@xmpp.pandemic-horde.org`) and alliance password.
+2. **Host Override:** Many New Eden alliance domains do not configure standard DNS SRV records. If your alliance uses a dedicated relay host (e.g. `xmpp.domain.com`), enter it in the **Host** field.
+3. **Port & TLS:** Standard STARTTLS runs on port `5222`; Direct TLS runs on port `5223`. Enable **Allow Self-Signed TLS** if your alliance infrastructure utilizes internal private CA certificates.
+4. Click **Connect** to initialize the secure XMPP Client session.
+
+### Multi-User Chat & Broadcast Alert Stream
+
+- **Room Navigation:** Browse joined MUC rooms and broadcast channels (e.g. `#broadcasts`, `#fleets`, `#op-chat`) in the left sidebar.
+- **Alliance Fleet Pings:** Broadcast messages are automatically highlighted with glowing urgency borders:
+  - 🚨 **CTA / Max Numbers:** High-priority red callout
+  - ⚔️ **StratOp / Objective:** Orange strategic operation alert
+  - 🚀 **Fleet Formup:** Cyan formup notification
+- **Extracted Tactical Telemetry:** Broadcast bots are parsed for FC names, staging locations, and doctrine ships.
+- **Ask A.U.R.A. Handover:** Click **Ask A.U.R.A.** on any incoming fleet ping to analyze required doctrine fits and target routing in A.U.R.A. Chat.
 
 ---
 
-## 10. Install, launch, hardware
+## 9. A.U.R.A. Chat (Local Neural Core)
 
-Run `A.U.R.A. Source/requirements/install_auto.bat` to detect hardware, or a named script in that folder. Each script writes `hardware_profile.json`.
+Local tactical AI assistant running quantized GGUF weights via `llama.cpp`.
 
-**Chat always uses llama.cpp GGUF.** NPU / OpenVINO / DirectML, when installed, are optional coprocessors, not a second chat model. Setup **links** vendor driver downloads; it does **not** silent-install GPU/NPU drivers.
-
-Named scripts:
-
-- Auto detect: `requirements/install_auto.bat`
-- Intel NPU: `install_intel_npu.bat`
-- AMD Ryzen AI NPU: `install_amd_npu.bat`
-- Intel iGPU: `install_intel_igpu.bat`
-- AMD iGPU: `install_amd_igpu.bat`
-- NVIDIA CUDA: `install_nvidia_cuda.bat`
-- AMD dGPU: `install_amd_dgpu.bat`
-- Intel dGPU: `install_intel_dgpu.bat`
-- CPU only: `install_cpu.bat`
-
-Backend detail: [A.U.R.A. Source/requirements/README.md](A.U.R.A.%20Source/requirements/README.md).
-
-Launch with `run.bat` in the repo root or `A.U.R.A. Source/run.bat`. Missing Python/deps can self-heal via `install_auto.bat`. Python **3.12+** is required.
-
-Standalone package: `AURA_Setup_v0.3.2-alpha.1.exe` (bundled Python 3.12 and model weights). Default install path is under `%LOCALAPPDATA%\Programs\` (or the path you choose). Weights: `models/phi-4-mini/model_q4.gguf`.
+- **Onboard Reasoning:** Ask questions about New Eden ship mechanics, damage types, module interactions, and combat tactics.
+- **Document & Image Ingestion:** Attach killmail screenshots, battle briefs, or EFT files (`PNG`, `JPG`, `PDF`, `DOCX`, `TXT`, `CSV`).
+- **Windows Media OCR:** Hardware-accelerated local optical character recognition extracts text from attached screenshots without cloud API calls.
 
 ---
 
-## 11. Troubleshooting (`AURA-ERR-xxxx`)
+## 10. Hardware Profiles & Installation
 
-Codes appear in the UI. Stack traces go to `logs/crash.log`. There is **no Settings page**; use the resolutions below.
+A.U.R.A. utilizes hardware-specific install scripts located in `A.U.R.A. Source/requirements/`:
 
-| Error Code | Title | What to do |
-| :--- | :--- | :--- |
-| **`AURA-ERR-1001`** | Neural Weights Missing | Put `model_q4.gguf` in `models/phi-4-mini/` or rerun `AURA_Setup_v0.3.2-alpha.1.exe`. |
-| **`AURA-ERR-1002`** | Context Allocation Failure | Close heavy apps. Re-run a lighter install profile (`install_cpu.bat`) if VRAM/RAM is tight. Context size is not exposed in the UI. |
-| **`AURA-ERR-1003`** | Incompatible Python Architecture | Need Python 3.12+. Use the standalone installer. |
-| **`AURA-ERR-1004`** | Inference Stream Timeout | Check GPU drivers or switch to the CPU install script and restart. |
-| **`AURA-ERR-2001`** | Intel NPU Coprocessor Failure | Update Intel NPU Driver (v32.0.100.3104+) via Intel Driver & Support Assistant. |
-| **`AURA-ERR-2002`** | AMD Vulkan / DirectML Error | Latest AMD Adrenalin with Vulkan 1.3. |
-| **`AURA-ERR-2003`** | NVIDIA CUDA Acceleration Error | Game Ready / Studio 550+ and CUDA 12.4+. |
-| **`AURA-ERR-2004`** | Hardware Topology Probe Error | Standard user read of display adapters; restart the display driver if needed. |
-| **`AURA-ERR-3001`** | D-Scan Syntax Parse Error | Copy from the in-game D-Scan window (`Ctrl+A` → `Ctrl+C`). |
-| **`AURA-ERR-3002`** | Intel Log Parsing Error | Chatlogs should be UTF-8 or UTF-16 as EVE writes them. |
-| **`AURA-ERR-3003`** | EFT Fitting Format Error | Start with `[ShipName, FitName]` then slot modules. |
-| **`AURA-ERR-3004`** | Document / Vision Ingestion Error | Supported types, under 8 MB, not password-protected. OCR may simply find no text. |
-| **`AURA-ERR-4001`** | Chat Logs Directory Missing | Launch EVE once, or set the folder with **Log Folder** on Live Intel Radar. |
-| **`AURA-ERR-4002`** | Chat Log Stream Lock Error | Check permissions on `Documents\EVE\logs\Chatlogs`. |
-| **`AURA-ERR-4003`** | Tactical Memory Cache Error | Write permission on the application folder. |
-| **`AURA-ERR-5001`** | Worker Thread Fault | Inspect `logs/crash.log`. |
-| **`AURA-ERR-5002`** | Model Switch Failure | Restart A.U.R.A. after changing the hardware install profile. |
-| **`AURA-ERR-5003`** | UI Tactical Rendering Error | Check display DPI scaling; restart the app. |
+| Script | Target Hardware Architecture |
+|---|---|
+| `install_auto.bat` | Automatic hardware probe & optimal profile selection |
+| `install_nvidia_cuda.bat` | NVIDIA Dedicated GPU (GeForce RTX 20/30/40, CUDA 12.4+) |
+| `install_amd_dgpu.bat` | AMD Dedicated GPU (Radeon RX 6000/7000, Vulkan 1.3) |
+| `install_amd_igpu.bat` | AMD Integrated GPU (Radeon 780M/890M, Vulkan 1.3) |
+| `install_amd_npu.bat` | AMD Ryzen AI NPU (XDNA Coprocessor, DirectML) |
+| `install_intel_dgpu.bat` | Intel Dedicated GPU (Intel Arc A-Series, OpenVINO / Vulkan) |
+| `install_intel_igpu.bat` | Intel Integrated GPU (Iris Xe / Intel Arc Graphics) |
+| `install_intel_npu.bat` | Intel NPU (AI Boost Level Zero Coprocessor) |
+| `install_cpu.bat` | Standard Multi-Core CPU (SIMD AVX2 / AVX-512 Vector Mesh) |
+
+Launch the application via `run.bat` in the repository root or through the standalone package `AURA_Setup_v0.4.0-alpha.1.exe`.
 
 ---
 
-## 12. Linux, Steam Deck & Proton 11 Compatibility Layer
+## 11. Troubleshooting & Diagnostic Error Registry (`AURA-ERR-xxxx`)
 
-A.U.R.A. features built-in, native support for **Valve's Proton 11 API / Compatibility Layer**, GE-Proton, Proton Experimental, Bottles, and standard Wine prefixes on Linux and Steam Deck.
+All diagnostic errors are logged to `logs/crash.log`:
 
-### Proton 11 Architecture & Dual-Mode Runtime Bootstrapper
+| Error Code | Domain | Resolution |
+|---|---|---|
+| **`AURA-ERR-1001`** | Neural Weights Missing | Place `model_q4.gguf` in `models/phi-4-mini/` or run the standalone installer. |
+| **`AURA-ERR-1002`** | Context Alloc Failed | Close memory-heavy background applications or run `install_cpu.bat`. |
+| **`AURA-ERR-1003`** | Python Incompatible | Requires Python 3.12 64-bit or higher. |
+| **`AURA-ERR-1004`** | Inference Timeout | Verify graphics drivers or switch to CPU vector mode. |
+| **`AURA-ERR-2001`** | Intel NPU Failure | Update Intel NPU driver (v32.0.100.3104+) via Intel Driver Assistant. |
+| **`AURA-ERR-2002`** | AMD Vulkan Error | Ensure AMD Adrenalin drivers with Vulkan 1.3 support are installed. |
+| **`AURA-ERR-2003`** | NVIDIA CUDA Error | Update NVIDIA Game Ready/Studio driver (550.00+) and CUDA toolkit. |
+| **`AURA-ERR-3001`** | D-Scan Parse Failed | Copy raw text from the in-game Directional Scan window (`Ctrl+A` → `Ctrl+C`). |
+| **`AURA-ERR-3002`** | Intel Regex Error | Ensure chat logs are UTF-8 or UTF-16 text files as written by EVE Online. |
+| **`AURA-ERR-3003`** | EFT Parse Failed | Verify EFT block syntax begins with `[ShipName, FitName]`. |
+| **`AURA-ERR-4001`** | Chatlogs Dir Missing | Click **Log Folder** on Live Intel Radar to select your EVE Chatlogs folder. |
+| **`AURA-ERR-5001`** | Worker Crash | Check `logs/crash.log` for diagnostic traceback. |
+| **`AURA-ERR-6001`** | WH Topology Cycle | Verify parent and child solar system links in the Anokis tab. |
+| **`AURA-ERR-6002`** | Signature Conflict | Verify signature ID format (e.g. `ABC-123`) and uniqueness in system. |
+| **`AURA-ERR-7001`** | XMPP Auth Failed | Verify pilot JID, username, and password with your alliance auth service. |
+| **`AURA-ERR-7002`** | XMPP TLS Handshake | Check port (5222/5223) and toggle 'Allow Self-Signed TLS' if using internal certs. |
+| **`AURA-ERR-7003`** | XMPP Host Unreachable | Check internet connection or provide an explicit server host override. |
+| **`AURA-ERR-7004`** | XMPP MUC Join Failed | Verify room JID syntax (e.g. `broadcasts@conference.domain.com`) and room permissions. |
 
-When running under Linux via Proton or Wine, A.U.R.A. automatically activates its **Dual-Mode Bootstrapper**. This isolates the environment from host DLL conflicts while dynamically preloading all 17 runtime, ICU, DirectX, and OpenGL helper libraries:
-- **C Runtime & Standard Libraries:** `ucrtbase.dll`, `msvcp_win.dll`, `msvcp140.dll`, `msvcp140_1.dll`, `msvcp140_2.dll`, `vcruntime140.dll`, `vcruntime140_1.dll`, `concrt140.dll`, `vccorlib140.dll`
-- **Internationalization (ICU):** `icu.dll`, `icuuc.dll`, `icuin.dll`
-- **Graphics & Qt6 Presentation:** `d3dcompiler_47.dll`, `opengl32sw.dll`, `Qt6Core.dll`, `Qt6Gui.dll`, `Qt6Widgets.dll`
+---
 
-> [!NOTE]
-> No manual `protontricks`, `winetricks`, or prefix registry edits are required. The Dual-Mode bootstrapper auto-remediates bare prefixes upon launch.
+## 12. Linux, Steam Deck & Proton Compatibility
 
-### Steam Deck & Non-Steam Game Setup
+A.U.R.A. includes full out-of-the-box compatibility with **Valve Proton 11**, GE-Proton, Proton Experimental, and standard Wine prefixes.
 
-To run A.U.R.A. on Steam Deck (SteamOS) or a desktop Steam Linux installation:
-
-1. **Install:** Run `AURA_Setup_v0.3.2-alpha.1.exe` via Proton 11 / Proton Experimental, or copy the installed folder to your Linux drive.
-2. **Add Non-Steam Game:** In the Steam Desktop Client, select **Games** → **Add a Non-Steam Game to My Library...** and browse to `AURA_Launcher.exe` (or `Launch_A.U.R.A_Debug.bat`).
-3. **Compatibility Mode:** Right-click the shortcut in Steam → **Properties** → **Compatibility** → Check **Force the use of a specific Steam Play compatibility tool** → Select **Proton 11** (or Proton Experimental / GE-Proton).
-4. **EVE Online Chatlog Auto-Discovery:** When EVE Online is installed via Steam (App ID `8500`), A.U.R.A. automatically discovers the Steam Proton Chatlogs directory:
+1. **Standalone Installation:** Run `AURA_Setup_v0.4.0-alpha.1.exe` via Proton, or copy the application folder to your Linux drive.
+2. **Add Non-Steam Game:** In Steam, click **Add a Non-Steam Game** → select `AURA_Launcher.exe` (or `Launch_A.U.R.A_Debug.bat`).
+3. **Compatibility:** Under shortcut Properties → **Compatibility** → select **Proton 11** or Proton Experimental.
+4. **Chatlog Auto-Discovery:** Steam installations auto-discover the EVE Online log directory under:
    `~/.steam/steam/steamapps/compatdata/8500/pfx/drive_c/users/steamuser/Documents/EVE/logs/Chatlogs`
-   You can also click **Log Folder** on the Live Intel Radar tab to choose a custom path.
-5. **Vulkan GPU Acceleration:** On AMD RDNA2/RDNA3 (Steam Deck GPU), Intel Arc, and NVIDIA on Linux, inference passes through Wine's `vulkan-1.dll` directly to the host Mesa/RADV or NVIDIA proprietary Vulkan drivers for hardware-accelerated local AI inference.
-
----
-
-Treat intel channels, pastes, and attachments as untrusted. See [SECURITY.md](SECURITY.md).
+5. **Vulkan Compute:** Hardware acceleration passes directly through Proton's `vulkan-1.dll` to host Mesa RADV or NVIDIA drivers.

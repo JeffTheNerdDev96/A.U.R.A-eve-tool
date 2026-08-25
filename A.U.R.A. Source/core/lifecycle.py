@@ -107,7 +107,7 @@ def shutdown_application(window: Any | None = None) -> None:
             _log_shutdown_error(exc, "shutdown: engine")
 
         # 4. Stop all attached subsystems
-        for sub_attr in ("intel_subsystem", "map_subsystem", "fleet_comp_subsystem", "fitting_subsystem", "wormhole_subsystem", "ai_subsystem"):
+        for sub_attr in ("intel_subsystem", "map_subsystem", "fleet_comp_subsystem", "fitting_subsystem", "wormhole_subsystem", "xmpp_subsystem", "ai_subsystem"):
             try:
                 sub = getattr(window, sub_attr, None)
                 if sub is not None and hasattr(sub, "stop"):

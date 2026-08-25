@@ -46,6 +46,16 @@ class AURAErrorCode:
     ERR_5002_MODEL_SWITCH_FAILED = "AURA-ERR-5002"
     ERR_5003_UI_RENDER_ERROR = "AURA-ERR-5003"
 
+    # 6000 Series: Wormhole & Anokis Mapping
+    ERR_6001_WH_TOPOLOGY_CYCLE = "AURA-ERR-6001"
+    ERR_6002_WH_SIGNATURE_CONFLICT = "AURA-ERR-6002"
+
+    # 7000 Series: XMPP Tactical Communications
+    ERR_7001_XMPP_AUTH_FAILED = "AURA-ERR-7001"
+    ERR_7002_XMPP_TLS_HANDSHAKE = "AURA-ERR-7002"
+    ERR_7003_XMPP_HOST_UNREACHABLE = "AURA-ERR-7003"
+    ERR_7004_XMPP_MUC_JOIN_FAILED = "AURA-ERR-7004"
+
 
 ERROR_REGISTRY: dict[str, dict[str, str]] = {
     AURAErrorCode.ERR_1001_MODEL_NOT_FOUND: {
@@ -137,6 +147,36 @@ ERROR_REGISTRY: dict[str, dict[str, str]] = {
         "title": "UI Tactical Rendering Error",
         "description": "Qt6 graphical component rendering or stylesheet application failed.",
         "resolution": "Verify display scaling settings or restart the application."
+    },
+    AURAErrorCode.ERR_6001_WH_TOPOLOGY_CYCLE: {
+        "title": "Wormhole Topology Cycle Detected",
+        "description": "Attempted to create a circular graph connection in active wormhole chain.",
+        "resolution": "Verify parent and child solar system identifiers in the Anokis mapping tab."
+    },
+    AURAErrorCode.ERR_6002_WH_SIGNATURE_CONFLICT: {
+        "title": "Cosmic Signature Conflict",
+        "description": "Signature ID already exists or failed to parse probe scan format.",
+        "resolution": "Check signature format (e.g. 'ABC-123') and ensure unique identifiers per system."
+    },
+    AURAErrorCode.ERR_7001_XMPP_AUTH_FAILED: {
+        "title": "XMPP Authentication Failure",
+        "description": "Server rejected the provided JID or password credentials.",
+        "resolution": "Verify username, domain, and password. For alliance servers, check authorization standings."
+    },
+    AURAErrorCode.ERR_7002_XMPP_TLS_HANDSHAKE: {
+        "title": "XMPP TLS/SSL Handshake Error",
+        "description": "Failed to negotiate a secure TLS session with the XMPP host.",
+        "resolution": "Verify port (5222 STARTTLS / 5223 Direct TLS) and enable 'Allow Self-Signed TLS' if using internal alliance certs."
+    },
+    AURAErrorCode.ERR_7003_XMPP_HOST_UNREACHABLE: {
+        "title": "XMPP Server Unreachable",
+        "description": "Could not establish TCP socket connection to target XMPP hostname.",
+        "resolution": "Check internet connectivity, DNS resolution, or provide an explicit host override."
+    },
+    AURAErrorCode.ERR_7004_XMPP_MUC_JOIN_FAILED: {
+        "title": "XMPP MUC Room Join Error",
+        "description": "Failed to enter Multi-User Chat room or alliance broadcast channel.",
+        "resolution": "Check room JID syntax (e.g. 'broadcasts@conference.domain.com') and room access permissions."
     },
 }
 
