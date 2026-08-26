@@ -8,17 +8,20 @@ A.U.R.A. is an unofficial, community-developed, fan-made tactical companion. It 
 
 ---
 
-## Shipped Tabs & Features
+## Tabs/Features
 
 A.U.R.A. organizes its tactical suite into seven specialized desktop tabs:
 
-1. **Live Intel Radar** — Real-time chatlog and gamelog tailer. Heuristic threat classification (CLEAR to CRITICAL), hop-range proximity rings, and automated tactical responses.
-2. **Composition** — Friendly fleet composition vs hostile D-scan analyzer. Multi-role breakdown (Logistics, Mainline DPS, Tacklers, EWAR, Covert Ops) and local matchup heuristics.
-3. **Map** — Interactive stargate bubble graph around your current solar system with intel threat overlays, BFS route planning, and system avoidance.
-4. **Anokis** — Wormhole chain mapping system. Interactive topology hierarchy, system class badges (C1–C6, Thera, Pochven, K-space), mass/lifetime decay stages, and cosmic signature management with EVE probe scanner clipboard ingestion.
-5. **Fitting** — Fitting Lab & EFT optimizer. Visual slot layout, module stat breakdown, and Ask A.U.R.A. role evaluation.
-6. **XMPP** — Alliance tactical messaging and broadcast ping receiver (`xmpp_chat`). Real-time MUC broadcast channel listener, ping urgency classification (CTA, StratOp, Formup), and one-click tactical handover to A.U.R.A. Chat. *Security Notice:* XMPP credentials exist strictly in volatile memory for the active session and are **never saved to disk or configuration files**.
-7. **A.U.R.A. Chat** — Local GGUF neural reasoning core powered by `llama.cpp`. Onboard tactical assistant for combat briefings, document parsing, and screenshot OCR. Installer bundles **Phi-4 Mini 4-bit** for local execution.
+1. **Live Intel Radar** — Real-time chat log and game log tailer featuring heuristic threat classification (CLEAR to CRITICAL), hop-range proximity rings, and automated tactical responses.
+2. **Composition** — Friendly fleet composition vs. hostile D-scan analyzer. Includes multi-role breakdowns (Logistics, Mainline DPS, Tacklers, EWAR, Covert Ops) and local matchup heuristics.
+3. **Map** — Interactive stargate bubble graph centered on your current solar system, complete with intel threat overlays, BFS route planning, and custom system avoidance.
+4. **Anoikis** — Wormhole chain mapping system featuring interactive topology hierarchies, system class badges (C1–C6, Thera, Pochven, K-space), mass/lifetime decay tracking, and cosmic signature management via EVE probe scanner clipboard ingestion.
+5. **Fitting** *(EXPERIMENTAL)* — Fitting Lab and EFT optimizer with visual slot layouts, module stat breakdowns, and "Ask A.U.R.A." role evaluations.
+6. **XMPP** — Alliance tactical messaging and broadcast ping receiver (`xmpp_chat`). Features real-time MUC broadcast channel monitoring, ping urgency classification (CTA, StratOp, Formup), and one-click tactical handover to A.U.R.A. Chat.  
+   * *Security Notice:* XMPP credentials exist strictly in volatile memory for the active session and are **never saved to disk or configuration files**.
+7. **A.U.R.A. Chat** *(EXPERIMENTAL)* — Local GGUF neural reasoning core powered by `llama.cpp`. Serves as an onboard tactical assistant for combat briefings, document parsing, and screenshot OCR. The installer bundles **Phi-4 Mini (4-bit)** for local execution.
+
+> **Note:** All experimental tabs currently feature limited backend integration or support. For instance, the **Fitting** tool operates primarily as a test GUI utilizing placeholder ship and module data, while **A.U.R.A. Chat** runs Phi-4 Mini for initial UI testing ahead of custom model deployment.
 
 User operations: [USER_GUIDE.md](USER_GUIDE.md). Code internals & architecture: [DEVELOPER.md](DEVELOPER.md). Security & privacy policy: [SECURITY.md](SECURITY.md). Legal terms & disclaimers: [LEGAL.md](LEGAL.md).
 
