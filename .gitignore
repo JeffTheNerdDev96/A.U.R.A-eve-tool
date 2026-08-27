@@ -47,6 +47,10 @@ htmlcov/
 *.cover
 
 # 4. Build Artifacts, Distros & Installers
+distro/
+**/distro/
+Distro/
+**/Distro/
 A.U.R.A Distro/
 **/A.U.R.A Distro/
 AURA_Standalone_Windows/
