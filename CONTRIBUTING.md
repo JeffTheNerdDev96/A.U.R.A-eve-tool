@@ -4,7 +4,7 @@ Thank you for your interest in **Adaptive Underworld Recon Array (A.U.R.A.)**! W
 
 ---
 
-## Current Project Status: Early Alpha (`v0.3.x-alpha`)
+## Current Project Status: Early Alpha
 
 > [!NOTE]
 > **Active Foundation & Core Backend Construction**

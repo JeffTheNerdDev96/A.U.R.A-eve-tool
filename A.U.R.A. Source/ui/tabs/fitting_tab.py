@@ -354,9 +354,11 @@ class FittingLabWidget(QWidget):
         slots_wrap.setStyleSheet("QScrollArea { border:none; background:transparent; }")
         slot_host = QWidget()
         self.slot_grid = QGridLayout(slot_host)
-        self.slot_grid.setSpacing(10)
-        self.slot_grid.setHorizontalSpacing(12)
-        self.slot_grid.setContentsMargins(8, 4, 8, 4)
+        self.slot_grid.setSpacing(8)
+        self.slot_grid.setHorizontalSpacing(8)
+        self.slot_grid.setVerticalSpacing(8)
+        self.slot_grid.setContentsMargins(8, 6, 8, 6)
+        self.slot_grid.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         slots_wrap.setWidget(slot_host)
         body.addWidget(slots_wrap, stretch=1)
         cl.addLayout(body, stretch=1)
@@ -544,27 +546,22 @@ class FittingLabWidget(QWidget):
         if subs:
             specs.append(("sub", "SUB", subs))
 
-        col = 0
-        max_rows = max((c for _, _, c in specs), default=0)
-        for idx, (kind, label, count) in enumerate(specs):
-            if idx > 0:
-                spacer = QWidget()
-                spacer.setFixedWidth(22)
-                self.slot_grid.addWidget(spacer, 0, col, max_rows + 1, 1)
-                col += 1
+        for row_idx, (kind, label, count) in enumerate(specs):
+            accent = SLOT_ACCENT.get(kind, TEXT_HINT)
             hdr = QLabel(label)
+            hdr.setFixedSize(50, 54)
             hdr.setAlignment(Qt.AlignmentFlag.AlignCenter)
             hdr.setStyleSheet(
-                f"color:{SLOT_ACCENT.get(kind, TEXT_HINT)}; font-size:10px; font-weight:bold; "
-                f"letter-spacing:1px; padding-bottom:4px;"
+                f"color:{accent}; font-size:11px; font-weight:bold; "
+                f"letter-spacing:1px; background:{BG_PANEL}; border:1px solid {BORDER_MUTED}; "
+                f"border-left:3px solid {accent}; border-radius:2px;"
             )
-            self.slot_grid.addWidget(hdr, 0, col)
+            self.slot_grid.addWidget(hdr, row_idx, 0)
             for i in range(count):
                 btn = SlotButton(kind, i)
                 btn.clicked.connect(lambda _, b=btn: self._on_slot_clicked(b))
                 self.slot_buttons[kind].append(btn)
-                self.slot_grid.addWidget(btn, i + 1, col)
-            col += 1
+                self.slot_grid.addWidget(btn, row_idx, i + 1)
 
     def _refresh_module_list(self):
         self.mod_list.clear()

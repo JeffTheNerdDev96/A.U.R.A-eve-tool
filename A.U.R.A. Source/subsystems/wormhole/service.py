@@ -89,6 +89,8 @@ class WormholeSubsystem(BaseSubsystem):
         parent_system: str | None = None,
         wormhole_type: str = "",
         system_class: WormholeClass = WormholeClass.UNKNOWN,
+        mass_state: MassState = MassState.FRESH,
+        lifetime_state: LifetimeState = LifetimeState.STABLE,
     ) -> WormholeNode | None:
         """Adds a discovered wormhole system and optional connection link."""
         if self.active_chain is None:
@@ -109,6 +111,8 @@ class WormholeSubsystem(BaseSubsystem):
                 source_system=parent_system,
                 target_system=system_name,
                 wormhole_type=wormhole_type,
+                mass_state=mass_state,
+                lifetime_state=lifetime_state,
             )
             self.active_chain.connections.append(conn)
 

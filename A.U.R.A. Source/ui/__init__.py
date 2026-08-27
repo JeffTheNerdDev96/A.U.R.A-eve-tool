@@ -10,11 +10,14 @@ from .theme import (
 from .tabs.map_tab import MapTabWidget
 from .tabs.composition_tab import CompositionTabWidget
 from .tabs.fitting_tab import FittingLabWidget
+from .tabs.wormhole_tab import WormholeTabWidget
+from .tabs.xmpp_tab import XMPPTabWidget
 from .app_window import MainWindow, run_app
 
 __all__ = [
     "MainWindow", "run_app",
     "MapTabWidget", "CompositionTabWidget", "FittingLabWidget",
+    "WormholeTabWidget", "XMPPTabWidget",
     "main_stylesheet", "load_display_font",
     "ACCENT", "ACCENT_HOVER", "TEXT_PRIMARY", "TEXT_SECONDARY", "TEXT_HINT", "TEXT_BRAND",
     "BG_DEEP", "BG_ELEVATED", "BORDER", "BTN_SECONDARY_BG", "BTN_SECONDARY_BORDER",

@@ -1,6 +1,6 @@
 # Adaptive Underworld Recon Array (A.U.R.A.)
 
-**v0.3.2-alpha.1** — local, unofficial EVE Online companion. Intel, D-scan matchup, a stargate bubble map, and an onboard chat assistant. No cloud telemetry.
+**v0.4.0-alpha.1** — unofficial New Eden tactical companion. Designed with an offline-first architecture: A.U.R.A. **can be used as an offline-only app** with local neural reasoning, local log tailing, and offline stargate graphs, with optional opt-in network connectivity for Alliance XMPP communications. No cloud telemetry.
 
 **EVE Online**, the **EVE logo**, and related marks are trademarks of **Fenris Creations** (FC Games / formerly CCP Games / CCP hf). All rights are reserved worldwide. All other trademarks are the property of their respective owners. EVE Online, the EVE logo, and all associated logos, designs, artwork, screenshots, character models, hulls, storylines, world lore, and game mechanics are the intellectual property of Fenris Creations.
 
@@ -8,27 +8,36 @@ A.U.R.A. is an unofficial, community-developed, fan-made tactical companion. It 
 
 ---
 
-## Shipped
+## Tabs/Features
 
-* **Live Intel Radar** — Tails EVE chatlogs and gamelogs, classifies threats, and raises hop-range alerts for your current system.
-* **Composition** — Paste friendly fleet vs hostile D-scan. Six-role table and local heuristics; optional Ask A.U.R.A. for a chat review.
-* **Map** — Stargate bubble around your location with intel rings. Search, pan, zoom. Not a route planner.
-* **A.U.R.A. Chat** — Local GGUF assistant. D-scan paste and optional OCR. Installer ships **Phi-4 Mini 4-bit** for testing.
+A.U.R.A. organizes its tactical suite into seven specialized desktop tabs:
 
-Ops: [USER_GUIDE.md](USER_GUIDE.md). Internals: [DEVELOPER.md](DEVELOPER.md).
+1. **Live Intel Radar** — Real-time chat log and game log tailer featuring heuristic threat classification (CLEAR to CRITICAL), hop-range proximity rings, and automated tactical responses.
+2. **Composition** — Friendly fleet composition vs. hostile D-scan analyzer. Includes multi-role breakdowns (Logistics, Mainline DPS, Tacklers, EWAR, Covert Ops) and local matchup heuristics.
+3. **Map** — Interactive stargate bubble graph centered on your current solar system, complete with intel threat overlays, BFS route planning, and custom system avoidance.
+4. **Anoikis** — Wormhole chain mapping system featuring interactive topology hierarchies, system class badges (C1–C6, Thera, Pochven, K-space), mass/lifetime decay tracking, and cosmic signature management via EVE probe scanner clipboard ingestion.
+5. **Fitting** *(EXPERIMENTAL)* — Fitting Lab and EFT optimizer with visual slot layouts, module stat breakdowns, and "Ask A.U.R.A." role evaluations.
+6. **XMPP** — Alliance tactical messaging and broadcast ping receiver (`xmpp_chat`). Features real-time MUC broadcast channel monitoring, ping urgency classification (CTA, StratOp, Formup), and one-click tactical handover to A.U.R.A. Chat.  
+   * *Security Notice:* XMPP credentials exist strictly in volatile memory for the active session and are **never saved to disk or configuration files**.
+7. **A.U.R.A. Chat** *(EXPERIMENTAL)* — Local GGUF neural reasoning core powered by `llama.cpp`. Serves as an onboard tactical assistant for combat briefings, document parsing, and screenshot OCR. The installer bundles **Phi-4 Mini (4-bit)** for local execution.
+
+> **Note:** All experimental tabs currently feature limited backend integration or support. For instance, the **Fitting** tool operates primarily as a test GUI utilizing placeholder ship and module data, while **A.U.R.A. Chat** runs Phi-4 Mini for initial UI testing ahead of custom model deployment.
+
+User operations: [USER_GUIDE.md](USER_GUIDE.md). Code internals & architecture: [DEVELOPER.md](DEVELOPER.md). Security & privacy policy: [SECURITY.md](SECURITY.md). Legal terms & disclaimers: [LEGAL.md](LEGAL.md).
 
 ---
 
-## Experimental / planned
+## Offline-First Architecture
 
-* **Experimental — Fitting Lab.** Visual EFT builder (slots, import/export, Ask A.U.R.A.). There is **no Dogma backend**. CPU/PG/HP bars are class-baseline and keyword guesses; DPS and capacitor in the helper are stubs. Layout sketch, not PYFA.
-* **Planned — Wormhole mapper.** In-memory chain and signature models live under `A.U.R.A. Source/subsystems/wormhole/` (v0.3.x placeholder). **No UI tab; not started at runtime.**
-
-Custom tactical weights ([`AURA-Eve-Tactical-Instruct-3.8B`](https://huggingface.co/JeffTheNerdDev96/AURA-Eve-Tactical-Instruct-3.8B)) are work in progress, not what the installer runs.
+A.U.R.A. is engineered so that it **can be used as an offline-only app**:
+* **Local Neural Inference:** Large language models run entirely locally via CPU, NVIDIA CUDA, AMD Vulkan, or Intel NPU coprocessors. Zero prompts or chat histories are sent to remote APIs.
+* **Offline SDE Database:** Solar systems, stargates, ship hulls, and dogma attributes are bundled locally in `eve_map.json` and `core/eve_data.py`.
+* **Passive Local Log Tailing:** Intel feeds read standard client text logs directly from disk.
+* **Opt-In External Connectivity:** Outbound network connections are strictly opt-in and restricted to user-configured Alliance XMPP servers. If not configured, the app operates completely offline in closed local compute mode.
 
 ---
 
-## Run it
+## Running A.U.R.A.
 
 ```bash
 git clone https://github.com/JeffTheNerdDev96/A.U.R.A-eve-tool.git
@@ -38,14 +47,14 @@ cd A.U.R.A-eve-tool
 1. `A.U.R.A. Source/requirements/install_auto.bat` (or a named hardware script in that folder).
 2. `run.bat`
 
-Standalone: `AURA_Setup_v0.3.2-alpha.1.exe` (bundled Python 3.12 and model weights).
+Standalone: `AURA_Setup_v0.4.0-alpha.1.exe` (bundled Python 3.12 and model weights).
 
-Chat is local GGUF. Optional hardware install profiles write `hardware_profile.json`. Details: [requirements/README.md](A.U.R.A.%20Source/requirements/README.md).
+Details on hardware profiles and co-processors: [requirements/README.md](A.U.R.A.%20Source/requirements/README.md).
 
 ---
 
-## Credits
+## Credits & Attributions
 
-Attributions: [CREDITS.md](CREDITS.md) and **Credits** in the app.
+Full attributions: [CREDITS.md](CREDITS.md) and the **Credits** modal in the application.
 
-Inspired by [RIFT](https://riftforeve.online), [PYFA](https://github.com/pyfa-org/Pyfa), and [dscan.info](https://dscan.info). Map data from [Fuzzwork](https://www.fuzzwork.co.uk). EVE Online belongs to CCP.
+Inspired by [RIFT](https://riftforeve.online), [PYFA](https://github.com/pyfa-org/Pyfa), and [dscan.info](https://dscan.info). Map data from [Fuzzwork](https://www.fuzzwork.co.uk). XMPP protocol specifications by the XMPP Standards Foundation (XSF). EVE Online is intellectual property of Fenris Creations / CCP Games.

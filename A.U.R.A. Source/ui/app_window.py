@@ -47,9 +47,13 @@ from core.input_safety import escape_html, safe_display_text, clamp_text
 from subsystems.intel import IntelSubsystem
 from subsystems.map import MapSubsystem
 from subsystems.fleet_comp import FleetCompSubsystem
+from subsystems.wormhole import WormholeSubsystem
+from subsystems.xmpp_chat import XMPPChatSubsystem
 from ui.tabs.fitting_tab import FittingLabWidget
 from ui.tabs.map_tab import MapTabWidget
 from ui.tabs.composition_tab import CompositionTabWidget
+from ui.tabs.wormhole_tab import WormholeTabWidget
+from ui.tabs.xmpp_tab import XMPPTabWidget
 from ui.theme import (
     ACCENT, ACCENT_HOVER, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT, TEXT_BRAND,
     BG_PANEL, BG_ELEVATED, BORDER, BTN_SECONDARY_BG, BTN_SECONDARY_BORDER,
@@ -65,9 +69,12 @@ _TAB_MIN_SIZES = {
     0: (420, 480),   # Live Intel Radar
     1: (960, 620),   # Composition
     2: (720, 500),   # Map
-    3: (960, 620),   # Fitting
-    4: (480, 500),   # A.U.R.A. Chat
+    3: (960, 620),   # Anokis
+    4: (960, 620),   # Fitting
+    5: (800, 560),   # XMPP
+    6: (480, 500),   # A.U.R.A. Chat
 }
+
 
 
 class TacticalInputEdit(QTextEdit):
@@ -444,73 +451,101 @@ class CreditsDialog(QDialog):
             — Fitting Lab workflow, EFT block parsing, and Dogma attribute math.</li>
             <li><a href="https://dscan.info" style="{link}">dscan.info</a> —
             directional-scan fleet breakdown, threat ranking, and Composition fleet-vs-scan matchup.</li>
-            <li><b>EVE Fitting Tool (EFT)</b> — standard <code>[Hull, Fit Name]</code> paste
+            <li><a href="https://tripwire.eve-apps.com" style="{link}">Tripwire (Daimian Mercer)</a> —
+            wormhole chain mapping, system logging, and cosmic signature tracking inspiration.</li>
+            <li><a href="https://www.pathfinder-w.space" style="{link}">Pathfinder (exodus442 &amp; Pathfinder Community)</a> —
+            dynamic wormhole chain visualization, mass tracking, and chain topology inspiration.</li>
+            <li><a href="https://github.com/the-wanderer-project" style="{link}">Wanderer (Wanderer Team &amp; Community)</a> —
+            wormhole navigation, signature lifecycle management, and mapping interface inspiration.</li>
+            <li><a href="https://xmpp.org" style="{link}">XMPP Standards Foundation (XSF)</a> —
+            open protocol specifications for extensible messaging, presence, and Multi-User Chat (XEP-0045).</li>
+            <li><b>EVE Fitting Tool (EFT)</b> — standard <code>[ShipName, Fit Name]</code> paste
             format used by Fitting Lab.</li>
           </ul>
 
           <h3 style="{h}">Neural Model &amp; Local Inference Stack</h3>
           <ul>
             <li><a href="https://huggingface.co/microsoft/Phi-4-mini-instruct" style="{link}">Microsoft Phi-4 Mini Instruct</a>
-            — base 3.8B multilingual reasoning model.</li>
+            — base 3.8B multilingual reasoning model (Microsoft Research).</li>
             <li><a href="https://huggingface.co/JeffTheNerdDev96/AURA-Eve-Tactical-Instruct-3.8B" style="{link}">AURA-Eve-Tactical-Instruct-3.8B</a>
             — fine-tuned tactical weights specialized for New Eden doctrine and combat analysis (JeffTheNerdDev96).</li>
             <li><a href="https://github.com/ggerganov/llama.cpp" style="{link}">llama.cpp (Georgi Gerganov)</a>
             — core GGUF tensor runtime, SIMD AVX2/AVX-512 vector math, and Q4_K_M quantization.</li>
             <li><a href="https://github.com/abetlen/llama-cpp-python" style="{link}">llama-cpp-python (Andrei Betlen)</a>
             — Python bindings for local inference and GPU layer offloading.</li>
-            <li><a href="https://huggingface.co" style="{link}">Hugging Face Hub</a> — model hosting and weight distribution.</li>
+            <li><a href="https://huggingface.co" style="{link}">Hugging Face Hub</a> — model hosting and weight distribution (Hugging Face Inc.).</li>
             <li><a href="https://colab.research.google.com" style="{link}">Google Colab</a>
-            — cloud GPU notebooks used for fine-tuning, evaluation, and model development.</li>
+            — cloud GPU environments used during dataset generation, fine-tuning, and model evaluation (Google Research).</li>
           </ul>
 
-          <h3 style="{h}">Hardware Acceleration &amp; Coprocessors</h3>
+          <h3 style="{h}">Hardware Acceleration &amp; Coprocessor Engines</h3>
           <ul>
-            <li><a href="https://docs.openvino.ai" style="{link}">Intel OpenVINO Toolkit</a>
-            — Intel NPU (AI Boost Level Zero) and Intel Arc / Iris Xe GPU compute pipelines.</li>
+            <li><a href="https://www.intel.com/content/www/us/en/developer/tools/openvino-toolkit/overview.html" style="{link}">Intel OpenVINO Toolkit</a>
+            — Intel NPU (AI Boost Level Zero) and Intel Arc / Iris Xe GPU compute pipelines (Intel Corporation).</li>
             <li><a href="https://onnxruntime.ai" style="{link}">ONNX Runtime DirectML</a>
-            — AMD Ryzen AI NPU (XDNA) and DirectML neural acceleration.</li>
-            <li><b>NVIDIA CUDA Toolkit (12.4+)</b> — dedicated GeForce / RTX GPU VRAM layer offloading.</li>
-            <li><a href="https://www.khronos.org/vulkan/" style="{link}">Khronos Vulkan 1.3</a> — cross-vendor compute shader pipeline for AMD Radeon and Intel GPUs.</li>
-            <li><b>Microsoft Windows Media OCR</b> — hardware-accelerated local optical character recognition.</li>
+            — AMD Ryzen AI NPU (XDNA) and DirectML neural acceleration (Microsoft &amp; AMD).</li>
+            <li><a href="https://developer.nvidia.com/cuda-toolkit" style="{link}">NVIDIA CUDA Toolkit (12.4+)</a> — dedicated GeForce / RTX / Quadro GPU VRAM layer offloading (NVIDIA Corporation).</li>
+            <li><a href="https://www.khronos.org/vulkan/" style="{link}">Khronos Vulkan 1.3</a> — cross-vendor compute shader pipeline for AMD Radeon, Intel Arc, and integrated APUs (Khronos Group &amp; LunarG).</li>
+            <li><a href="https://learn.microsoft.com/en-us/uwp/api/windows.media.ocr" style="{link}">Microsoft Windows Media OCR</a> — hardware-accelerated local optical character recognition for screenshot and killmail parsing (Microsoft Corporation).</li>
           </ul>
 
-          <h3 style="{h}">Installer, Packaging &amp; Toolchains</h3>
+          <h3 style="{h}">Installer, Packaging &amp; Runtime Toolchains</h3>
           <ul>
-            <li><a href="https://pyinstaller.org/" style="{link}">PyInstaller</a> — standalone Windows/Linux application and launcher stub freezing.</li>
-            <li><a href="https://github.com/indygreg/python-build-standalone" style="{link}">python-build-standalone (Gregory Szorc)</a> — relocatable CPython 3.12.14 distributions.</li>
-            <li><b>Microsoft Visual C++ 2015–2022 Redistributable</b> — bundled native runtime DLLs.</li>
-            <li><a href="https://jrsoftware.org/isinfo.php" style="{link}">Inno Setup</a> — packaging and installer architecture reference.</li>
+            <li><a href="https://pyinstaller.org/" style="{link}">PyInstaller</a> — Windows standalone executable (<code>AURA_Setup.exe</code>) and launcher stub freezing (David Cortesi, Martin Zibricky, Hartmut Goebel, et al.).</li>
+            <li><a href="https://github.com/indygreg/python-build-standalone" style="{link}">python-build-standalone (Gregory Szorc)</a> — self-contained, relocatable CPython 3.12.14 distribution builds.</li>
+            <li><a href="https://www.nuget.org/packages/python" style="{link}">NuGet CPython Distribution</a> — fallback clean CPython 3.12 64-bit runtime archive (Python Software Foundation).</li>
+            <li><a href="https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist" style="{link}">Microsoft Visual C++ Redistributable</a> — C/C++ native runtime libraries (<code>msvcp140.dll</code>, <code>vcruntime140.dll</code>) bundled for standalone isolation (Microsoft Corporation).</li>
+            <li><a href="https://learn.microsoft.com/en-us/windows/win32/seccrypto/signtool" style="{link}">PowerShell Authenticode &amp; Signtool</a> — code signing engine for binary verification and launcher integrity (Microsoft Corporation).</li>
+            <li><a href="https://jrsoftware.org/isinfo.php" style="{link}">Inno Setup</a> — packaging and installer architecture reference (Jordan Russell &amp; Martijn Laan).</li>
           </ul>
 
-          <h3 style="{h}">Python Core Libraries</h3>
+          <h3 style="{h}">Python Core Libraries &amp; Dependencies</h3>
           <ul>
+            <li><a href="https://www.python.org" style="{link}">Python</a> — application runtime environment (Python Software Foundation; Python 3.12.14).</li>
             <li><a href="https://www.riverbankcomputing.com/software/pyqt/" style="{link}">PyQt6</a>
-            — desktop UI framework (Riverbank Computing Ltd / The Qt Company).</li>
-            <li><a href="https://numpy.org" style="{link}">NumPy</a> — numerical array and vector math.</li>
+            — graphical user interface framework (Riverbank Computing Ltd &amp; The Qt Company; Qt 6.7+).</li>
+            <li><a href="https://numpy.org" style="{link}">NumPy</a> — numerical array and vector mathematics (NumPy Developers).</li>
             <li><a href="https://github.com/giampaolo/psutil" style="{link}">psutil (Giampaolo Rodola)</a>
             — real-time CPU, RAM, GPU, and process telemetry.</li>
-            <li><a href="https://python-pillow.org" style="{link}">Pillow (Alex Clark &amp; team)</a>
-            — multimodal screenshot and image preprocessing.</li>
+            <li><a href="https://python-pillow.org" style="{link}">Pillow</a>
+            — multimodal screenshot resizing, format conversion, and image preprocessing (Alex Clark &amp; Pillow Contributors).</li>
             <li><a href="https://pypi.org/project/winocr/" style="{link}">winocr</a>
-            — Windows.Media.Ocr ctypes wrapper.</li>
-            <li><a href="https://github.com/py-pdf/pypdf" style="{link}">pypdf</a>,
-            <a href="https://github.com/python-openxml/python-docx" style="{link}">python-docx</a>,
-            <a href="https://openpyxl.readthedocs.io" style="{link}">openpyxl</a>
-            — PDF, Word, and spreadsheet document ingestion.</li>
+            — Windows.Media.Ocr ctypes wrapper (winocr contributors).</li>
+            <li><a href="https://github.com/py-pdf/pypdf" style="{link}">pypdf</a> — tactical PDF briefing document ingestion (py-pdf team).</li>
+            <li><a href="https://github.com/python-openxml/python-docx" style="{link}">python-docx</a> — Microsoft Word document ingestion (Steve Canny).</li>
+            <li><a href="https://openpyxl.readthedocs.io" style="{link}">openpyxl</a> — tactical spreadsheet (.xlsx) data ingestion (Eric Gazoni, Charlie Clark).</li>
           </ul>
 
-          <h3 style="{h}">Typography &amp; Aesthetics</h3>
+          <h3 style="{h}">Typography, Brand &amp; Aesthetics</h3>
           <ul>
-            <li><a href="https://fonts.google.com/specimen/Orbitron" style="{link}">Orbitron</a>
-            — sci-fi display typeface for the A.U.R.A. chrome brand and action labels
-            (Matt McInerney / Google Fonts; <b>SIL Open Font License 1.1</b>).</li>
-            <li><b>A.U.R.A. Tactical Brand Mark</b> — original fan-made glyph inspired by Angel Cartel visual language.</li>
+            <li><a href="https://fonts.google.com/specimen/Orbitron" style="{link}">Orbitron Font Family</a>
+            — sci-fi header and tactical HUD display typeface (Matt McInerney; <b>SIL Open Font License 1.1</b>).</li>
+            <li><a href="https://fonts.google.com" style="{link}">Google Fonts</a> — typeface distribution (Google LLC).</li>
+            <li><b>A.U.R.A. Tactical Brand Mark</b> — original fan-made glyph inspired by Angel Cartel visual motifs (JeffTheNerdDev96; <code>aura_mark.png</code>, <code>app_icon.ico</code>).</li>
           </ul>
 
-          <h3 style="{h}">Legal &amp; Open Source</h3>
+          <h3 style="{h}">Trademarks &amp; Rightsholders</h3>
+          <ul>
+            <li><b>EVE Online &amp; New Eden</b> &mdash; Fenris Creations / FC Games (CCP hf).</li>
+            <li><b>Jabber</b> &mdash; Cisco Systems, Inc. / XSF. (A.U.R.A. features an open-standard XMPP Client).</li>
+            <li><b>Steam, Valve, Proton, SteamOS, Steam Deck</b> &mdash; Valve Corporation.</li>
+            <li><b>Linux</b> &mdash; Linus Torvalds / Linux Foundation.</li>
+            <li><b>Microsoft, Windows, DirectX, DirectML, Word, Excel</b> &mdash; Microsoft Corporation.</li>
+            <li><b>NVIDIA, GeForce, RTX, Quadro, CUDA</b> &mdash; NVIDIA Corporation.</li>
+            <li><b>Intel, OpenVINO, Intel Arc, Iris Xe, Intel AI Boost</b> &mdash; Intel Corporation.</li>
+            <li><b>AMD, Radeon, Ryzen, Ryzen AI, XDNA, Adrenalin</b> &mdash; Advanced Micro Devices, Inc.</li>
+            <li><b>Khronos, Vulkan</b> &mdash; Khronos Group Inc. &amp; LunarG.</li>
+            <li><b>Python</b> &mdash; Python Software Foundation (PSF).</li>
+            <li><b>Qt, PyQt</b> &mdash; The Qt Company Ltd &amp; Riverbank Computing Ltd.</li>
+            <li><b>Google, Google Colab, Google Fonts</b> &mdash; Google LLC.</li>
+            <li><b>Hugging Face</b> &mdash; Hugging Face Inc.</li>
+            <li><b>Adobe, PDF</b> &mdash; Adobe Systems Incorporated.</li>
+          </ul>
+
+          <h3 style="{h}">License &amp; Open Source Compliance</h3>
           <p>Adaptive Underworld Recon Array (A.U.R.A.) is released under the <b>GNU General Public License v3.0 (GPL-3.0)</b>. Third-party packages
           remain under their respective open-source licenses (MIT, BSD-3-Clause, Apache-2.0, LGPL-3.0, GPL-3.0, and SIL Open Font License 1.1).</p>
-          <p style="{muted}">The Code of Conduct is adapted from the
+          <p style="{muted}">The Code of Conduct is derived from the
           <a href="https://www.contributor-covenant.org" style="{link}">Contributor Covenant</a>, version 2.0.</p>
         </div>
         """
@@ -684,6 +719,13 @@ class MainWindow(QMainWindow):
         self.fleet_comp_subsystem = FleetCompSubsystem()
         self.fleet_comp_subsystem.initialize()
         self.fleet_comp_subsystem.start()
+        self.wormhole_subsystem = WormholeSubsystem()
+        self.wormhole_subsystem.initialize()
+        self.wormhole_subsystem.start()
+        self.xmpp_subsystem = XMPPChatSubsystem()
+        self.xmpp_subsystem.initialize()
+        self.xmpp_subsystem.start()
+
 
         self.engine = UnifiedInferenceEngine()
         self.chat_history: List[Dict[str, str]] = []
@@ -1079,19 +1121,30 @@ class MainWindow(QMainWindow):
         self.composition_tab = CompositionTabWidget()
         self.composition_tab.fleet_eval_requested.connect(self._handle_fleet_eval_submission)
 
+        self.anokis_tab = WormholeTabWidget(self.wormhole_subsystem)
+        self.anokis_tab.ask_aura_requested.connect(self._handle_external_ask_aura)
+
+        self.xmpp_tab = XMPPTabWidget(self.xmpp_subsystem)
+        self.xmpp_tab.ask_aura_requested.connect(self._handle_external_ask_aura)
+
         self.radar_tab_page = self._wrap_tab_card(right_panel)
-        self.fitting_tab_page = self._wrap_tab_card(self.fitting_lab)
-        self.map_tab_page = self._wrap_tab_card(self.map_tab)
         self.composition_tab_page = self._wrap_tab_card(self.composition_tab)
+        self.map_tab_page = self._wrap_tab_card(self.map_tab)
+        self.anokis_tab_page = self._wrap_tab_card(self.anokis_tab)
+        self.fitting_tab_page = self._wrap_tab_card(self.fitting_lab)
+        self.xmpp_tab_page = self._wrap_tab_card(self.xmpp_tab)
         self.chat_tab_page = self._wrap_tab_card(self.chat_tab)
 
         self.tabs.addTab(self.radar_tab_page, "Live Intel Radar")
         self.tabs.addTab(self.composition_tab_page, "Composition")
         self.tabs.addTab(self.map_tab_page, "Map")
+        self.tabs.addTab(self.anokis_tab_page, "Anokis")
         self.tabs.addTab(self.fitting_tab_page, "Fitting")
+        self.tabs.addTab(self.xmpp_tab_page, "XMPP")
         self.tabs.addTab(self.chat_tab_page, "A.U.R.A. Chat")
         self.tabs.currentChanged.connect(self._on_main_tab_changed)
         main_layout.addWidget(self.tabs, stretch=1)
+
 
         footer = QFrame()
         footer.setObjectName("BrowserFooter")
@@ -1888,6 +1941,12 @@ class MainWindow(QMainWindow):
             prompt,
             f"Fleet Matchup Analysis: Friendly ({f_total} ships) vs Hostile ({e_total} ships)",
         )
+
+    def _handle_external_ask_aura(self, prompt: str):
+        """Switches to the A.U.R.A. Chat tab and executes tactical query."""
+        self.tabs.setCurrentIndex(6)  # A.U.R.A. Chat is Tab index 6
+        self._execute_tactical_prompt(prompt, "Tactical Assistant Inquiry")
+
 
 
 
