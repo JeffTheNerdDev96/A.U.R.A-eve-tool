@@ -38,6 +38,26 @@ from ui.theme import (
 )
 
 
+def format_mass_state(mass: MassState) -> tuple[str, str]:
+    """Returns (short_display_text, hex_color)."""
+    if mass == MassState.DESTAB:
+        return ("Stage 2", "#f59e0b")
+    if mass == MassState.CRITICAL:
+        return ("Critical", "#ef4444")
+    if mass == MassState.VERGE:
+        return ("Verge", "#dc2626")
+    return ("Stage 1", TEXT_PRIMARY)
+
+
+def format_lifetime_state(life: LifetimeState) -> tuple[str, str]:
+    """Returns (short_display_text, hex_color)."""
+    if life == LifetimeState.END_OF_LIFE:
+        return ("EOL (<4h)", "#f59e0b")
+    if life == LifetimeState.CRITICAL:
+        return ("Critical", "#dc2626")
+    return ("Stable", TEXT_PRIMARY)
+
+
 class AddSystemDialog(QDialog):
     """Modal for adding a new wormhole solar system connection to the active chain."""
 
@@ -278,11 +298,28 @@ class WormholeTabWidget(QWidget):
 
         self.chain_tree = QTreeWidget()
         self.chain_tree.setHeaderLabels(["System", "Class", "Link", "Mass", "Life"])
-        self.chain_tree.header().setStretchLastSection(True)
+        self.chain_tree.setIndentation(12)
+        self.chain_tree.setRootIsDecorated(True)
+        self.chain_tree.setUniformRowHeights(True)
+
+        header = self.chain_tree.header()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Interactive)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Interactive)
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
+
+        self.chain_tree.setColumnWidth(0, 160)
+        self.chain_tree.setColumnWidth(1, 80)
+        self.chain_tree.setColumnWidth(2, 85)
+        self.chain_tree.setColumnWidth(3, 65)
+
         self.chain_tree.setStyleSheet(
             f"QTreeWidget {{ background:{BG_PANEL}; color:{TEXT_PRIMARY}; border:1px solid {BORDER_MUTED}; border-radius:4px; }}"
-            f"QHeaderView::section {{ background:{BG_ELEVATED}; color:{TEXT_SECONDARY}; border:none; padding:4px; font-weight:bold; font-size:11px; }}"
+            f"QHeaderView::section {{ background:{BG_ELEVATED}; color:{TEXT_SECONDARY}; border:none; padding:4px 6px; font-weight:bold; font-size:11px; }}"
+            f"QTreeWidget::item {{ padding:2px 0px; }}"
             f"QTreeWidget::item:selected {{ background:{ACCENT_DIM}; color:{TEXT_PRIMARY}; }}"
+            f"QTreeWidget::branch {{ background:transparent; }}"
         )
         self.chain_tree.itemClicked.connect(self._on_tree_item_clicked)
         l_layout.addWidget(self.chain_tree, stretch=1)
@@ -313,6 +350,10 @@ class WormholeTabWidget(QWidget):
         self.ask_aura_btn.clicked.connect(self._on_ask_aura_wh)
         sys_header_row.addWidget(self.ask_aura_btn)
         r_layout.addLayout(sys_header_row)
+
+        self.sys_conn_lbl = QLabel("")
+        self.sys_conn_lbl.setStyleSheet(f"color:{TEXT_HINT}; font-size:11px; padding:2px 0px;")
+        r_layout.addWidget(self.sys_conn_lbl)
 
         # Signature Table
         self.sig_table = QTableWidget()
@@ -374,7 +415,7 @@ class WormholeTabWidget(QWidget):
         r_layout.addLayout(paste_row)
 
         splitter.addWidget(right_panel)
-        splitter.setSizes([380, 560])
+        splitter.setSizes([440, 500])
 
         root.addWidget(splitter, stretch=1)
 
@@ -404,6 +445,8 @@ class WormholeTabWidget(QWidget):
                 parent_system=data["parent_system"],
                 wormhole_type=data["wormhole_type"],
                 system_class=data["system_class"],
+                mass_state=data["mass_state"],
+                lifetime_state=data["lifetime_state"],
             )
             self.selected_system = data["target_system"]
             self._refresh_ui()
@@ -436,14 +479,20 @@ class WormholeTabWidget(QWidget):
             parent_sys = conn.source_system
             if target_sys in chain.nodes:
                 target_node = chain.nodes[target_sys]
+                mass_text, mass_color = format_mass_state(conn.mass_state)
+                life_text, life_color = format_lifetime_state(conn.lifetime_state)
                 item = QTreeWidgetItem([
                     target_sys,
                     target_node.system_class.value,
                     conn.wormhole_type or "K162",
-                    conn.mass_state.value[:7],
-                    conn.lifetime_state.value[:6],
+                    mass_text,
+                    life_text,
                 ])
                 item.setData(0, Qt.ItemDataRole.UserRole, target_sys)
+                item.setForeground(3, QColor(mass_color))
+                item.setForeground(4, QColor(life_color))
+                item.setToolTip(3, f"Mass: {conn.mass_state.value}")
+                item.setToolTip(4, f"Lifetime: {conn.lifetime_state.value}")
                 if parent_sys in node_items:
                     node_items[parent_sys].addChild(item)
                 else:
@@ -467,15 +516,32 @@ class WormholeTabWidget(QWidget):
     def _refresh_signatures_table(self):
         if not self.wh_subsystem.active_chain or not self.selected_system:
             self.active_sys_lbl.setText("📡 <b>System: None Selected</b>")
+            self.sys_conn_lbl.setText("")
             self.sig_table.setRowCount(0)
             return
 
         chain = self.wh_subsystem.active_chain
         node = chain.nodes.get(self.selected_system)
         if not node:
+            self.sys_conn_lbl.setText("")
             return
 
         self.active_sys_lbl.setText(f"📡 <b>System: <span style='color:{ACCENT};'>{node.system_name}</span> ({node.system_class.value})</b>")
+
+        inbound_conn = next((c for c in chain.connections if c.target_system == self.selected_system), None)
+        if self.selected_system == chain.home_system:
+            self.sys_conn_lbl.setText("<span style='color:#34d399; font-weight:bold;'>[ROOT HOME SYSTEM]</span>")
+        elif inbound_conn:
+            _, m_col = format_mass_state(inbound_conn.mass_state)
+            _, l_col = format_lifetime_state(inbound_conn.lifetime_state)
+            self.sys_conn_lbl.setText(
+                f"🔗 Linked from <b>{inbound_conn.source_system}</b> via <b>{inbound_conn.wormhole_type or 'K162'}</b>  ·  "
+                f"Mass: <span style='color:{m_col}; font-weight:bold;'>{inbound_conn.mass_state.value}</span>  ·  "
+                f"Life: <span style='color:{l_col}; font-weight:bold;'>{inbound_conn.lifetime_state.value}</span>"
+            )
+        else:
+            self.sys_conn_lbl.setText("")
+
         self.sig_table.setRowCount(len(node.signatures))
 
         for row, (sig_id, sig) in enumerate(node.signatures.items()):

@@ -51,7 +51,7 @@ A.U.R.A. is an **offline-first Windows & Linux companion** for EVE Online. It ta
 
 ## 3. Live Intel Radar
 
-![Intel Radar screenshot](docs/assets/Intel-Radar.png "Intel Radar Overview")
+![Live Intel Radar](docs/assets/live-intel-radar-v0.4.0-alpha.1.png "Live Intel Radar & Hop Proximity Rings")
 
 Tails local EVE log files, classifies incoming intel lines with heuristic regex patterns, and displays cards ranked by hop distance from your current system.
 
@@ -69,7 +69,11 @@ Tails local EVE log files, classifies incoming intel lines with heuristic regex 
 
 ## 4. Composition
 
+![Fleet Composition Tool](docs/assets/comp-tool-v0.4.0-alpha.1.png "Friendly Fleet Composition & Matchup Breakdown")
+
 Dual-pane fleet analysis comparing your friendly fleet composition against a hostile Directional Scan (D-Scan) snapshot.
+
+![Directional Scan Analyzer](docs/assets/dscan-tool-v0.4.0-alpha.1.png "Hostile Directional Scan (D-Scan) Analysis")
 
 - **Six-Role Classification:** Evaluates fleet rosters across Logistics, Mainline DPS, Tacklers, EWAR, Covert Ops, and Support roles.
 - **Matchup Assessment:** Instant local heuristic evaluation of alpha strike risks, rep sustainability, and electronic warfare vulnerabilities.
@@ -78,6 +82,8 @@ Dual-pane fleet analysis comparing your friendly fleet composition against a hos
 ---
 
 ## 5. Map
+
+![Interactive Stargate Map](docs/assets/map-tool-v0.4.0-alpha.1.png "Interactive Stargate Bubble Map & BFS Routing")
 
 Interactive stargate neighborhood bubble centered on your current solar system.
 
@@ -88,6 +94,8 @@ Interactive stargate neighborhood bubble centered on your current solar system.
 ---
 
 ## 6. Anokis (Wormhole Chain & Signature Tracker)
+
+![Anokis Wormhole Chain & Signature Tracker](docs/assets/wh-tool-v0.4.0-alpha.1.png "Anokis Wormhole Chain Topology & Cosmic Signature Manager")
 
 Dedicated tactical management tab for wormhole exploration, chain mapping, and cosmic signature tracking.
 
@@ -107,7 +115,11 @@ Dedicated tactical management tab for wormhole exploration, chain mapping, and c
 
 ## 7. Fitting (Fitting Lab & Optimizer)
 
+![Fitting Lab](docs/assets/fitting-tool-v0.4.0-alpha.1.png "Visual EFT Fitting Lab & Dogma Attribute Breakdown")
+
 Visual EFT fitting lab and role evaluation console.
+
+![Fitting Optimizer](docs/assets/fit-optimize-tool-v0.4.0-alpha.1.png "Fitting Role Evaluator & Optimizer Console")
 
 - **EFT Ingestion:** Paste ship fits in standard EFT block format (`[Hull, Fit Name]`).
 - **Visual Slot Layout:** Categorizes modules into High, Medium, Low, Rig, and Subsystem racks.
@@ -117,6 +129,8 @@ Visual EFT fitting lab and role evaluation console.
 ---
 
 ## 8. XMPP (Alliance Tactical Messaging & Fleet Pings)
+
+![Alliance XMPP Tactical Messaging](docs/assets/xmpp-tool-v0.4.0-alpha.1.png "Alliance XMPP Tactical Messaging & Fleet Broadcast Pings")
 
 Dedicated out-of-game tactical communications tab (`subsystems/xmpp_chat`) for monitoring alliance broadcast channels, fleet pings, and coalition operations.
 
@@ -146,6 +160,8 @@ Dedicated out-of-game tactical communications tab (`subsystems/xmpp_chat`) for m
 ---
 
 ## 9. A.U.R.A. Chat (Local Neural Core)
+
+![A.U.R.A. Chat Neural Core](docs/assets/chat-tool-v0.4.0-alpha.1.png "A.U.R.A. Chat Local Neural Assistant & OCR Console")
 
 Local tactical AI assistant running quantized GGUF weights via `llama.cpp`.
 
