@@ -15,9 +15,9 @@ A.U.R.A. organizes its tactical suite into seven specialized desktop tabs:
 1. **Live Intel Radar** — Real-time chat log and game log tailer featuring heuristic threat classification (CLEAR to CRITICAL), hop-range proximity rings, and automated tactical responses.
 2. **Composition** — Friendly fleet composition vs. hostile D-scan analyzer. Includes multi-role breakdowns (Logistics, Mainline DPS, Tacklers, EWAR, Covert Ops) and local matchup heuristics.
 3. **Map** — Interactive stargate bubble graph centered on your current solar system, complete with intel threat overlays, BFS route planning, and custom system avoidance.
-4. **Anoikis** — Wormhole chain mapping system featuring interactive topology hierarchies, system class badges (C1–C6, Thera, Pochven, K-space), mass/lifetime decay tracking, and cosmic signature management via EVE probe scanner clipboard ingestion.
+4. **Anoikis**  *(EXPERIMENTAL)*— Wormhole chain mapping system featuring interactive topology hierarchies, system class badges (C1–C6, Thera, Pochven, K-space), mass/lifetime decay tracking, and cosmic signature management via EVE probe scanner clipboard ingestion.
 5. **Fitting** *(EXPERIMENTAL)* — Fitting Lab and EFT optimizer with visual slot layouts, module stat breakdowns, and "Ask A.U.R.A." role evaluations.
-6. **XMPP** — Alliance tactical messaging and broadcast ping receiver (`xmpp_chat`). Features real-time MUC broadcast channel monitoring, ping urgency classification (CTA, StratOp, Formup), and one-click tactical handover to A.U.R.A. Chat.  
+6. **XMPP**  *(EXPERIMENTAL)*— Alliance tactical messaging and broadcast ping receiver (`xmpp_chat`). Features real-time MUC broadcast channel monitoring, ping urgency classification (CTA, StratOp, Formup), and one-click tactical handover to A.U.R.A. Chat.  
    * *Security Notice:* XMPP credentials exist strictly in volatile memory for the active session and are **never saved to disk or configuration files**.
 7. **A.U.R.A. Chat** *(EXPERIMENTAL)* — Local GGUF neural reasoning core powered by `llama.cpp`. Serves as an onboard tactical assistant for combat briefings, document parsing, and screenshot OCR. The installer bundles **Phi-4 Mini (4-bit)** for local execution.
 
