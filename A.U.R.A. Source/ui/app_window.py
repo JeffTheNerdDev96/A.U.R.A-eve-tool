@@ -1,3 +1,21 @@
+# -*- coding: utf-8 -*-
+# ==============================================================================
+# Adaptive Underworld Recon Array (A.U.R.A.)
+# Copyright (C) 2026 JeffTheNerdDev96
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# ==============================================================================
 """
 A.U.R.A. Tactical Desktop Interface (PyQt6).
 Adaptive Underworld Recon Array (Angel Cartel Cybernetics Division).
@@ -543,7 +561,7 @@ class CreditsDialog(QDialog):
           </ul>
 
           <h3 style="{h}">License &amp; Open Source Compliance</h3>
-          <p>Adaptive Underworld Recon Array (A.U.R.A.) is released under the <b>GNU General Public License v3.0 (GPL-3.0)</b>. Third-party packages
+          <p>Adaptive Underworld Recon Array (A.U.R.A.) is released under the <b>GNU Affero General Public License Version 3 (AGPL-3.0)</b>. Third-party packages
           remain under their respective open-source licenses (MIT, BSD-3-Clause, Apache-2.0, LGPL-3.0, GPL-3.0, and SIL Open Font License 1.1).</p>
           <p style="{muted}">The Code of Conduct is derived from the
           <a href="https://www.contributor-covenant.org" style="{link}">Contributor Covenant</a>, version 2.0.</p>

@@ -35,10 +35,10 @@ Please complete the checklist below:
   - [ ] Fedora Linux (39 / 40 / 41)
   - [ ] Ubuntu / Debian Linux (22.04 / 24.04 LTS)
   - [ ] Arch Linux / Other Linux
-- **A.U.R.A. Release**: `[e.g., v0.3.0-alpha1]`
+- **A.U.R.A. Release**: `[e.g., v0.4.1-alpha.1]`
 - **Installation Method**:
-  - [ ] Windows Installer (`AURA_Setup_v0.3.0-alpha1.exe`)
-  - [ ] Linux Standalone Bundle (`aura-linux-standalone-v0.3.0-alpha1.tar.gz`)
+  - [ ] Windows Installer (`AURA_Setup_v0.4.1-alpha.1.exe`)
+  - [ ] Linux Standalone Bundle (`aura-linux-standalone-v0.4.1-alpha.1.tar.gz`)
   - [ ] Source / Developer Checkout (`run.bat` or `app.py`)
 - **Hardware Acceleration Profile**:
   - [ ] NVIDIA CUDA (Dedicated GPU)

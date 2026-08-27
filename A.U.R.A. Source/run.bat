@@ -1,4 +1,21 @@
 @echo off
+:: ============================================================================
+:: Adaptive Underworld Recon Array (A.U.R.A.)
+:: Copyright (C) 2026 JeffTheNerdDev96
+::
+:: This program is free software: you can redistribute it and/or modify
+:: it under the terms of the GNU Affero General Public License as published by
+:: the Free Software Foundation, either version 3 of the License, or
+:: (at your option) any later version.
+::
+:: This program is distributed in the hope that it will be useful,
+:: but WITHOUT ANY WARRANTY; without even the implied warranty of
+:: MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+:: GNU Affero General Public License for more details.
+::
+:: You should have received a copy of the GNU Affero General Public License
+:: along with this program.  If not, see <https://www.gnu.org/licenses/>.
+:: ============================================================================
 setlocal
 @chcp 65001 >nul
 cd /d "%~dp0"
@@ -7,17 +24,17 @@ set "SCRIPT_DIR=%~dp0"
 set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8
 set PYTHONDONTWRITEBYTECODE=1
-title Adaptive Underworld Recon Array (A.U.R.A.) - v0.3.1-alpha2
+title Adaptive Underworld Recon Array (A.U.R.A.) - v0.4.1-alpha.1
 
 cls
 echo ===================================================================
-echo   [+] Adaptive Underworld Recon Array (A.U.R.A.) - v0.3.1-alpha2
+echo   [+] Adaptive Underworld Recon Array (A.U.R.A.) - v0.4.1-alpha.1
 echo   Angel Cartel Cybernetics Division
 echo ===================================================================
 echo.
 
-if exist "%SCRIPT_DIR%A.U.R.A.-v0.3.1-alpha2.exe" (
-    start "" /d "%SCRIPT_DIR%" "%SCRIPT_DIR%A.U.R.A.-v0.3.1-alpha2.exe"
+if exist "%SCRIPT_DIR%A.U.R.A.-v0.4.1-alpha.1.exe" (
+    start "" /d "%SCRIPT_DIR%" "%SCRIPT_DIR%A.U.R.A.-v0.4.1-alpha.1.exe"
     exit /b 0
 )
 if exist "%SCRIPT_DIR%A.U.R.A.exe" (
@@ -43,7 +60,7 @@ if exist "%SCRIPT_DIR%runtime\python.exe" (
     goto :LAUNCH
 )
 
-echo [X] Python 3.12+ was not found. Run AURA_Setup_v0.3.1-alpha2.exe or requirements\install_auto.bat
+echo [X] Python 3.12+ was not found. Run AURA_Setup_v0.4.1-alpha.1.exe or requirements\install_auto.bat
 pause
 exit /b 1
 

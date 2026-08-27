@@ -1,4 +1,21 @@
 @echo off
+:: ============================================================================
+:: Adaptive Underworld Recon Array (A.U.R.A.)
+:: Copyright (C) 2026 JeffTheNerdDev96
+::
+:: This program is free software: you can redistribute it and/or modify
+:: it under the terms of the GNU Affero General Public License as published by
+:: the Free Software Foundation, either version 3 of the License, or
+:: (at your option) any later version.
+::
+:: This program is distributed in the hope that it will be useful,
+:: but WITHOUT ANY WARRANTY; without even the implied warranty of
+:: MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+:: GNU Affero General Public License for more details.
+::
+:: You should have received a copy of the GNU Affero General Public License
+:: along with this program.  If not, see <https://www.gnu.org/licenses/>.
+:: ============================================================================
 rem Shared venv bootstrap for hardware setup bats. Sets PYTHON_EXE for the caller.
 
 set "REQ_DIR=%~dp0"
@@ -29,7 +46,7 @@ if %ERRORLEVEL% EQU 0 goto :AFTER_CREATE
 python "%PY_CHECK%" 2>nul
 if %ERRORLEVEL% NEQ 0 (
     echo [X] Error: Python 3.12+ is required. Found an unsupported Python version.
-    echo [!] Please install Python 3.12 64-bit from python.org or run AURA_Setup_v0.3.1-alpha2.exe.
+    echo [!] Please install Python 3.12 64-bit from python.org or run AURA_Setup_v0.4.1-alpha.1.exe.
     exit /b 1
 )
 python -m venv "%REQ_DIR%venv"

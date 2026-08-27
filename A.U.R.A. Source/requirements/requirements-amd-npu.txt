@@ -1,3 +1,8 @@
+# ==============================================================================
+# Adaptive Underworld Recon Array (A.U.R.A.)
+# Copyright (C) 2026 JeffTheNerdDev96
+# Protected by GNU Affero General Public License Version 3 (AGPL-3.0)
+# ==============================================================================
 # Adaptive Underworld Recon Array (A.U.R.A.) — AMD Ryzen AI NPU (XDNA)
 -r requirements.txt
 onnxruntime-directml>=1.18.0

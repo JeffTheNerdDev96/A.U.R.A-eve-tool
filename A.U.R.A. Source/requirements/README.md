@@ -1,4 +1,4 @@
-# A.U.R.A. v0.3.2-alpha.1 — Multi-Vendor Hardware Acceleration Ecosystem
+# A.U.R.A. v0.4.1-alpha.1 — Multi-Vendor Hardware Acceleration Ecosystem
 
 Feature documentation: [USER_GUIDE.md](../../USER_GUIDE.md) in the repository root.
 
@@ -71,3 +71,10 @@ OS GPU/NPU drivers are **checked and linked**, never silently installed.
 ## Automatic compose
 
 `install_auto.bat` (also used by `run.bat` self-heal) picks one GGUF wheel (CUDA > Vulkan dGPU > Vulkan iGPU > CPU) and adds NPU extras when an Intel or AMD NPU is present. Typical Intel Core Ultra: Vulkan llama **plus** OpenVINO NPU.
+
+---
+
+## License
+
+This software and its installation modules are distributed under the **[GNU Affero General Public License Version 3 (AGPL-3.0)](../../LICENSE.txt)**.
+

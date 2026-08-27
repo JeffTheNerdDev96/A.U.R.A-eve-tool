@@ -54,6 +54,13 @@ Once core backend engines stabilize and the project transitions from Alpha towar
 - Comprehensive PR templates, coding standards, and linting guidelines will be published.
 - Subsystem maintainer roles will be introduced.
 
+---
+
+## License Grant
+
+By contributing to **Adaptive Underworld Recon Array (A.U.R.A.)**, you agree that all submitted source code, documentation, heuristics, and assets will be licensed under the terms of the **[GNU Affero General Public License Version 3 (AGPL-3.0)](LICENSE.txt)**.
+
 Thank you for your understanding and support as we build out the foundations of A.U.R.A.!
+
 
 

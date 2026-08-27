@@ -1,7 +1,7 @@
 # Legal, Terms of Use, Regulatory Compliance & Operational Disclaimers
 # Adaptive Underworld Recon Array (A.U.R.A.)
 
-Product Version: `v0.4.0-alpha.1`[cite: 2]
+Product Version: `v0.4.1-alpha.1`
 Lead Architect & Maintainer: **JeffTheNerdDev96**[cite: 2]
 
 > **Legal Construction Note:** For the purposes of this document, the title *Adaptive Underworld Recon Array* may and will be abbreviated interchangeably as **A.U.R.A.** throughout all terms, conditions, disclaimers, and operational clauses below.[cite: 2]
@@ -10,12 +10,12 @@ Lead Architect & Maintainer: **JeffTheNerdDev96**[cite: 2]
 
 ## 1. Third-Party Licenses & Asset Boundaries
 
-A.U.R.A. source code is licensed under the **[GNU General Public License v3.0 (GPL-3.0)](LICENSE)**.[cite: 2] Specific bundled assets and dependencies are governed by their respective independent licenses:[cite: 2]
+A.U.R.A. source code is licensed under the **[GNU Affero General Public License Version 3 (AGPL-3.0)](LICENSE.txt)**. Specific bundled assets and dependencies are governed by their respective independent licenses:
 
-* **Application Core:** Licensed under **GNU GPLv3**.[cite: 2]
-* **Third-Party Dependencies:** Libraries utilized by this runtime (e.g., NumPy, PyQt6, psutil, Pillow, winocr, pypdf, python-docx, openpyxl) are governed by their respective upstream licenses (MIT, BSD-3-Clause, LGPLv3, Apache 2.0).[cite: 2]
-* **Typography Assets:** Typefaces bundled within this application (including the Orbitron Font Family) are distributed under the **SIL Open Font License 1.1 (OFL-1.1)**.[cite: 2] The original OFL license text and copyright notices are preserved intact within the distribution package (`Orbitron-OFL.txt`).[cite: 2]
-* **Neural Model Weights & Quantizations:** The base Microsoft Phi-4 Mini Instruct model weights and the specialized `AURA-Eve-Tactical-Instruct-3.8B` fine-tuned weights are distributed independently under their own permissive terms (MIT / Apache-2.0) and remain legally decoupled from the GPLv3 application codebase.[cite: 2]
+* **Application Core:** Licensed under **GNU AGPLv3**.
+* **Third-Party Dependencies:** Libraries utilized by this runtime (e.g., NumPy, PyQt6, psutil, Pillow, winocr, pypdf, python-docx, openpyxl) are governed by their respective upstream licenses (MIT, BSD-3-Clause, LGPLv3, Apache 2.0).
+* **Typography Assets:** Typefaces bundled within this application (including the Orbitron Font Family) are distributed under the **SIL Open Font License 1.1 (OFL-1.1)**. The original OFL license text and copyright notices are preserved intact within the distribution package (`Orbitron-OFL.txt`).
+* **Neural Model Weights & Quantizations:** The base Microsoft Phi-4 Mini Instruct model weights and the specialized `AURA-Eve-Tactical-Instruct-3.8B` fine-tuned weights are distributed independently under their own permissive terms (MIT / Apache-2.0) and remain legally decoupled from the AGPLv3 application codebase.
 
 ---
 
@@ -70,7 +70,7 @@ A.U.R.A. is designed and engineered strictly as an **out-of-process, passive des
 
 ## 7. MMO Virtual Asset Loss Clarification
 
-This section supplements the standard general disclaimer of warranty and limitation of liability under the GNU General Public License v3.0 by clarifying risks inherent to MMO gameplay:[cite: 1, 2]
+This section supplements the standard general disclaimer of warranty and limitation of liability under the GNU Affero General Public License Version 3 by clarifying risks inherent to MMO gameplay:
 
 * **Complete and Unconditional In-Game Loss Waiver:** EVE Online is a non-consensual, permanent-loss sandbox environment where tactical miscalculations, software latency, heuristic inaccuracies, or situational awareness failures result in irreversible virtual property destruction.[cite: 2] Under no circumstances and under no legal theory shall the authors, maintainers, contributors, or distributors of A.U.R.A. be held liable for any in-game destruction, tactical compromise, character penalty, asset forfeiture, or financial deficit occurring prior to, during, or subsequent to the use of this software.[cite: 2]
 * **Scope of Excluded Virtual Assets:** This waiver explicitly covers the damage, unanchoring, reinforcement, destruction, theft, entrapment, or loss of any and all in-game items, currencies, and tactical positions, including without limitation supercapitals, capitals, subcapitals, modules, Upwell structures, wormhole chains, bookmarks, ISK, PLEX, implants, and sovereignty infrastructure.[cite: 2]

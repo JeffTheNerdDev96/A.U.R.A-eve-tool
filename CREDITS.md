@@ -1,7 +1,7 @@
 # Credits & Acknowledgements
 
 **Adaptive Underworld Recon Array (A.U.R.A.)**  
-Angel Cartel Cybernetics Division | Product Version: `v0.4.0-alpha.1`  
+Angel Cartel Cybernetics Division | Product Version: `v0.4.1-alpha.1`  
 Author & Lead Maintainer: **JeffTheNerdDev96**
 
 A.U.R.A. is an unofficial, fan-made tactical companion for EVE Online. It exists thanks to the open-source community, game data contributors, hardware architects, and third-party developer ecosystem listed below.
@@ -150,7 +150,7 @@ The table below highlights the trademarked names, copyrighted technologies, and 
 
 ## 10. License & Open Source Compliance
 
-A.U.R.A. is free and open-source software distributed under the terms of the **[GNU General Public License v3.0 (GPL-3.0)](LICENSE)**.
+A.U.R.A. is free and open-source software distributed under the terms of the **[GNU Affero General Public License Version 3 (AGPL-3.0)](LICENSE.txt)**.
 
 All third-party libraries, binaries, and fonts remain the property of their respective copyright holders and are distributed under compatible open-source licenses (MIT, BSD-3-Clause, Apache-2.0, LGPL-3.0, GPL-3.0, and SIL Open Font License 1.1).
 
