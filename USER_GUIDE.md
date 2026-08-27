@@ -94,7 +94,7 @@ Interactive stargate neighborhood bubble centered on your current solar system.
 ---
 
 ## 6. Anokis (Wormhole Chain & Signature Tracker)
-
+## EXPERIMENTAL/IN DEV FEATURE
 ![Anokis Wormhole Chain & Signature Tracker](docs/assets/wh-tool-v0.4.0-alpha.1.png "Anokis Wormhole Chain Topology & Cosmic Signature Manager")
 
 Dedicated tactical management tab for wormhole exploration, chain mapping, and cosmic signature tracking.
@@ -114,7 +114,7 @@ Dedicated tactical management tab for wormhole exploration, chain mapping, and c
 ---
 
 ## 7. Fitting (Fitting Lab & Optimizer)
-
+## EXPERIMENTAL/IN DEV FEATURE
 ![Fitting Lab](docs/assets/fitting-tool-v0.4.0-alpha.1.png "Visual EFT Fitting Lab & Dogma Attribute Breakdown")
 
 Visual EFT fitting lab and role evaluation console.
@@ -129,7 +129,7 @@ Visual EFT fitting lab and role evaluation console.
 ---
 
 ## 8. XMPP (Alliance Tactical Messaging & Fleet Pings)
-
+## EXPERIMENTAL/IN DEV FEATURE
 ![Alliance XMPP Tactical Messaging](docs/assets/xmpp-tool-v0.4.0-alpha.1.png "Alliance XMPP Tactical Messaging & Fleet Broadcast Pings")
 
 Dedicated out-of-game tactical communications tab (`subsystems/xmpp_chat`) for monitoring alliance broadcast channels, fleet pings, and coalition operations.
@@ -160,7 +160,7 @@ Dedicated out-of-game tactical communications tab (`subsystems/xmpp_chat`) for m
 ---
 
 ## 9. A.U.R.A. Chat (Local Neural Core)
-
+## EXPERIMENTAL/IN DEV FEATURE
 ![A.U.R.A. Chat Neural Core](docs/assets/chat-tool-v0.4.0-alpha.1.png "A.U.R.A. Chat Local Neural Assistant & OCR Console")
 
 Local tactical AI assistant running quantized GGUF weights via `llama.cpp`.
