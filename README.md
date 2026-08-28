@@ -8,6 +8,10 @@ A.U.R.A. is an unofficial, community-developed, fan-made tactical companion. It 
 
 ---
 
+LINUX EDITION - https://github.com/JeffTheNerdDev96/A.U.R.A.-eve-tool-linux
+
+---
+
 ## Tabs/Features
 
 A.U.R.A. organizes its tactical suite into seven specialized desktop tabs:
