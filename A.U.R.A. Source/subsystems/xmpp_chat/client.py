@@ -50,18 +50,21 @@ from .models import (
 
 # Common regex patterns for New Eden alliance broadcast pings
 _RE_BROADCAST_HEADER = re.compile(
-    r"(?:\*\*\*+\s*(?:ALLIANCE|COALITION|CORP|FLEET)\s*(?:BROADCAST|PING)\s*\*\*\*+|^\s*(?:ALLIANCE|CORP|FLEET)\s*PING:)",
+    r"(?:\*\*\*+\s*(?:ALLIANCE|COALITION|CORP|FLEET)\s*(?:BROADCAST|PING)\s*\*\*\*+|^\s*(?:ALLIANCE|CORP|FLEET)\s*PING:|~~~+\s*(?:This was a\s*)?(?:coord\s*)?broadcast\b)",
     re.IGNORECASE,
 )
 _RE_CTA = re.compile(r"\b(?:CTA|CALL\s*TO\s*ARMS|MAX\s*NUMBERS|RED\s*ALERT)\b", re.IGNORECASE)
-_RE_STRATOP = re.compile(r"\b(?:STRATOP|STRATEGIC\s*OP|OBJECTIVE|TIMER|NODE\s*WAR)\b", re.IGNORECASE)
+_RE_STRATOP = re.compile(r"\b(?:STRATOP|STRATEGIC(?:\s*OP)?|OBJECTIVE|TIMER|NODE\s*WAR)\b", re.IGNORECASE)
 _RE_STAND_DOWN = re.compile(r"\b(?:STAND\s*DOWN|STANDDOWN|CANCELLED|DISPERSE|OP\s*OVER)\b", re.IGNORECASE)
-_RE_FORMUP = re.compile(r"\b(?:FORMUP|FORMING|FORM\s*UP|NOW\s*FORMING|IN\s*FLEET)\b", re.IGNORECASE)
+_RE_FORMUP = re.compile(r"\b(?:FORMUP|FORMING|FORM\s*UP|NOW\s*FORMING|IN\s*FLEET|FORUMUP)\b", re.IGNORECASE)
 
-_RE_FC = re.compile(r"(?:FC|FLEET\s*COMMANDER|COMMANDER)\s*:\s*([A-Za-z0-9 '\-_]+)", re.IGNORECASE)
+_RE_FC = re.compile(r"(?:FC(?:\s*NAME)?|FLEET\s*COMMANDER(?:\s*NAME)?|COMMANDER)\s*[:\-/]\s*([^\n\r]+)", re.IGNORECASE)
 _RE_DOCTRINE = re.compile(r"(?:DOCTRINE|SHIPS?|COMP|BRING)\s*:\s*([^\n\r,]+)", re.IGNORECASE)
-_RE_LOCATION = re.compile(r"(?:LOCATION|SYSTEM|STAGING|DESTINATION|DEST|MOVE\s*TO)\s*:\s*([A-Za-z0-9\-]+)", re.IGNORECASE)
-_RE_PAP = re.compile(r"(?:PAP|FATIGUE|LINK)\s*:\s*(https?://[^\s]+)", re.IGNORECASE)
+_RE_LOCATION = re.compile(
+    r"(?:FORMUP(?:\s*LOCATION)?|FORUMUP(?:\s*LOCATION)?|LOC(?:ATION)?|STAGING(?:\s*SYSTEM)?|STAGE|DEST(?:INATION)?|TARGET(?:\s*SYSTEM)?|SYSTEM|MOVE\s*TO)\s*[:\-/]\s*([A-Za-z0-9\- ]+)",
+    re.IGNORECASE,
+)
+_RE_PAP = re.compile(r"(?:PAP(?:\s*TYPE)?|FATIGUE|LINK)\s*:\s*(https?://[^\s]+|[A-Za-z0-9\- ]+)", re.IGNORECASE)
 _RE_MUMBLE = re.compile(r"(?:COMMS?|MUMBLE|TS3?|VOICE)\s*:\s*([^\n\r]+)", re.IGNORECASE)
 
 
@@ -112,12 +115,19 @@ def parse_broadcast_ping(raw_body: str) -> XMPPBroadcastPing | None:
     fc_name = ""
     fc_m = _RE_FC.search(raw_body)
     if fc_m:
-        fc_name = fc_m.group(1).strip()
+        raw_fc = fc_m.group(1).strip()
+        # Clean FC name (strip comments, brackets, or delimiters)
+        raw_fc = re.split(r"[|\(\[\n\r]", raw_fc)[0].strip()
+        if raw_fc and raw_fc.lower() not in ("unknown", "n/a", "none"):
+            fc_name = raw_fc
 
-    target_system = ""
+    staging_system = ""
     loc_m = _RE_LOCATION.search(raw_body)
     if loc_m:
-        target_system = loc_m.group(1).strip().upper()
+        raw_loc = loc_m.group(1).strip()
+        tokens = raw_loc.split()
+        if tokens:
+            staging_system = tokens[0].strip("(),.").upper()
 
     doctrine_ships: list[str] = []
     doc_m = _RE_DOCTRINE.search(raw_body)
@@ -147,7 +157,7 @@ def parse_broadcast_ping(raw_body: str) -> XMPPBroadcastPing | None:
         mumble_channel = mum_m.group(1).strip()
 
     return XMPPBroadcastPing(
-        target_system=target_system,
+        staging_system=staging_system,
         doctrine_ships=doctrine_ships,
         fc_name=fc_name,
         formup_timer="",
@@ -155,6 +165,7 @@ def parse_broadcast_ping(raw_body: str) -> XMPPBroadcastPing | None:
         mumble_channel=mumble_channel,
         priority=priority,
         raw_body=raw_body.strip(),
+        target_system=staging_system,
     )
 
 
@@ -711,7 +722,7 @@ class XMPPProtocolAdapter:
                     v_resp = (
                         f"<iq{to_attr} id='{escape_xml(iq_id)}' type='result'>"
                         f"<query xmlns='jabber:iq:version'>"
-                        f"<name>A.U.R.A.</name><version>v0.4.2-alpha.1</version><os>Windows</os>"
+                        f"<name>A.U.R.A.</name><version>v0.4.3-alpha.1</version><os>Windows</os>"
                         f"</query></iq>"
                     )
                     try:
@@ -838,15 +849,32 @@ class XMPPProtocolAdapter:
 
             if "/" in from_jid:
                 room_or_user, resource_or_nick = from_jid.split("/", 1)
-                # If this is a MUC room join
+                # Check if this presence is from a joined MUC room
                 if room_or_user in self._joined_rooms and pres_type != "error":
-                    if self.on_room_joined:
-                        self.on_room_joined(room_or_user, resource_or_nick, status_val or "Alliance Channel")
-                # If this is a contact presence update
-                bare_user = room_or_user
-                if bare_user in self._roster:
-                    self._roster[bare_user].presence_show = "offline" if pres_type == "unavailable" else show_val
-                    self._roster[bare_user].presence_status = status_val
-                    if self.on_roster_updated:
-                        self.on_roster_updated(list(self._roster.values()))
+                    # XEP-0045: Check if presence corresponds to self-presence (status code 110 or own nick)
+                    is_self_presence = False
+                    for code_elem in elem.findall(".//{*}status"):
+                        if code_elem.attrib.get("code") == "110":
+                            is_self_presence = True
+                            break
+
+                    my_nick = (self.config.nickname or self.config.username) if self.config else ""
+                    if not is_self_presence and my_nick and resource_or_nick.lower() == my_nick.lower():
+                        is_self_presence = True
+
+                    if is_self_presence:
+                        if pres_type != "unavailable" and self.on_room_joined:
+                            self.on_room_joined(room_or_user, resource_or_nick, status_val or "Alliance Channel")
+                    else:
+                        # Occupant presence update from other pilots in the channel:
+                        # Silently ignore to avoid triggering join loop & tree refreshes for hundreds of pilots
+                        pass
+                else:
+                    # Contact presence update for 1:1 pilots / roster
+                    bare_user = room_or_user
+                    if bare_user in self._roster:
+                        self._roster[bare_user].presence_show = "offline" if pres_type == "unavailable" else show_val
+                        self._roster[bare_user].presence_status = status_val
+                        if self.on_roster_updated:
+                            self.on_roster_updated(list(self._roster.values()))
 

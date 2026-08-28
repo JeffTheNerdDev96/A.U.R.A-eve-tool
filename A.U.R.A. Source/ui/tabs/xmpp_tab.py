@@ -802,15 +802,21 @@ class XMPPTabWidget(QWidget):
         sender = msg.sender_nick or msg.sender_jid.split("@", 1)[0]
         bare_jid = msg.sender_jid.split("/", 1)[0]
         html = f"""
-        <div style='background:{BG_ELEVATED}; border:1px solid #a78bfa; border-left:4px solid #a78bfa; border-radius:4px; padding:8px 10px; margin:6px 0;'>
-          <div style='display:flex; justify-content:space-between; margin-bottom:4px;'>
-            <b style='color:#c4b5fd; font-size:12px;'>💬 DIRECT MESSAGE FROM {escape_html(sender)}</b>
-            <span style='color:{TEXT_HINT}; font-size:11px;'>{ts}</span>
-          </div>
+        <div style='text-align:left; background:{BG_ELEVATED}; border:1px solid #a78bfa; border-left:4px solid #a78bfa; border-radius:4px; padding:8px 10px; margin:6px 0;'>
+          <table width='100%' style='margin-bottom:4px; border:none;' cellspacing='0' cellpadding='0'>
+            <tr>
+              <td align='left' style='vertical-align:middle;'><b style='color:#c4b5fd; font-size:12px;'>💬 DIRECT MESSAGE FROM {escape_html(sender)}</b></td>
+              <td align='right' style='vertical-align:middle; color:{TEXT_HINT}; font-size:11px;'>{ts}</td>
+            </tr>
+          </table>
           <div style='color:{TEXT_PRIMARY}; font-size:12px; margin-bottom:6px; background:{BG_PANEL}; border:1px solid {BORDER_MUTED}; border-radius:3px; padding:6px;'>{escape_html(msg.body)}</div>
-          <div style='text-align:right;'>
-            <a href='opendm:{escape_html(bare_jid)}' style='color:{ACCENT}; text-decoration:none; font-size:11px; font-weight:bold; background:{BG_PANEL}; border:1px solid {ACCENT}; border-radius:3px; padding:3px 8px;'>💬 Open Direct Chat with {escape_html(sender)} ➤</a>
-          </div>
+          <table width='100%' style='margin-top:4px; border:none;' cellspacing='0' cellpadding='0'>
+            <tr>
+              <td align='right'>
+                <a href='opendm:{escape_html(bare_jid)}' style='color:{TEXT_PRIMARY}; text-decoration:none; font-size:11px; font-weight:bold; background:{ACCENT_DIM}; border:1px solid {ACCENT}; border-radius:3px; padding:3px 8px;'>💬 Open Direct Chat with {escape_html(sender)} ➤</a>
+              </td>
+            </tr>
+          </table>
         </div>
         """
         self.stream_browser.append(html)
@@ -822,30 +828,36 @@ class XMPPTabWidget(QWidget):
             "#f97316" if msg.priority == XMPPBroadcastPriority.STRATOP else "#38bdf8"
         )
 
-        target_sys = p.target_system if p and p.target_system else "Unknown"
+        staging_sys = p.staging_system if (p and p.staging_system) else (p.target_system if (p and p.target_system) else "Unknown")
         fc = p.fc_name if p and p.fc_name else (msg.sender_nick or "Alliance FC")
         doc = ", ".join(p.doctrine_ships) if p and p.doctrine_ships else "All Available Combat Hulls"
 
         # Ask AURA prompt preparation
         tactical_query = (
-            f"Tactical evaluation of alliance broadcast ping: Target System '{target_sys}', "
+            f"Tactical evaluation of alliance broadcast ping: Staging System '{staging_sys}', "
             f"FC '{fc}', Doctrine '{doc}', Priority '{msg.priority.value}'. "
             f"Please analyze tactical threats, gate choke points, and recommend counter-fitting / positioning."
         )
         encoded_query = urllib.parse.quote(tactical_query)
 
         html = f"""
-        <div style='background:{BG_ELEVATED}; border:1px solid {priority_color}; border-left:5px solid {priority_color}; border-radius:4px; padding:10px; margin:8px 0;'>
-          <div style='display:flex; justify-content:space-between; margin-bottom:6px;'>
-            <b style='color:{priority_color}; font-size:13px; letter-spacing:1px;'>🚨 ALLIANCE FLEET PING [{msg.priority.value.upper()}]</b>
-            <span style='color:{TEXT_HINT}; font-size:11px;'>{ts}</span>
-          </div>
-          <div style='color:{TEXT_PRIMARY}; font-size:12px; margin-bottom:4px;'><b>FC:</b> {escape_html(fc)} | <b>Target System:</b> <span style='color:{ACCENT}; font-weight:bold;'>{escape_html(target_sys)}</span></div>
+        <div style='text-align:left; background:{BG_ELEVATED}; border:1px solid {priority_color}; border-left:5px solid {priority_color}; border-radius:4px; padding:10px; margin:8px 0;'>
+          <table width='100%' style='margin-bottom:6px; border:none;' cellspacing='0' cellpadding='0'>
+            <tr>
+              <td align='left' style='vertical-align:middle;'><b style='color:{priority_color}; font-size:13px; letter-spacing:1px;'>🚨 ALLIANCE FLEET PING [{msg.priority.value.upper()}]</b></td>
+              <td align='right' style='vertical-align:middle; color:{TEXT_HINT}; font-size:11px;'>{ts}</td>
+            </tr>
+          </table>
+          <div style='color:{TEXT_PRIMARY}; font-size:12px; margin-bottom:4px;'><b>FC:</b> {escape_html(fc)} | <b>Staging System:</b> <span style='color:{ACCENT}; font-weight:bold;'>{escape_html(staging_sys)}</span></div>
           <div style='color:{TEXT_SECONDARY}; font-size:12px; margin-bottom:6px;'><b>Doctrine Ships:</b> {escape_html(doc)}</div>
           <div style='background:{BG_PANEL}; border:1px solid {BORDER_MUTED}; border-radius:3px; padding:8px; color:{TEXT_PRIMARY}; font-family:monospace; font-size:11px; white-space:pre-wrap; margin-bottom:6px;'>{escape_html(msg.body)}</div>
-          <div style='text-align:right;'>
-            <a href='ask_aura:{encoded_query}' style='color:{ACCENT}; text-decoration:none; font-size:11px; font-weight:bold; background:{BG_PANEL}; border:1px solid {ACCENT}; border-radius:3px; padding:4px 8px;'>🤖 Ask A.U.R.A. Analysis ➤</a>
-          </div>
+          <table width='100%' style='margin-top:6px; border:none;' cellspacing='0' cellpadding='0'>
+            <tr>
+              <td align='right'>
+                <a href='ask_aura:{encoded_query}' style='color:{TEXT_PRIMARY}; text-decoration:none; font-size:11px; font-weight:bold; background:{ACCENT_DIM}; border:1px solid {ACCENT}; border-radius:3px; padding:4px 10px;'>⚡ ASK A.U.R.A. ANALYSIS ➤</a>
+              </td>
+            </tr>
+          </table>
         </div>
         """
         self.stream_browser.append(html)

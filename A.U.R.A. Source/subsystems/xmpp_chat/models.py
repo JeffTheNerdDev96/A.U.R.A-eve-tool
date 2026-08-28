@@ -87,7 +87,7 @@ class XMPPAccountConfig:
 @dataclass(slots=True)
 class XMPPBroadcastPing:
     """Parsed New Eden fleet ping extracted from broadcast bot messages."""
-    target_system: str = ""
+    staging_system: str = ""
     doctrine_ships: list[str] = field(default_factory=list)
     fc_name: str = ""
     formup_timer: str = ""
@@ -95,6 +95,13 @@ class XMPPBroadcastPing:
     mumble_channel: str = ""
     priority: XMPPBroadcastPriority = XMPPBroadcastPriority.INFO
     raw_body: str = ""
+    target_system: str = ""
+
+    def __post_init__(self):
+        if not self.staging_system and self.target_system:
+            self.staging_system = self.target_system
+        elif not self.target_system and self.staging_system:
+            self.target_system = self.staging_system
 
 
 @dataclass(slots=True)

@@ -239,20 +239,22 @@ class XMPPChatSubsystem(BaseSubsystem):
 
     def inject_simulated_ping(
         self,
-        target_system: str = "1DQ1-A",
+        staging_system: str = "1DQ1-A",
         doctrine: str = "Tengu / Cerberus",
         fc: str = "ScoutCommander",
         body: str = "",
+        target_system: str = "",
     ) -> XMPPMessage:
         """
         Helper method to inject a synthetic alliance broadcast ping for testing or UI demonstration.
         """
+        effective_sys = staging_system or target_system or "1DQ1-A"
         raw = body or (
             f"*** ALLIANCE BROADCAST ***\n"
-            f"STRATOP: Hostile Fortizar Timer in {target_system}\n"
-            f"FC: {fc}\n"
+            f"STRATOP: Hostile Fortizar Timer in {effective_sys}\n"
+            f"FC Name: {fc}\n"
+            f"Formup Location: {effective_sys}\n"
             f"DOCTRINE: {doctrine}\n"
-            f"LOCATION: {target_system}\n"
             f"COMMS: Fleet 1 (Mumble)\n"
             f"PAP: https://auth.alliance.net/pap/12345\n"
             f"All pilots in standing form up immediately!"
