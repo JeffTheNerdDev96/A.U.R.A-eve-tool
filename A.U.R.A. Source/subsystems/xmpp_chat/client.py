@@ -33,8 +33,9 @@ import ssl
 import threading
 import time
 import xml.etree.ElementTree as ET
-from typing import Callable, Any
+from typing import Callable
 
+from version import VERSION
 from core.error_handler import AURAErrorCode, log_diagnostic_error
 from core.eve_data import lookup_ship
 from .models import (
@@ -722,7 +723,7 @@ class XMPPProtocolAdapter:
                     v_resp = (
                         f"<iq{to_attr} id='{escape_xml(iq_id)}' type='result'>"
                         f"<query xmlns='jabber:iq:version'>"
-                        f"<name>A.U.R.A.</name><version>v0.4.3-alpha.1</version><os>Windows</os>"
+                        f"<name>A.U.R.A.</name><version>{VERSION}</version><os>Windows</os>"
                         f"</query></iq>"
                     )
                     try:

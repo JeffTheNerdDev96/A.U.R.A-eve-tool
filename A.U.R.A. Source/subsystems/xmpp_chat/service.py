@@ -40,7 +40,6 @@ from .models import (
     XMPPConnectionState,
     XMPPMessage,
     XMPPMessageType,
-    XMPPBroadcastPing,
     XMPPBroadcastPriority,
     XMPPMUCChannel,
     XMPPRosterContact,

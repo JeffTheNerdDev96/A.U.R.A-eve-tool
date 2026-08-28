@@ -30,7 +30,7 @@ from PyQt6.QtGui import QBrush, QColor, QPen, QFont, QWheelEvent, QPolygonF
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton,
     QFrame, QGraphicsView, QGraphicsScene, QGraphicsEllipseItem,
-    QGraphicsLineItem, QGraphicsTextItem, QGraphicsPolygonItem, QGraphicsItem, QScrollArea,
+    QGraphicsLineItem, QGraphicsTextItem, QGraphicsPolygonItem, QGraphicsItem,
     QSizePolicy,
 )
 
@@ -38,9 +38,9 @@ from subsystems.map import EveMapGraph, MapSubsystem
 from subsystems.map.models import RouteResult
 from core.input_safety import safe_display_text
 from ui.theme import (
-    BG_DEEP, BG_PANEL, BG_ELEVATED, BORDER, BORDER_MUTED, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT,
-    TEXT_BRAND, ACCENT, ACCENT_HOVER, ACCENT_DIM, BTN_TEXT_ON_ACCENT, BORDER_FOCUS, STATUS_ONLINE,
-    btn_secondary_css, radar_accent_btn_css,
+    BG_DEEP, BG_PANEL, BG_ELEVATED, BORDER, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT,
+    TEXT_BRAND, ACCENT, ACCENT_DIM, BTN_TEXT_ON_ACCENT,
+    btn_secondary_css,
 )
 
 INTEL_TTL_SEC = 10 * 60

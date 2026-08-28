@@ -26,7 +26,6 @@ import uuid
 import time
 from core.base_subsystem import BaseSubsystem
 from core.events import (
-    WormholeChainUpdatedEvent,
     WormholeSystemAddedEvent,
     WormholeConnectionUpdatedEvent,
     CosmicSignatureUpdatedEvent,
@@ -37,7 +36,6 @@ from .models import (
     WormholeChain,
     CosmicSignature,
     WormholeClass,
-    WormholeEffect,
     MassState,
     LifetimeState,
 )
@@ -109,8 +107,9 @@ class WormholeSubsystem(BaseSubsystem):
         system_class: WormholeClass = WormholeClass.UNKNOWN,
         mass_state: MassState = MassState.FRESH,
         lifetime_state: LifetimeState = LifetimeState.STABLE,
+        lifetime_duration_hours: float | None = 24.0,
     ) -> WormholeNode | None:
-        """Adds a discovered wormhole system and optional connection link."""
+        """Adds a discovered wormhole system and optional connection link with expiration timer."""
         if self.active_chain is None:
             self.initialize()
 
@@ -124,6 +123,8 @@ class WormholeSubsystem(BaseSubsystem):
         self.active_chain.nodes[system_name] = node
 
         if parent_system and parent_system in self.active_chain.nodes:
+            now = time.time()
+            expires_at = (now + lifetime_duration_hours * 3600.0) if lifetime_duration_hours and lifetime_duration_hours > 0 else None
             conn = WormholeConnection(
                 connection_id=str(uuid.uuid4()),
                 source_system=parent_system,
@@ -131,6 +132,8 @@ class WormholeSubsystem(BaseSubsystem):
                 wormhole_type=wormhole_type,
                 mass_state=mass_state,
                 lifetime_state=lifetime_state,
+                created_at=now,
+                expires_at=expires_at,
             )
             self.active_chain.connections.append(conn)
 
@@ -156,6 +159,84 @@ class WormholeSubsystem(BaseSubsystem):
             )
         )
         return node
+
+    def remove_connection(self, source_system: str, target_system: str) -> bool:
+        """Removes an active connection link between two systems."""
+        if not self.active_chain:
+            return False
+        before = len(self.active_chain.connections)
+        self.active_chain.connections = [
+            c for c in self.active_chain.connections
+            if not (c.source_system == source_system and c.target_system == target_system)
+        ]
+        if len(self.active_chain.connections) < before:
+            self.active_chain.updated_at = time.time()
+            return True
+        return False
+
+    def remove_system(self, system_name: str) -> bool:
+        """Removes a solar system and all its associated connections from the active chain."""
+        if not self.active_chain or system_name not in self.active_chain.nodes:
+            return False
+        if system_name == self.active_chain.home_system:
+            # Re-initialize chain if home system is removed
+            self.initialize()
+            return True
+
+        del self.active_chain.nodes[system_name]
+        self.active_chain.connections = [
+            c for c in self.active_chain.connections
+            if c.source_system != system_name and c.target_system != system_name
+        ]
+        self.active_chain.updated_at = time.time()
+        return True
+
+    def update_connection_timers(self) -> tuple[list[str], list[str]]:
+        """
+        Updates lifetime states based on expires_at countdown.
+        Returns (eol_connection_ids, expired_connection_ids).
+        """
+        if not self.active_chain:
+            return [], []
+        now = time.time()
+        eol_ids: list[str] = []
+        expired_ids: list[str] = []
+
+        for conn in self.active_chain.connections:
+            if conn.expires_at is None:
+                continue
+            rem = conn.expires_at - now
+            if rem <= 0:
+                conn.lifetime_state = LifetimeState.CRITICAL
+                expired_ids.append(conn.connection_id)
+            elif rem <= 4 * 3600:
+                conn.lifetime_state = LifetimeState.END_OF_LIFE
+                eol_ids.append(conn.connection_id)
+            else:
+                conn.lifetime_state = LifetimeState.STABLE
+
+        return eol_ids, expired_ids
+
+    def clear_expired_connections(self) -> int:
+        """Removes all connections that have exceeded their lifetime timer."""
+        if not self.active_chain:
+            return 0
+        now = time.time()
+        expired = [c for c in self.active_chain.connections if c.expires_at and c.expires_at <= now]
+        if not expired:
+            return 0
+        expired_targets = {c.target_system for c in expired}
+        self.active_chain.connections = [
+            c for c in self.active_chain.connections
+            if not (c.expires_at and c.expires_at <= now)
+        ]
+        # Remove orphaned child nodes that no longer have inbound links
+        for target in expired_targets:
+            has_inbound = any(c.target_system == target for c in self.active_chain.connections)
+            if not has_inbound and target in self.active_chain.nodes and target != self.active_chain.home_system:
+                del self.active_chain.nodes[target]
+        self.active_chain.updated_at = now
+        return len(expired)
 
     def add_or_update_signature(
         self,

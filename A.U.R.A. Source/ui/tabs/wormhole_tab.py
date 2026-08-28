@@ -27,8 +27,8 @@ import time
 import re
 from typing import Optional, Any
 
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QColor, QFont
+from PyQt6.QtCore import Qt, pyqtSignal, QTimer
+from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton,
     QFrame, QTableWidget, QTableWidgetItem, QHeaderView, QComboBox,
@@ -39,19 +39,15 @@ from PyQt6.QtWidgets import (
 from subsystems.wormhole import (
     WormholeSubsystem,
     WormholeClass,
-    WormholeEffect,
     MassState,
     LifetimeState,
     SignatureGroup,
     CosmicSignature,
-    WormholeNode,
 )
-from core.input_safety import escape_html, safe_display_text
 from ui.theme import (
     BG_DEEP, BG_PANEL, BG_ELEVATED, BORDER, BORDER_MUTED,
-    TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT, TEXT_BRAND,
-    ACCENT, ACCENT_HOVER, ACCENT_DIM, BTN_TEXT_ON_ACCENT,
-    STATUS_ONLINE, STATUS_STANDBY_BG,
+    TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT,
+    ACCENT, ACCENT_DIM, STATUS_ONLINE,
     radar_accent_btn_css, radar_control_btn_css, btn_secondary_css, dialog_stylesheet,
 )
 
@@ -67,8 +63,18 @@ def format_mass_state(mass: MassState) -> tuple[str, str]:
     return ("Stage 1", TEXT_PRIMARY)
 
 
-def format_lifetime_state(life: LifetimeState) -> tuple[str, str]:
+def format_lifetime_state(life: LifetimeState, expires_at: Optional[float] = None) -> tuple[str, str]:
     """Returns (short_display_text, hex_color)."""
+    if expires_at is not None:
+        rem = expires_at - time.time()
+        if rem <= 0:
+            return ("EXPIRED", "#dc2626")
+        hrs = int(rem // 3600)
+        mins = int((rem % 3600) // 60)
+        if rem <= 4 * 3600:
+            return (f"EOL ({hrs}h {mins:02d}m)", "#f59e0b")
+        return (f"Stable ({hrs}h {mins:02d}m)", TEXT_PRIMARY)
+
     if life == LifetimeState.END_OF_LIFE:
         return ("EOL (<4h)", "#f59e0b")
     if life == LifetimeState.CRITICAL:
@@ -82,7 +88,7 @@ class AddSystemDialog(QDialog):
     def __init__(self, current_systems: list[str], parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setWindowTitle("Anokis — Add Wormhole Connection")
-        self.resize(480, 360)
+        self.resize(480, 400)
         self.setStyleSheet(dialog_stylesheet())
         self.current_systems = current_systems
         self._init_ui()
@@ -165,19 +171,23 @@ class AddSystemDialog(QDialog):
         m_row.addWidget(self.mass_combo, stretch=1)
         layout.addLayout(m_row)
 
-        # Lifetime State
-        l_row = QHBoxLayout()
-        l_lbl = QLabel("Lifetime Status:")
-        l_lbl.setFixedWidth(120)
-        l_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px; font-weight: bold;")
-        l_row.addWidget(l_lbl)
+        # Lifetime Duration Timer
+        d_row = QHBoxLayout()
+        d_lbl = QLabel("Link Lifetime:")
+        d_lbl.setFixedWidth(120)
+        d_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px; font-weight: bold;")
+        d_row.addWidget(d_lbl)
 
-        self.life_combo = QComboBox()
-        self.life_combo.setFixedHeight(30)
-        for l_enum in LifetimeState:
-            self.life_combo.addItem(l_enum.value, l_enum)
-        l_row.addWidget(self.life_combo, stretch=1)
-        layout.addLayout(l_row)
+        self.duration_combo = QComboBox()
+        self.duration_combo.setFixedHeight(30)
+        self.duration_combo.addItem("24 Hours (Standard)", 24.0)
+        self.duration_combo.addItem("16 Hours (Short)", 16.0)
+        self.duration_combo.addItem("48 Hours (Long / Capital)", 48.0)
+        self.duration_combo.addItem("4 Hours (Immediate EOL)", 4.0)
+        self.duration_combo.addItem("2 Hours (Critical)", 2.0)
+        self.duration_combo.addItem("No Timer", 0.0)
+        d_row.addWidget(self.duration_combo, stretch=1)
+        layout.addLayout(d_row)
 
         # Dialog Buttons
         btn_layout = QHBoxLayout()
@@ -204,13 +214,16 @@ class AddSystemDialog(QDialog):
         self.accept()
 
     def get_data(self) -> dict[str, Any]:
+        dur = float(self.duration_combo.currentData() or 24.0)
+        life = LifetimeState.STABLE if dur > 4.0 else (LifetimeState.END_OF_LIFE if dur > 0 else LifetimeState.STABLE)
         return {
             "parent_system": self.parent_combo.currentText().strip(),
             "target_system": self.target_edit.text().strip().upper(),
             "system_class": self.class_combo.currentData(),
             "wormhole_type": self.code_edit.text().strip().upper(),
             "mass_state": self.mass_combo.currentData(),
-            "lifetime_state": self.life_combo.currentData(),
+            "lifetime_state": life,
+            "lifetime_duration_hours": dur,
         }
 
 
@@ -232,6 +245,11 @@ class WormholeTabWidget(QWidget):
             f"QLabel {{ color:{TEXT_SECONDARY}; }}"
         )
         self._init_ui()
+
+        # 10-second background timer tick for link countdowns
+        self.poll_timer = QTimer(self)
+        self.poll_timer.timeout.connect(self._on_timer_tick)
+        self.poll_timer.start(10000)
 
     def _init_ui(self):
         root = QVBoxLayout(self)
@@ -285,11 +303,23 @@ class WormholeTabWidget(QWidget):
 
         h_layout.addStretch()
 
-        self.add_wh_btn = QPushButton("➕ Add Connection")
+        self.add_wh_btn = QPushButton("➕ Add Link")
         self.add_wh_btn.setFixedHeight(28)
         self.add_wh_btn.setStyleSheet(radar_accent_btn_css())
         self.add_wh_btn.clicked.connect(self._open_add_connection_dialog)
         h_layout.addWidget(self.add_wh_btn)
+
+        self.remove_wh_btn = QPushButton("🗑️ Remove Link")
+        self.remove_wh_btn.setFixedHeight(28)
+        self.remove_wh_btn.setStyleSheet(btn_secondary_css())
+        self.remove_wh_btn.clicked.connect(self._on_remove_selected)
+        h_layout.addWidget(self.remove_wh_btn)
+
+        self.clear_expired_btn = QPushButton("⏳ Clear Expired")
+        self.clear_expired_btn.setFixedHeight(28)
+        self.clear_expired_btn.setStyleSheet(btn_secondary_css())
+        self.clear_expired_btn.clicked.connect(self._on_clear_expired)
+        h_layout.addWidget(self.clear_expired_btn)
 
         self.reset_chain_btn = QPushButton("🧹 Reset Chain")
         self.reset_chain_btn.setFixedHeight(28)
@@ -465,8 +495,38 @@ class WormholeTabWidget(QWidget):
                 system_class=data["system_class"],
                 mass_state=data["mass_state"],
                 lifetime_state=data["lifetime_state"],
+                lifetime_duration_hours=data.get("lifetime_duration_hours", 24.0),
             )
             self.selected_system = data["target_system"]
+            self._refresh_ui()
+
+    def _on_timer_tick(self):
+        """Periodic background tick that updates link countdown timers and EOL transitions."""
+        if self.wh_subsystem.active_chain and self.wh_subsystem.active_chain.connections:
+            self.wh_subsystem.update_connection_timers()
+            self._refresh_ui()
+
+    def _on_remove_selected(self):
+        """Removes the currently selected system/link from the active chain."""
+        if not self.selected_system or not self.wh_subsystem.active_chain:
+            return
+        if self.selected_system == self.wh_subsystem.active_chain.home_system:
+            QMessageBox.information(
+                self,
+                "Anokis",
+                "Cannot remove root Home system. Use 'Reset Chain' to re-initialize the entire topology.",
+            )
+            return
+        self.wh_subsystem.remove_system(self.selected_system)
+        self.selected_system = self.wh_subsystem.active_chain.home_system or ""
+        self._refresh_ui()
+
+    def _on_clear_expired(self):
+        """One-click prune of all dead / expired wormhole connections in the active chain."""
+        cleared_count = self.wh_subsystem.clear_expired_connections()
+        if cleared_count > 0:
+            if self.selected_system not in (self.wh_subsystem.active_chain.nodes if self.wh_subsystem.active_chain else {}):
+                self.selected_system = self.wh_subsystem.active_chain.home_system if self.wh_subsystem.active_chain else ""
             self._refresh_ui()
 
     def _on_reset_chain(self):
@@ -498,7 +558,7 @@ class WormholeTabWidget(QWidget):
             if target_sys in chain.nodes:
                 target_node = chain.nodes[target_sys]
                 mass_text, mass_color = format_mass_state(conn.mass_state)
-                life_text, life_color = format_lifetime_state(conn.lifetime_state)
+                life_text, life_color = format_lifetime_state(conn.lifetime_state, conn.expires_at)
                 item = QTreeWidgetItem([
                     target_sys,
                     target_node.system_class.value,

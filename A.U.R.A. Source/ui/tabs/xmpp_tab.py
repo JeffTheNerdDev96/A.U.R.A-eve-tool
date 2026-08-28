@@ -35,7 +35,7 @@ from PyQt6.QtGui import QColor, QDesktopServices
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton,
     QFrame, QTextBrowser, QTreeWidget, QTreeWidgetItem, QSplitter,
-    QCheckBox, QSpinBox, QSizePolicy, QAbstractItemView,
+    QCheckBox, QSpinBox, QSizePolicy,
 )
 
 from subsystems.xmpp_chat import (
@@ -44,17 +44,16 @@ from subsystems.xmpp_chat import (
     XMPPConnectionState,
     XMPPMessage,
     XMPPMessageType,
-    XMPPBroadcastPing,
     XMPPBroadcastPriority,
     XMPPMUCChannel,
     XMPPRosterContact,
 )
-from core.input_safety import escape_html, safe_display_text
+from core.input_safety import escape_html
 from ui.theme import (
     BG_DEEP, BG_PANEL, BG_ELEVATED, BORDER, BORDER_MUTED,
     TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT, TEXT_BRAND,
-    ACCENT, ACCENT_HOVER, ACCENT_DIM, BTN_TEXT_ON_ACCENT,
-    STATUS_ONLINE, STATUS_STANDBY_BG,
+    ACCENT, ACCENT_DIM,
+    STATUS_STANDBY_BG,
     radar_accent_btn_css, radar_control_btn_css, btn_secondary_css,
 )
 

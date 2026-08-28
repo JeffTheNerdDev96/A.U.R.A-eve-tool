@@ -24,7 +24,7 @@ from typing import override
 from core.base_subsystem import BaseSubsystem
 from core.events import FittingCalculatedEvent
 from .parser import FittingParser
-from .stats import calculate_fit_stats
+from .stats import calculate_fit_stats, validate_module_fit
 from .models import ParsedFitting, FittingSlotLayout
 
 
@@ -55,26 +55,66 @@ class FittingSubsystem(BaseSubsystem):
         if not raw_fit:
             return None
 
-        stats = calculate_fit_stats(raw_fit)
-        
+        ship_name = raw_fit.get("ship_name") or raw_fit.get("hull_name", "")
+        fit_name = raw_fit.get("fit_name", "")
+
+        # Validate modules against hardpoints and single-fit rules
+        validation_warnings: list[str] = []
+        rejected_modules: list[str] = []
+        fitted_so_far: list[str] = []
+        valid_highs: list[str] = []
+        valid_mids: list[str] = []
+        valid_lows: list[str] = []
+        valid_rigs: list[str] = []
+        valid_subs: list[str] = []
+
+        slot_groups = [
+            (raw_fit.get("high_slots", []), valid_highs),
+            (raw_fit.get("mid_slots", []), valid_mids),
+            (raw_fit.get("low_slots", []), valid_lows),
+            (raw_fit.get("rig_slots", []), valid_rigs),
+            (raw_fit.get("subsystems", []), valid_subs),
+        ]
+
+        for raw_group, valid_target in slot_groups:
+            for mod in raw_group:
+                if not mod:
+                    continue
+                ok, reason = validate_module_fit(ship_name, fitted_so_far, mod)
+                if ok:
+                    valid_target.append(mod)
+                    fitted_so_far.append(mod)
+                else:
+                    rejected_modules.append(mod)
+                    validation_warnings.append(f"{mod}: {reason}")
+
+        stats = calculate_fit_stats({
+            "ship_name": ship_name,
+            "high_slots": valid_highs,
+            "mid_slots": valid_mids,
+            "low_slots": valid_lows,
+            "rig_slots": valid_rigs,
+            "subsystems": valid_subs,
+        })
+
         layout = FittingSlotLayout(
-            high_slots=raw_fit.get("high_slots", []),
-            mid_slots=raw_fit.get("mid_slots", []),
-            low_slots=raw_fit.get("low_slots", []),
-            rig_slots=raw_fit.get("rig_slots", []),
-            subsystems=raw_fit.get("subsystems", []),
+            high_slots=valid_highs,
+            mid_slots=valid_mids,
+            low_slots=valid_lows,
+            rig_slots=valid_rigs,
+            subsystems=valid_subs,
             drones=raw_fit.get("drones", []),
             cargo=raw_fit.get("cargo", [])
         )
 
-        ship_name = raw_fit.get("ship_name") or raw_fit.get("hull_name", "")
-        fit_name = raw_fit.get("fit_name", "")
         parsed = ParsedFitting(
             ship_name=ship_name,
             fit_name=fit_name,
             slots=layout,
             raw_eft=eft_text,
-            stats=stats
+            stats=stats,
+            validation_warnings=validation_warnings,
+            rejected_modules=rejected_modules,
         )
 
         # Emit event

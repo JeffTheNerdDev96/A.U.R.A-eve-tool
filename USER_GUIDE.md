@@ -1,7 +1,7 @@
-# Adaptive Underworld Recon Array (A.U.R.A.) — v0.4.3-alpha.1 — User Guide
+# Adaptive Underworld Recon Array (A.U.R.A.) — v0.5.0-alpha.1 — User Guide
 
 **Adaptive Underworld Recon Array (A.U.R.A.)**  
-*v0.4.3-alpha.1*  
+*v0.5.0-alpha.1*  
 *Angel Cartel Cybernetics Division — by JeffTheNerdDev96*
 
 Not affiliated with or endorsed by CCP Games / Fenris Creations. EVE Online is a trademark of CCP / Fenris Creations.
@@ -222,7 +222,7 @@ All diagnostic errors are logged to `logs/crash.log`:
 
 A.U.R.A. includes full out-of-the-box compatibility with **Valve Proton 11**, GE-Proton, Proton Experimental, and standard Wine prefixes.
 
-1. **Standalone Installation:** Run `AURA_Setup_v0.4.3-alpha.1.exe` via Proton, or copy the application folder to your Linux drive.
+1. **Standalone Installation:** Run `AURA_Setup_v0.5.0-alpha.1.exe` via Proton, or copy the application folder to your Linux drive.
 2. **Add Non-Steam Game:** In Steam, click **Add a Non-Steam Game** → select `AURA_Launcher.exe` (or `Launch_A.U.R.A_Debug.bat`).
 3. **Compatibility:** Under shortcut Properties → **Compatibility** → select **Proton 11** or Proton Experimental.
 4. **Chatlog Auto-Discovery:** Steam installations auto-discover the EVE Online log directory under:

@@ -36,11 +36,11 @@ from PyQt6.QtWidgets import (
 from core.eve_data import SHIP_DATABASE, MODULE_DATABASE, lookup_ship, lookup_module
 from subsystems.fitting.parser import FittingParser
 from core.error_handler import AURAErrorCode, log_diagnostic_error
-from subsystems.fitting.stats import compute_fit, module_load
+from subsystems.fitting.stats import compute_fit, module_load, validate_module_fit
 from ui.theme import (
     TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT, TEXT_HEADER,
-    BG_PANEL, BG_DEEP, BG_ELEVATED, BORDER, BORDER_MUTED, ACCENT, ACCENT_DIM, BORDER_FOCUS,
-    BURNT_IRON_LIGHT, BTN_TEXT_ON_ACCENT,
+    BG_PANEL, BG_DEEP, BG_ELEVATED, BORDER, BORDER_MUTED, ACCENT, BORDER_FOCUS,
+    BURNT_IRON_LIGHT,
     btn_secondary_css, radar_accent_btn_css,
 )
 
@@ -633,6 +633,12 @@ class FittingLabWidget(QWidget):
         name = self._selected_module_name(item)
         if not name:
             return
+        hull = self.hull_combo.currentText().strip()
+        current_mods = self._all_fitted()
+        ok, reason = validate_module_fit(hull, current_mods, name)
+        if not ok:
+            QMessageBox.warning(self, "Fitting Restriction", f"Cannot fit {name}:\n{reason}")
+            return
         kind = self._module_slot_kind(name)
         for btn in self.slot_buttons.get(kind, []):
             if not btn.module_name:
@@ -652,6 +658,12 @@ class FittingLabWidget(QWidget):
         kind = self._module_slot_kind(name)
         if kind != btn.kind:
             QMessageBox.information(self, "Fitting", f"{name} belongs in a {kind} slot.")
+            return
+        hull = self.hull_combo.currentText().strip()
+        current_mods = self._all_fitted()
+        ok, reason = validate_module_fit(hull, current_mods, name)
+        if not ok:
+            QMessageBox.warning(self, "Fitting Restriction", f"Cannot fit {name}:\n{reason}")
             return
         btn.set_module(name)
         self._after_fit_change()
@@ -809,17 +821,26 @@ class FittingLabWidget(QWidget):
                 "rig": parsed.get("rig_slots") or [],
                 "sub": parsed.get("subsystems") or [],
             }
+            fitted_so_far: List[str] = []
             for kind, mods in mapping.items():
                 buttons = self.slot_buttons.get(kind, [])
-                for i, btn in enumerate(buttons):
-                    if i < len(mods) and mods[i]:
-                        btn.set_module(mods[i])
-                    else:
-                        btn.set_empty()
-                if len(mods) > len(buttons):
-                    overflow_notes.append(
-                        f"{len(mods) - len(buttons)} extra {kind} module(s) dropped"
-                    )
+                btn_idx = 0
+                for mod in mods:
+                    if not mod:
+                        continue
+                    if btn_idx >= len(buttons):
+                        overflow_notes.append(f"Dropped {mod}: No empty {kind} slot remaining.")
+                        continue
+                    ok, reason = validate_module_fit(hull, fitted_so_far, mod)
+                    if not ok:
+                        overflow_notes.append(f"Rejected {mod}: {reason}")
+                        continue
+                    buttons[btn_idx].set_module(mod)
+                    fitted_so_far.append(mod)
+                    btn_idx += 1
+                while btn_idx < len(buttons):
+                    buttons[btn_idx].set_empty()
+                    btn_idx += 1
 
             self.drones = list(parsed.get("drones") or [])
             self.cargo = list(parsed.get("cargo_items") or [])

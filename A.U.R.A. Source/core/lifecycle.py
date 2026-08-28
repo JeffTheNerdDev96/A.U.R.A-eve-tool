@@ -22,7 +22,6 @@ Application lifecycle: temp-file cleanup and ordered shutdown of threads and neu
 from __future__ import annotations
 
 import gc
-import os
 import shutil
 import sys
 import threading
@@ -84,6 +83,17 @@ def shutdown_application(window: Any | None = None) -> None:
         except Exception as exc:
             _log_shutdown_error(exc, "shutdown: idle_timer")
 
+        # Stop tab-level timers
+        for tab_attr, timer_attr in (("anokis_tab", "poll_timer"), ("map_tab", "_prune_timer")):
+            try:
+                tab_widget = getattr(window, tab_attr, None)
+                if tab_widget is not None:
+                    timer = getattr(tab_widget, timer_attr, None)
+                    if timer is not None and hasattr(timer, "stop"):
+                        timer.stop()
+            except Exception as exc:
+                _log_shutdown_error(exc, f"shutdown: {tab_attr}.{timer_attr}")
+
         try:
             if hasattr(window, "tray_icon") and window.tray_icon:
                 window.tray_icon.hide()
@@ -125,7 +135,7 @@ def shutdown_application(window: Any | None = None) -> None:
             _log_shutdown_error(exc, "shutdown: engine")
 
         # 4. Stop all attached subsystems
-        for sub_attr in ("intel_subsystem", "map_subsystem", "fleet_comp_subsystem", "fitting_subsystem", "wormhole_subsystem", "xmpp_subsystem", "ai_subsystem"):
+        for sub_attr in ("intel_subsystem", "dscan_subsystem", "map_subsystem", "fleet_comp_subsystem", "fitting_subsystem", "wormhole_subsystem", "xmpp_subsystem", "ai_subsystem"):
             try:
                 sub = getattr(window, sub_attr, None)
                 if sub is not None and hasattr(sub, "stop"):

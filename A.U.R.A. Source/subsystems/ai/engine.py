@@ -39,8 +39,7 @@ if sys.stderr and hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
 from core.config import config
-from core.paths import get_app_root, find_model_path
-from version import INSTALL_DIR_NAME
+from core.paths import find_model_path
 from hardware.detector import HardwareDetector, DynamicHardwareRouter
 from hardware.profile import install_hint_for_gpu
 from core.error_handler import AURAErrorCode, log_diagnostic_error, format_error_html
@@ -636,8 +635,14 @@ class UnifiedInferenceEngine:
 
 
 
-    def _build_contextual_prompt(self, prompt: str, attachments: List[Dict[str, Any]], piloted_ship: Optional[str] = None) -> str:
-        """Injects verified EVE mechanics, ship dossiers, and attachments into the tactical prompt context."""
+    def _build_contextual_prompt(
+        self,
+        prompt: str,
+        attachments: List[Dict[str, Any]],
+        piloted_ship: Optional[str] = None,
+        telemetry_context: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """Injects verified EVE mechanics, ship dossiers, live telemetry snapshot, and attachments into the tactical prompt context."""
         prompt = strip_control_chars(prompt or "")
         budget = config.max_llm_context_chars
 
@@ -647,8 +652,33 @@ class UnifiedInferenceEngine:
         safe_query = clamp_text(prompt, min(config.max_chat_chars, budget // 4))
         grounding = get_tactical_grounding(safe_query, attachments, piloted_ship=piloted_ship)
         
+        telemetry_blocks = []
+        if telemetry_context:
+            cur_sys = telemetry_context.get("current_system")
+            if cur_sys and cur_sys != "Unknown":
+                reg = telemetry_context.get("region", "New Eden")
+                sec = float(telemetry_context.get("security_status", 0.0))
+                telemetry_blocks.append(f"• Location: {cur_sys} ({sec:+.1f} | {reg})")
+            
+            fit_summary = telemetry_context.get("active_fit_summary")
+            if fit_summary:
+                telemetry_blocks.append(f"• Active Ship Fit: {fit_summary}")
+                
+            wh_summary = telemetry_context.get("active_wh_summary")
+            if wh_summary:
+                telemetry_blocks.append(f"• J-Space Chain: {wh_summary}")
+                
+            top_threats = telemetry_context.get("top_threats")
+            if top_threats:
+                threat_strs = [f"{t.get('system')} ({t.get('threat')}: {', '.join(t.get('ships', []))})" for t in top_threats[:3]]
+                telemetry_blocks.append(f"• Proximate Radar Threats: {'; '.join(threat_strs)}")
+
+        telemetry_section = ""
+        if telemetry_blocks:
+            telemetry_section = "[REAL-TIME TACTICAL TELEMETRY SNAPSHOT]:\n" + "\n".join(telemetry_blocks) + "\n\n"
+
         attachment_blocks = []
-        remaining = budget - len(grounding)
+        remaining = budget - len(grounding) - len(telemetry_section)
         if attachments:
             for att in attachments:
                 fname = strip_control_chars(str(att.get("filename", "Attachment")))[:256]
@@ -675,10 +705,8 @@ class UnifiedInferenceEngine:
         joined_attachments = "\n\n".join(attachment_blocks)
         user_block = wrap_untrusted("UNTRUSTED_USER_QUERY", safe_query, max_chars=len(safe_query) + 64)
         
-        if joined_attachments:
-            combined = f"{grounding}\n\n{joined_attachments}\n\n{user_block}"
-        else:
-            combined = f"{grounding}\n\n{user_block}"
+        parts = [p for p in [grounding, telemetry_section.strip(), joined_attachments, user_block] if p]
+        combined = "\n\n".join(parts)
         return clamp_text(combined, budget)
 
 
@@ -714,7 +742,8 @@ class UnifiedInferenceEngine:
         prompt: str,
         chat_history: List[Dict[str, str]] = None,
         attachments: List[Dict[str, Any]] = None,
-        piloted_ship: Optional[str] = None
+        piloted_ship: Optional[str] = None,
+        telemetry_context: Optional[Dict[str, Any]] = None,
     ) -> Generator[Dict[str, Any], None, None]:
         """
         Streams A.U.R.A. response tokens with EVE tactical reasoning and dynamic hardware scaling.
@@ -726,7 +755,9 @@ class UnifiedInferenceEngine:
         has_image = any(att.get("type") == "image" for att in attachments)
         has_doc = any(att.get("type") == "document" for att in attachments)
         
-        full_user_prompt = self._build_contextual_prompt(prompt, attachments, piloted_ship=piloted_ship)
+        full_user_prompt = self._build_contextual_prompt(
+            prompt, attachments, piloted_ship=piloted_ship, telemetry_context=telemetry_context
+        )
         pruned_history = self._prune_context(chat_history, full_user_prompt)
         
         full_text = full_user_prompt + " ".join([m.get("content", "") for m in pruned_history])
