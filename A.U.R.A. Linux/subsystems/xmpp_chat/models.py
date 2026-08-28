@@ -103,7 +103,8 @@ class XMPPMessage:
     msg_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     sender_jid: str = ""
     sender_nick: str = ""
-    room_jid: str = ""                    # Blank for direct 1-on-1 messages
+    recipient_jid: str = ""                # Target JID for direct 1-on-1 messages
+    room_jid: str = ""                    # Blank for direct 1-on-1 messages, room JID for groupchat
     body: str = ""
     msg_type: XMPPMessageType = XMPPMessageType.DIRECT
     is_broadcast: bool = False
@@ -120,6 +121,8 @@ class XMPPMUCChannel:
     topic: str = ""
     auto_join: bool = True
     is_broadcast_channel: bool = False
+    is_bookmarked: bool = False
+    is_directory_room: bool = False
     unread_count: int = 0
     members: list[str] = field(default_factory=list)
 
@@ -129,6 +132,9 @@ class XMPPRosterContact:
     """Represents a contact pilot on the XMPP roster."""
     jid: str = ""
     name: str = ""
+    group: str = "Pilots"                 # e.g. "Allies", "Corporation", "Fleet", "Pilots"
     subscription: str = "both"
     presence_show: str = "available"      # available, chat, away, dnd, xa, offline
     presence_status: str = ""
+    is_direct_chat: bool = False
+    unread_count: int = 0

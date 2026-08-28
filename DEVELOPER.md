@@ -1,5 +1,5 @@
 # A.U.R.A. Developer Guide
-**v0.4.1-alpha.1 — Pure Modular Architecture**
+**v0.4.2-alpha.1 — Pure Modular Architecture**
 
 Internal reference for contributors and engineers working on the A.U.R.A. codebase.
 
@@ -12,7 +12,7 @@ The codebase is organized into domain-specific packages with strict separation o
 ```
 A.U.R.A. Source/
 ├── app.py                         # Single desktop application entrypoint
-├── version.py                     # Single source of truth for version (v0.4.1-alpha.1)
+├── version.py                     # Single source of truth for version (v0.4.2-alpha.1)
 ├── Launch_A.U.R.A_Debug.bat       # Low-level debug launcher with runtime probe
 ├── run.bat                        # Production launcher script
 │
@@ -159,7 +159,7 @@ The `A.U.R.A. Source/tools/` directory contains utilities for development, build
 
 | Script | Purpose & Usage |
 |---|---|
-| [`build_installer.py`](file:///c:/GIT-Projects/A.U.R.A-eve-tool/A.U.R.A.%20Source/tools/build_installer.py) | Compiles the single-executable setup wizard (`AURA_Setup_v0.4.1-alpha.1.exe`) via PyInstaller, embedding the installer GUI, manifests, and extraction engine. |
+| [`build_installer.py`](file:///c:/GIT-Projects/A.U.R.A-eve-tool/A.U.R.A.%20Source/tools/build_installer.py) | Compiles the single-executable setup wizard (`AURA_Setup_v0.4.2-alpha.1.exe`) via PyInstaller, embedding the installer GUI, manifests, and extraction engine. |
 | [`build_standalone.py`](file:///c:/GIT-Projects/A.U.R.A-eve-tool/A.U.R.A.%20Source/tools/build_standalone.py) | Builds the portable `onedir` distribution (`A.U.R.A Distro/Standalone/`) bundling the pre-configured Python runtime, Qt6 libraries, and model weights. |
 | [`installer_gui.py`](file:///c:/GIT-Projects/A.U.R.A-eve-tool/A.U.R.A.%20Source/tools/installer_gui.py) | Full-featured PyQt6 graphical wizard setup application that handles hardware co-processor probing, component installation, desktop shortcut generation, and log path discovery. |
 | [`launcher.py`](file:///c:/GIT-Projects/A.U.R.A-eve-tool/A.U.R.A.%20Source/tools/launcher.py) | Production executable entrypoint stub for frozen builds. Configures environment paths, sanitizes runtime flags, and launches `app.py`. |

@@ -46,7 +46,7 @@ if %ERRORLEVEL% EQU 0 goto :AFTER_CREATE
 python "%PY_CHECK%" 2>nul
 if %ERRORLEVEL% NEQ 0 (
     echo [X] Error: Python 3.12+ is required. Found an unsupported Python version.
-    echo [!] Please install Python 3.12 64-bit from python.org or run AURA_Setup_v0.4.1-alpha.1.exe.
+    echo [!] Please install Python 3.12 64-bit from python.org or run AURA_Setup_v0.4.2-alpha.1.exe.
     exit /b 1
 )
 python -m venv "%REQ_DIR%venv"

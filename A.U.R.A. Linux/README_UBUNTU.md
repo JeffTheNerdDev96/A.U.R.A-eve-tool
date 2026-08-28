@@ -1,6 +1,6 @@
 # Adaptive Underworld Recon Array (A.U.R.A.) — Native Linux & Ubuntu Quickstart
 
-**Product Version:** `v0.4.1-alpha.1`  
+**Product Version:** `v0.4.2-alpha.1`  
 **License:** GNU Affero General Public License Version 3 (AGPL-3.0)  
 **Author & Maintainer:** JeffTheNerdDev96  
 

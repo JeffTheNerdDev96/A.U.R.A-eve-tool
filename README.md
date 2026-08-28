@@ -1,6 +1,6 @@
 # Adaptive Underworld Recon Array (A.U.R.A.)
 
-**v0.4.1-alpha.1** — unofficial New Eden tactical companion. Designed with an offline-first architecture: A.U.R.A. **can be used as an offline-only app** with local neural reasoning, local log tailing, and offline stargate graphs, with optional opt-in network connectivity for Alliance XMPP communications. No cloud telemetry.
+**v0.4.2-alpha.1** — unofficial New Eden tactical companion. Designed with an offline-first architecture: A.U.R.A. **can be used as an offline-only app** with local neural reasoning, local log tailing, and offline stargate graphs, with optional opt-in network connectivity for Alliance XMPP communications. No cloud telemetry.
 
 **EVE Online**, the **EVE logo**, and related marks are trademarks of **Fenris Creations** (FC Games / formerly CCP Games / CCP hf). All rights are reserved worldwide. All other trademarks are the property of their respective owners. EVE Online, the EVE logo, and all associated logos, designs, artwork, screenshots, character models, hulls, storylines, world lore, and game mechanics are the intellectual property of Fenris Creations.
 
@@ -47,7 +47,7 @@ cd A.U.R.A-eve-tool
 1. `A.U.R.A. Source/requirements/install_auto.bat` (or a named hardware script in that folder).
 2. `run.bat`
 
-Standalone: `AURA_Setup_v0.4.1-alpha.1.exe` (bundled Python 3.12 and model weights).
+Standalone: `AURA_Setup_v0.4.2-alpha.1.exe` (bundled Python 3.12 and model weights).
 
 Details on hardware profiles and co-processors: [requirements/README.md](A.U.R.A.%20Source/requirements/README.md).
 
