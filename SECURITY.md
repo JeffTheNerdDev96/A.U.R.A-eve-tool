@@ -13,7 +13,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **`v0.5.0-alpha.1`** | **Yes** | **Active / Sole Supported Release** (Hardpoint & Single-fit validation, Anokis WH decay timers & prune, Real-time telemetry snapshot, AGPLv3) | Python 3.12+ | 64-bit AMD64 |
 | **`v0.4.x`** | **No** | **Deprecated & Unsupported** (Superseded by v0.5.0-alpha.1) | Python 3.12+ | 64-bit AMD64 |
-| **`v0.3.x`** | **No** | **Deprecated & Unsupported** (Superseded by v0.4.3-alpha.1) | Python 3.12+ | 64-bit AMD64 |
+| **`v0.3.x`** | **No** | **Deprecated & Unsupported** (Superseded by v0.4.0-alpha.1) | Python 3.12+ | 64-bit AMD64 |
 | **`v0.2.x`** | **No** | **Deprecated & Unsupported** (Superseded due to major modular architecture overhaul) | Python 3.12+ | 64-bit AMD64 |
 | **`v0.1.x`** | **No** | **Deprecated & Unsupported** (Initial prototype builds) | Legacy Python | 64-bit AMD64 |
 
