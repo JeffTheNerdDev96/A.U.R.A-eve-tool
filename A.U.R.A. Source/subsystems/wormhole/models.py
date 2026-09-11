@@ -18,7 +18,7 @@
 # ==============================================================================
 """
 A.U.R.A. Wormhole Subsystem Models & Data Contracts.
-Placeholder architecture for v0.3.x Wormhole Mapping System milestone.
+Chain topology, cosmic signatures, mass/lifetime state, and Anoikis node records.
 """
 
 from dataclasses import dataclass, field

@@ -34,8 +34,10 @@ A.U.R.A. is engineered with an **offline-first** architecture and **can be used 
 | Risk | Mitigation |
 |---|---|
 | **XMPP Credential Theft / Exposure** | **Zero Disk Persistence:** Passwords, JIDs, and session tokens exist strictly in volatile RAM for the active connection. Never saved to disk, config files, or logs. |
-| **XMPP Network Interception** | Mandatory TLS 1.2/1.3 encryption on ports 5222 (STARTTLS) and 5223 (Direct TLS). Configurable certificate verification. |
-| **Qt HTML Injection in Chat/XMPP** | `input_safety.escape_html` enforced on all chat, log, and XMPP message renderers. |
+| **XMPP Network Interception** | Mandatory TLS 1.2/1.3 encryption on ports 5222 (STARTTLS) and 5223 (Direct TLS). Certificate verification is on by default. “Allow Self-Signed TLS” is an explicit opt-in that disables hostname/cert checks (MITM risk with SASL PLAIN). |
+| **Qt HTML Injection in Chat/XMPP** | `input_safety.escape_html` on chat HTML and XMPP rich-text. Intel radar cards use `Qt.TextFormat.PlainText`. Map avoid-list names are HTML-escaped. |
+| **XMPP Link Clicks** | External `QDesktopServices.openUrl` is restricted to `http`/`https`. Internal `ask_aura:` and `opendm:` schemes stay in-app. |
+| **XMPP Stream DoS** | Incoming stanza buffer is capped (~1 MiB); oversized or incomplete stanzas drop the connection. |
 | **Rich Clipboard Attacks** | `setAcceptRichText(False)` enforced across all user `QTextEdit` and `QLineEdit` inputs. |
 | **Oversized Attachments / Log Spikes** | `config.max_attachment_bytes`, `max_log_read_bytes`, PDF page count, and image pixel caps enforced. |
 | **Log Path Traversal / Escape** | `is_safe_log_file` realpath validation under selected Chatlogs/Gamelogs roots. |

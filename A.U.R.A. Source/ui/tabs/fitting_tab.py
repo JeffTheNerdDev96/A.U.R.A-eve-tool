@@ -251,10 +251,8 @@ class FittingLabWidget(QWidget):
         self.ship_silhouette: Optional[QFrame] = None
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setStyleSheet(
-            f"FittingLabWidget {{ background:{BG_DEEP}; }}"
+            f"FittingLabWidget {{ background:transparent; }}"
             f"QLabel {{ color:{TEXT_SECONDARY}; }}"
-            "QLineEdit, QComboBox, QTextEdit, QListWidget {"
-            f"  background:#1a1d21; color:{TEXT_PRIMARY}; border:1px solid #3f4650; border-radius:2px; }}"
         )
         self._init_ui()
         hulls = sorted(SHIP_DATABASE.keys())

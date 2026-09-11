@@ -55,7 +55,7 @@ class DScanTabWidget(QWidget):
         self.current_analysis: Optional[DScanAnalysis] = None
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setStyleSheet(
-            f"DScanTabWidget {{ background:{BG_DEEP}; }}"
+            f"DScanTabWidget {{ background:transparent; }}"
             f"QLabel {{ color:{TEXT_SECONDARY}; }}"
         )
         self._init_ui()
@@ -74,7 +74,7 @@ class DScanTabWidget(QWidget):
 
         # 2. Paste / Input Frame
         input_frame = QFrame()
-        input_frame.setStyleSheet(f"QFrame {{ background:{BG_ELEVATED}; border:1px solid {BORDER}; border-radius:6px; }}")
+        input_frame.setStyleSheet(f"QFrame {{ background:{BG_ELEVATED}; border:1px solid {BORDER_MUTED}; border-radius:6px; }}")
         in_layout = QVBoxLayout(input_frame)
         in_layout.setContentsMargins(8, 8, 8, 8)
         in_layout.setSpacing(6)
@@ -128,7 +128,7 @@ class DScanTabWidget(QWidget):
 
         # 3. Tactical Breakdown Output Panel
         output_frame = QFrame()
-        output_frame.setStyleSheet(f"QFrame {{ background:{BG_ELEVATED}; border:1px solid {BORDER}; border-radius:6px; }}")
+        output_frame.setStyleSheet(f"QFrame {{ background:{BG_ELEVATED}; border:1px solid {BORDER_MUTED}; border-radius:6px; }}")
         out_layout = QVBoxLayout(output_frame)
         out_layout.setContentsMargins(8, 8, 8, 8)
         out_layout.setSpacing(6)

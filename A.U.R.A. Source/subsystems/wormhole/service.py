@@ -18,7 +18,7 @@
 # ==============================================================================
 """
 A.U.R.A. Wormhole Mapping Subsystem Service Layer.
-Placeholder architecture for the v0.3.x Wormhole Mapping System milestone.
+Owns the Anoikis chain graph, signature tracker, and EventBus wormhole events.
 """
 
 from typing import Any, override

@@ -180,6 +180,49 @@ def _create_llama_instance(kwargs: Dict[str, Any]):
     return Llama(**kwargs)
 
 
+def _discard_timed_out_llama(future: futures.Future) -> None:
+    """Close a Llama that finished after the load timeout so VRAM/RAM is not leaked."""
+    try:
+        inst = future.result(timeout=0)
+    except Exception:
+        return
+    if inst is None:
+        return
+    try:
+        if hasattr(inst, "close"):
+            inst.close()
+    except Exception:
+        pass
+    try:
+        del inst
+    except Exception:
+        pass
+
+
+def _load_llama_with_timeout(llama_kwargs: Dict[str, Any], timeout_sec: float):
+    """
+    Native llama.cpp load cannot be aborted. Do not use `with ThreadPoolExecutor`:
+    its __exit__ waits for the worker, which would ignore the timeout.
+    A timed-out future is abandoned with wait=False; if it later succeeds, close that instance.
+    """
+    pool = futures.ThreadPoolExecutor(max_workers=1, thread_name_prefix="AURA_LlamaLoad")
+    future = pool.submit(_create_llama_instance, llama_kwargs)
+    try:
+        inst = future.result(timeout=timeout_sec)
+        pool.shutdown(wait=False, cancel_futures=False)
+        return inst
+    except futures.TimeoutError:
+        try:
+            future.add_done_callback(_discard_timed_out_llama)
+        except Exception:
+            pass
+        pool.shutdown(wait=False, cancel_futures=True)
+        raise
+    except Exception:
+        pool.shutdown(wait=False, cancel_futures=True)
+        raise
+
+
 class NeuralHardwareCoProcessor:
     """
     Hardware-accelerated neural tensor co-processor supporting Intel NPU, AMD Ryzen AI NPU, GPU, and CPU.
@@ -212,8 +255,8 @@ class NeuralHardwareCoProcessor:
                 matmul3 = ops.matmul(relu2, w3, False, False)
                 out = ops.relu(matmul3)
                 self.base_model = ov.Model([out], [param], "AURA_HighThroughput_NPU_Mesh")
-            except Exception:
-                pass
+            except Exception as exc:
+                log_diagnostic_error(AURAErrorCode.ERR_2001_OPENVINO_NPU_FAILED, exc, "NeuralHardwareCoProcessor._ensure_core")
 
     def _ensure_directml(self) -> bool:
         if self._dml_session is not None:
@@ -265,8 +308,8 @@ class NeuralHardwareCoProcessor:
                 print("[A.U.R.A.] Intel(R) AI Boost NPU coprocessor armed & ready for stream mesh.")
             else:
                 print(f"[A.U.R.A.] OpenVINO coprocessor armed ({target_mode}).")
-        except Exception:
-            pass
+        except Exception as exc:
+            log_diagnostic_error(AURAErrorCode.ERR_2001_OPENVINO_NPU_FAILED, exc, "NeuralHardwareCoProcessor.arm_for_load")
 
     def _get_or_compile(self, mode: str):
         if mode in self.compiled_models:
@@ -309,7 +352,7 @@ class NeuralHardwareCoProcessor:
                 pass
         for t in self.active_threads:
             try:
-                t.join(timeout=0.5)
+                t.join(timeout=2.0)
             except Exception:
                 pass
         self.active_threads.clear()
@@ -338,8 +381,9 @@ class NeuralHardwareCoProcessor:
             while not stop_event.is_set():
                 try:
                     session.run(None, {"X": dummy})
-                except Exception:
-                    pass
+                except Exception as exc:
+                    log_diagnostic_error(AURAErrorCode.ERR_2002_VULKAN_PIPE_FAILED, exc, "NeuralHardwareCoProcessor._dml_worker")
+                    break
                 time.sleep(0.005)
 
         for _ in range(2):
@@ -370,19 +414,19 @@ class NeuralHardwareCoProcessor:
                 while not stop_event.is_set():
                     try:
                         infer_queue.start_async({0: dummy})
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        log_diagnostic_error(AURAErrorCode.ERR_2001_OPENVINO_NPU_FAILED, exc, "NeuralHardwareCoProcessor._hardware_worker.start_async")
+                        break
                     time.sleep(0.001)  # Calibrated 1ms cadence to prevent driver TDR while sustaining 80%+ load
-                try:
-                    infer_queue.wait_all()
-                except Exception:
-                    pass
-            except Exception:
+                # Skip wait_all() on stop — it can block unload while native inferences drain.
+            except Exception as exc:
+                log_diagnostic_error(AURAErrorCode.ERR_2001_OPENVINO_NPU_FAILED, exc, "NeuralHardwareCoProcessor._hardware_worker")
                 while not stop_event.is_set():
                     try:
                         compiled([dummy])
-                    except Exception:
-                        pass
+                    except Exception as inner_exc:
+                        log_diagnostic_error(AURAErrorCode.ERR_2001_OPENVINO_NPU_FAILED, inner_exc, "NeuralHardwareCoProcessor._hardware_worker.compiled")
+                        break
                     time.sleep(0.005)
 
         # Launch 3 parallel worker streams to sustain high NPU Level Zero execution unit throughput
@@ -404,15 +448,13 @@ class NeuralHardwareCoProcessor:
                         while not stop_event.is_set():
                             try:
                                 g_queue.start_async({0: g_dummy})
-                            except Exception:
-                                pass
+                            except Exception as exc:
+                                log_diagnostic_error(AURAErrorCode.ERR_2001_OPENVINO_NPU_FAILED, exc, "NeuralHardwareCoProcessor._gpu_worker.start_async")
+                                break
                             time.sleep(0.002)
-                        try:
-                            g_queue.wait_all()
-                        except Exception:
-                            pass
-                    except Exception:
-                        pass
+                        # Skip wait_all() on stop so shutdown is not blocked by pending GPU inferences.
+                    except Exception as exc:
+                        log_diagnostic_error(AURAErrorCode.ERR_2001_OPENVINO_NPU_FAILED, exc, "NeuralHardwareCoProcessor._gpu_worker")
                 t_gpu = threading.Thread(target=_gpu_worker, daemon=True)
                 t_gpu.start()
                 self.active_threads.append(t_gpu)
@@ -562,9 +604,7 @@ class UnifiedInferenceEngine:
                 }
 
                 try:
-                    with futures.ThreadPoolExecutor(max_workers=1) as pool:
-                        future = pool.submit(_create_llama_instance, llama_kwargs)
-                        self.llm = future.result(timeout=MODEL_LOAD_TIMEOUT_SEC)
+                    self.llm = _load_llama_with_timeout(llama_kwargs, MODEL_LOAD_TIMEOUT_SEC)
                 except futures.TimeoutError:
                     self.is_loaded = False
                     self.llm = None
@@ -590,9 +630,7 @@ class UnifiedInferenceEngine:
                     llama_kwargs["n_gpu_layers"] = 0
                     self._active_gpu_layers = 0
                     self._llama_backend = "cpu"
-                    with futures.ThreadPoolExecutor(max_workers=1) as pool:
-                        future = pool.submit(_create_llama_instance, llama_kwargs)
-                        self.llm = future.result(timeout=MODEL_LOAD_TIMEOUT_SEC)
+                    self.llm = _load_llama_with_timeout(llama_kwargs, MODEL_LOAD_TIMEOUT_SEC)
 
                 if self._abort_requested:
                     self.unload_model()

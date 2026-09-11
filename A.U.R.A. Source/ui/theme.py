@@ -23,6 +23,7 @@ Single source of truth for A.U.R.A. desktop styling.
 from __future__ import annotations
 
 import os
+import sys
 from typing import Dict
 
 # --- Canonical Angel Cartel faction colors ---
@@ -69,6 +70,41 @@ STATUS_STANDBY_BORDER = BURNT_IRON_BORDER
 
 BTN_TEXT_ON_ACCENT = BONE_WHITE
 
+GUNMETAL_HIGH = "#1a1c20"
+GUNMETAL = "#121418"
+GUNMETAL_DEEP = "#0a0b0d"
+
+GRAD_SHELL = (
+    f"qlineargradient(x1:0, y1:0, x2:0, y2:1, "
+    f"stop:0 {GUNMETAL_HIGH}, stop:0.18 {GUNMETAL}, stop:1 {GUNMETAL_DEEP})"
+)
+GRAD_CHROME = (
+    f"qlineargradient(x1:0, y1:0, x2:0, y2:1, "
+    f"stop:0 {BG_TITLEBAR}, stop:1 {BG_CHROME})"
+)
+GRAD_PANE = BG_PANEL
+GRAD_TAB_IDLE = (
+    f"qlineargradient(x1:0, y1:0, x2:0, y2:1, "
+    f"stop:0 {BG_TITLEBAR}, stop:1 {BG_PANEL})"
+)
+GRAD_TAB_HOVER = (
+    f"qlineargradient(x1:0, y1:0, x2:0, y2:1, "
+    f"stop:0 {BG_PANEL}, stop:1 {BG_CHROME})"
+)
+GRAD_TAB_SELECTED = GRAD_PANE
+GRAD_BTN = (
+    f"qlineargradient(x1:0, y1:0, x2:1, y2:0, "
+    f"stop:0 {ACCENT_DIM}, stop:0.45 {ACCENT}, stop:1 {ACCENT_HOVER})"
+)
+GRAD_BTN_HOVER = (
+    f"qlineargradient(x1:0, y1:0, x2:1, y2:0, "
+    f"stop:0 {ACCENT}, stop:1 {ACCENT_HOVER})"
+)
+GRAD_SIDEBAR = (
+    f"qlineargradient(x1:0, y1:0, x2:1, y2:1, "
+    f"stop:0 {BG_TITLEBAR}, stop:1 {BG_CHROME})"
+)
+
 FONT_DISPLAY = "'Orbitron', 'Segoe UI', sans-serif"
 _DISPLAY_FONT_LOADED = False
 _DISPLAY_FONT_FAMILY = "Orbitron"
@@ -84,10 +120,21 @@ def _fonts_dir() -> str:
         os.path.join(this_dir, "assets", "fonts"),
         os.path.join(this_dir, "..", "assets", "fonts"),
     ]
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        candidates.insert(0, os.path.join(meipass, "assets", "fonts"))
+        candidates.insert(1, meipass)
     for c in candidates:
-        if os.path.isdir(c):
+        if os.path.isdir(c) and os.path.isfile(os.path.join(c, "Orbitron-wght.ttf")):
             return os.path.abspath(c)
-    return os.path.abspath(candidates[1])
+        if os.path.isfile(os.path.join(c, "Orbitron-wght.ttf")):
+            return os.path.abspath(c)
+    return os.path.abspath(candidates[-1] if candidates else this_dir)
+
+
+def _shell_background_css() -> str:
+    """Shaded gunmetal well — cool grey, no texture."""
+    return f"background: {GRAD_SHELL};"
 
 
 def _font_file_paths() -> list[str]:
@@ -114,6 +161,33 @@ def load_display_font() -> str:
     return "Segoe UI"
 
 
+def input_field_css() -> str:
+    return f"""
+        QLineEdit, QTextEdit, QPlainTextEdit, QComboBox, QSpinBox {{
+            background-color: {BG_INPUT};
+            color: {TEXT_PRIMARY};
+            border: 1px solid {BORDER_MUTED};
+            border-radius: 6px;
+            padding: 6px 10px;
+            selection-background-color: {ACCENT_DIM};
+        }}
+        QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus, QComboBox:focus, QSpinBox:focus {{
+            border: 1px solid {ACCENT};
+        }}
+        QComboBox::drop-down {{
+            border: none;
+            width: 20px;
+        }}
+        QComboBox QAbstractItemView {{
+            background-color: {BG_CHROME};
+            color: {TEXT_PRIMARY};
+            selection-background-color: {ACCENT_DIM};
+            selection-color: {TEXT_PRIMARY};
+            border: 1px solid {BORDER_MUTED};
+        }}
+    """
+
+
 def btn_secondary_css() -> str:
     return (
         f"QPushButton {{ background:{BTN_SECONDARY_BG}; color:{TEXT_PRIMARY}; "
@@ -124,6 +198,7 @@ def btn_secondary_css() -> str:
 
 
 def dialog_stylesheet() -> str:
+    fields = input_field_css()
     return f"""
         QDialog {{
             background-color: {BG_CHROME};
@@ -140,39 +215,7 @@ def dialog_stylesheet() -> str:
             border-radius: 6px;
             padding: 10px;
         }}
-        QTextEdit, QTextBrowser {{
-            background-color: {BG_ELEVATED};
-            border: 1px solid {BORDER};
-            border-radius: 6px;
-            color: {TEXT_PRIMARY};
-            padding: 8px;
-            font-size: 13px;
-            selection-background-color: {ACCENT_DIM};
-        }}
-        QComboBox {{
-            background-color: {BG_ELEVATED};
-            border: 1px solid {BORDER};
-            border-radius: 4px;
-            color: {TEXT_PRIMARY};
-            padding: 4px 8px;
-            font-size: 12px;
-        }}
-        QLineEdit {{
-            background-color: {BG_ELEVATED};
-            border: 1px solid {BORDER};
-            border-radius: 4px;
-            color: {TEXT_PRIMARY};
-            padding: 4px 8px;
-            font-size: 12px;
-        }}
-        QSpinBox {{
-            background-color: {BG_ELEVATED};
-            border: 1px solid {BORDER};
-            border-radius: 4px;
-            color: {TEXT_PRIMARY};
-            padding: 2px 6px;
-            font-size: 12px;
-        }}
+        {fields}
         QCheckBox {{
             color: {TEXT_SECONDARY};
             font-size: 12.5px;
@@ -288,29 +331,35 @@ def tier_badge_busy_css() -> str:
 
 
 def main_stylesheet() -> str:
+    fields = input_field_css()
+    shell_bg = _shell_background_css()
     return f"""
         QMainWindow {{
-            background-color: {BG_DEEP};
+            {shell_bg}
         }}
         QWidget {{
             color: {TEXT_PRIMARY};
             font-family: 'Segoe UI', -apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif;
             font-size: 14px;
         }}
+        {fields}
         QFrame#AppShell {{
-            background-color: {BG_DEEP};
+            {shell_bg}
             border: 1px solid {BORDER};
             border-radius: 0;
         }}
         QFrame#BrowserChrome {{
-            background-color: {BG_TITLEBAR};
-            border: none;
+            background: {GRAD_CHROME};
+            border: 1px solid {BORDER};
+            border-bottom: 2px solid {ACCENT};
+            border-radius: 8px;
             padding: 6px 12px;
         }}
         QFrame#BrowserFooter {{
-            background-color: {BG_TITLEBAR};
-            border: none;
+            background: {GRAD_CHROME};
+            border: 1px solid {BORDER};
             border-top: 2px solid {ACCENT};
+            border-radius: 8px;
             padding: 6px 12px;
         }}
         QFrame#ChromeStripe {{
@@ -367,7 +416,7 @@ def main_stylesheet() -> str:
         }}
         QLabel#AddressBar {{
             background-color: {BG_ELEVATED};
-            border: 1px solid {BORDER};
+            border: 1px solid {BORDER_MUTED};
             border-radius: 14px;
             padding: 6px 14px;
             color: {TEXT_SECONDARY};
@@ -408,13 +457,13 @@ def main_stylesheet() -> str:
         }}
 
         QFrame#LiveIntelPanel {{
-            background-color: {BG_PANEL};
+            background: transparent;
             border: none;
             border-radius: 0;
             padding: 12px;
         }}
         QFrame#TabCard {{
-            background: {BG_PANEL};
+            background: transparent;
             border: none;
             border-radius: 0;
         }}
@@ -461,14 +510,14 @@ def main_stylesheet() -> str:
         }}
         QScrollBar:vertical {{
             border: none;
-            background: transparent;
-            width: 7px;
+            background: {BG_DEEP};
+            width: 10px;
             margin: 0px;
         }}
         QScrollBar::handle:vertical {{
             background: {BTN_SECONDARY_BORDER};
             min-height: 24px;
-            border-radius: 3px;
+            border-radius: 5px;
         }}
         QScrollBar::handle:vertical:hover {{
             background: {ACCENT};
@@ -485,7 +534,7 @@ def main_stylesheet() -> str:
             background: none;
         }}
         QPushButton {{
-            background-color: {ACCENT};
+            background: {GRAD_BTN};
             color: {BTN_TEXT_ON_ACCENT};
             border: none;
             border-radius: 6px;
@@ -494,7 +543,7 @@ def main_stylesheet() -> str:
             font-size: 13.5px;
         }}
         QPushButton:hover {{
-            background-color: {ACCENT_HOVER};
+            background: {GRAD_BTN_HOVER};
         }}
         QPushButton:pressed {{
             background-color: {ACCENT_PRESSED};
@@ -575,61 +624,175 @@ def main_stylesheet() -> str:
         QTabBar {{
             background: transparent;
         }}
-        QTabWidget::pane {{
-            border: 1px solid {BORDER};
-            background: {BG_DEEP};
-            top: -1px;
-            border-radius: 0;
-            padding: 8px;
+        QTabWidget#MainTabs {{
+            background: transparent;
+            border: none;
         }}
-        QTabBar::tab {{
-            background: {BG_CHROME};
-            color: {TEXT_HINT};
+        QTabWidget#MainTabs::pane {{
+            border: 1px solid {BORDER};
+            background: {GRAD_PANE};
+            top: -1px;
+            padding: 8px;
+            border-top-left-radius: 0;
+            border-top-right-radius: 8px;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }}
+        QTabWidget#MainTabs QTabBar::tab {{
+            background: {GRAD_TAB_IDLE};
+            color: {TEXT_SECONDARY};
             border: 1px solid {BORDER};
             border-bottom: none;
-            border-top: 2px solid {BORDER};
-            padding: 10px 18px;
-            margin-right: 8px;
+            padding: 11px 20px;
+            margin-right: 6px;
             margin-top: 4px;
             border-top-left-radius: 8px;
             border-top-right-radius: 8px;
             font-weight: bold;
             font-size: 13px;
         }}
-        QTabBar::tab:selected {{
-            background: {BG_PANEL};
+        QTabWidget#MainTabs QTabBar::tab:selected {{
+            background: {GRAD_TAB_SELECTED};
             color: {TEXT_PRIMARY};
             border: 1px solid {BORDER};
             border-top: 2px solid {ACCENT};
             border-bottom: 1px solid {BG_PANEL};
             margin-bottom: -1px;
         }}
-        QTabBar::tab:hover:!selected {{
-            color: {TEXT_SECONDARY};
-            background: {BURNT_IRON};
-        }}
-        QSpinBox {{
-            background: {BG_INPUT};
+        QTabWidget#MainTabs QTabBar::tab:hover:!selected {{
             color: {TEXT_PRIMARY};
+            background: {GRAD_TAB_HOVER};
+            border: 1px solid {BORDER};
+            border-bottom: none;
+            border-top: 2px solid {ACCENT_DIM};
+        }}
+    """
+
+
+def installer_stylesheet() -> str:
+    fields = input_field_css()
+    return f"""
+        QMainWindow, QDialog {{
+            color: {TEXT_PRIMARY};
+            background: {GRAD_SHELL};
+        }}
+        QWidget {{
+            color: {TEXT_PRIMARY};
+            font-family: 'Segoe UI', -apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif;
+            font-size: 13.5px;
+        }}
+        QLabel {{
+            color: {TEXT_PRIMARY};
+            background: transparent;
+        }}
+        QFrame#Sidebar, QFrame#InstallerSidebar {{
+            background: {GRAD_SIDEBAR};
+            border: none;
+            border-right: 1px solid {BORDER};
+        }}
+        QFrame#InstallerContent {{
+            background: {GRAD_SHELL};
+            border: none;
+        }}
+        QFrame#InstallerContent QStackedWidget {{
+            background: transparent;
+        }}
+        QFrame#Card {{
+            background: {GRAD_PANE};
             border: 1px solid {BORDER_MUTED};
-            border-radius: 4px;
-            padding: 2px 6px;
-            min-width: 52px;
+            border-radius: 8px;
         }}
-        QScrollBar:vertical {{
-            background: {BG_DEEP};
-            width: 10px;
-            margin: 0px;
+        {fields}
+        QTextEdit {{
+            font-family: Consolas, monospace;
+            font-size: 12px;
         }}
-        QScrollBar::handle:vertical {{
-            background: {BTN_SECONDARY_BORDER};
-            min-height: 24px;
+        QPushButton {{
+            background-color: {BTN_SECONDARY_BG};
+            color: {TEXT_PRIMARY};
+            border: 1px solid {BTN_SECONDARY_BORDER};
+            border-radius: 6px;
+            padding: 8px 18px;
+            font-weight: 600;
+            min-width: 0;
+        }}
+        QPushButton:hover {{
+            background-color: {BURNT_IRON_LIGHT};
+            border: 1px solid {ACCENT};
+            color: {TEXT_PRIMARY};
+        }}
+        QPushButton:disabled {{
+            background-color: {BG_ELEVATED};
+            border: 1px solid {BORDER_MUTED};
+            color: {TEXT_HINT};
+        }}
+        QPushButton#PrimaryBtn {{
+            background: {GRAD_BTN};
+            border: 1px solid {ACCENT};
+            color: {BTN_TEXT_ON_ACCENT};
+            font-weight: bold;
+        }}
+        QPushButton#PrimaryBtn:hover, QPushButton#LaunchBtn:hover {{
+            background: {GRAD_BTN_HOVER};
+            border: 1px solid {ACCENT_HOVER};
+        }}
+        QPushButton#LaunchBtn {{
+            background: {GRAD_BTN};
+            border: 1px solid {ACCENT};
+            color: {BTN_TEXT_ON_ACCENT};
+            font-weight: bold;
+            padding: 14px 20px;
+            text-align: left;
+            border-radius: 8px;
+        }}
+        QPushButton#ReinstallBtn {{
+            background-color: {BG_PANEL};
+            border: 1px solid {BORDER};
+            color: {TEXT_PRIMARY};
+            font-weight: bold;
+        }}
+        QPushButton#ReinstallBtn:hover {{
+            background-color: {BG_ELEVATED};
+            border: 1px solid {ACCENT};
+        }}
+        QProgressBar {{
+            background-color: {BG_ELEVATED};
+            border: 1px solid {BORDER};
+            border-radius: 6px;
+            text-align: center;
+            color: {TEXT_PRIMARY};
+            height: 22px;
+        }}
+        QProgressBar::chunk {{
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                stop:0 {ACCENT_DIM}, stop:0.5 {ACCENT}, stop:1 {ACCENT_HOVER});
             border-radius: 5px;
         }}
-        QScrollBar::handle:vertical:hover {{
-            background: {ACCENT};
+        QCheckBox {{
+            color: {TEXT_SECONDARY};
+            spacing: 8px;
+            font-size: 13px;
+            background: transparent;
         }}
-        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
-            height: 0px;
+        QCheckBox::indicator {{
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            border: 1px solid {BONE_MUTED};
+            background-color: {BG_DEEP};
+        }}
+        QCheckBox::indicator:hover {{
+            border: 1px solid {ACCENT_HOVER};
+        }}
+        QCheckBox::indicator:checked {{
+            background-color: {ACCENT};
+            border: 1px solid {ACCENT_HOVER};
+        }}
+        QMessageBox {{
+            background: {BG_CHROME};
+            color: {TEXT_PRIMARY};
+        }}
+        QMessageBox QLabel {{
+            color: {TEXT_PRIMARY};
         }}
     """

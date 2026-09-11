@@ -36,7 +36,7 @@ from PyQt6.QtWidgets import (
 
 from subsystems.map import EveMapGraph, MapSubsystem
 from subsystems.map.models import RouteResult
-from core.input_safety import safe_display_text
+from core.input_safety import escape_html, safe_display_text
 from ui.theme import (
     BG_DEEP, BG_PANEL, BG_ELEVATED, BORDER, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT,
     TEXT_BRAND, ACCENT, ACCENT_DIM, BTN_TEXT_ON_ACCENT,
@@ -274,7 +274,7 @@ class MapTabWidget(QWidget):
         self._prune_timer.timeout.connect(self._on_prune_timer)
         self._prune_timer.start()
 
-        self.setStyleSheet(f"MapTabWidget {{ background:{BG_DEEP}; color:{TEXT_PRIMARY}; }}")
+        self.setStyleSheet(f"MapTabWidget {{ background:transparent; color:{TEXT_PRIMARY}; }}")
         self._init_ui()
         self._show_placeholder()
 
@@ -343,29 +343,17 @@ class MapTabWidget(QWidget):
 
         self.route_origin_edit = QLineEdit()
         self.route_origin_edit.setFixedHeight(26)
-        self.route_origin_edit.setStyleSheet(
-            f"font-size: 11.5px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
-            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 2px 6px;"
-        )
         self.route_origin_edit.setPlaceholderText("Origin (e.g. Jita)")
         rl.addWidget(self.route_origin_edit)
 
         self.route_dest_edit = QLineEdit()
         self.route_dest_edit.setFixedHeight(26)
-        self.route_dest_edit.setStyleSheet(
-            f"font-size: 11.5px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
-            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 2px 6px;"
-        )
         self.route_dest_edit.setPlaceholderText("Destination (e.g. Amarr)")
         self.route_dest_edit.returnPressed.connect(self._on_calculate_route)
         rl.addWidget(self.route_dest_edit)
 
         self.route_avoid_edit = QLineEdit()
         self.route_avoid_edit.setFixedHeight(26)
-        self.route_avoid_edit.setStyleSheet(
-            f"font-size: 11.5px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
-            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 2px 6px;"
-        )
         self.route_avoid_edit.setPlaceholderText("Avoid (e.g. Tama, Rancer)")
         self.route_avoid_edit.returnPressed.connect(self._on_calculate_route)
         rl.addWidget(self.route_avoid_edit)
@@ -699,7 +687,11 @@ class MapTabWidget(QWidget):
 
         # Format route summary HTML
         sec_color = "#38bdf8" if route.security_min >= 0.45 else ("#fbbf24" if route.security_min > 0.0 else "#f87171")
-        avoid_html = f"<br><b>Avoided:</b> {', '.join(route.avoided_systems)}" if route.avoided_systems else ""
+        avoid_html = (
+            f"<br><b>Avoided:</b> {escape_html(', '.join(route.avoided_systems))}"
+            if route.avoided_systems
+            else ""
+        )
         path_str = " ➔ ".join(route.path)
 
         self.route_summary_lbl.setText(

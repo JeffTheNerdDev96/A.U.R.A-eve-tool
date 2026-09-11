@@ -241,7 +241,7 @@ class WormholeTabWidget(QWidget):
         self.selected_system: str = ""
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setStyleSheet(
-            f"WormholeTabWidget {{ background:{BG_DEEP}; }}"
+            f"WormholeTabWidget {{ background:transparent; }}"
             f"QLabel {{ color:{TEXT_SECONDARY}; }}"
         )
         self._init_ui()
@@ -280,9 +280,6 @@ class WormholeTabWidget(QWidget):
         self.home_edit.setFixedHeight(28)
         self.home_edit.setFixedWidth(130)
         self.home_edit.setPlaceholderText("e.g. J105382")
-        self.home_edit.setStyleSheet(
-            f"background:{BG_PANEL}; color:{TEXT_PRIMARY}; border:1px solid {BORDER}; border-radius:4px; padding:2px 6px;"
-        )
         h_layout.addWidget(self.home_edit)
 
         self.class_combo = QComboBox()
@@ -290,9 +287,6 @@ class WormholeTabWidget(QWidget):
         for cls_enum in WormholeClass:
             self.class_combo.addItem(cls_enum.value, cls_enum)
         self.class_combo.setCurrentText(WormholeClass.C4.value)
-        self.class_combo.setStyleSheet(
-            f"background:{BG_PANEL}; color:{TEXT_PRIMARY}; border:1px solid {BORDER}; border-radius:4px; padding:2px 6px;"
-        )
         h_layout.addWidget(self.class_combo)
 
         set_home_btn = QPushButton("Set Home")
@@ -422,20 +416,17 @@ class WormholeTabWidget(QWidget):
         self.sig_id_edit.setFixedHeight(28)
         self.sig_id_edit.setFixedWidth(80)
         self.sig_id_edit.setPlaceholderText("ABC-123")
-        self.sig_id_edit.setStyleSheet(f"background:{BG_PANEL}; color:{TEXT_PRIMARY}; border:1px solid {BORDER}; border-radius:4px; padding:2px 4px;")
         sig_input_row.addWidget(self.sig_id_edit)
 
         self.sig_group_combo = QComboBox()
         self.sig_group_combo.setFixedHeight(28)
         for sg in SignatureGroup:
             self.sig_group_combo.addItem(sg.value, sg)
-        self.sig_group_combo.setStyleSheet(f"background:{BG_PANEL}; color:{TEXT_PRIMARY}; border:1px solid {BORDER}; border-radius:4px;")
         sig_input_row.addWidget(self.sig_group_combo)
 
         self.sig_name_edit = QLineEdit()
         self.sig_name_edit.setFixedHeight(28)
         self.sig_name_edit.setPlaceholderText("Site Name (e.g. Forgotten Core Data)")
-        self.sig_name_edit.setStyleSheet(f"background:{BG_PANEL}; color:{TEXT_PRIMARY}; border:1px solid {BORDER}; border-radius:4px; padding:2px 6px;")
         sig_input_row.addWidget(self.sig_name_edit, stretch=1)
 
         add_sig_btn = QPushButton("➕ Add Sig")
@@ -451,7 +442,6 @@ class WormholeTabWidget(QWidget):
         self.paste_edit = QLineEdit()
         self.paste_edit.setFixedHeight(28)
         self.paste_edit.setPlaceholderText("Paste Probe Scanner clipboard rows here...")
-        self.paste_edit.setStyleSheet(f"background:{BG_PANEL}; color:{TEXT_PRIMARY}; border:1px solid {BORDER}; border-radius:4px; padding:2px 6px;")
         paste_row.addWidget(self.paste_edit, stretch=1)
 
         paste_btn = QPushButton("📋 Ingest Probe Paste")

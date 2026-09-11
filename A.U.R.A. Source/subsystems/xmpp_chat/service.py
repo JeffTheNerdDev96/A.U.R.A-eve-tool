@@ -24,7 +24,7 @@ and EventBus cross-subsystem event publishing.
 
 from __future__ import annotations
 
-from typing import Any, override
+from typing import Any, Callable, override
 import time
 
 from core.base_subsystem import BaseSubsystem
@@ -55,6 +55,7 @@ class XMPPChatSubsystem(BaseSubsystem):
     """
 
     MAX_HISTORY_MESSAGES = 1000
+    MAX_DIRECTORY_ROOMS = 500
 
     def __init__(self):
         super().__init__(name="XMPPChatSubsystem")
@@ -161,8 +162,9 @@ class XMPPChatSubsystem(BaseSubsystem):
         return self.client.connect(config)
 
     def disconnect(self) -> None:
-        """Terminates active XMPP connection and purges sensitive credentials."""
+        """Stop the socket worker (joined inside the adapter) and zero in-memory credentials."""
         self.client.disconnect()
+        # Adapter also zeros its config; clear the service copy so reconnect cannot reuse it.
         if self.active_config:
             self.active_config.password = ""
         self.active_config = None
@@ -395,6 +397,10 @@ class XMPPChatSubsystem(BaseSubsystem):
         """Handles public MUC directory discovery."""
         for r in rooms:
             self.directory_rooms[r.room_jid] = r
+        overflow = len(self.directory_rooms) - self.MAX_DIRECTORY_ROOMS
+        if overflow > 0:
+            for key in list(self.directory_rooms.keys())[:overflow]:
+                self.directory_rooms.pop(key, None)
         for listener in list(self._directory_discovered_listeners):
             try:
                 listener(rooms)

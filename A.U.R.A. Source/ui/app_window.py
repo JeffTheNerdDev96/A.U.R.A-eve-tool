@@ -262,10 +262,6 @@ class RadarOptionsDialog(QDialog):
 
         self.channel_filter_combo = QComboBox()
         self.channel_filter_combo.setFixedHeight(30)
-        self.channel_filter_combo.setStyleSheet(
-            f"font-size: 12px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
-            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 4px 8px;"
-        )
         self.channel_filter_combo.addItems([
             "Intel Channels (*.intel, *.imperium, *.horde, etc.)",
             "Custom Channel Keywords...",
@@ -281,10 +277,6 @@ class RadarOptionsDialog(QDialog):
 
         self.custom_channel_edit = QLineEdit()
         self.custom_channel_edit.setFixedHeight(30)
-        self.custom_channel_edit.setStyleSheet(
-            f"font-size: 12px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
-            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 4px 8px;"
-        )
         self.custom_channel_edit.setPlaceholderText("Custom channel keywords (e.g. imperium, delve, horde, standing)")
         self.custom_channel_edit.setText(self.main_window.custom_channel_edit.text())
         self.custom_channel_edit.textChanged.connect(self._on_custom_patterns_changed)
@@ -311,10 +303,6 @@ class RadarOptionsDialog(QDialog):
 
         self.character_combo = QComboBox()
         self.character_combo.setFixedHeight(30)
-        self.character_combo.setStyleSheet(
-            f"font-size: 12px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
-            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 4px 8px;"
-        )
         for i in range(self.main_window.character_combo.count()):
             self.character_combo.addItem(self.main_window.character_combo.itemText(i))
         self.character_combo.setCurrentIndex(self.main_window.character_combo.currentIndex())
@@ -328,10 +316,6 @@ class RadarOptionsDialog(QDialog):
         self.jump_range_spin = QSpinBox()
         self.jump_range_spin.setFixedHeight(30)
         self.jump_range_spin.setFixedWidth(70)
-        self.jump_range_spin.setStyleSheet(
-            f"font-size: 12px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
-            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 2px 6px;"
-        )
         self.jump_range_spin.setRange(0, 20)
         self.jump_range_spin.setValue(self.main_window.jump_range_spin.value())
         self.jump_range_spin.valueChanged.connect(self._sync_jump_range)
@@ -609,6 +593,7 @@ class MainWindow(QMainWindow):
         self.current_assistant_tokens: List[str] = []
         self.current_piloted_ship: Optional[str] = None
         self.worker: Optional[WorkerThread] = None
+        self._abandoned_workers: List[WorkerThread] = []
         self._intel_ask_buttons: List[QPushButton] = []
         self.chat_monitor = LiveChatMonitor()
         self._connect_chat_monitor(self.chat_monitor)
@@ -669,8 +654,8 @@ class MainWindow(QMainWindow):
         main_widget.setObjectName("AppShell")
         self.setCentralWidget(main_widget)
         main_layout = QVBoxLayout(main_widget)
-        main_layout.setContentsMargins(8, 8, 8, 8)
-        main_layout.setSpacing(16)
+        main_layout.setContentsMargins(12, 12, 12, 12)
+        main_layout.setSpacing(14)
 
         # 1. Browser-style chrome strip
         self._addr_system = "System: unknown"
@@ -720,9 +705,12 @@ class MainWindow(QMainWindow):
         self.context_lbl = QLabel()
         self.context_lbl.hide()
         self.tabs = QTabWidget()
+        self.tabs.setObjectName("MainTabs")
         self.tabs.setDocumentMode(False)
         self.tabs.setUsesScrollButtons(True)
+        self.tabs.setAutoFillBackground(False)
         self.tabs.tabBar().setDrawBase(False)
+        self.tabs.tabBar().setAutoFillBackground(False)
         
         # --- Chat Tab ---
         left_widget = QWidget()
@@ -734,6 +722,7 @@ class MainWindow(QMainWindow):
         self.chat_display = QTextEdit()
         self.chat_display.setObjectName("ChatDisplay")
         self.chat_display.setReadOnly(True)
+        self.chat_display.document().setMaximumBlockCount(800)
         self.chat_display.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.chat_display.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         left_layout.addWidget(self.chat_display, stretch=1)
@@ -868,10 +857,6 @@ class MainWindow(QMainWindow):
         self.threat_filter_combo = QComboBox()
         self.threat_filter_combo.setFixedHeight(28)
         self.threat_filter_combo.setMinimumWidth(150)
-        self.threat_filter_combo.setStyleSheet(
-            f"font-size: 11.5px; background: {BG_ELEVATED}; color: {TEXT_PRIMARY}; "
-            f"border: 1px solid {BORDER}; border-radius: 4px; padding: 2px 6px;"
-        )
         self.threat_filter_combo.addItems([
             "All Activity",
             "Exclude Clears (CLR)",
@@ -1090,7 +1075,7 @@ class MainWindow(QMainWindow):
         card = QFrame()
         card.setObjectName("TabCard")
         layout = QVBoxLayout(card)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(0)
         layout.addWidget(content)
         return card
@@ -1359,6 +1344,7 @@ class MainWindow(QMainWindow):
         row_layout.setSpacing(4)
 
         text_lbl = QLabel(card_text)
+        text_lbl.setTextFormat(Qt.TextFormat.PlainText)
         text_lbl.setWordWrap(True)
         text_lbl.setFont(QFont("Consolas", 10))
         text_color = TEXT_PRIMARY
@@ -1810,26 +1796,30 @@ class MainWindow(QMainWindow):
         return time.strftime("%H:%M:%S")
 
     def _cleanup_worker(self):
-        """Cleanly disconnects and schedules deletion of finished/interrupted worker thread."""
-        if self.worker is not None:
-            try:
-                self.worker.meta_received.disconnect()
-            except Exception:
-                pass
-            try:
-                self.worker.token_received.disconnect()
-            except Exception:
-                pass
-            try:
-                self.worker.done_received.disconnect()
-            except Exception:
-                pass
-            try:
-                self.worker.error_received.disconnect()
-            except Exception:
-                pass
-            self.worker.deleteLater()
-            self.worker = None
+        """Disconnect signals and deleteLater only after the QThread has fully stopped."""
+        if self.worker is None:
+            return
+        if self.worker.isRunning():
+            # deleteLater on a live QThread can crash or leak the native thread.
+            return
+        try:
+            self.worker.meta_received.disconnect()
+        except Exception:
+            pass
+        try:
+            self.worker.token_received.disconnect()
+        except Exception:
+            pass
+        try:
+            self.worker.done_received.disconnect()
+        except Exception:
+            pass
+        try:
+            self.worker.error_received.disconnect()
+        except Exception:
+            pass
+        self.worker.deleteLater()
+        self.worker = None
 
     def _force_stop_worker(self) -> None:
         """Stop active inference and tear down the worker thread safely."""
@@ -1837,7 +1827,35 @@ class MainWindow(QMainWindow):
             if self.worker.isRunning():
                 self.worker.stop()
                 self.worker.wait(5000)
-            self._cleanup_worker()
+            if self.worker.isRunning():
+                # Keep the QObject alive until the native generate returns.
+                try:
+                    self.worker.meta_received.disconnect()
+                except Exception:
+                    pass
+                try:
+                    self.worker.token_received.disconnect()
+                except Exception:
+                    pass
+                try:
+                    self.worker.done_received.disconnect()
+                except Exception:
+                    pass
+                try:
+                    self.worker.error_received.disconnect()
+                except Exception:
+                    pass
+                self._abandoned_workers.append(self.worker)
+                self.worker = None
+            else:
+                self._cleanup_worker()
+        still_alive: List[WorkerThread] = []
+        for abandoned in self._abandoned_workers:
+            if abandoned.isRunning():
+                still_alive.append(abandoned)
+            else:
+                abandoned.deleteLater()
+        self._abandoned_workers = still_alive
         self.engine.clear_abort()
 
     def _execute_tactical_prompt(self, prompt: str, display_header: str):
@@ -1845,6 +1863,11 @@ class MainWindow(QMainWindow):
             self._force_stop_worker()
         else:
             self._cleanup_worker()
+        if any(w.isRunning() for w in self._abandoned_workers):
+            self.chat_display.append(
+                "<br><small style='color: #f59e0b;'>⚠️ Previous inference is still stopping. Wait a moment, then retry.</small><br>"
+            )
+            return
         self.engine.clear_abort()
 
         self._append_message("Capsuleer", display_header)
@@ -1870,8 +1893,8 @@ class MainWindow(QMainWindow):
             "current_system": getattr(self, "current_system_name", "Unknown"),
             "region": getattr(self, "current_system_meta", {}).get("region", "New Eden") if isinstance(getattr(self, "current_system_meta", None), dict) else "New Eden",
             "security_status": getattr(self, "current_system_meta", {}).get("sec", 0.0) if isinstance(getattr(self, "current_system_meta", None), dict) else 0.0,
-            "active_fit_summary": self.fitting_tab.current_eft().split("\n", 1)[0].strip() if hasattr(self, "fitting_tab") else "",
-            "active_wh_summary": str(self.wh_subsystem.get_chain_summary()) if hasattr(self, "wh_subsystem") else "",
+            "active_fit_summary": self.fitting_lab.current_eft().split("\n", 1)[0].strip() if hasattr(self, "fitting_lab") else "",
+            "active_wh_summary": str(self.wormhole_subsystem.get_chain_summary()) if hasattr(self, "wormhole_subsystem") else "",
             "top_threats": [
                 {"system": getattr(r, "system", ""), "threat": getattr(r, "threat_level", ""), "ships": getattr(r, "ships", [])}
                 for r in getattr(self.intel_subsystem, "active_reports", [])[:3]
@@ -1896,6 +1919,7 @@ class MainWindow(QMainWindow):
         self.attachments.clear()
         self._refresh_attachment_chips()
         self.chat_history.append({"role": "user", "content": prompt})
+        self._trim_chat_history()
 
     def _stop_generation(self):
         """Immediately halts the active neural inference stream."""
@@ -1933,7 +1957,9 @@ class MainWindow(QMainWindow):
             self,
             "Select Tactical Screenshot or Document",
             "",
-            "All Supported (*.png *.jpg *.jpeg *.bmp *.webp *.pdf *.docx *.txt *.csv);;Images (*.png *.jpg *.jpeg *.bmp *.webp);;Documents (*.pdf *.docx *.txt *.csv);;All Files (*.*)"
+            "All Supported (*.png *.jpg *.jpeg *.bmp *.webp *.pdf *.docx *.txt *.csv *.md *.json *.log *.eft *.xml);;"
+            "Images (*.png *.jpg *.jpeg *.bmp *.webp);;"
+            "Documents (*.pdf *.docx *.txt *.csv *.md *.json *.log *.eft *.xml)"
         )
         for path in file_paths:
             parsed = DocumentParser.parse_file(path)
@@ -1986,6 +2012,12 @@ class MainWindow(QMainWindow):
         """Fast token estimate using byte-length heuristic (avoids .split() allocations on UI thread)."""
         total_chars = sum(len(msg.get("content", "")) for msg in self.chat_history)
         return total_chars // 4  # ~4 chars per token for English text
+
+    def _trim_chat_history(self) -> None:
+        """Keep session transcript bounded so an active chat cannot grow without limit."""
+        max_turns = 48
+        if len(self.chat_history) > max_turns:
+            self.chat_history = self.chat_history[-max_turns:]
 
     def _update_context_display(self, current_tokens: int = None):
         if current_tokens is None:
@@ -2170,6 +2202,7 @@ class MainWindow(QMainWindow):
         
         full_reply = "".join(self.current_assistant_tokens)
         self.chat_history.append({"role": "assistant", "content": full_reply})
+        self._trim_chat_history()
         self._cleanup_worker()
         self.engine.clear_abort()
         self._update_context_display()
