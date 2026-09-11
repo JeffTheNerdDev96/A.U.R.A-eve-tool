@@ -53,7 +53,7 @@ class CompositionTabWidget(QWidget):
         self.fleet_subsystem = self.fleet_comp_subsystem
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setStyleSheet(
-            f"CompositionTabWidget {{ background:{BG_DEEP}; }}"
+            f"CompositionTabWidget {{ background:transparent; }}"
             f"QLabel {{ color:{TEXT_SECONDARY}; }}"
         )
         self._init_ui()
@@ -73,7 +73,7 @@ class CompositionTabWidget(QWidget):
         paste_row.setSpacing(8)
 
         left = QFrame()
-        left.setStyleSheet(f"QFrame {{ background:{BG_ELEVATED}; border:none; }}")
+        left.setStyleSheet(f"QFrame {{ background:{BG_ELEVATED}; border:1px solid {BORDER_MUTED}; border-radius:6px; }}")
         ll = QVBoxLayout(left)
         ll.setContentsMargins(8, 8, 8, 8)
         ll.addWidget(self._section("Friendly fleet (Fleet window / chat)"))
@@ -96,7 +96,7 @@ class CompositionTabWidget(QWidget):
         paste_row.addWidget(left, stretch=1)
 
         right = QFrame()
-        right.setStyleSheet(f"QFrame {{ background:{BG_ELEVATED}; border:none; }}")
+        right.setStyleSheet(f"QFrame {{ background:{BG_ELEVATED}; border:1px solid {BORDER_MUTED}; border-radius:6px; }}")
         rl = QVBoxLayout(right)
         rl.setContentsMargins(8, 8, 8, 8)
         rl.addWidget(self._section("Hostile D-scan / grid"))

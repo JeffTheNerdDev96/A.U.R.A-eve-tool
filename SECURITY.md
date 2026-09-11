@@ -7,15 +7,13 @@
 >
 > All earlier development builds and alpha releases — including **v0.3.x** (`v0.3.0-alpha1`, `v0.3.1-alpha2`, `v0.3.2-alpha.1`), **v0.2.x**, and **v0.1.x** — are officially **deprecated and unsupported**.
 >
-> **Version `v0.4.3-alpha.1` is the sole actively supported release.** All users and testers must upgrade to **`v0.4.3-alpha.1`** to receive security patches, bug fixes, and active maintenance.
+> **Version `v0.5.0-alpha.1` is the sole actively supported release.** All users and testers must upgrade to **`v0.5.0-alpha.1`** to receive security patches, bug fixes, and active maintenance.
 
 | Version | Supported | Status / Notes | Python Runtime | Architecture |
 | :--- | :--- | :--- | :--- | :--- |
-| **`v0.4.3-alpha.1`** | **Yes** | **Active / Sole Supported Release** (XMPP RFC 6120/6121 Client, Anokis WH mapper, Ephemeral Auth, 7-Tab Layout, AGPLv3) | Python 3.12+ | 64-bit AMD64 |
-| **`v0.4.2-alpha.1`** | **No** | **Deprecated & Unsupported** (Superseded by v0.4.3-alpha.1) | Python 3.12+ | 64-bit AMD64 |
-| **`v0.4.1-alpha.1`** | **No** | **Deprecated & Unsupported** (Superseded by v0.4.3-alpha.1) | Python 3.12+ | 64-bit AMD64 |
-| **`v0.4.0-alpha.1`** | **No** | **Deprecated & Unsupported** (Superseded by v0.4.3-alpha.1) | Python 3.12+ | 64-bit AMD64 |
-| **`v0.3.x`** | **No** | **Deprecated & Unsupported** (Superseded by v0.4.3-alpha.1) | Python 3.12+ | 64-bit AMD64 |
+| **`v0.5.0-alpha.1`** | **Yes** | **Active / Sole Supported Release** (Hardpoint & Single-fit validation, Anokis WH decay timers & prune, Real-time telemetry snapshot, AGPLv3) | Python 3.12+ | 64-bit AMD64 |
+| **`v0.4.x`** | **No** | **Deprecated & Unsupported** (Superseded by v0.5.0-alpha.1) | Python 3.12+ | 64-bit AMD64 |
+| **`v0.3.x`** | **No** | **Deprecated & Unsupported** (Superseded by v0.4.0-alpha.1) | Python 3.12+ | 64-bit AMD64 |
 | **`v0.2.x`** | **No** | **Deprecated & Unsupported** (Superseded due to major modular architecture overhaul) | Python 3.12+ | 64-bit AMD64 |
 | **`v0.1.x`** | **No** | **Deprecated & Unsupported** (Initial prototype builds) | Legacy Python | 64-bit AMD64 |
 
@@ -36,8 +34,10 @@ A.U.R.A. is engineered with an **offline-first** architecture and **can be used 
 | Risk | Mitigation |
 |---|---|
 | **XMPP Credential Theft / Exposure** | **Zero Disk Persistence:** Passwords, JIDs, and session tokens exist strictly in volatile RAM for the active connection. Never saved to disk, config files, or logs. |
-| **XMPP Network Interception** | Mandatory TLS 1.2/1.3 encryption on ports 5222 (STARTTLS) and 5223 (Direct TLS). Configurable certificate verification. |
-| **Qt HTML Injection in Chat/XMPP** | `input_safety.escape_html` enforced on all chat, log, and XMPP message renderers. |
+| **XMPP Network Interception** | Mandatory TLS 1.2/1.3 encryption on ports 5222 (STARTTLS) and 5223 (Direct TLS). Certificate verification is on by default. “Allow Self-Signed TLS” is an explicit opt-in that disables hostname/cert checks (MITM risk with SASL PLAIN). |
+| **Qt HTML Injection in Chat/XMPP** | `input_safety.escape_html` on chat HTML and XMPP rich-text. Intel radar cards use `Qt.TextFormat.PlainText`. Map avoid-list names are HTML-escaped. |
+| **XMPP Link Clicks** | External `QDesktopServices.openUrl` is restricted to `http`/`https`. Internal `ask_aura:` and `opendm:` schemes stay in-app. |
+| **XMPP Stream DoS** | Incoming stanza buffer is capped (~1 MiB); oversized or incomplete stanzas drop the connection. |
 | **Rich Clipboard Attacks** | `setAcceptRichText(False)` enforced across all user `QTextEdit` and `QLineEdit` inputs. |
 | **Oversized Attachments / Log Spikes** | `config.max_attachment_bytes`, `max_log_read_bytes`, PDF page count, and image pixel caps enforced. |
 | **Log Path Traversal / Escape** | `is_safe_log_file` realpath validation under selected Chatlogs/Gamelogs roots. |

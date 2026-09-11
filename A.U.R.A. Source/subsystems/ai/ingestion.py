@@ -21,7 +21,7 @@ Multiformat Tactical Ingestion Engine for EVE Online Adaptive Underworld Recon A
 Handles in-game screenshots (Overviews, D-Scans, Killmails), EFT fits, logs, and tactical briefs.
 """
 import os
-from typing import Dict, Any, List
+from typing import Dict, Any
 from PIL import Image, ImageEnhance
 
 from core.config import config

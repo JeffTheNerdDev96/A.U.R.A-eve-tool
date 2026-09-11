@@ -64,9 +64,6 @@ def find_default_chatlog_dir() -> str:
     return os.path.abspath(os.path.join(home, "Documents", "EVE", "logs", "Chatlogs"))
 
 
-find_default_chatlog_dir = find_default_chatlog_dir
-
-
 def find_default_gamelog_dir(chatlog_dir: Optional[str] = None) -> str:
     """Gamelogs sit beside Chatlogs under .../EVE/logs/Gamelogs."""
     if chatlog_dir:
@@ -210,7 +207,8 @@ class LiveChatMonitor(QThread):
 
     def stop(self) -> None:
         self.running = False
-        self.wait(1500)
+        from core.lifecycle import CHAT_MONITOR_JOIN_MS
+        self.wait(CHAT_MONITOR_JOIN_MS)
 
     def run(self) -> None:
         self.running = True
@@ -314,6 +312,15 @@ class LiveChatMonitor(QThread):
         self.last_dir_scan_time = now
         return self.cached_files
 
+    def _prune_inactive_log_maps(self, active_paths: List[str]) -> None:
+        """Drop seek offsets and per-file character maps for logs no longer in the active set."""
+        active = set(active_paths)
+        for path in list(self.file_positions.keys()):
+            if path not in active:
+                self.file_positions.pop(path, None)
+                self.known_files.discard(path)
+                self._file_characters.pop(path, None)
+
     def _emit_location(self, hit: Optional[Dict[str, Any]], filepath: Optional[str] = None) -> None:
         if not hit:
             return
@@ -398,6 +405,7 @@ class LiveChatMonitor(QThread):
                 self._ingest_location_prefix(path)
                 bootstrapped_game = True
         self.active_channels_updated.emit(active_names)
+        self._prune_inactive_log_maps(files)
 
     def _process_text(self, filepath: str, text: str, channel_name: str) -> None:
         is_local = _is_local_file(filepath)
@@ -438,6 +446,7 @@ class LiveChatMonitor(QThread):
 
     def _check_for_new_data(self) -> None:
         current_files = self._get_active_log_files(force_rescan=False)
+        self._prune_inactive_log_maps(current_files)
         active_names: List[str] = []
 
         for path in current_files:

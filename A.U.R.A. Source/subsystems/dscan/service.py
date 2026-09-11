@@ -16,18 +16,37 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
-VERSION = "v0.5.0-alpha.1"
-PUBLISHER = "JeffTheNerdDev96"
-LICENSE = "GNU Affero General Public License v3.0 (AGPL-3.0)"
-COMPANY_URL = "https://github.com/JeffTheNerdDev96/A.U.R.A-eve-tool"
-PRODUCT_NAME = "Adaptive Underworld Recon Array (A.U.R.A.)"
-INSTALL_DIR_NAME = f"A.U.R.A. {VERSION}"
-INSTALLER_EXE_NAME = f"AURA_Setup_{VERSION}.exe"
-APP_EXE_NAME = f"A.U.R.A.-{VERSION}.exe"
-MODEL_FOLDER = "phi-4-mini"
-MODEL_FILE = "model_q4.gguf"
-MODEL_DOWNLOAD_URL = (
-    "https://huggingface.co/unsloth/Phi-4-mini-instruct-GGUF/resolve/main/"
-    "Phi-4-mini-instruct-Q4_K_M.gguf"
-)
+"""
+Subsystem Service Layer for Directional Scan (D-Scan) Processing.
+"""
 
+from typing import override
+from core.base_subsystem import BaseSubsystem
+from .parser import DScanParser
+from .models import DScanAnalysis
+
+
+class DScanSubsystem(BaseSubsystem):
+    """D-Scan subsystem managing directional scan parsing, class aggregation, and threat analysis."""
+
+    def __init__(self):
+        super().__init__(name="DScanSubsystem")
+        self.parser = DScanParser()
+
+    @override
+    def initialize(self) -> bool:
+        return True
+
+    @override
+    def start(self) -> bool:
+        super().start()
+        return True
+
+    @override
+    def stop(self) -> bool:
+        super().stop()
+        return True
+
+    def parse_dscan(self, dscan_text: str) -> DScanAnalysis:
+        """Parses raw D-Scan text and returns structured class breakdowns."""
+        return self.parser.parse_dscan(dscan_text)

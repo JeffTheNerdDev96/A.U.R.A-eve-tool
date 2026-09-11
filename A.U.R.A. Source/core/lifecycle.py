@@ -22,7 +22,6 @@ Application lifecycle: temp-file cleanup and ordered shutdown of threads and neu
 from __future__ import annotations
 
 import gc
-import os
 import shutil
 import sys
 import threading
@@ -34,6 +33,7 @@ from .paths import get_app_root, get_logs_dir
 
 WORKER_JOIN_MS = 2000
 CHAT_MONITOR_JOIN_MS = 1500
+XMPP_JOIN_MS = 3000
 
 
 def cleanup_temp_files() -> None:
@@ -84,6 +84,17 @@ def shutdown_application(window: Any | None = None) -> None:
         except Exception as exc:
             _log_shutdown_error(exc, "shutdown: idle_timer")
 
+        # Stop tab-level timers
+        for tab_attr, timer_attr in (("anokis_tab", "poll_timer"), ("map_tab", "_prune_timer")):
+            try:
+                tab_widget = getattr(window, tab_attr, None)
+                if tab_widget is not None:
+                    timer = getattr(tab_widget, timer_attr, None)
+                    if timer is not None and hasattr(timer, "stop"):
+                        timer.stop()
+            except Exception as exc:
+                _log_shutdown_error(exc, f"shutdown: {tab_attr}.{timer_attr}")
+
         try:
             if hasattr(window, "tray_icon") and window.tray_icon:
                 window.tray_icon.hide()
@@ -102,10 +113,16 @@ def shutdown_application(window: Any | None = None) -> None:
                     worker.stop()
                 worker.quit()
                 worker.wait(WORKER_JOIN_MS)
+            for abandoned in list(getattr(window, "_abandoned_workers", []) or []):
+                try:
+                    if abandoned.isRunning():
+                        abandoned.wait(WORKER_JOIN_MS)
+                except Exception:
+                    pass
         except Exception as exc:
             _log_shutdown_error(exc, "shutdown: worker_thread")
 
-        # 2. Stop live chat monitor thread
+        # 2. Stop live chat monitor thread (stop() joins for CHAT_MONITOR_JOIN_MS)
         try:
             monitor = getattr(window, "chat_monitor", None)
             if monitor is not None and monitor.isRunning():
@@ -113,7 +130,15 @@ def shutdown_application(window: Any | None = None) -> None:
         except Exception as exc:
             _log_shutdown_error(exc, "shutdown: chat_monitor")
 
-        # 3. Unload neural model and coprocessors
+        # 3. Stop XMPP worker (adapter joins the socket thread and wipes credentials)
+        try:
+            xmpp = getattr(window, "xmpp_subsystem", None)
+            if xmpp is not None and hasattr(xmpp, "disconnect"):
+                xmpp.disconnect()
+        except Exception as exc:
+            _log_shutdown_error(exc, "shutdown: xmpp_subsystem")
+
+        # 4. Unload neural model and coprocessors
         try:
             if engine is not None:
                 engine.unload_model()
@@ -124,8 +149,8 @@ def shutdown_application(window: Any | None = None) -> None:
         except Exception as exc:
             _log_shutdown_error(exc, "shutdown: engine")
 
-        # 4. Stop all attached subsystems
-        for sub_attr in ("intel_subsystem", "map_subsystem", "fleet_comp_subsystem", "fitting_subsystem", "wormhole_subsystem", "xmpp_subsystem", "ai_subsystem"):
+        # 5. Stop remaining subsystems (fitting/AI live in widgets + UnifiedInferenceEngine)
+        for sub_attr in ("intel_subsystem", "dscan_subsystem", "map_subsystem", "fleet_comp_subsystem", "wormhole_subsystem", "xmpp_subsystem"):
             try:
                 sub = getattr(window, sub_attr, None)
                 if sub is not None and hasattr(sub, "stop"):
@@ -133,7 +158,7 @@ def shutdown_application(window: Any | None = None) -> None:
             except Exception as exc:
                 _log_shutdown_error(exc, f"shutdown: {sub_attr}")
 
-        # 5. Clear chat history and memory buffers
+        # 6. Clear chat history and memory buffers
         try:
             if hasattr(window, "chat_history"):
                 window.chat_history.clear()

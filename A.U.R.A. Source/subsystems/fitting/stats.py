@@ -403,7 +403,7 @@ def compute_fit(hull_name: str, fitted: List[str]) -> Dict[str, Any]:
 
 
 def calculate_fit_stats(fit_dict: Dict[str, Any]) -> Dict[str, Any]:
-    ship_name = fit_dict.get("ship_name", "")
+    ship_name = fit_dict.get("ship_name") or fit_dict.get("hull_name", "")
     all_modules = (
         fit_dict.get("high_slots", []) +
         fit_dict.get("mid_slots", []) +
@@ -424,4 +424,106 @@ def calculate_fit_stats(fit_dict: Dict[str, Any]) -> Dict[str, Any]:
         "pg_pct": pg_pct,
         "compute_fit": res
     }
+
+
+
+
+
+# Turret and Launcher Detection Patterns
+_TURRET_KEYWORDS = (
+    "laser", "beam", "pulse", "blaster", "railgun", "autocannon",
+    "artillery", "disintegrator", "vorton", "particle accelerator",
+)
+_LAUNCHER_KEYWORDS = (
+    "missile launcher", "rocket launcher", "torpedo launcher",
+    "bomb launcher", "rapid light", "heavy assault missile",
+    "heavy missile launcher", "cruise missile launcher",
+)
+
+
+def is_turret_module(name: str) -> bool:
+    """Returns True if the module consumes a turret hardpoint."""
+    if not name:
+        return False
+    nl = name.lower()
+    if any(k in nl for k in ["crystal", "smartbomb", "salvager", "gas cloud"]):
+        return False
+    if "mining laser" in nl:
+        return True
+    return any(k in nl for k in _TURRET_KEYWORDS)
+
+
+def is_launcher_module(name: str) -> bool:
+    """Returns True if the module consumes a launcher hardpoint."""
+    if not name:
+        return False
+    nl = name.lower()
+    if any(k in nl for k in ["interdiction sphere", "bubble", "defender", "festival"]):
+        return False
+    return any(k in nl for k in _LAUNCHER_KEYWORDS) or ("launcher" in nl and not "sphere" in nl)
+
+
+def get_single_fit_group(name: str) -> Optional[str]:
+    """
+    Returns the restriction group name if the module is restricted to 1 per ship.
+    Returns None if the module is permitted to be multi-fitted (e.g. Propulsion, ASB).
+    """
+    if not name:
+        return None
+    nl = name.lower()
+    if "ancillary armor repair" in nl:
+        return "Ancillary Armor Repairer"
+    if "assault damage control" in nl or "damage control" in nl:
+        return "Damage Control"
+    if "reactive armor hardener" in nl:
+        return "Reactive Armor Hardener"
+    if "cloaking device" in nl or "covert ops cloak" in nl or "prototype cloak" in nl or "improved cloak" in nl:
+        return "Cloaking Device"
+    if "micro jump drive" in nl or "micro jump field generator" in nl:
+        return "Micro Jump Drive"
+    if "cynosural field generator" in nl or "covert cynosural" in nl:
+        return "Cynosural Field Generator"
+    if "warp core stabilizer" in nl:
+        return "Warp Core Stabilizer"
+    if any(k in nl for k in ["siege module", "bastion module", "triage module", "industrial core"]):
+        return "Capital Core Module"
+    return None
+
+
+def validate_module_fit(hull_name: str, current_fitted: List[str], new_mod: str) -> Tuple[bool, str]:
+    """
+    Validates whether new_mod can be added to the hull given current_fitted modules.
+    Returns (is_valid, rejection_reason).
+    """
+    if not new_mod:
+        return True, ""
+    ship = lookup_ship(hull_name) or {}
+
+    # 1. Turret hardpoints check
+    if is_turret_module(new_mod):
+        turret_hp = ship.get("turret_hardpoints")
+        if turret_hp is not None:
+            max_turrets = int(turret_hp)
+            current_turrets = sum(1 for m in current_fitted if is_turret_module(m))
+            if current_turrets >= max_turrets:
+                return False, f"Turret hardpoint limit reached ({current_turrets}/{max_turrets} occupied)."
+
+    # 2. Launcher hardpoints check
+    if is_launcher_module(new_mod):
+        launcher_hp = ship.get("launcher_hardpoints")
+        if launcher_hp is not None:
+            max_launchers = int(launcher_hp)
+            current_launchers = sum(1 for m in current_fitted if is_launcher_module(m))
+            if current_launchers >= max_launchers:
+                return False, f"Launcher hardpoint limit reached ({current_launchers}/{max_launchers} occupied)."
+
+    # 3. Single-fit group check
+    group = get_single_fit_group(new_mod)
+    if group:
+        for m in current_fitted:
+            if get_single_fit_group(m) == group:
+                return False, f"Only 1 {group} is allowed per ship."
+
+    return True, ""
+
 

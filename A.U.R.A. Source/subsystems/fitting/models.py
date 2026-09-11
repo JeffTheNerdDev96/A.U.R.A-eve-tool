@@ -42,3 +42,5 @@ class ParsedFitting:
     slots: FittingSlotLayout = field(default_factory=FittingSlotLayout)
     raw_eft: str = ""
     stats: dict[str, Any] = field(default_factory=dict)
+    validation_warnings: list[str] = field(default_factory=list)
+    rejected_modules: list[str] = field(default_factory=list)

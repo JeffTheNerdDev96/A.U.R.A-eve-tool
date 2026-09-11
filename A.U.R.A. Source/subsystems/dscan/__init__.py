@@ -16,18 +16,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
-VERSION = "v0.5.0-alpha.1"
-PUBLISHER = "JeffTheNerdDev96"
-LICENSE = "GNU Affero General Public License v3.0 (AGPL-3.0)"
-COMPANY_URL = "https://github.com/JeffTheNerdDev96/A.U.R.A-eve-tool"
-PRODUCT_NAME = "Adaptive Underworld Recon Array (A.U.R.A.)"
-INSTALL_DIR_NAME = f"A.U.R.A. {VERSION}"
-INSTALLER_EXE_NAME = f"AURA_Setup_{VERSION}.exe"
-APP_EXE_NAME = f"A.U.R.A.-{VERSION}.exe"
-MODEL_FOLDER = "phi-4-mini"
-MODEL_FILE = "model_q4.gguf"
-MODEL_DOWNLOAD_URL = (
-    "https://huggingface.co/unsloth/Phi-4-mini-instruct-GGUF/resolve/main/"
-    "Phi-4-mini-instruct-Q4_K_M.gguf"
-)
+"""
+A.U.R.A. Directional Scan (D-Scan) Subsystem Package.
+"""
 
+from .models import DScanEntry, DScanClassSummary, DScanAnalysis
+from .parser import DScanParser
+from .service import DScanSubsystem
+
+__all__ = [
+    "DScanEntry",
+    "DScanClassSummary",
+    "DScanAnalysis",
+    "DScanParser",
+    "DScanSubsystem",
+]

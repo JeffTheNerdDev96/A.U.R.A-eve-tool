@@ -33,10 +33,12 @@ import ssl
 import threading
 import time
 import xml.etree.ElementTree as ET
-from typing import Callable, Any
+from typing import Callable
 
+from version import VERSION
 from core.error_handler import AURAErrorCode, log_diagnostic_error
 from core.eve_data import lookup_ship
+from core.lifecycle import XMPP_JOIN_MS
 from .models import (
     XMPPAccountConfig,
     XMPPConnectionState,
@@ -66,6 +68,13 @@ _RE_LOCATION = re.compile(
 )
 _RE_PAP = re.compile(r"(?:PAP(?:\s*TYPE)?|FATIGUE|LINK)\s*:\s*(https?://[^\s]+|[A-Za-z0-9\- ]+)", re.IGNORECASE)
 _RE_MUMBLE = re.compile(r"(?:COMMS?|MUMBLE|TS3?|VOICE)\s*:\s*([^\n\r]+)", re.IGNORECASE)
+
+# Bound stream parsing so a hostile or broken server cannot grow RAM / pin CPU.
+_WORKER_JOIN_SEC = XMPP_JOIN_MS / 1000.0
+_MAX_RECV_BUFFER = 1 * 1024 * 1024
+_MAX_HANDSHAKE_BUFFER = 256 * 1024
+_MAX_STANZA_CHARS = 256 * 1024
+_STANZA_OPEN_RE = re.compile(r"<(message|presence|iq)\b", re.IGNORECASE)
 
 
 def escape_xml(text: str) -> str:
@@ -197,6 +206,7 @@ class XMPPProtocolAdapter:
         self.state: XMPPConnectionState = XMPPConnectionState.DISCONNECTED
         self._worker_thread: threading.Thread | None = None
         self._is_running = False
+        self._stop_event = threading.Event()
         self._socket: socket.socket | ssl.SSLSocket | None = None
         self._outbound_queue: queue.Queue[str] = queue.Queue()
         self._joined_rooms: set[str] = set()
@@ -217,7 +227,8 @@ class XMPPProtocolAdapter:
         Initiates asynchronous connection using the provided in-memory config.
         Credentials are never saved to disk.
         """
-        if self.state in (XMPPConnectionState.CONNECTING, XMPPConnectionState.AUTHENTICATING, XMPPConnectionState.CONNECTED):
+        # Join any previous worker before starting a new one (shared socket / password races).
+        if self._worker_thread is not None and self._worker_thread.is_alive():
             self.disconnect()
 
         self.config = config
@@ -225,6 +236,7 @@ class XMPPProtocolAdapter:
             self.set_state(XMPPConnectionState.ERROR, "Invalid JID format (expected user@domain)")
             return False
 
+        self._stop_event.clear()
         self._is_running = True
         self._joined_rooms.clear()
         self._roster.clear()
@@ -238,22 +250,49 @@ class XMPPProtocolAdapter:
         self._worker_thread.start()
         return True
 
-    def disconnect(self) -> None:
-        """Terminates active network connection and purges in-memory buffers."""
-        self._is_running = False
-        self.set_state(XMPPConnectionState.DISCONNECTING)
+    def _wipe_credentials(self) -> None:
+        """Zero the in-memory password and drop the config reference held by the adapter."""
+        cfg = self.config
+        if cfg is not None:
+            cfg.password = ""
+        self.config = None
 
-        # Send closing stream tag if connected
-        if self._socket:
-            try:
-                self._socket.sendall(b"</stream:stream>")
-            except Exception:
-                pass
-            try:
-                self._socket.close()
-            except Exception:
-                pass
-            self._socket = None
+    def _close_socket(self) -> None:
+        sock = self._socket
+        self._socket = None
+        if sock is None:
+            return
+        try:
+            sock.close()
+        except Exception:
+            pass
+
+    def disconnect(self) -> None:
+        """Stop the worker thread, close the socket, and purge in-memory credentials."""
+        self._is_running = False
+        self._stop_event.set()
+        if self.state != XMPPConnectionState.DISCONNECTED:
+            self.set_state(XMPPConnectionState.DISCONNECTING)
+
+        # Ask the worker to emit </stream:stream>. Never sendall() from the GUI thread
+        # (it can block on a 10s handshake timeout while recv() holds the same socket).
+        try:
+            self._outbound_queue.put_nowait("</stream:stream>")
+        except Exception:
+            pass
+
+        worker = self._worker_thread
+        on_worker = worker is not None and threading.current_thread() is worker
+        if worker is not None and worker.is_alive() and not on_worker:
+            worker.join(timeout=_WORKER_JOIN_SEC)
+
+        # Unblock a stuck recv() if the worker did not exit on its own.
+        self._close_socket()
+        if worker is not None and worker.is_alive() and not on_worker:
+            worker.join(timeout=1.0)
+
+        if not on_worker:
+            self._worker_thread = None
 
         while not self._outbound_queue.empty():
             try:
@@ -264,6 +303,7 @@ class XMPPProtocolAdapter:
         self._joined_rooms.clear()
         self._bound_jid = ""
         self._roster.clear()
+        self._wipe_credentials()
         self.set_state(XMPPConnectionState.DISCONNECTED)
 
     def send_message(self, target_jid: str, body: str, is_groupchat: bool = True) -> bool:
@@ -370,6 +410,7 @@ class XMPPProtocolAdapter:
             "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!eNULL:!MD5:!3DES:!RC4:!DES:!DSS:!SEED:!IDEA"
         )
         if allow_self_signed:
+            # Opt-in only: SASL PLAIN then ships the password to whoever completed TLS.
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE
         else:
@@ -388,6 +429,8 @@ class XMPPProtocolAdapter:
                 if not chunk:
                     raise ConnectionResetError("Server closed connection during handshake")
                 buffer += chunk.decode("utf-8", errors="replace")
+                if len(buffer) > _MAX_HANDSHAKE_BUFFER:
+                    raise ConnectionError("XMPP handshake buffer exceeded cap")
                 for pat in target_patterns:
                     if pat in buffer:
                         return buffer
@@ -540,16 +583,11 @@ class XMPPProtocolAdapter:
 
                     # 11b. Send proactive keepalive ping every 12 seconds
                     if time.time() - last_keepalive > 12.0:
-                        try:
-                            # Send whitespace heartbeat
-                            sock.sendall(b" ")
-                            # Send XEP-0199 Ping to domain
-                            ping_id = f"aura_ping_{int(time.time())}"
-                            ping_stanza = f"<iq type='get' to='{escape_xml(cfg.domain)}' id='{ping_id}'><ping xmlns='urn:xmpp:ping'/></iq>"
-                            sock.sendall(ping_stanza.encode("utf-8"))
-                            last_keepalive = time.time()
-                        except Exception:
-                            pass
+                        sock.sendall(b" ")
+                        ping_id = f"aura_ping_{int(time.time())}"
+                        ping_stanza = f"<iq type='get' to='{escape_xml(cfg.domain)}' id='{ping_id}'><ping xmlns='urn:xmpp:ping'/></iq>"
+                        sock.sendall(ping_stanza.encode("utf-8"))
+                        last_keepalive = time.time()
 
                     # 11c. Read incoming stream data
                     try:
@@ -557,6 +595,8 @@ class XMPPProtocolAdapter:
                         if not chunk:
                             raise ConnectionResetError("Remote server closed stream.")
                         recv_buffer += chunk.decode("utf-8", errors="replace")
+                        if len(recv_buffer) > _MAX_RECV_BUFFER:
+                            raise ConnectionError("XMPP recv buffer exceeded 1 MiB; dropping stream")
                     except socket.timeout:
                         continue
                     except ssl.SSLError as s_err:
@@ -579,7 +619,7 @@ class XMPPProtocolAdapter:
                 log_diagnostic_error(AURAErrorCode.ERR_7003_XMPP_HOST_UNREACHABLE, net_err, "XMPPProtocolAdapter._connection_worker")
                 if self._is_running and cfg.auto_reconnect:
                     self.set_state(XMPPConnectionState.CONNECTING, f"Connection dropped. Reconnecting in {int(reconnect_backoff)}s...")
-                    time.sleep(reconnect_backoff)
+                    self._stop_event.wait(timeout=reconnect_backoff)
                     reconnect_backoff = min(reconnect_backoff * 2.0, 15.0)
                     continue
                 else:
@@ -588,7 +628,7 @@ class XMPPProtocolAdapter:
             except Exception as exc:
                 log_diagnostic_error(AURAErrorCode.ERR_7001_XMPP_AUTH_FAILED, exc, "XMPPProtocolAdapter._connection_worker")
                 if self._is_running and cfg.auto_reconnect:
-                    time.sleep(reconnect_backoff)
+                    self._stop_event.wait(timeout=reconnect_backoff)
                     reconnect_backoff = min(reconnect_backoff * 2.0, 15.0)
                     continue
                 else:
@@ -607,21 +647,39 @@ class XMPPProtocolAdapter:
 
     def _process_incoming_stanzas(self, buffer: str, sock: socket.socket | ssl.SSLSocket) -> str:
         """
-        Extracts and dispatches complete XML stanzas (<message>, <presence>, <iq>) from the stream buffer.
-        Returns the remaining unparsed buffer tail.
+        Extract complete <message>/<presence>/<iq> stanzas without a greedy DOTALL regex.
+        Incomplete stanzas larger than _MAX_STANZA_CHARS fail closed (drop the stream).
         """
-        pattern = re.compile(r"<(message|presence|iq)\b[^>]*>(?:.*?</\1>|(?<=/>))", re.DOTALL | re.IGNORECASE)
-
-        while True:
-            match = pattern.search(buffer)
+        while buffer:
+            match = _STANZA_OPEN_RE.search(buffer)
             if not match:
-                single_tag = re.search(r"<(message|presence|iq)\b[^>]*/>", buffer, re.DOTALL | re.IGNORECASE)
-                if not single_tag:
-                    break
-                match = single_tag
+                return buffer[-64:] if len(buffer) > 64 else buffer
 
-            stanza_text = match.group(0)
-            buffer = buffer[match.end():]
+            if match.start() > 0:
+                buffer = buffer[match.start():]
+
+            gt = buffer.find(">")
+            if gt == -1:
+                if len(buffer) > _MAX_STANZA_CHARS:
+                    raise ConnectionError("Incomplete XMPP stanza exceeded size cap")
+                return buffer
+
+            first_tag = buffer[: gt + 1]
+            tag_name = match.group(1)
+            stripped = first_tag.rstrip()
+            if stripped.endswith("/>") or first_tag.endswith("/>"):
+                stanza_text = first_tag
+                buffer = buffer[gt + 1 :]
+            else:
+                close_tag = f"</{tag_name}>"
+                close_idx = buffer.lower().find(close_tag.lower(), gt + 1)
+                if close_idx == -1:
+                    if len(buffer) > _MAX_STANZA_CHARS:
+                        raise ConnectionError("Incomplete XMPP stanza exceeded size cap")
+                    return buffer
+                end = close_idx + len(close_tag)
+                stanza_text = buffer[:end]
+                buffer = buffer[end:]
 
             try:
                 self._dispatch_stanza(stanza_text, sock)
@@ -722,7 +780,7 @@ class XMPPProtocolAdapter:
                     v_resp = (
                         f"<iq{to_attr} id='{escape_xml(iq_id)}' type='result'>"
                         f"<query xmlns='jabber:iq:version'>"
-                        f"<name>A.U.R.A.</name><version>v0.4.3-alpha.1</version><os>Windows</os>"
+                        f"<name>A.U.R.A.</name><version>{VERSION}</version><os>Windows</os>"
                         f"</query></iq>"
                     )
                     try:
