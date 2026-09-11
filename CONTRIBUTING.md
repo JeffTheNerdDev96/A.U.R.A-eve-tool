@@ -9,11 +9,13 @@ Thank you for your interest in **Adaptive Underworld Recon Array (A.U.R.A.)**! W
 > [!NOTE]
 > **Active Foundation & Core Backend Construction**
 >
-> A.U.R.A. is currently in **active early alpha development**. Foundational subsystems and core backends are undergoing rapid construction, including:
-> - The interactive Wormhole Mapping & topology chain engine (`subsystems/wormhole`)
-> - The real-time Combat Log telemetry analyzer (`subsystems/combat_log`)
-> - The deterministic Dogma fitting simulation backend (`subsystems/fitting`)
-> - The custom tactical AI model integration (`AURA-Eve-Tactical-Instruct-3.8B`)
+> A.U.R.A. is currently in **active early alpha development**. Foundational subsystems and experimental tabs are still evolving, including:
+> - Dedicated Directional Scan analysis (`subsystems/dscan`)
+> - The interactive Wormhole Mapping & topology chain engine (`subsystems/wormhole` / Anokis tab)
+> - The heuristic Fitting Lab and hardpoint / single-fit rules (`subsystems/fitting`)
+> - Alliance XMPP tactical messaging (`subsystems/xmpp_chat`)
+> - Local neural briefings and telemetry snapshots (`subsystems/ai`, Phi-4 Mini runtime)
+> - A planned custom tactical model (`AURA-Eve-Tactical-Instruct-3.8B`) that is **not** the current default
 >
 > Because core architectures and internal interfaces are subject to frequent changes and potential rewrites, **direct pull requests (PRs) to the `main` branch are currently paused**.
 
@@ -60,7 +62,4 @@ Once core backend engines stabilize and the project transitions from Alpha towar
 
 By contributing to **Adaptive Underworld Recon Array (A.U.R.A.)**, you agree that all submitted source code, documentation, heuristics, and assets will be licensed under the terms of the **[GNU Affero General Public License Version 3 (AGPL-3.0)](LICENSE.txt)**.
 
-Thank you for your understanding and support as we build out the foundations of A.U.R.A.!
-
-
-
+Thank you for your understanding and support as we build out the foundations of A.U.R.A!

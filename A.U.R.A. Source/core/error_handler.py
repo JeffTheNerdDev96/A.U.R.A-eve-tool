@@ -84,7 +84,7 @@ ERROR_REGISTRY: dict[str, dict[str, str]] = {
     AURAErrorCode.ERR_1002_CONTEXT_ALLOC_FAILED: {
         "title": "Context Allocation Failure",
         "description": "Failed to allocate neural reasoning context buffer or KV cache tensors in RAM/VRAM.",
-        "resolution": "Close high-memory background applications or select a smaller context window size in Settings."
+        "resolution": "Close high-memory background applications or run the CPU hardware install profile (install_cpu.bat)."
     },
     AURAErrorCode.ERR_1003_PYTHON_INCOMPATIBLE: {
         "title": "Incompatible Python Architecture",
@@ -139,7 +139,7 @@ ERROR_REGISTRY: dict[str, dict[str, str]] = {
     AURAErrorCode.ERR_4001_CHATLOG_DIR_MISSING: {
         "title": "Chat Logs Directory Not Accessible",
         "description": "EVE Online Chatlogs folder could not be located in 'Documents/EVE/logs/Chatlogs'.",
-        "resolution": "Launch EVE Online at least once or manually specify the Chatlogs folder in A.U.R.A. Settings."
+        "resolution": "Launch EVE Online at least once or manually specify the Chatlogs folder in Live Intel Radar → Radar Options → Browse Folder."
     },
     AURAErrorCode.ERR_4002_LOG_STREAM_LOCKED: {
         "title": "Chat Log Stream Lock Error",

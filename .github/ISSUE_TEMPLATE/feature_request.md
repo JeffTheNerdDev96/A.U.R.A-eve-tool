@@ -10,14 +10,16 @@ assignees: ""
 ## 🎯 Target Subsystem & Domain Area
 Which part of A.U.R.A. does this request enhance?
 
-- [ ] **AI Tactical Copilot** (Neural prompts, GGUF offload, model personalities)
-- [ ] **Tactical Intel & Radar** (Chatlog tailing, regex heuristics, threat alerts, multi-character feeds)
+- [ ] **A.U.R.A. Chat** (Neural prompts, GGUF offload, telemetry snapshot, OCR)
+- [ ] **Live Intel Radar** (Chatlog tailing, regex heuristics, threat alerts, character tracker)
+- [ ] **D-Scan** (Directional Scan grouping, threat classification, Ask A.U.R.A. handover)
 - [ ] **Solar System Map & Stargate Routing** (Jump calculations, avoidance, threat heatmaps)
-- [ ] **Fleet Composition & D-Scan** (Role classification, doctrine counters, matchup scoring)
-- [ ] **Fitting Lab & Dogma Engine** (EFT parsing, slot layouts, capacitor/EHP math)
-- [ ] **Wormhole Mapping & Signatures** (Chain topology, J-space effects, signature tracking)
+- [ ] **Fleet Composition** (Role classification, doctrine counters, matchup scoring)
+- [ ] **Fitting Lab** (EFT parsing, slot layouts, hardpoint / single-fit rules)
+- [ ] **Anokis Wormhole Mapping & Signatures** (Chain topology, decay timers, prune, probe ingest)
+- [ ] **XMPP Tactical Messaging** (MUC broadcasts, roster DMs, ping classification)
 - [ ] **Hardware Acceleration & Coprocessors** (NPU, CUDA, Vulkan, DirectML, OpenVINO)
-- [ ] **Packaging & Platform Support** (Windows Installer, Linux Fedora/Ubuntu Standalone)
+- [ ] **Packaging & Platform Support** (Windows Installer, Linux standalone)
 
 ---
 

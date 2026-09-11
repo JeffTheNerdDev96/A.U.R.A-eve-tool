@@ -54,12 +54,12 @@ A.U.R.A. synthesizes and unifies core concepts from the most trusted tools in th
 
 ## 4. Neural Model & Local Inference Stack
 
-A.U.R.A. operates completely offline using locally quantized large language models:
+A.U.R.A. operates completely offline using locally quantized large language models. The **bundled runtime default** is Microsoft **Phi-4 Mini Instruct** quantized as **Q4_K_M GGUF**. A custom tactical fine-tune is credited below as **planned**, not as the model loaded at startup.
 
 | Project | Author / Maintainer | Role in A.U.R.A. |
 | :--- | :--- | :--- |
-| **[Microsoft Phi-4 Mini Instruct](https://huggingface.co/microsoft/Phi-4-mini-instruct)** | Microsoft Research | Base 3.8B parameter multilingual reasoning model |
-| **[AURA-Eve-Tactical-Instruct-3.8B](https://huggingface.co/JeffTheNerdDev96/AURA-Eve-Tactical-Instruct-3.8B)** | JeffTheNerdDev96 | Fine-tuned tactical weights specialized for New Eden doctrine and combat analysis |
+| **[Microsoft Phi-4 Mini Instruct](https://huggingface.co/microsoft/Phi-4-mini-instruct)** | Microsoft Research | Bundled 3.8B multilingual reasoning model (Q4_K_M GGUF runtime default) |
+| **[AURA-Eve-Tactical-Instruct-3.8B](https://huggingface.co/JeffTheNerdDev96/AURA-Eve-Tactical-Instruct-3.8B)** | JeffTheNerdDev96 | Planned fine-tuned tactical weights for New Eden doctrine and combat analysis (not the current default) |
 | **[llama.cpp](https://github.com/ggerganov/llama.cpp)** | Georgi Gerganov & contributors | Core GGUF tensor runtime, SIMD AVX2/AVX-512 vector math, and `Q4_K_M` quantization |
 | **[llama-cpp-python](https://github.com/abetlen/llama-cpp-python)** | Andrei Betlen & contributors | Python C-FFI / ctypes bindings for streaming local inference and GPU layer offloading |
 | **[Hugging Face Hub](https://huggingface.co)** | Hugging Face Inc. | Model hosting and weight distribution infrastructure |

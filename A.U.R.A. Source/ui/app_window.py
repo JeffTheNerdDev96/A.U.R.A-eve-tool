@@ -436,8 +436,9 @@ class CreditsDialog(QDialog):
           open-source community, game data contributors, hardware architects, and third-party developer ecosystem listed below.</p>
 
           <h3 style="{h}">EVE Online &amp; Game Data</h3>
-          <p><b>EVE Online</b>, the EVE logo, and related marks are trademarks of <b>CCP hf</b>.
-          This project is not affiliated with, endorsed by, or sponsored by CCP Games.</p>
+          <p><b>EVE Online</b>, the EVE logo, and related marks are trademarks of <b>Fenris Creations</b>
+          (FC Games / formerly CCP Games / CCP hf).
+          This project is not affiliated with, endorsed by, or sponsored by Fenris Creations or CCP Games.</p>
           <p>Ship, module, and mechanic information in the tactical database is compiled from
           publicly documented EVE Online game data for offline use.</p>
           <ul>
@@ -476,9 +477,9 @@ class CreditsDialog(QDialog):
           <h3 style="{h}">Neural Model &amp; Local Inference Stack</h3>
           <ul>
             <li><a href="https://huggingface.co/microsoft/Phi-4-mini-instruct" style="{link}">Microsoft Phi-4 Mini Instruct</a>
-            — base 3.8B multilingual reasoning model (Microsoft Research).</li>
+            — bundled 3.8B multilingual reasoning model, Q4_K_M GGUF runtime default (Microsoft Research).</li>
             <li><a href="https://huggingface.co/JeffTheNerdDev96/AURA-Eve-Tactical-Instruct-3.8B" style="{link}">AURA-Eve-Tactical-Instruct-3.8B</a>
-            — fine-tuned tactical weights specialized for New Eden doctrine and combat analysis (JeffTheNerdDev96).</li>
+            — planned fine-tuned tactical weights for New Eden doctrine and combat analysis; not the current default (JeffTheNerdDev96).</li>
             <li><a href="https://github.com/ggerganov/llama.cpp" style="{link}">llama.cpp (Georgi Gerganov)</a>
             — core GGUF tensor runtime, SIMD AVX2/AVX-512 vector math, and Q4_K_M quantization.</li>
             <li><a href="https://github.com/abetlen/llama-cpp-python" style="{link}">llama-cpp-python (Andrei Betlen)</a>

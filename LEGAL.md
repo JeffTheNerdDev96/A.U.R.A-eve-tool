@@ -15,7 +15,7 @@ A.U.R.A. source code is licensed under the **[GNU Affero General Public License 
 * **Application Core:** Licensed under **GNU AGPLv3**.
 * **Third-Party Dependencies:** Libraries utilized by this runtime (e.g., NumPy, PyQt6, psutil, Pillow, winocr, pypdf, python-docx, openpyxl) are governed by their respective upstream licenses (MIT, BSD-3-Clause, LGPLv3, Apache 2.0).
 * **Typography Assets:** Typefaces bundled within this application (including the Orbitron Font Family) are distributed under the **SIL Open Font License 1.1 (OFL-1.1)**. The original OFL license text and copyright notices are preserved intact within the distribution package (`Orbitron-OFL.txt`).
-* **Neural Model Weights & Quantizations:** The base Microsoft Phi-4 Mini Instruct model weights and the specialized `AURA-Eve-Tactical-Instruct-3.8B` fine-tuned weights are distributed independently under their own permissive terms (MIT / Apache-2.0) and remain legally decoupled from the AGPLv3 application codebase.
+* **Neural Model Weights & Quantizations:** The bundled runtime uses Microsoft **Phi-4 Mini Instruct** (Q4_K_M GGUF). The specialized `AURA-Eve-Tactical-Instruct-3.8B` fine-tune is a planned weight set, not the default loaded model. Both the base weights and any future fine-tune remain distributed independently under their own permissive terms (MIT / Apache-2.0) and are legally decoupled from the AGPLv3 application codebase.
 
 ---
 

@@ -18,17 +18,42 @@ A.U.R.A. organizes its tactical suite into eight specialized desktop tabs:
 
 1. **Live Intel Radar** — Real-time chat log and game log tailer featuring heuristic threat classification (CLEAR to CRITICAL), hop-range proximity rings, and automated tactical responses.
 2. **D-Scan** *(EXPERIMENTAL)* — Dedicated Directional Scan analyzer with automatic ship class grouping, itemized vessel quantities (`Class : Count : Specific Ships xQty`), and on-demand "Ask A.U.R.A." tactical handovers.
-3. **Composition** — Friendly fleet composition vs. hostile fleet analyzer. Includes multi-role breakdowns (Logistics, Mainline DPS, Tacklers, EWAR, Covert Ops) and local matchup heuristics.
+3. **Composition** — Friendly fleet composition vs. hostile fleet analyzer. Includes multi-role breakdowns (Logistics, Interdictors/Tackle, Strategic Cruisers, Mainline DPS, T2 Recons / EAS, Covert Ops) and local matchup heuristics.
 4. **Map** — Interactive stargate bubble graph centered on your current solar system, complete with intel threat overlays, BFS route planning, and custom system avoidance.
-5. **Anoikis** *(EXPERIMENTAL)* — Wormhole chain mapping system featuring interactive topology hierarchies, system class badges (C1–C6, Thera, Pochven, K-space), mass/lifetime decay tracking, and cosmic signature management via EVE probe scanner clipboard ingestion.
-6. **Fitting** *(EXPERIMENTAL)* — Fitting Lab and EFT optimizer with visual slot layouts, Dogma hardpoint limits, single-module constraint enforcement, and "Ask A.U.R.A." role evaluations.
-7. **XMPP** *(EXPERIMENTAL)* — Alliance tactical messaging and broadcast ping receiver (`xmpp_chat`). Features real-time MUC broadcast channel monitoring, ping urgency classification (CTA, StratOp, Formup), and one-click tactical handover to A.U.R.A. Chat.  
+5. **Anokis** *(EXPERIMENTAL)* — Wormhole chain mapping for Anoikis J-space: interactive topology hierarchies, system class badges (C1–C6, Thera, Pochven, K-space), mass/lifetime decay tracking (including remaining-time prune), and cosmic signature management via EVE probe scanner clipboard ingestion.
+6. **Fitting** *(EXPERIMENTAL)* — Fitting Lab and EFT import/export with visual slot layouts, heuristic CPU/PG/EHP from the local ship/module database (`core/eve_data.py`), Dogma hardpoint limits, single-module constraint enforcement, and "Ask A.U.R.A." role evaluations.
+7. **XMPP** *(EXPERIMENTAL)* — Alliance tactical messaging and broadcast ping receiver (`xmpp_chat`). Features real-time MUC broadcast channel monitoring, ping urgency classification (CTA, StratOp, Formup), roster DMs, server room directory, and one-click tactical handover to A.U.R.A. Chat.  
    * *Security Notice:* XMPP credentials exist strictly in volatile memory for the active session and are **never saved to disk or configuration files**.
-8. **A.U.R.A. Chat** *(EXPERIMENTAL)* — Local GGUF neural reasoning core powered by `llama.cpp`. Serves as an onboard tactical assistant for combat briefings, document parsing, and screenshot OCR. The installer bundles **Phi-4 Mini (4-bit)** for local execution.
+8. **A.U.R.A. Chat** *(EXPERIMENTAL)* — Local GGUF neural reasoning core powered by `llama.cpp`. Serves as an onboard tactical assistant for combat briefings, live telemetry snapshots, document parsing, and screenshot OCR. The installer bundles **Phi-4 Mini (4-bit Q4_K_M)** for local execution. A custom tactical fine-tune (`AURA-Eve-Tactical-Instruct-3.8B`) is planned and is **not** the runtime default.
 
-> **Note:** All experimental tabs currently feature limited backend integration or support. For instance, the **Fitting** tool operates primarily as a test GUI utilizing placeholder ship and module data, while **A.U.R.A. Chat** runs Phi-4 Mini for initial UI testing ahead of custom model deployment.
+> **Note:** Experimental tabs currently have limited backend integration. **Fitting** uses heuristic (not full live Dogma) stats from the bundled ship and module database. **A.U.R.A. Chat** runs Phi-4 Mini for local briefings ahead of custom model deployment.
 
-User operations: [USER_GUIDE.md](USER_GUIDE.md). Code internals & architecture: [DEVELOPER.md](DEVELOPER.md). Security & privacy policy: [SECURITY.md](SECURITY.md). Legal terms & disclaimers: [LEGAL.md](LEGAL.md).
+User operations: [USER_GUIDE.md](USER_GUIDE.md). Code internals & architecture: [DEVELOPER.md](DEVELOPER.md). Security & privacy policy: [SECURITY.md](SECURITY.md). Legal terms & disclaimers: [LEGAL.md](LEGAL.md). Release notes: [CHANGELOG.md](CHANGELOG.md).
+
+---
+
+## Screenshots
+
+Operations captions live in [USER_GUIDE.md](USER_GUIDE.md). Tab order matches the app:
+
+<table>
+<tr>
+<td align="center"><b>Live Intel Radar</b><br><img src="docs/assets/live-intel-radar-v0.5.0-alpha.1.png" alt="Live Intel Radar" width="420"></td>
+<td align="center"><b>D-Scan</b><br><img src="docs/assets/dscan-tool-v0.5.0-alpha.1.png" alt="D-Scan" width="420"></td>
+</tr>
+<tr>
+<td align="center"><b>Composition</b><br><img src="docs/assets/comp-tool-v0.5.0-alpha.1.png" alt="Composition" width="420"></td>
+<td align="center"><b>Map</b><br><img src="docs/assets/map-tool-v0.5.0-alpha.1.png" alt="Map" width="420"></td>
+</tr>
+<tr>
+<td align="center"><b>Anokis</b><br><img src="docs/assets/wh-tool-v0.5.0-alpha.1.png" alt="Anokis" width="420"></td>
+<td align="center"><b>Fitting</b><br><img src="docs/assets/fitting-tool-v0.5.0-alpha.1.png" alt="Fitting" width="420"></td>
+</tr>
+<tr>
+<td align="center"><b>XMPP</b><br><img src="docs/assets/xmpp-tool-v0.5.0-alpha.1.png" alt="XMPP" width="420"></td>
+<td align="center"><b>A.U.R.A. Chat</b><br><img src="docs/assets/chat-tool-v0.5.0-alpha.1.png" alt="A.U.R.A. Chat" width="420"></td>
+</tr>
+</table>
 
 ---
 
@@ -69,4 +94,3 @@ Inspired by [RIFT](https://riftforeve.online), [PYFA](https://github.com/pyfa-or
 ## License
 
 Adaptive Underworld Recon Array (A.U.R.A.) is free and open-source software distributed under the terms of the **[GNU Affero General Public License Version 3 (AGPL-3.0)](LICENSE.txt)**.
-

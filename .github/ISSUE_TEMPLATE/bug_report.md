@@ -14,7 +14,7 @@ A clear and concise summary of the issue encountered.
 
 ## 🔁 Steps to Reproduce
 1. Launch A.U.R.A.
-2. Navigate to tab: `[e.g., Tactical Intel / Map & Routing / Fleet Comp / Fitting Lab / AI Copilot]`
+2. Navigate to tab: `[e.g., Live Intel Radar / D-Scan / Composition / Map / Anokis / Fitting / XMPP / A.U.R.A. Chat]`
 3. Perform action: `[e.g., Pasted D-Scan / Uploaded Screenshot / Calculated Route]`
 4. See error or unexpected behavior: `[e.g., UI freeze, error box, crash]`
 
@@ -35,10 +35,10 @@ Please complete the checklist below:
   - [ ] Fedora Linux (39 / 40 / 41)
   - [ ] Ubuntu / Debian Linux (22.04 / 24.04 LTS)
   - [ ] Arch Linux / Other Linux
-- **A.U.R.A. Release**: `[e.g., v0.4.2-alpha.1]`
+- **A.U.R.A. Release**: `[e.g., v0.5.0-alpha.1]`
 - **Installation Method**:
-  - [ ] Windows Installer (`AURA_Setup_v0.4.2-alpha.1.exe`)
-  - [ ] Linux Standalone Bundle (`aura-linux-standalone-v0.4.2-alpha.1.tar.gz`)
+  - [ ] Windows Installer (`AURA_Setup_v0.5.0-alpha.1.exe`)
+  - [ ] Linux Standalone Bundle (see [Linux edition](https://github.com/JeffTheNerdDev96/A.U.R.A.-eve-tool-linux))
   - [ ] Source / Developer Checkout (`run.bat` or `app.py`)
 - **Hardware Acceleration Profile**:
   - [ ] NVIDIA CUDA (Dedicated GPU)
