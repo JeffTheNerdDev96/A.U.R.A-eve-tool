@@ -22,6 +22,7 @@ Subsystem Service Layer for Directional Scan (D-Scan) Processing.
 
 from typing import override
 from core.base_subsystem import BaseSubsystem
+from core.events import DScanParsedEvent
 from .parser import DScanParser
 from .models import DScanAnalysis
 
@@ -49,4 +50,13 @@ class DScanSubsystem(BaseSubsystem):
 
     def parse_dscan(self, dscan_text: str) -> DScanAnalysis:
         """Parses raw D-Scan text and returns structured class breakdowns."""
-        return self.parser.parse_dscan(dscan_text)
+        analysis = self.parser.parse_dscan(dscan_text)
+        self.event_bus.publish(
+            DScanParsedEvent(
+                total_ships=analysis.total_ships,
+                threat_level=analysis.threat_level,
+                summary_text=analysis.summary_text,
+                ship_counts=dict(analysis.ship_counts),
+            )
+        )
+        return analysis

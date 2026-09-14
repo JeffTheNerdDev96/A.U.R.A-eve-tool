@@ -30,8 +30,25 @@ from core.eve_data import (
     lookup_ship, SHIP_DATABASE,
     THREAT_BUBBLE, THREAT_CYNO, THREAT_ECM, THREAT_MARAUDER,
     THREAT_CAPITAL, THREAT_SUPER, THREAT_LOGI, THREAT_PIRATE,
+    THREAT_T2_COMBAT, THREAT_HAULER, THREAT_COMBATANT, THREAT_COVERT, THREAT_MINING,
 )
 from .models import DScanEntry, DScanClassSummary, DScanAnalysis
+
+_THREAT_BY_KEY = {
+    "THREAT_BUBBLE": THREAT_BUBBLE,
+    "THREAT_CYNO": THREAT_CYNO,
+    "THREAT_ECM": THREAT_ECM,
+    "THREAT_MARAUDER": THREAT_MARAUDER,
+    "THREAT_CAPITAL": THREAT_CAPITAL,
+    "THREAT_SUPER": THREAT_SUPER,
+    "THREAT_LOGI": THREAT_LOGI,
+    "THREAT_PIRATE": THREAT_PIRATE,
+    "THREAT_T2_COMBAT": THREAT_T2_COMBAT,
+    "THREAT_HAULER": THREAT_HAULER,
+    "THREAT_COMBATANT": THREAT_COMBATANT,
+    "THREAT_COVERT": THREAT_COVERT,
+    "THREAT_MINING": THREAT_MINING,
+}
 
 _RE_QTY_PREFIX = re.compile(r"^(\d+)\s*[xX*]\s*(.+)$")
 _RE_QTY_SUFFIX = re.compile(r"^(.*?)\s+[xX*]\s*(\d+)$")
@@ -76,7 +93,7 @@ class DScanParser:
             try:
                 count = max(1, int(m1.group(1)))
                 clean = m1.group(2).strip()
-            except Exception:
+            except ValueError:
                 pass
             return count, clean
 
@@ -86,7 +103,7 @@ class DScanParser:
             try:
                 count = max(1, int(m2.group(2)))
                 clean = m2.group(1).strip()
-            except Exception:
+            except ValueError:
                 pass
             return count, clean
 
@@ -99,7 +116,7 @@ class DScanParser:
                     if lookup_ship(m3.group(2).strip()):
                         count = potential_count
                         clean = m3.group(2).strip()
-            except Exception:
+            except ValueError:
                 pass
 
         return count, clean
@@ -165,7 +182,7 @@ class DScanParser:
             try:
                 au_val = float(m_au.group(1).replace(",", ""))
                 return f"{au_val:.1f} AU", "Off-Grid / Warping (> 150 km / AU)", au_val * 149597870.7
-            except Exception:
+            except ValueError:
                 return clean, "Off-Grid / Warping (> 150 km / AU)", None
 
         # Check for km
@@ -179,7 +196,7 @@ class DScanParser:
                     return f"{km_val:,.0f} km", "Grid Range (20 - 150 km)", km_val
                 else:
                     return f"{km_val:,.0f} km", "Off-Grid / Warping (> 150 km / AU)", km_val
-            except Exception:
+            except ValueError:
                 return clean, "Grid Range (20 - 150 km)", None
 
         # Check for meters
@@ -189,7 +206,7 @@ class DScanParser:
                 m_val = float(m_m.group(1).replace(",", ""))
                 km_val = m_val / 1000.0
                 return f"{m_val:,.0f} m", "Point Range (<= 20 km)", km_val
-            except Exception:
+            except ValueError:
                 return clean, "Point Range (<= 20 km)", None
 
         return "D-Scan Sphere (< 14.3 AU)", "D-Scan Sphere (< 14.3 AU)", None
@@ -229,7 +246,8 @@ class DScanParser:
                 if ship_match:
                     ship_name, ship_info = ship_match
                     ship_class = ship_info.get("class", "Combat Vessel")
-                    threat = ship_info.get("threat", "COMBATANT")
+                    raw_threat = ship_info.get("threat", "") or "COMBATANT"
+                    threat = _THREAT_BY_KEY.get(raw_threat, raw_threat)
                     role = ship_info.get("role", "")
                     tactics = ship_info.get("tactics", "")
 

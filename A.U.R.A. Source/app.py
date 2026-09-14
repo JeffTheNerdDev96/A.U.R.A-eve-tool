@@ -18,7 +18,7 @@
 # ==============================================================================
 """
 Main entry point for Adaptive Underworld Recon Array (A.U.R.A.).
-Angel Cartel EVE Online Tactical AI Assistant - v0.5.0-alpha.1.
+Angel Cartel EVE Online Tactical AI Assistant - v0.5.1-alpha.1.
 """
 import sys
 import os
@@ -60,7 +60,7 @@ if sys.version_info < (3, 12):
         try:
             import ctypes
             ctypes.windll.user32.MessageBoxW(0, err_text, "A.U.R.A. Version Error", 0x10)
-        except Exception:
+        except (OSError, AttributeError):
             pass
     sys.exit(1)
 
@@ -69,10 +69,10 @@ if sys.platform == "win32":
     try:
         import ctypes
         ctypes.windll.shcore.SetProcessDpiAwareness(2)
-    except Exception:
+    except (OSError, AttributeError):
         try:
             ctypes.windll.user32.SetProcessDPIAware()
-        except Exception:
+        except (OSError, AttributeError):
             pass
 
 # 2. Automated Stale Cache & Temporary File Cleaner
@@ -103,7 +103,7 @@ def _global_exception_handler(exc_type, exc_value, exc_traceback):
     try:
         with open(crash_log, "a", encoding="utf-8") as f:
             f.write(f"\n{'='*70}\n[CRASH TIMESTAMP: {timestamp}]\n{err_msg}\n{'='*70}\n")
-    except Exception:
+    except OSError:
         pass
 
     if sys.stderr is not None:
@@ -138,7 +138,7 @@ def _show_startup_error(exc: BaseException) -> None:
                 "A.U.R.A. Startup Error",
                 0x10,
             )
-        except Exception:
+        except (OSError, AttributeError):
             pass
 
 

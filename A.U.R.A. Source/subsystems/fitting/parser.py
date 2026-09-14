@@ -333,6 +333,4 @@ class FittingParser:
             return FittingParser._RE_STRIP_CHARGE.sub("", line).strip()
         return line.strip()
 
-    parse_eft_block = parse
-
 

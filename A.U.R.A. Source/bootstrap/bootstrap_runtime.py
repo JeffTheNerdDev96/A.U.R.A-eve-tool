@@ -24,6 +24,8 @@ import sys
 import site
 from typing import List, Optional
 
+from core.error_handler import log_soft_failure
+
 _QT_PRELOAD_DLLS = (
     "Qt6Core.dll",
     "Qt6Gui.dll",
@@ -59,8 +61,8 @@ def is_wine_or_proton() -> bool:
         import ctypes
         if hasattr(ctypes.cdll.ntdll, "wine_get_version"):
             return True
-    except Exception:
-        pass
+    except (OSError, AttributeError) as exc:
+        log_soft_failure("bootstrap_runtime.is_wine_or_proton", exc)
     for var in ("WINEPREFIX", "PROTON_VERSION", "STEAM_COMPAT_DATA_PATH", "WINEDLLOVERRIDES"):
         if os.environ.get(var):
             return True
@@ -96,8 +98,8 @@ def _win_isolate_dll_search(qt_bin: str, meipass: Optional[str] = None) -> None:
                 kernel32.SetDllDirectoryW(target_dir)
             except OSError:
                 pass
-    except Exception:
-        pass
+    except Exception as exc:
+        log_soft_failure("bootstrap_runtime._win_isolate_dll_search", exc)
 
 
 def _sanitize_path_for_qt(qt_bin: str, meipass: Optional[str] = None) -> None:
@@ -230,14 +232,14 @@ def _find_pyqt6_qt6_dirs() -> tuple:
     candidates: List[str] = []
     try:
         candidates.extend(site.getsitepackages())
-    except Exception:
-        pass
+    except Exception as exc:
+        log_soft_failure("bootstrap_runtime._find_pyqt6_qt6_dirs.getsitepackages", exc)
     try:
         user_site = site.getusersitepackages()
         if user_site:
             candidates.append(user_site)
-    except Exception:
-        pass
+    except Exception as exc:
+        log_soft_failure("bootstrap_runtime._find_pyqt6_qt6_dirs.getusersitepackages", exc)
 
     _this_dir = os.path.dirname(os.path.abspath(__file__))
     app_root = os.path.dirname(_this_dir) if os.path.basename(_this_dir) == "bootstrap" else _this_dir

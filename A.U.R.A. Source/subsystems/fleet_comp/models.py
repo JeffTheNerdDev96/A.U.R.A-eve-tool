@@ -50,14 +50,6 @@ class FleetCompAnalysis:
         return self.role_counts.get("Strategic Cruisers", 0)
 
     @property
-    def recon_count(self) -> int:
-        return self.role_counts.get("T2 Recons / EAS", 0)
-
-    @property
-    def ewar_count(self) -> int:
-        return self.role_counts.get("T2 Recons / EAS", 0) or self.role_counts.get("EWAR", 0)
-
-    @property
     def covert_ops_count(self) -> int:
         return self.role_counts.get("Covert Ops", 0)
 

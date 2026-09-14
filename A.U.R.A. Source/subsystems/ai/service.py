@@ -20,9 +20,9 @@
 Subsystem Service Layer for Local Neural Core & GGUF Inference.
 """
 
-from typing import override
+from typing import List, override
 from core.base_subsystem import BaseSubsystem
-from core.events import InferenceStreamTokenEvent, InferenceCompletedEvent
+from core.events import InferenceCompletedEvent
 from .engine import UnifiedInferenceEngine
 from .ingestion import DocumentParser, ImagePreprocessor
 from .models import InferenceRequest, InferenceResult
@@ -69,10 +69,6 @@ class AISubsystem(BaseSubsystem):
             if chunk_type == "token":
                 tok = chunk.get("text", chunk.get("token", ""))
                 tokens.append(tok)
-                self.event_bus.publish(InferenceStreamTokenEvent(
-                    request_id=request.request_id,
-                    token=tok
-                ))
             elif chunk_type == "done":
                 tokens_per_sec = float(chunk.get("tokens_per_sec", chunk.get("tok_sec", 0.0)))
                 total_tokens = int(chunk.get("tokens_generated", chunk.get("total_tokens", len(tokens))))

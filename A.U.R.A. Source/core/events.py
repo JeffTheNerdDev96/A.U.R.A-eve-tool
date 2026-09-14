@@ -22,6 +22,7 @@ Defines strongly-typed dataclasses for cross-subsystem asynchronous messaging.
 """
 
 from dataclasses import dataclass, field
+from typing import Any
 import time
 import uuid
 
@@ -41,10 +42,19 @@ class IntelReportEvent(BaseEvent):
     system: str = ""
     pilots: list[str] = field(default_factory=list)
     ship_classes: list[str] = field(default_factory=list)
-    threat_level: str = "CLEAR"  # CLEAR, SUSPICIOUS, HOSTILE, CRITICAL
+    threat_level: str = "CLEAR"
     raw_line: str = ""
     channel_name: str = ""
     reporter: str = ""
+    time_str: str = ""
+    clean_msg: str = ""
+    status_flags: list[str] = field(default_factory=list)
+    has_cyno: bool = False
+    has_bubble: bool = False
+    is_clear: bool = False
+    is_critical: bool = False
+    pilot_count: int = 0
+    payload: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
@@ -56,6 +66,7 @@ class ThreatAlertEvent(BaseEvent):
     ship_summary: str = ""
     distance_jumps: int | None = None
     trigger_sound: bool = True
+    payload: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
@@ -74,6 +85,7 @@ class SystemSelectedEvent(BaseEvent):
     region_name: str = ""
     constellation_name: str = ""
     security_status: float = 0.0
+    system_id: int = 0
 
 
 @dataclass(slots=True)
@@ -96,6 +108,17 @@ class FleetCompUpdatedEvent(BaseEvent):
     ship_counts: dict[str, int] = field(default_factory=dict)
     primary_threats: list[str] = field(default_factory=list)
     counter_recommendations: list[str] = field(default_factory=list)
+
+
+# --- D-Scan Events ---
+
+@dataclass(slots=True)
+class DScanParsedEvent(BaseEvent):
+    """Fired when a directional scan paste is parsed."""
+    total_ships: int = 0
+    threat_level: str = "CLEAR"
+    summary_text: str = ""
+    ship_counts: dict[str, int] = field(default_factory=dict)
 
 
 # --- Fitting Events ---
@@ -196,6 +219,7 @@ class XMPPMessageReceivedEvent(BaseEvent):
     body: str = ""
     is_broadcast: bool = False
     priority: str = "INFO"
+    message: Any = None
 
 
 @dataclass(slots=True)
@@ -223,4 +247,18 @@ class XMPPRoomJoinedEvent(BaseEvent):
 class XMPPRosterUpdatedEvent(BaseEvent):
     """Fired when XMPP roster contacts or presence statuses change."""
     contacts_count: int = 0
+
+
+@dataclass(slots=True)
+class XMPPChannelDiscoveredEvent(BaseEvent):
+    """Fired when a bookmarked or joined MUC channel is discovered."""
+    room_jid: str = ""
+    name: str = ""
+    channel: Any = None
+
+
+@dataclass(slots=True)
+class XMPPDirectoryDiscoveredEvent(BaseEvent):
+    """Fired when a public MUC directory listing arrives."""
+    room_count: int = 0
 

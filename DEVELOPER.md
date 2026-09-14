@@ -1,5 +1,5 @@
 # A.U.R.A. Developer Guide
-**v0.5.0-alpha.1 — Pure Modular Architecture**
+**v0.5.1-alpha.1 — Pure Modular Architecture**
 
 Internal reference for contributors and engineers working on the A.U.R.A. codebase.
 
@@ -12,7 +12,7 @@ The codebase is organized into domain-specific packages with strict separation o
 ```
 A.U.R.A. Source/
 ├── app.py                         # Single desktop application entrypoint
-├── version.py                     # Single source of truth for version (v0.5.0-alpha.1)
+├── version.py                     # Single source of truth for version (v0.5.1-alpha.1)
 ├── Launch_A.U.R.A_Debug.bat       # Low-level debug launcher with runtime probe
 ├── run.bat                        # Production launcher script
 │
@@ -142,7 +142,7 @@ All standardized error codes live in [`core/error_handler.py`](A.U.R.A.%20Source
 
 | Script | Purpose & Usage |
 |---|---|
-| `build_installer.py` | Compiles the single-executable setup wizard (`AURA_Setup_v0.5.0-alpha.1.exe`) via PyInstaller, embedding the installer GUI, manifests, and extraction engine. |
+| `build_installer.py` | Compiles the single-executable setup wizard (`AURA_Setup_v0.5.1-alpha.1.exe`) via PyInstaller, embedding the installer GUI, manifests, and extraction engine. |
 | `build_standalone.py` | Builds the portable `onedir` distribution (`A.U.R.A Distro/Standalone/`) bundling the pre-configured Python runtime, Qt6 libraries, and model weights. |
 | `installer_gui.py` | Full-featured PyQt6 graphical wizard setup application that handles hardware co-processor probing, component installation, desktop shortcut generation, and log path discovery. |
 | `launcher.py` | Production executable entrypoint stub for frozen builds. Configures environment paths, sanitizes runtime flags, and launches `app.py`. |

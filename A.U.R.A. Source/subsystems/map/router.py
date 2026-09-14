@@ -22,7 +22,7 @@ Provides sub-millisecond BFS graph routing across EVE Online stargate network.
 """
 
 from collections import deque
-from typing import List, Optional, Set
+from typing import Dict, List, Optional, Set
 from .eve_map import get_eve_map, EveMapGraph
 from .models import SystemNode, RouteResult
 
@@ -68,25 +68,32 @@ class MapRouter:
                 if node and node.system_id not in (orig_node.system_id, dest_node.system_id):
                     avoid_ids.add(node.system_id)
 
-        # BFS for shortest path
-        q = deque([[orig_node.system_id]])
+        # BFS for shortest path (parent pointers, not full path copies)
+        parent: Dict[int, int] = {}
+        q = deque([orig_node.system_id])
         visited = {orig_node.system_id}
-
-        found_path_ids: Optional[List[int]] = None
+        found = False
         while q:
-            path = q.popleft()
-            curr = path[-1]
+            curr = q.popleft()
             if curr == dest_node.system_id:
-                found_path_ids = path
+                found = True
                 break
-
             for neighbor in self.map_graph.neighbors(curr):
                 if neighbor not in visited and neighbor not in avoid_ids:
                     visited.add(neighbor)
-                    q.append(path + [neighbor])
+                    parent[neighbor] = curr
+                    q.append(neighbor)
 
-        if not found_path_ids:
+        if not found:
             return None
+
+        found_path_ids: List[int] = []
+        node = dest_node.system_id
+        while node != orig_node.system_id:
+            found_path_ids.append(node)
+            node = parent[node]
+        found_path_ids.append(orig_node.system_id)
+        found_path_ids.reverse()
 
         # Build route result
         path_names: List[str] = []
@@ -109,6 +116,4 @@ class MapRouter:
             security_avg=avg_sec,
             avoided_systems=avoid_systems or []
         )
-
-    find_route = calculate_route
 

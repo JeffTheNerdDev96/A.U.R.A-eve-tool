@@ -29,6 +29,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+from .error_handler import log_soft_failure
 from .paths import get_app_root, get_logs_dir
 
 WORKER_JOIN_MS = 2000
@@ -84,6 +85,13 @@ def shutdown_application(window: Any | None = None) -> None:
         except Exception as exc:
             _log_shutdown_error(exc, "shutdown: idle_timer")
 
+        try:
+            expire_timer = getattr(window, "_intel_expire_timer", None)
+            if expire_timer is not None and hasattr(expire_timer, "stop"):
+                expire_timer.stop()
+        except Exception as exc:
+            _log_shutdown_error(exc, "shutdown: _intel_expire_timer")
+
         # Stop tab-level timers
         for tab_attr, timer_attr in (("anokis_tab", "poll_timer"), ("map_tab", "_prune_timer")):
             try:
@@ -117,8 +125,8 @@ def shutdown_application(window: Any | None = None) -> None:
                 try:
                     if abandoned.isRunning():
                         abandoned.wait(WORKER_JOIN_MS)
-                except Exception:
-                    pass
+                except Exception as exc:
+                    log_soft_failure("shutdown: abandoned_worker.wait", exc)
         except Exception as exc:
             _log_shutdown_error(exc, "shutdown: worker_thread")
 
@@ -149,8 +157,17 @@ def shutdown_application(window: Any | None = None) -> None:
         except Exception as exc:
             _log_shutdown_error(exc, "shutdown: engine")
 
-        # 5. Stop remaining subsystems (fitting/AI live in widgets + UnifiedInferenceEngine)
-        for sub_attr in ("intel_subsystem", "dscan_subsystem", "map_subsystem", "fleet_comp_subsystem", "wormhole_subsystem", "xmpp_subsystem"):
+        # 5. Stop remaining subsystems (AISubsystem.stop is a no-op if the engine already unloaded)
+        for sub_attr in (
+            "intel_subsystem",
+            "dscan_subsystem",
+            "map_subsystem",
+            "fleet_comp_subsystem",
+            "wormhole_subsystem",
+            "xmpp_subsystem",
+            "fitting_subsystem",
+            "ai_subsystem",
+        ):
             try:
                 sub = getattr(window, sub_attr, None)
                 if sub is not None and hasattr(sub, "stop"):
@@ -170,6 +187,14 @@ def shutdown_application(window: Any | None = None) -> None:
             _log_shutdown_error(exc, "shutdown: memory_buffers")
 
         window._shutdown_done = True
+
+        try:
+            if hasattr(window, "_unsubscribe_event_bus"):
+                window._unsubscribe_event_bus()
+            from .event_bus import get_event_bus
+            get_event_bus().clear()
+        except Exception as exc:
+            _log_shutdown_error(exc, "shutdown: event_bus")
 
     cleanup_temp_files()
     gc.collect()

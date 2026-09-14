@@ -47,10 +47,9 @@ from ui.theme import (
 class CompositionTabWidget(QWidget):
     fleet_eval_requested = pyqtSignal(str, str, dict, dict)
 
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(self, fleet_comp_subsystem: Optional[FleetCompSubsystem] = None, parent: Optional[QWidget] = None):
         super().__init__(parent)
-        self.fleet_comp_subsystem = FleetCompSubsystem()
-        self.fleet_subsystem = self.fleet_comp_subsystem
+        self.fleet_comp_subsystem = fleet_comp_subsystem or FleetCompSubsystem()
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setStyleSheet(
             f"CompositionTabWidget {{ background:transparent; }}"

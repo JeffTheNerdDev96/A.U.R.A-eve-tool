@@ -48,6 +48,15 @@ from subsystems.xmpp_chat import (
     XMPPMUCChannel,
     XMPPRosterContact,
 )
+from core.event_bus import get_event_bus
+from core.events import (
+    XMPPConnectionStateChangedEvent,
+    XMPPMessageReceivedEvent,
+    XMPPRoomJoinedEvent,
+    XMPPRosterUpdatedEvent,
+    XMPPChannelDiscoveredEvent,
+    XMPPDirectoryDiscoveredEvent,
+)
 from core.input_safety import escape_html
 from ui.theme import (
     BG_DEEP, BG_PANEL, BG_ELEVATED, BORDER, BORDER_MUTED,
@@ -299,14 +308,24 @@ class XMPPTabWidget(QWidget):
         self._refresh_chat_tree()
         self._append_system_notice("XMPP client ready. Enter alliance JID and password to establish connection.")
 
+    def unsubscribe_events(self) -> None:
+        bus = get_event_bus()
+        bus.unsubscribe(XMPPConnectionStateChangedEvent, self._on_bus_state)
+        bus.unsubscribe(XMPPMessageReceivedEvent, self._on_bus_message)
+        bus.unsubscribe(XMPPRoomJoinedEvent, self._on_bus_room_joined)
+        bus.unsubscribe(XMPPRosterUpdatedEvent, self._on_bus_roster)
+        bus.unsubscribe(XMPPChannelDiscoveredEvent, self._on_bus_channel)
+        bus.unsubscribe(XMPPDirectoryDiscoveredEvent, self._on_bus_directory)
+
     def _wire_signals(self):
-        """Wires subsystem callbacks to Qt signals via multicast listeners (preserves internal service layer handling)."""
-        self.xmpp_subsystem.add_state_listener(lambda state, err: self._sig_state_changed.emit(state.value, err))
-        self.xmpp_subsystem.add_message_listener(lambda msg: self._sig_message_received.emit(msg))
-        self.xmpp_subsystem.add_room_joined_listener(lambda room, nick, subj: self._sig_room_joined.emit(room, nick, subj))
-        self.xmpp_subsystem.add_roster_listener(lambda roster: self._sig_roster_updated.emit(len(roster)))
-        self.xmpp_subsystem.add_channel_discovered_listener(lambda ch: self._sig_channel_discovered.emit(ch))
-        self.xmpp_subsystem.add_directory_discovered_listener(lambda rooms: self._sig_directory_discovered.emit(rooms))
+        """Subscribe to EventBus XMPP events (marshalled onto the GUI thread)."""
+        bus = get_event_bus()
+        bus.subscribe(XMPPConnectionStateChangedEvent, self._on_bus_state)
+        bus.subscribe(XMPPMessageReceivedEvent, self._on_bus_message)
+        bus.subscribe(XMPPRoomJoinedEvent, self._on_bus_room_joined)
+        bus.subscribe(XMPPRosterUpdatedEvent, self._on_bus_roster)
+        bus.subscribe(XMPPChannelDiscoveredEvent, self._on_bus_channel)
+        bus.subscribe(XMPPDirectoryDiscoveredEvent, self._on_bus_directory)
 
         self._sig_state_changed.connect(self._on_state_changed_gui)
         self._sig_message_received.connect(self._on_message_received_gui)
@@ -314,6 +333,28 @@ class XMPPTabWidget(QWidget):
         self._sig_roster_updated.connect(self._on_roster_updated_gui)
         self._sig_channel_discovered.connect(self._on_channel_discovered_gui)
         self._sig_directory_discovered.connect(self._on_directory_discovered_gui)
+
+    def _on_bus_state(self, evt: XMPPConnectionStateChangedEvent) -> None:
+        self._sig_state_changed.emit(evt.state, evt.error_message)
+
+    def _on_bus_message(self, evt: XMPPMessageReceivedEvent) -> None:
+        if evt.message is not None:
+            self._sig_message_received.emit(evt.message)
+
+    def _on_bus_room_joined(self, evt: XMPPRoomJoinedEvent) -> None:
+        self._sig_room_joined.emit(evt.room_jid, evt.nickname, evt.subject)
+
+    def _on_bus_roster(self, evt: XMPPRosterUpdatedEvent) -> None:
+        self._sig_roster_updated.emit(evt.contacts_count)
+
+    def _on_bus_channel(self, evt: XMPPChannelDiscoveredEvent) -> None:
+        if evt.channel is not None:
+            self._sig_channel_discovered.emit(evt.channel)
+        else:
+            self._sig_roster_updated.emit(0)
+
+    def _on_bus_directory(self, evt: XMPPDirectoryDiscoveredEvent) -> None:
+        self._sig_directory_discovered.emit(self.xmpp_subsystem.get_directory_rooms())
 
     def _set_inputs_enabled(self, enabled: bool):
         """Enables or disables credential input controls during active connection sessions."""

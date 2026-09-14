@@ -44,6 +44,8 @@ from subsystems.wormhole import (
     SignatureGroup,
     CosmicSignature,
 )
+from core.event_bus import get_event_bus
+from core.events import WormholeChainUpdatedEvent
 from ui.theme import (
     BG_DEEP, BG_PANEL, BG_ELEVATED, BORDER, BORDER_MUTED,
     TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT,
@@ -237,7 +239,8 @@ class WormholeTabWidget(QWidget):
     def __init__(self, wormhole_subsystem: Optional[WormholeSubsystem] = None, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.wh_subsystem = wormhole_subsystem or WormholeSubsystem()
-        self.wh_subsystem.initialize()
+        if self.wh_subsystem.active_chain is None:
+            self.wh_subsystem.initialize()
         self.selected_system: str = ""
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setStyleSheet(
@@ -246,10 +249,18 @@ class WormholeTabWidget(QWidget):
         )
         self._init_ui()
 
+        get_event_bus().subscribe(WormholeChainUpdatedEvent, self._on_chain_updated)
+
         # 10-second background timer tick for link countdowns
         self.poll_timer = QTimer(self)
         self.poll_timer.timeout.connect(self._on_timer_tick)
         self.poll_timer.start(10000)
+
+    def _on_chain_updated(self, _evt: WormholeChainUpdatedEvent) -> None:
+        self._refresh_ui()
+
+    def unsubscribe_events(self) -> None:
+        get_event_bus().unsubscribe(WormholeChainUpdatedEvent, self._on_chain_updated)
 
     def _init_ui(self):
         root = QVBoxLayout(self)

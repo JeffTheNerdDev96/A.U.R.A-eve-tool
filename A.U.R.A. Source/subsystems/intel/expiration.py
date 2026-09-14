@@ -50,12 +50,12 @@ class StaleIntelManager:
             status.hostile_count = 0
         else:
             status.active_reports.append(report)
-            status.hostile_count += report.pilot_count
             # Re-evaluate maximum threat level among active reports
             threat_ranks = {"CLEAR": 0, "INFO": 1, "LOW": 1, "SUSPICIOUS": 1, "MEDIUM": 2, "HIGH": 3, "HOSTILE": 3, "CRITICAL": 4}
             highest_rank = max((threat_ranks.get(r.threat_level, 0) for r in status.active_reports), default=0)
             inv_ranks = {0: "CLEAR", 1: "LOW", 2: "MEDIUM", 3: "HIGH", 4: "CRITICAL"}
             status.threat_level = inv_ranks[highest_rank]
+            status.hostile_count = sum(r.pilot_count for r in status.active_reports)
 
         status.last_updated = time.time()
         return status
@@ -79,6 +79,7 @@ class StaleIntelManager:
                 if not status.active_reports:
                     status.threat_level = "CLEAR"
                     status.hostile_count = 0
+                    self._system_statuses.pop(sys_name, None)
                 else:
                     threat_ranks = {"CLEAR": 0, "INFO": 1, "LOW": 1, "SUSPICIOUS": 1, "MEDIUM": 2, "HIGH": 3, "HOSTILE": 3, "CRITICAL": 4}
                     highest_rank = max((threat_ranks.get(r.threat_level, 0) for r in status.active_reports), default=0)

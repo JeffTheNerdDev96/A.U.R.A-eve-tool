@@ -24,7 +24,7 @@ Provides the async EventBus, typed event definitions, subsystem base contracts, 
 from .events import BaseEvent
 from .base_subsystem import BaseSubsystem
 from .config import config, AppConfig
-from .error_handler import AURAErrorCode, AURAException, log_diagnostic_error, format_error_html
+from .error_handler import AURAErrorCode, AURAException, log_diagnostic_error, log_soft_failure, format_error_html
 from .input_safety import (
     escape_html, strip_control_chars, clamp_text, safe_display_text,
     is_path_under, is_safe_log_file, wrap_untrusted
@@ -39,7 +39,7 @@ from .paths import (
 __all__ = [
     "BaseEvent", "get_event_bus", "EventBus", "BaseSubsystem",
     "config", "AppConfig",
-    "AURAErrorCode", "AURAException", "log_diagnostic_error", "format_error_html",
+    "AURAErrorCode", "AURAException", "log_diagnostic_error", "log_soft_failure", "format_error_html",
     "escape_html", "strip_control_chars", "clamp_text", "safe_display_text",
     "is_path_under", "is_safe_log_file", "wrap_untrusted",
     "cleanup_temp_files", "shutdown_application", "install_thread_excepthook",

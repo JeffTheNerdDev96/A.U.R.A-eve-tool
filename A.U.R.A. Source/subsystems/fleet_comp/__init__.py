@@ -25,11 +25,10 @@ from .analyzer import (
     FleetCompAnalyzer, parse_fleet_paste, compare_fleets, assess_matchup,
     CATEGORY_ORDER, CATEGORY_LABELS
 )
-from .dscan_parser import DScanParser
 from .service import FleetCompSubsystem
 
 __all__ = [
-    "FleetCompAnalysis", "FleetCompAnalyzer", "DScanParser", "FleetCompSubsystem",
+    "FleetCompAnalysis", "FleetCompAnalyzer", "FleetCompSubsystem",
     "parse_fleet_paste", "compare_fleets", "assess_matchup",
     "CATEGORY_ORDER", "CATEGORY_LABELS"
 ]

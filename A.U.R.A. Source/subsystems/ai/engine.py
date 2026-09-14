@@ -28,6 +28,7 @@ and multi-turn combat reasoning for EVE Online.
 import os
 import sys
 import time
+import threading
 import psutil
 import numpy as np
 from concurrent import futures
@@ -42,7 +43,7 @@ from core.config import config
 from core.paths import find_model_path
 from hardware.detector import HardwareDetector, DynamicHardwareRouter
 from hardware.profile import install_hint_for_gpu
-from core.error_handler import AURAErrorCode, log_diagnostic_error, format_error_html
+from core.error_handler import AURAErrorCode, log_diagnostic_error, log_soft_failure, format_error_html
 from core.eve_data import get_tactical_grounding
 from core.input_safety import clamp_text, strip_control_chars, wrap_untrusted
 
@@ -80,8 +81,8 @@ def _init_cuda_runtime():
     try:
         from bootstrap import configure_llama_dll_paths
         configure_llama_dll_paths()
-    except Exception:
-        pass
+    except Exception as exc:
+        log_soft_failure("_init_cuda_runtime.configure_llama_dll_paths", exc)
     _CUDA_INITIALIZED = True
 
 
@@ -93,8 +94,8 @@ def _init_vulkan_runtime():
     try:
         from bootstrap import configure_llama_dll_paths
         configure_llama_dll_paths()
-    except Exception:
-        pass
+    except Exception as exc:
+        log_soft_failure("_init_vulkan_runtime.configure_llama_dll_paths", exc)
     source_dir = os.path.dirname(os.path.abspath(__file__))
     root_dir = os.path.dirname(source_dir)
     exe_dir = os.path.dirname(sys.executable)
@@ -118,13 +119,15 @@ def _init_vulkan_runtime():
             if hasattr(os, "add_dll_directory") and sys.platform == "win32":
                 try:
                     os.add_dll_directory(v_dir)
-                except Exception:
-                    pass
+                except OSError as exc:
+                    log_soft_failure("_init_vulkan_runtime.add_dll_directory", exc)
             _VULKAN_INITIALIZED = True
             break
 
 
 MODEL_LOAD_TIMEOUT_SEC = 60
+_PENDING_LLAMA_LOCK = threading.Lock()
+_PENDING_LLAMA_FUTURE: Optional[futures.Future] = None
 
 
 def _detect_llama_backend() -> Literal["cuda", "vulkan", "cpu"]:
@@ -137,14 +140,15 @@ def _detect_llama_backend() -> Literal["cuda", "vulkan", "cpu"]:
             try:
                 if not llama_cpp.llama_supports_gpu_offload():
                     return "cpu"
-            except Exception:
-                pass
+            except Exception as exc:
+                log_soft_failure("_detect_llama_backend.llama_supports_gpu_offload", exc)
         info = ""
         if hasattr(llama_cpp, "llama_print_system_info"):
             try:
                 raw = llama_cpp.llama_print_system_info()
                 info = raw.decode("utf-8", errors="replace") if isinstance(raw, bytes) else str(raw)
-            except Exception:
+            except Exception as exc:
+                log_soft_failure("_detect_llama_backend.llama_print_system_info", exc)
                 info = ""
         info_upper = info.upper()
         if "CUDA = 1" in info_upper or "CUBLAS" in info_upper:
@@ -155,10 +159,10 @@ def _detect_llama_backend() -> Literal["cuda", "vulkan", "cpu"]:
             try:
                 if llama_cpp.llama_supports_gpu_offload():
                     return "cuda"
-            except Exception:
-                pass
-    except Exception:
-        pass
+            except Exception as exc:
+                log_soft_failure("_detect_llama_backend.llama_supports_gpu_offload_retry", exc)
+    except Exception as exc:
+        log_soft_failure("_detect_llama_backend", exc)
     return "cpu"
 
 
@@ -182,21 +186,27 @@ def _create_llama_instance(kwargs: Dict[str, Any]):
 
 def _discard_timed_out_llama(future: futures.Future) -> None:
     """Close a Llama that finished after the load timeout so VRAM/RAM is not leaked."""
+    global _PENDING_LLAMA_FUTURE
     try:
         inst = future.result(timeout=0)
-    except Exception:
+    except Exception as exc:
+        log_soft_failure("_discard_timed_out_llama.result", exc)
         return
+    finally:
+        with _PENDING_LLAMA_LOCK:
+            if _PENDING_LLAMA_FUTURE is future:
+                _PENDING_LLAMA_FUTURE = None
     if inst is None:
         return
     try:
         if hasattr(inst, "close"):
             inst.close()
-    except Exception:
-        pass
+    except Exception as exc:
+        log_soft_failure("_discard_timed_out_llama.close", exc)
     try:
         del inst
-    except Exception:
-        pass
+    except Exception as exc:
+        log_soft_failure("_discard_timed_out_llama.del", exc)
 
 
 def _load_llama_with_timeout(llama_kwargs: Dict[str, Any], timeout_sec: float):
@@ -205,20 +215,34 @@ def _load_llama_with_timeout(llama_kwargs: Dict[str, Any], timeout_sec: float):
     its __exit__ waits for the worker, which would ignore the timeout.
     A timed-out future is abandoned with wait=False; if it later succeeds, close that instance.
     """
+    global _PENDING_LLAMA_FUTURE
+    with _PENDING_LLAMA_LOCK:
+        pending = _PENDING_LLAMA_FUTURE
+        if pending is not None and not pending.done():
+            raise TimeoutError("Previous GGUF load is still in progress")
+        _PENDING_LLAMA_FUTURE = None
     pool = futures.ThreadPoolExecutor(max_workers=1, thread_name_prefix="AURA_LlamaLoad")
     future = pool.submit(_create_llama_instance, llama_kwargs)
+    with _PENDING_LLAMA_LOCK:
+        _PENDING_LLAMA_FUTURE = future
     try:
         inst = future.result(timeout=timeout_sec)
         pool.shutdown(wait=False, cancel_futures=False)
+        with _PENDING_LLAMA_LOCK:
+            if _PENDING_LLAMA_FUTURE is future:
+                _PENDING_LLAMA_FUTURE = None
         return inst
     except futures.TimeoutError:
         try:
             future.add_done_callback(_discard_timed_out_llama)
-        except Exception:
-            pass
+        except Exception as exc:
+            log_soft_failure("_load_llama_with_timeout.add_done_callback", exc)
         pool.shutdown(wait=False, cancel_futures=True)
         raise
     except Exception:
+        with _PENDING_LLAMA_LOCK:
+            if _PENDING_LLAMA_FUTURE is future:
+                _PENDING_LLAMA_FUTURE = None
         pool.shutdown(wait=False, cancel_futures=True)
         raise
 
@@ -348,23 +372,34 @@ class NeuralHardwareCoProcessor:
         if self.active_stop_event is not None:
             try:
                 self.active_stop_event.set()
-            except Exception:
-                pass
+            except Exception as exc:
+                log_soft_failure("NeuralHardwareCoProcessor.stop_all_workers.set", exc)
         for t in self.active_threads:
             try:
                 t.join(timeout=2.0)
-            except Exception:
-                pass
+            except Exception as exc:
+                log_soft_failure("NeuralHardwareCoProcessor.stop_all_workers.join", exc)
         self.active_threads.clear()
         self.active_stop_event = None
 
     def unload_coprocessor(self):
         """Releases all OpenVINO compiled models, tensor buffers, and core instances."""
         self.stop_all_workers()
+        session = self._dml_session
+        self._dml_session = None
+        if session is not None:
+            try:
+                if hasattr(session, "close"):
+                    session.close()
+            except Exception as exc:
+                log_soft_failure("NeuralHardwareCoProcessor.unload_coprocessor.dml_close", exc)
+            try:
+                del session
+            except Exception as exc:
+                log_soft_failure("NeuralHardwareCoProcessor.unload_coprocessor.dml_del", exc)
         self.compiled_models.clear()
         self.base_model = None
         self.core = None
-        self._dml_session = None
         import gc
         gc.collect()
 
@@ -393,73 +428,9 @@ class NeuralHardwareCoProcessor:
         return stop_event
 
     def start_stream_mesh(self, target_mode: str = "NPU"):
-        """Starts asynchronous tensor work on the installer-selected coprocessor during streaming."""
-        if not target_mode or target_mode in ("NONE", "CPU", "none"):
-            return None
+        """Dummy tensor mesh is disabled — it contended with llama.cpp for the same GPU/NPU."""
         self.stop_all_workers()
-        if target_mode == "DIRECTML":
-            return self._start_directml_mesh()
-        compiled = self._get_or_compile(target_mode) or self._get_or_compile("FULL_MESH") or self._get_or_compile("CPU")
-        if compiled is None:
-            return None
-        import threading
-        stop_event = threading.Event()
-        self.active_stop_event = stop_event
-        
-        def _hardware_worker(batch_sz=8):
-            dummy = np.zeros((batch_sz, 512), dtype=np.float32)
-            try:
-                import openvino as ov
-                infer_queue = ov.AsyncInferQueue(compiled, 8)
-                while not stop_event.is_set():
-                    try:
-                        infer_queue.start_async({0: dummy})
-                    except Exception as exc:
-                        log_diagnostic_error(AURAErrorCode.ERR_2001_OPENVINO_NPU_FAILED, exc, "NeuralHardwareCoProcessor._hardware_worker.start_async")
-                        break
-                    time.sleep(0.001)  # Calibrated 1ms cadence to prevent driver TDR while sustaining 80%+ load
-                # Skip wait_all() on stop — it can block unload while native inferences drain.
-            except Exception as exc:
-                log_diagnostic_error(AURAErrorCode.ERR_2001_OPENVINO_NPU_FAILED, exc, "NeuralHardwareCoProcessor._hardware_worker")
-                while not stop_event.is_set():
-                    try:
-                        compiled([dummy])
-                    except Exception as inner_exc:
-                        log_diagnostic_error(AURAErrorCode.ERR_2001_OPENVINO_NPU_FAILED, inner_exc, "NeuralHardwareCoProcessor._hardware_worker.compiled")
-                        break
-                    time.sleep(0.005)
-
-        # Launch 3 parallel worker streams to sustain high NPU Level Zero execution unit throughput
-        worker_count = 3
-        for _ in range(worker_count):
-            t = threading.Thread(target=_hardware_worker, daemon=True)
-            t.start()
-            self.active_threads.append(t)
-
-        # If heavy mesh and multi-vendor GPU is available, spawn dedicated GPU compute stream alongside NPU
-        if target_mode in ["FULL_MESH", "QUAD_MESH", "heavy_mesh"]:
-            gpu_compiled = self._get_or_compile("GPU")
-            if gpu_compiled is not None and gpu_compiled != compiled:
-                def _gpu_worker():
-                    g_dummy = np.zeros((8, 512), dtype=np.float32)
-                    try:
-                        import openvino as ov
-                        g_queue = ov.AsyncInferQueue(gpu_compiled, 8)
-                        while not stop_event.is_set():
-                            try:
-                                g_queue.start_async({0: g_dummy})
-                            except Exception as exc:
-                                log_diagnostic_error(AURAErrorCode.ERR_2001_OPENVINO_NPU_FAILED, exc, "NeuralHardwareCoProcessor._gpu_worker.start_async")
-                                break
-                            time.sleep(0.002)
-                        # Skip wait_all() on stop so shutdown is not blocked by pending GPU inferences.
-                    except Exception as exc:
-                        log_diagnostic_error(AURAErrorCode.ERR_2001_OPENVINO_NPU_FAILED, exc, "NeuralHardwareCoProcessor._gpu_worker")
-                t_gpu = threading.Thread(target=_gpu_worker, daemon=True)
-                t_gpu.start()
-                self.active_threads.append(t_gpu)
-
-        return stop_event
+        return None
 
     def execute(self, target_mode: str = "FULL_MESH", iterations: int = 2):
         compiled = self._get_or_compile(target_mode) or self._get_or_compile("FULL_MESH") or self._get_or_compile("CPU")
@@ -520,35 +491,38 @@ class UnifiedInferenceEngine:
             if warmup and self.llm is not None:
                 try:
                     self.llm.create_chat_completion(messages=[{"role": "user", "content": "1"}], max_tokens=1)
-                except Exception:
-                    pass
+                except Exception as exc:
+                    log_soft_failure("UnifiedInferenceEngine.ensure_model_loaded.warmup", exc)
         return self.llm is not None
 
     def unload_model(self):
         """Releases the GGUF model, KV cache, and coprocessor threads from RAM/VRAM."""
+        if self.llm is None and not self.is_loaded:
+            self.clear_abort()
+            return
         self.request_abort()
         if self.llm is not None:
             try:
                 if hasattr(self.llm, "reset"):
                     self.llm.reset()
-            except Exception:
-                pass
+            except Exception as exc:
+                log_soft_failure("UnifiedInferenceEngine.unload_model.reset", exc)
             try:
                 if hasattr(self.llm, "close"):
                     self.llm.close()
-            except Exception:
-                pass
+            except Exception as exc:
+                log_soft_failure("UnifiedInferenceEngine.unload_model.close", exc)
             try:
                 del self.llm
-            except Exception:
-                pass
+            except Exception as exc:
+                log_soft_failure("UnifiedInferenceEngine.unload_model.del", exc)
             self.llm = None
         self.is_loaded = False
         if self.coprocessor is not None:
             try:
                 self.coprocessor.unload_coprocessor()
-            except Exception:
-                pass
+            except Exception as exc:
+                log_soft_failure("UnifiedInferenceEngine.unload_model.coprocessor", exc)
         self.clear_abort()
         import gc
         gc.collect()
@@ -644,8 +618,8 @@ class UnifiedInferenceEngine:
                 if self.coprocessor:
                     try:
                         self.coprocessor.arm_for_load(self.detector.preferred_coprocessor_target(heavy=False))
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        log_soft_failure("UnifiedInferenceEngine._load_model.arm_for_load", exc)
             except futures.TimeoutError:
                 self.is_loaded = False
                 self.llm = None
@@ -864,12 +838,6 @@ class UnifiedInferenceEngine:
                 
                 gen_start_time = time.time()
                 first_token_time = None
-                
-                # Asynchronous parallel NPU co-processor continuous stream dispatch
-                npu_stop_event = None
-                coprocessor_target = hw_plan.get("coprocessor_target") or "NONE"
-                if self.coprocessor and coprocessor_target not in ("NONE", "CPU", "none", ""):
-                    npu_stop_event = self.coprocessor.start_stream_mesh(coprocessor_target)
 
                 try:
                     stream = self.llm.create_chat_completion(
@@ -943,8 +911,8 @@ class UnifiedInferenceEngine:
                             "elapsed": round(now - (first_token_time or gen_start_time), 2)
                         }
                 finally:
-                    if npu_stop_event is not None:
-                        npu_stop_event.set()
+                    if self.coprocessor is not None:
+                        self.coprocessor.stop_all_workers()
             else:
                 err_code = self.error_code or AURAErrorCode.ERR_1001_MODEL_NOT_FOUND
                 err_html = format_error_html(
@@ -959,6 +927,7 @@ class UnifiedInferenceEngine:
                     "current_tps": 0.0,
                     "elapsed": 0.05
                 }
+                return
         except Exception as e:
             err_code = AURAErrorCode.ERR_5001_WORKER_CRASH
             log_diagnostic_error(err_code, e, "engine.generate_stream")
@@ -971,6 +940,7 @@ class UnifiedInferenceEngine:
                 "current_tps": 0.0,
                 "elapsed": 0.1
             }
+            return
 
         total_decode_time = max(0.01, time.time() - (first_token_time or gen_start_time or overall_start))
         final_tps = round(tokens_generated / total_decode_time, 1) if tokens_generated > 0 else 0.0

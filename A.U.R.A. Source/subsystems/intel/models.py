@@ -21,16 +21,8 @@ Intel & Threat Data Models.
 """
 
 from dataclasses import dataclass, field
-from enum import StrEnum
 import time
 import uuid
-
-
-class ThreatLevel(StrEnum):
-    CLEAR = "CLEAR"
-    SUSPICIOUS = "SUSPICIOUS"
-    HOSTILE = "HOSTILE"
-    CRITICAL = "CRITICAL"
 
 
 @dataclass(frozen=True, slots=True)

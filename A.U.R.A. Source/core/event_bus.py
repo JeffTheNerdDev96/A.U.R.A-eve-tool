@@ -66,6 +66,10 @@ class EventBus(QObject):
         if handler in self._subscribers[event_type]:
             self._subscribers[event_type].remove(handler)
 
+    def clear(self) -> None:
+        """Drop all subscribers (used during process shutdown)."""
+        self._subscribers.clear()
+
     def _dispatch_to_subscribers(self, event: BaseEvent) -> None:
         """Internal Qt slot executing on the thread associated with the EventBus instance."""
         event_type = type(event)

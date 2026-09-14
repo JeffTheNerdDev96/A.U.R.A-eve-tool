@@ -38,7 +38,7 @@ import winreg
 from typing import Any
 from core.config import config
 from core.paths import get_app_root
-from core.error_handler import AURAErrorCode, log_diagnostic_error
+from core.error_handler import AURAErrorCode, log_diagnostic_error, log_soft_failure
 from .profile import (
     apply_install_mask,
     gpu_strategy_label,
@@ -198,8 +198,8 @@ class HardwareDetector:
                 val, _ = winreg.QueryValueEx(k, "ProcessorNameString")
                 if val:
                     cpu_name = val.strip()
-        except Exception:
-            pass
+        except (OSError, FileNotFoundError) as exc:
+            log_soft_failure("HardwareDetector.scan_devices CPU registry", exc)
 
         phys_cores = _PHYS_CORES
         logical_threads = _LOGICAL_CORES
@@ -291,7 +291,8 @@ class HardwareDetector:
                                             desc, _ = winreg.QueryValueEx(inst_key, "DeviceDesc")
                                             if ";" in desc:
                                                 desc = desc.split(";")[-1]
-                                        except Exception:
+                                        except (OSError, FileNotFoundError) as exc:
+                                            log_soft_failure("HardwareDetector.scan_devices PCI DeviceDesc", exc)
                                             desc = ""
                                         
                                         desc_lower = desc.lower()
@@ -325,10 +326,10 @@ class HardwareDetector:
                                                 devices["npu"]["backend"] = "Intel NPU Driver (Level Zero)"
                                                 devices["npu"]["is_intel"] = True
                                                 devices["npu"]["is_amd"] = False
-                                except Exception:
-                                    pass
-                    except Exception:
-                        pass
+                                except (OSError, FileNotFoundError) as exc:
+                                    log_soft_failure("HardwareDetector.scan_devices PCI instance", exc)
+                    except (OSError, FileNotFoundError) as exc:
+                        log_soft_failure("HardwareDetector.scan_devices PCI class enum", exc)
         except Exception as exc:
             log_diagnostic_error(
                 AURAErrorCode.ERR_2004_REGISTRY_PROBE_ERROR,
@@ -350,7 +351,8 @@ class HardwareDetector:
                         with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, dev_path) as dev_key:
                             try:
                                 name, _ = winreg.QueryValueEx(dev_key, "DriverDesc")
-                            except Exception:
+                            except (OSError, FileNotFoundError) as exc:
+                                log_soft_failure("HardwareDetector.scan_devices display DriverDesc", exc)
                                 name = ""
                             
                             if name and "basic" not in name.lower() and "remote" not in name.lower():
@@ -383,8 +385,8 @@ class HardwareDetector:
                                         "type": "dGPU" if is_dgpu else "iGPU",
                                         "backend": f"{vendor} Hardware Acceleration (DirectML / Vulkan / OpenVINO)"
                                     })
-                    except Exception:
-                        pass
+                    except (OSError, FileNotFoundError) as exc:
+                        log_soft_failure("HardwareDetector.scan_devices display adapter subkey", exc)
         except Exception as exc:
             log_diagnostic_error(
                 AURAErrorCode.ERR_2004_REGISTRY_PROBE_ERROR,

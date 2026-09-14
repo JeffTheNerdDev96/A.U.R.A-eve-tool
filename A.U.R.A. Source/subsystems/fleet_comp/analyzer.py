@@ -27,7 +27,7 @@ import re
 from typing import Any, Dict, List, Optional, Tuple
 
 from core.eve_data import SHIP_DATABASE, lookup_ship, _COMMON_SHIP_ALIASES
-from .dscan_parser import DScanParser, _is_dist_or_id
+from subsystems.dscan.parser import DScanParser, _is_dist_or_id
 from .models import FleetCompAnalysis
 
 _LOGI_CLASSES = {"Logistics Cruiser", "Logistics Frigate", "Force Auxiliary"}

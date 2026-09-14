@@ -33,10 +33,11 @@ import ssl
 import threading
 import time
 import xml.etree.ElementTree as ET
+from dataclasses import replace
 from typing import Callable
 
 from version import VERSION
-from core.error_handler import AURAErrorCode, log_diagnostic_error
+from core.error_handler import AURAErrorCode, log_diagnostic_error, log_soft_failure
 from core.eve_data import lookup_ship
 from core.lifecycle import XMPP_JOIN_MS
 from .models import (
@@ -74,6 +75,7 @@ _WORKER_JOIN_SEC = XMPP_JOIN_MS / 1000.0
 _MAX_RECV_BUFFER = 1 * 1024 * 1024
 _MAX_HANDSHAKE_BUFFER = 256 * 1024
 _MAX_STANZA_CHARS = 256 * 1024
+_MAX_OUTBOUND_QUEUE = 256
 _STANZA_OPEN_RE = re.compile(r"<(message|presence|iq)\b", re.IGNORECASE)
 
 
@@ -208,7 +210,7 @@ class XMPPProtocolAdapter:
         self._is_running = False
         self._stop_event = threading.Event()
         self._socket: socket.socket | ssl.SSLSocket | None = None
-        self._outbound_queue: queue.Queue[str] = queue.Queue()
+        self._outbound_queue: queue.Queue[str] = queue.Queue(maxsize=_MAX_OUTBOUND_QUEUE)
         self._joined_rooms: set[str] = set()
         self._bound_jid: str = ""
         self._roster: dict[str, XMPPRosterContact] = {}
@@ -231,7 +233,7 @@ class XMPPProtocolAdapter:
         if self._worker_thread is not None and self._worker_thread.is_alive():
             self.disconnect()
 
-        self.config = config
+        self.config = replace(config)
         if not config.jid or not config.domain:
             self.set_state(XMPPConnectionState.ERROR, "Invalid JID format (expected user@domain)")
             return False
@@ -264,7 +266,7 @@ class XMPPProtocolAdapter:
             return
         try:
             sock.close()
-        except Exception:
+        except OSError:
             pass
 
     def disconnect(self) -> None:
@@ -278,7 +280,7 @@ class XMPPProtocolAdapter:
         # (it can block on a 10s handshake timeout while recv() holds the same socket).
         try:
             self._outbound_queue.put_nowait("</stream:stream>")
-        except Exception:
+        except queue.Full:
             pass
 
         worker = self._worker_thread
@@ -305,6 +307,17 @@ class XMPPProtocolAdapter:
         self._roster.clear()
         self._wipe_credentials()
         self.set_state(XMPPConnectionState.DISCONNECTED)
+
+    def _enqueue_outbound(self, stanza: str) -> bool:
+        try:
+            self._outbound_queue.put_nowait(stanza)
+            return True
+        except queue.Full:
+            log_soft_failure(
+                "XMPPProtocolAdapter._enqueue_outbound",
+                RuntimeError("outbound queue full"),
+            )
+            return False
 
     def send_message(self, target_jid: str, body: str, is_groupchat: bool = True) -> bool:
         """Sends an outgoing direct or MUC room message over active XMPP stream."""
@@ -334,7 +347,8 @@ class XMPPProtocolAdapter:
             f"<body>{escape_xml(body)}</body>"
             f"</message>"
         )
-        self._outbound_queue.put(stanza)
+        if not self._enqueue_outbound(stanza):
+            return False
 
         if self.on_message_received:
             self.on_message_received(out_msg)
@@ -354,7 +368,7 @@ class XMPPProtocolAdapter:
                 f"<x xmlns='http://jabber.org/protocol/muc'/>"
                 f"</presence>"
             )
-            self._outbound_queue.put(stanza)
+            self._enqueue_outbound(stanza)
 
         if self.on_room_joined:
             self.on_room_joined(room_jid, nick, "Alliance Tactical Room")
@@ -367,19 +381,19 @@ class XMPPProtocolAdapter:
             if self.state == XMPPConnectionState.CONNECTED and self._is_running and self.config:
                 nick = self.config.nickname or self.config.username
                 stanza = f"<presence to='{escape_xml(room_jid)}/{escape_xml(nick)}' type='unavailable'/>"
-                self._outbound_queue.put(stanza)
+                self._enqueue_outbound(stanza)
             return True
         return False
 
     def request_roster(self) -> None:
         """Requests user roster from server (RFC 6121 §2)."""
         if self.state == XMPPConnectionState.CONNECTED and self._is_running:
-            self._outbound_queue.put("<iq type='get' id='roster_init'><query xmlns='jabber:iq:roster'/></iq>")
+            self._enqueue_outbound("<iq type='get' id='roster_init'><query xmlns='jabber:iq:roster'/></iq>")
 
     def request_bookmarks(self) -> None:
         """Requests user bookmarked conference rooms (XEP-0048 Private XML Storage)."""
         if self.state == XMPPConnectionState.CONNECTED and self._is_running:
-            self._outbound_queue.put(
+            self._enqueue_outbound(
                 "<iq type='get' id='bm_init'><query xmlns='jabber:iq:private'><storage xmlns='storage:bookmarks'/></query></iq>"
             )
 
@@ -387,7 +401,7 @@ class XMPPProtocolAdapter:
         """Queries MUC conference host for public room directory (XEP-0030 disco#items)."""
         if self.state == XMPPConnectionState.CONNECTED and self._is_running and self.config:
             host = conference_host or f"conference.{self.config.domain}"
-            self._outbound_queue.put(
+            self._enqueue_outbound(
                 f"<iq to='{escape_xml(host)}' type='get' id='disco_muc'><query xmlns='http://jabber.org/protocol/disco#items'/></iq>"
             )
 
@@ -436,7 +450,9 @@ class XMPPProtocolAdapter:
                         return buffer
             except socket.timeout:
                 break
-        return buffer
+        raise ConnectionError(
+            f"XMPP handshake timed out waiting for {target_patterns}: {buffer[:200].strip()}"
+        )
 
     def _connection_worker(self) -> None:
         """
@@ -455,6 +471,7 @@ class XMPPProtocolAdapter:
             try:
                 # 1. Establish TCP socket connection
                 raw_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self._socket = raw_sock
                 raw_sock.settimeout(10.0)
                 raw_sock.connect((host, port))
 
@@ -465,8 +482,7 @@ class XMPPProtocolAdapter:
                     ctx = self._build_ssl_context(cfg.allow_self_signed_tls)
                     server_host = cfg.domain.strip() if cfg.domain else None
                     sock = ctx.wrap_socket(raw_sock, server_hostname=server_host)
-
-                self._socket = sock
+                    self._socket = sock
 
                 # 3. Stream header exchange
                 stream_header = (
@@ -532,8 +548,8 @@ class XMPPProtocolAdapter:
                 session_stanza = "<iq type='set' id='sess_1'><session xmlns='urn:ietf:params:xml:ns:xmpp-session'/></iq>"
                 try:
                     sock.sendall(session_stanza.encode("utf-8"))
-                except Exception:
-                    pass
+                except OSError as exc:
+                    log_soft_failure("XMPPProtocolAdapter.session_stanza", exc)
 
                 # 9. Send Initial Presence & Status
                 presence_stanza = (
@@ -638,7 +654,7 @@ class XMPPProtocolAdapter:
                 if self._socket:
                     try:
                         self._socket.close()
-                    except Exception:
+                    except OSError:
                         pass
                     self._socket = None
 
@@ -692,7 +708,8 @@ class XMPPProtocolAdapter:
         """Parses a single validated XML stanza and fires relevant callbacks."""
         try:
             elem = ET.fromstring(stanza_text)
-        except Exception:
+        except ET.ParseError as exc:
+            log_soft_failure("XMPPProtocolAdapter._dispatch_stanza.parse", exc)
             return
 
         tag_name = elem.tag.split("}")[-1].lower() if "}" in elem.tag else elem.tag.lower()
@@ -773,8 +790,8 @@ class XMPPProtocolAdapter:
                     pong = f"<iq{to_attr} id='{escape_xml(iq_id)}' type='result'/>"
                     try:
                         sock.sendall(pong.encode("utf-8"))
-                    except Exception:
-                        pass
+                    except OSError as exc:
+                        log_soft_failure("XMPPProtocolAdapter.iq_pong", exc)
                 elif has_version:
                     # Respond with Software Version
                     v_resp = (
@@ -785,8 +802,8 @@ class XMPPProtocolAdapter:
                     )
                     try:
                         sock.sendall(v_resp.encode("utf-8"))
-                    except Exception:
-                        pass
+                    except OSError as exc:
+                        log_soft_failure("XMPPProtocolAdapter.iq_version", exc)
                 elif has_disco_info:
                     # Respond with Disco info
                     disco_resp = (
@@ -801,8 +818,8 @@ class XMPPProtocolAdapter:
                     )
                     try:
                         sock.sendall(disco_resp.encode("utf-8"))
-                    except Exception:
-                        pass
+                    except OSError as exc:
+                        log_soft_failure("XMPPProtocolAdapter.iq_disco", exc)
                 elif iq_id:
                     # RFC 6120 §8.2.3: Return feature-not-implemented for unhandled get queries
                     err_resp = (
@@ -812,8 +829,8 @@ class XMPPProtocolAdapter:
                     )
                     try:
                         sock.sendall(err_resp.encode("utf-8"))
-                    except Exception:
-                        pass
+                    except OSError as exc:
+                        log_soft_failure("XMPPProtocolAdapter.iq_feature_error", exc)
 
             # B. Inbound IQ "set" requests (e.g. Roster pushes)
             elif iq_type == "set":
@@ -836,8 +853,8 @@ class XMPPProtocolAdapter:
                 ack = f"<iq{to_attr} id='{escape_xml(iq_id)}' type='result'/>"
                 try:
                     sock.sendall(ack.encode("utf-8"))
-                except Exception:
-                    pass
+                except OSError as exc:
+                    log_soft_failure("XMPPProtocolAdapter.iq_set_ack", exc)
 
             # C. Inbound IQ "result" responses
             elif iq_type == "result":

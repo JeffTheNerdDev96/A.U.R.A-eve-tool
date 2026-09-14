@@ -1,7 +1,7 @@
-# Adaptive Underworld Recon Array (A.U.R.A.) — v0.5.0-alpha.1 — User Guide
+# Adaptive Underworld Recon Array (A.U.R.A.) — v0.5.1-alpha.1 — User Guide
 
 **Adaptive Underworld Recon Array (A.U.R.A.)**  
-*v0.5.0-alpha.1*  
+*v0.5.1-alpha.1*  
 *Angel Cartel Cybernetics Division — by JeffTheNerdDev96*
 
 Not affiliated with or endorsed by CCP Games / Fenris Creations. EVE Online is a trademark of CCP / Fenris Creations.
@@ -216,7 +216,7 @@ A.U.R.A. utilizes hardware-specific install scripts located in `A.U.R.A. Source/
 | `install_intel_npu.bat` | Intel NPU (AI Boost Level Zero Coprocessor) |
 | `install_cpu.bat` | Standard Multi-Core CPU (SIMD AVX2 / AVX-512 Vector Mesh) |
 
-Launch the application via `run.bat` in the repository root or through the standalone package `AURA_Setup_v0.5.0-alpha.1.exe`.
+Launch the application via `run.bat` in the repository root or through the standalone package `AURA_Setup_v0.5.1-alpha.1.exe`.
 
 ---
 
@@ -257,7 +257,7 @@ All diagnostic errors are logged to `logs/crash.log`:
 
 Native Linux packaging lives in a **separate repository**: [A.U.R.A.-eve-tool-linux](https://github.com/JeffTheNerdDev96/A.U.R.A.-eve-tool-linux). This Windows tree can still be run under **Valve Proton**, GE-Proton, Proton Experimental, or a standard Wine prefix.
 
-1. **Standalone Installation:** Run `AURA_Setup_v0.5.0-alpha.1.exe` via Proton, or copy the application folder to your Linux drive.
+1. **Standalone Installation:** Run `AURA_Setup_v0.5.1-alpha.1.exe` via Proton, or copy the application folder to your Linux drive.
 2. **Add Non-Steam Game:** In Steam, click **Add a Non-Steam Game** and point at the installed Windows executable (or `run.bat` / `Launch_A.U.R.A_Debug.bat` from a source checkout). Prefer the Linux edition repo when you want a native launcher.
 3. **Compatibility:** Under shortcut Properties → **Compatibility** → select **Proton 11** or Proton Experimental.
 4. **Chatlog Auto-Discovery:** Steam installations auto-discover the EVE Online log directory under:

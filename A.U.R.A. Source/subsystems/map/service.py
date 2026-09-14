@@ -33,6 +33,7 @@ class MapSubsystem(BaseSubsystem):
     def __init__(self):
         super().__init__(name="MapSubsystem")
         self.router = MapRouter()
+        self.last_route: RouteResult | None = None
 
     @override
     def initialize(self) -> bool:
@@ -57,7 +58,8 @@ class MapSubsystem(BaseSubsystem):
         evt = SystemSelectedEvent(
             system_name=node.name,
             region_name=node.region,
-            security_status=node.security
+            security_status=node.security,
+            system_id=node.system_id,
         )
         self.event_bus.publish(evt)
         return node
@@ -66,8 +68,10 @@ class MapSubsystem(BaseSubsystem):
         """Calculates route and emits RouteCalculatedEvent over EventBus."""
         result = self.router.calculate_route(origin, destination, avoid_systems=avoid_systems)
         if not result:
+            self.last_route = None
             return None
 
+        self.last_route = result
         evt = RouteCalculatedEvent(
             origin_system=result.origin,
             destination_system=result.destination,
@@ -77,6 +81,3 @@ class MapSubsystem(BaseSubsystem):
         )
         self.event_bus.publish(evt)
         return result
-
-    calculate_route = plan_route
-    find_route = plan_route

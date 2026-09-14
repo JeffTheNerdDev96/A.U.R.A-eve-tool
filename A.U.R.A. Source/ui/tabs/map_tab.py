@@ -36,6 +36,8 @@ from PyQt6.QtWidgets import (
 
 from subsystems.map import EveMapGraph, MapSubsystem
 from subsystems.map.models import RouteResult
+from core.event_bus import get_event_bus
+from core.events import IntelReportEvent, RouteCalculatedEvent, SystemSelectedEvent
 from core.input_safety import escape_html, safe_display_text
 from ui.theme import (
     BG_DEEP, BG_PANEL, BG_ELEVATED, BORDER, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT,
@@ -43,7 +45,7 @@ from ui.theme import (
     btn_secondary_css,
 )
 
-INTEL_TTL_SEC = 10 * 60
+INTEL_TTL_SEC = 15 * 60
 MAX_NODES = 250
 
 _LEVEL_RANK = {
@@ -183,7 +185,10 @@ class MapGraphicsView(QGraphicsView):
         if delta == 0:
             return
         factor = 1.15 if delta > 0 else 1 / 1.15
-        self._zoom = max(0.2, min(4.0, self._zoom * factor))
+        next_zoom = self._zoom * factor
+        if next_zoom < 0.2 or next_zoom > 4.0:
+            return
+        self._zoom = next_zoom
         self.setTransform(self.transform().scale(factor, factor))
 
 
@@ -245,11 +250,16 @@ class SystemNodeItem(QGraphicsEllipseItem):
 class MapTabWidget(QWidget):
     """Tactical jump-range stargate map with intel overlays and BFS Route Planner."""
 
-    def __init__(self, eve_map: Optional[EveMapGraph] = None, parent=None):
+    def __init__(
+        self,
+        eve_map: Optional[EveMapGraph] = None,
+        map_subsystem: Optional[MapSubsystem] = None,
+        parent=None,
+    ):
         super().__init__(parent)
         from subsystems.map import get_eve_map
         self.eve_map = eve_map or get_eve_map()
-        self.map_subsystem = MapSubsystem()
+        self.map_subsystem = map_subsystem or MapSubsystem()
         self._origin_id: Optional[int] = None
         self._origin_name: Optional[str] = None
         self._jump_range = 5
@@ -270,13 +280,24 @@ class MapTabWidget(QWidget):
         self._route_edges: Set[Tuple[int, int]] = set()
 
         self._prune_timer = QTimer(self)
-        self._prune_timer.setInterval(15000)  # Prune expired 10-min intel every 15s
+        self._prune_timer.setInterval(15000)  # Prune expired 15-min intel every 15s
         self._prune_timer.timeout.connect(self._on_prune_timer)
         self._prune_timer.start()
+
+        bus = get_event_bus()
+        bus.subscribe(IntelReportEvent, self._on_intel_report_event)
+        bus.subscribe(RouteCalculatedEvent, self._on_route_calculated_event)
+        bus.subscribe(SystemSelectedEvent, self._on_system_selected_event)
 
         self.setStyleSheet(f"MapTabWidget {{ background:transparent; color:{TEXT_PRIMARY}; }}")
         self._init_ui()
         self._show_placeholder()
+
+    def unsubscribe_events(self) -> None:
+        bus = get_event_bus()
+        bus.unsubscribe(IntelReportEvent, self._on_intel_report_event)
+        bus.unsubscribe(RouteCalculatedEvent, self._on_route_calculated_event)
+        bus.unsubscribe(SystemSelectedEvent, self._on_system_selected_event)
 
     def _init_ui(self) -> None:
         root = QVBoxLayout(self)
@@ -457,6 +478,30 @@ class MapTabWidget(QWidget):
         self.range_lbl.setText(f"Alert range: {self._jump_range} jumps")
         if self._origin_id is not None:
             self._rebuild_graph(fit_view=True)
+
+    def _on_intel_report_event(self, evt: IntelReportEvent) -> None:
+        payload = dict(evt.payload) if evt.payload else {
+            "system": evt.system,
+            "threat_level": evt.threat_level,
+            "clean_msg": evt.clean_msg or evt.raw_line,
+        }
+        self.note_intel(payload)
+
+    def _on_system_selected_event(self, evt: SystemSelectedEvent) -> None:
+        if not evt.system_name:
+            return
+        sys_id = evt.system_id
+        if not sys_id:
+            rec = self.eve_map.resolve_system_name(evt.system_name)
+            sys_id = int(rec["id"]) if rec else 0
+        if sys_id:
+            self.set_location(evt.system_name, sys_id)
+
+    def _on_route_calculated_event(self, evt: RouteCalculatedEvent) -> None:
+        route = self.map_subsystem.last_route
+        if route is None or not evt.route_path:
+            return
+        self._apply_route(route)
 
     def note_intel(self, parsed: dict) -> None:
         sys_name = (parsed.get("system") or "").strip()
@@ -654,7 +699,7 @@ class MapTabWidget(QWidget):
             self._node_items[self._selected_id].setSelected(True)
 
     def _on_calculate_route(self) -> None:
-        """Executes sub-millisecond BFS graph routing between origin and destination."""
+        """Executes BFS graph routing between origin and destination."""
         orig_str = self.route_origin_edit.text().strip() or (self._origin_name or "")
         dest_str = self.route_dest_edit.text().strip()
         avoid_raw = self.route_avoid_edit.text().strip()
@@ -665,14 +710,15 @@ class MapTabWidget(QWidget):
 
         avoid_list = [s.strip() for s in avoid_raw.split(",") if s.strip()] if avoid_raw else None
 
-        route = self.map_subsystem.find_route(orig_str, dest_str, avoid_systems=avoid_list)
+        route = self.map_subsystem.plan_route(orig_str, dest_str, avoid_systems=avoid_list)
         if not route:
             self.route_summary_lbl.setText(f"<span style='color:#f87171;'>No route found between '{orig_str}' and '{dest_str}'.</span>")
             return
+        self._apply_route(route)
 
+    def _apply_route(self, route: RouteResult) -> None:
         self._current_route = route
 
-        # Map route system names to system IDs
         node_ids: List[int] = []
         for name in route.path:
             rec = self.eve_map.resolve_system_name(name)
@@ -685,7 +731,6 @@ class MapTabWidget(QWidget):
             for i in range(len(node_ids) - 1)
         }
 
-        # Format route summary HTML
         sec_color = "#38bdf8" if route.security_min >= 0.45 else ("#fbbf24" if route.security_min > 0.0 else "#f87171")
         avoid_html = (
             f"<br><b>Avoided:</b> {escape_html(', '.join(route.avoided_systems))}"

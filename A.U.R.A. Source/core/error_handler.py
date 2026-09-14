@@ -17,13 +17,14 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Centralized Diagnostic Error Code Subsystem for Adaptive Underworld Recon Array (A.U.R.A.) - v0.5.0-alpha.1.
+Centralized Diagnostic Error Code Subsystem for Adaptive Underworld Recon Array (A.U.R.A.) - v0.5.1-alpha.1.
 Angel Cartel Cybernetics Division.
 
 Provides standardized, searchable error codes (AURA-ERR-xxxx), rich diagnostic logging,
 and actionable troubleshooting hints for capsuleers and developers.
 """
 
+import logging
 import os
 import sys
 import time
@@ -50,8 +51,6 @@ class AURAErrorCode:
 
     # 3000 Series: Tactical Parsers & Intelligence Ingestion
     ERR_3001_DSCAN_PARSE_FAILED = "AURA-ERR-3001"
-    ERR_3002_INTEL_REGEX_FAILED = "AURA-ERR-3002"
-    ERR_3003_FITTING_PARSE_FAILED = "AURA-ERR-3003"
     ERR_3004_INGESTION_FAILED = "AURA-ERR-3004"
 
     # 4000 Series: Chat Log Monitor & File System
@@ -62,11 +61,6 @@ class AURAErrorCode:
     # 5000 Series: UI & Thread Worker Lifecycles
     ERR_5001_WORKER_CRASH = "AURA-ERR-5001"
     ERR_5002_MODEL_SWITCH_FAILED = "AURA-ERR-5002"
-    ERR_5003_UI_RENDER_ERROR = "AURA-ERR-5003"
-
-    # 6000 Series: Wormhole & Anokis Mapping
-    ERR_6001_WH_TOPOLOGY_CYCLE = "AURA-ERR-6001"
-    ERR_6002_WH_SIGNATURE_CONFLICT = "AURA-ERR-6002"
 
     # 7000 Series: XMPP Tactical Communications
     ERR_7001_XMPP_AUTH_FAILED = "AURA-ERR-7001"
@@ -121,16 +115,6 @@ ERROR_REGISTRY: dict[str, dict[str, str]] = {
         "description": "Failed to parse directional scan paste contents.",
         "resolution": "Ensure D-Scan is copied directly from the in-game EVE Online Directional Scanner window (Ctrl+A -> Ctrl+C)."
     },
-    AURAErrorCode.ERR_3002_INTEL_REGEX_FAILED: {
-        "title": "Intel Log Parsing Error",
-        "description": "Chat log line parser encountered malformed text or an unrecognized encoding.",
-        "resolution": "Verify that EVE Online chat logs are encoded in standard UTF-8/UTF-16."
-    },
-    AURAErrorCode.ERR_3003_FITTING_PARSE_FAILED: {
-        "title": "EFT Fitting Format Error",
-        "description": "EVE Fitting Tool text format could not be parsed.",
-        "resolution": "Verify fitting begins with '[ShipName, FitName]' followed by valid module slots."
-    },
     AURAErrorCode.ERR_3004_INGESTION_FAILED: {
         "title": "Document / Vision Ingestion Error",
         "description": "Failed to extract text or visual features from uploaded screenshot/document.",
@@ -160,21 +144,6 @@ ERROR_REGISTRY: dict[str, dict[str, str]] = {
         "title": "Model Switch Failure",
         "description": "Failed to dynamically switch active hardware acceleration backend.",
         "resolution": "Restart A.U.R.A. to re-arm the desired hardware profile."
-    },
-    AURAErrorCode.ERR_5003_UI_RENDER_ERROR: {
-        "title": "UI Tactical Rendering Error",
-        "description": "Qt6 graphical component rendering or stylesheet application failed.",
-        "resolution": "Verify display scaling settings or restart the application."
-    },
-    AURAErrorCode.ERR_6001_WH_TOPOLOGY_CYCLE: {
-        "title": "Wormhole Topology Cycle Detected",
-        "description": "Attempted to create a circular graph connection in active wormhole chain.",
-        "resolution": "Verify parent and child solar system identifiers in the Anokis mapping tab."
-    },
-    AURAErrorCode.ERR_6002_WH_SIGNATURE_CONFLICT: {
-        "title": "Cosmic Signature Conflict",
-        "description": "Signature ID already exists or failed to parse probe scan format.",
-        "resolution": "Check signature format (e.g. 'ABC-123') and ensure unique identifiers per system."
     },
     AURAErrorCode.ERR_7001_XMPP_AUTH_FAILED: {
         "title": "XMPP Authentication Failure",
@@ -223,6 +192,14 @@ class AURAException(Exception):
             self.add_note(f"Details: {self.technical_details}")
 
 
+_SOFT_LOGGER = logging.getLogger("AURA")
+
+
+def log_soft_failure(context: str, exc: BaseException) -> None:
+    """Debug-log an expected probe or teardown failure. Does not write crash.log."""
+    _SOFT_LOGGER.debug("%s: %s", context or "soft failure", exc, exc_info=exc)
+
+
 def log_diagnostic_error(code: str, exc: Exception | None = None, context: str = "") -> str:
     """
     Records a structured diagnostic error into logs/crash.log with stack trace and context.
@@ -267,16 +244,16 @@ def log_diagnostic_error(code: str, exc: Exception | None = None, context: str =
             if os.path.exists(old_log):
                 try:
                     os.remove(old_log)
-                except Exception:
+                except OSError:
                     pass
             try:
                 os.rename(crash_log, old_log)
-            except Exception:
+            except OSError:
                 pass
 
         with open(crash_log, "a", encoding="utf-8") as f:
             f.write(log_entry)
-    except Exception:
+    except OSError:
         pass
         
     if sys.stderr is not None:

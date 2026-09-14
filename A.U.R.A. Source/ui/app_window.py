@@ -50,15 +50,22 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QSize, QEvent
 from PyQt6.QtGui import QIcon, QTextCursor, QFont, QAction, QPixmap
 
 from core.config import config
-from subsystems.ai.ingestion import DocumentParser
 from subsystems.ai.engine import UnifiedInferenceEngine
+from subsystems.ai.ingestion import DocumentParser
 from subsystems.fitting.parser import FittingParser
 from subsystems.intel.monitor import LiveChatMonitor
-from subsystems.intel.parser import IntelParser
 from core.eve_data import lookup_ship
 from subsystems.map import get_eve_map
 from subsystems.intel.alerts import ThreatAlerter, _LEVEL_RANK
 from core import get_event_bus, cleanup_temp_files, shutdown_application
+from core.events import (
+    IntelReportEvent,
+    ThreatAlertEvent,
+    IntelStaleExpiredEvent,
+    FittingCalculatedEvent,
+    InferenceCompletedEvent,
+    DScanParsedEvent,
+)
 from core.input_safety import escape_html, safe_display_text, clamp_text
 from subsystems.intel import IntelSubsystem
 from subsystems.dscan import DScanSubsystem
@@ -66,6 +73,8 @@ from subsystems.map import MapSubsystem
 from subsystems.fleet_comp import FleetCompSubsystem
 from subsystems.wormhole import WormholeSubsystem
 from subsystems.xmpp_chat import XMPPChatSubsystem
+from subsystems.fitting import FittingSubsystem
+from subsystems.ai import AISubsystem
 from ui.tabs.dscan_tab import DScanTabWidget
 from ui.tabs.fitting_tab import FittingLabWidget
 from ui.tabs.map_tab import MapTabWidget
@@ -134,6 +143,7 @@ class WorkerThread(QThread):
         self.engine.request_abort()
 
     def run(self):
+        saw_error = False
         try:
             for packet in self.engine.generate_stream(
                 self.prompt,
@@ -150,11 +160,14 @@ class WorkerThread(QThread):
                     case "token":
                         self.token_received.emit(packet)
                     case "done":
-                        self.done_received.emit(packet)
+                        if not saw_error:
+                            self.done_received.emit(packet)
                     case "error":
+                        saw_error = True
                         self.error_received.emit(packet.get("text", packet.get("error", "Error")))
-            
-            if self._is_stopped:
+                        break
+
+            if self._is_stopped and not saw_error:
                 self.done_received.emit({
                     "type": "done",
                     "tokens_generated": 0,
@@ -586,9 +599,16 @@ class MainWindow(QMainWindow):
         self.xmpp_subsystem = XMPPChatSubsystem()
         self.xmpp_subsystem.initialize()
         self.xmpp_subsystem.start()
+        self.fitting_subsystem = FittingSubsystem()
+        self.fitting_subsystem.initialize()
+        self.fitting_subsystem.start()
+        self.ai_subsystem = AISubsystem()
+        self.ai_subsystem.initialize()
+        self.ai_subsystem.start()
 
-
-        self.engine = UnifiedInferenceEngine()
+        self.engine = self.ai_subsystem.engine
+        self._last_fit_summary = ""
+        self._last_dscan_summary = ""
         self.chat_history: List[Dict[str, str]] = []
         self.attachments: List[Dict[str, Any]] = []
         self.current_assistant_tokens: List[str] = []
@@ -963,13 +983,13 @@ class MainWindow(QMainWindow):
         self.dscan_tab = DScanTabWidget(self.dscan_subsystem)
         self.dscan_tab.ask_aura_requested.connect(self._handle_external_ask_aura)
 
-        self.fitting_lab = FittingLabWidget()
+        self.fitting_lab = FittingLabWidget(fitting_subsystem=self.fitting_subsystem)
         self.fitting_lab.evaluate_requested.connect(self._on_fitting_submitted)
 
-        self.map_tab = MapTabWidget(self.eve_map)
+        self.map_tab = MapTabWidget(self.eve_map, map_subsystem=self.map_subsystem)
         self.map_tab.set_jump_range(int(getattr(config, "alert_jump_range", 5)))
 
-        self.composition_tab = CompositionTabWidget()
+        self.composition_tab = CompositionTabWidget(fleet_comp_subsystem=self.fleet_comp_subsystem)
         self.composition_tab.fleet_eval_requested.connect(self._handle_fleet_eval_submission)
 
         self.anokis_tab = WormholeTabWidget(self.wormhole_subsystem)
@@ -997,6 +1017,12 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.chat_tab_page, "A.U.R.A. Chat")
         self.tabs.currentChanged.connect(self._on_main_tab_changed)
         main_layout.addWidget(self.tabs, stretch=1)
+
+        self._subscribe_event_bus()
+        self._intel_expire_timer = QTimer(self)
+        self._intel_expire_timer.setInterval(15000)
+        self._intel_expire_timer.timeout.connect(self.intel_subsystem.tick_expiration)
+        self._intel_expire_timer.start()
 
 
         footer = QFrame()
@@ -1156,6 +1182,86 @@ class MainWindow(QMainWindow):
         if hasattr(self, "map_tab"):
             self.map_tab.set_jump_range(int(value))
 
+    def _subscribe_event_bus(self) -> None:
+        bus = self.event_bus
+        bus.subscribe(IntelReportEvent, self._on_intel_report_event)
+        bus.subscribe(ThreatAlertEvent, self._on_threat_alert_event)
+        bus.subscribe(IntelStaleExpiredEvent, self._on_intel_expired_event)
+        bus.subscribe(FittingCalculatedEvent, self._on_fitting_calculated_event)
+        bus.subscribe(DScanParsedEvent, self._on_dscan_parsed_event)
+
+    def _unsubscribe_event_bus(self) -> None:
+        bus = self.event_bus
+        bus.unsubscribe(IntelReportEvent, self._on_intel_report_event)
+        bus.unsubscribe(ThreatAlertEvent, self._on_threat_alert_event)
+        bus.unsubscribe(IntelStaleExpiredEvent, self._on_intel_expired_event)
+        bus.unsubscribe(FittingCalculatedEvent, self._on_fitting_calculated_event)
+        bus.unsubscribe(DScanParsedEvent, self._on_dscan_parsed_event)
+        for tab_attr in ("map_tab", "anokis_tab", "xmpp_tab"):
+            tab = getattr(self, tab_attr, None)
+            if tab is not None and hasattr(tab, "unsubscribe_events"):
+                try:
+                    tab.unsubscribe_events()
+                except Exception as exc:
+                    from core.error_handler import log_soft_failure
+                    log_soft_failure(f"MainWindow._unsubscribe_event_bus.{tab_attr}", exc)
+
+    def _on_intel_report_event(self, evt: IntelReportEvent) -> None:
+        parsed = dict(evt.payload) if evt.payload else {
+            "system": evt.system,
+            "ships": evt.ship_classes,
+            "threat_level": evt.threat_level,
+            "clean_msg": evt.clean_msg,
+            "channel": evt.channel_name,
+            "speaker": evt.reporter,
+            "time_str": evt.time_str,
+            "status_flags": evt.status_flags,
+            "has_cyno": evt.has_cyno,
+            "has_bubble": evt.has_bubble,
+            "is_clear": evt.is_clear,
+            "is_critical": evt.is_critical,
+            "est_count": evt.pilot_count,
+            "pilot_count": evt.pilot_count,
+            "pilots": evt.pilots,
+        }
+        self._handle_live_intel_line(parsed)
+
+    def _on_threat_alert_event(self, evt: ThreatAlertEvent) -> None:
+        parsed = dict(evt.payload) if evt.payload else {
+            "system": evt.system,
+            "ships": evt.ship_summary.split(", ") if evt.ship_summary else [],
+            "threat_level": evt.threat_level,
+            "pilots": evt.pilots,
+            "est_count": len(evt.pilots) or 1,
+            "status_flags": [],
+            "clean_msg": evt.ship_summary,
+        }
+        self._handle_live_critical_threat(parsed)
+
+    def _on_intel_expired_event(self, evt: IntelStaleExpiredEvent) -> None:
+        expired = {s.upper() for s in (evt.expired_report_ids or []) if s}
+        if evt.system:
+            expired.add(evt.system.upper())
+        if not expired or not hasattr(self, "intel_list"):
+            return
+        for i in range(self.intel_list.count() - 1, -1, -1):
+            item = self.intel_list.item(i)
+            if not item:
+                continue
+            parsed = item.data(Qt.ItemDataRole.UserRole) or {}
+            sys_name = str(parsed.get("system") or "").upper()
+            if sys_name in expired:
+                self._remove_intel_row(i)
+
+    def _on_fitting_calculated_event(self, evt: FittingCalculatedEvent) -> None:
+        label = evt.fit_name or evt.ship_name
+        if evt.ship_name and evt.fit_name:
+            label = f"{evt.ship_name} — {evt.fit_name}"
+        self._last_fit_summary = label
+
+    def _on_dscan_parsed_event(self, evt: DScanParsedEvent) -> None:
+        self._last_dscan_summary = evt.summary_text or f"{evt.total_ships} ships ({evt.threat_level})"
+
     def _on_fitting_submitted(self, raw_text: str, parsed: dict, role: str):
         self.tabs.setCurrentWidget(self.chat_tab_page)
         self._handle_fit_submission(raw_text, parsed, role)
@@ -1170,7 +1276,7 @@ class MainWindow(QMainWindow):
         self._addr_system = f"System: {system_name}{sec_txt}{region_txt}"
         self._refresh_address_bar()
         if hasattr(self, "map_tab"):
-            self.map_tab.set_location(system_name, system_id)
+            self.map_subsystem.select_system(system_name)
         char_info = f" [{self.chat_monitor.selected_character}]" if self.chat_monitor.selected_character else ""
         self.location_hint_lbl.setText(
             f"Current system{char_info}: {system_name}{region_txt} — alerting within {self.alerter.jump_range} jumps."
@@ -1258,8 +1364,6 @@ class MainWindow(QMainWindow):
     def _handle_live_intel_line(self, parsed: dict):
         """Adds a parsed live intel line to the radar feed list with high-contrast tactical styling for dual-monitor visibility."""
         parsed = self.alerter.annotate(parsed)
-        if hasattr(self, "map_tab"):
-            self.map_tab.note_intel(parsed)
 
         ts = parsed.get("time_str") or parsed.get("timestamp") or time.strftime("%H:%M:%S")
         if " " in ts:
@@ -1383,9 +1487,7 @@ class MainWindow(QMainWindow):
         item.setHidden(not self._should_display_intel(parsed))
         self._intel_ask_buttons.insert(0, ask_btn)
         if self.intel_list.count() > 150:
-            removed = self.intel_list.takeItem(self.intel_list.count() - 1)
-            if removed and self._intel_ask_buttons:
-                self._intel_ask_buttons.pop()
+            self._remove_intel_row(self.intel_list.count() - 1)
 
         if is_at_top and vbar:
             vbar.setValue(0)
@@ -1462,12 +1564,27 @@ class MainWindow(QMainWindow):
                 self.active_channels_lbl.setText(msg)
 
     def _connect_chat_monitor(self, monitor: LiveChatMonitor) -> None:
-        monitor.intel_received.connect(self._handle_live_intel_line)
-        monitor.critical_threat_detected.connect(self._handle_live_critical_threat)
+        monitor.intel_line_received.connect(self._on_monitor_intel_line)
         monitor.active_channels_updated.connect(self._handle_active_channels)
         monitor.status_updated.connect(self._handle_monitor_status)
         monitor.location_changed.connect(self._handle_location_changed)
         monitor.characters_updated.connect(self._on_characters_discovered)
+
+    def _disconnect_chat_monitor(self, monitor: LiveChatMonitor) -> None:
+        for signal_name in (
+            "intel_line_received",
+            "active_channels_updated",
+            "status_updated",
+            "location_changed",
+            "characters_updated",
+        ):
+            signal = getattr(monitor, signal_name, None)
+            if signal is None:
+                continue
+            try:
+                signal.disconnect()
+            except (TypeError, RuntimeError):
+                pass
 
     def _ensure_chat_monitor_running(self) -> None:
         """Restart the log tailer if the previous QThread already finished."""
@@ -1478,6 +1595,11 @@ class MainWindow(QMainWindow):
         channel_filter = current.channel_filter if current is not None else "intel"
         custom = ",".join(current.custom_patterns) if current is not None else None
         selected = current.selected_character if current is not None else None
+        if current is not None:
+            self._disconnect_chat_monitor(current)
+            if current.isRunning():
+                current.stop()
+            current.deleteLater()
         self.chat_monitor = LiveChatMonitor(
             log_dir=log_dir,
             channel_filter=channel_filter,
@@ -1518,6 +1640,9 @@ class MainWindow(QMainWindow):
         self.chat_monitor.set_custom_patterns(text)
         self._reapply_feed_filters()
 
+    def _on_monitor_intel_line(self, line: str, channel_name: str) -> None:
+        self.intel_subsystem.process_raw_line(line, channel_name)
+
     def _simulate_test_ping(self):
         """Simulates a live EVE Online intel ping for testing."""
         sample_pings = [
@@ -1529,11 +1654,7 @@ class MainWindow(QMainWindow):
         ]
         import random
         ping = random.choice(sample_pings)
-        parsed = IntelParser.parse_single_line(ping, "Delve.Intel")
-        if parsed:
-            self._handle_live_intel_line(parsed)
-            if parsed.get("is_critical", False):
-                self._handle_live_critical_threat(parsed)
+        self.intel_subsystem.process_raw_line(ping, "Delve.Intel")
 
     def _intel_card_width(self) -> int:
         return max(1, self.intel_list.viewport().width() - 8)
@@ -1556,8 +1677,24 @@ class MainWindow(QMainWindow):
             self._refresh_intel_card_widths()
         return super().eventFilter(obj, event)
 
+    def _remove_intel_row(self, index: int) -> None:
+        """Take a radar row, dispose its card widget, and keep Ask-button indexes aligned."""
+        if index < 0 or index >= self.intel_list.count():
+            return
+        item = self.intel_list.item(index)
+        widget = self.intel_list.itemWidget(item) if item else None
+        if item is not None and widget is not None:
+            self.intel_list.removeItemWidget(item)
+            widget.deleteLater()
+        taken = self.intel_list.takeItem(index)
+        if 0 <= index < len(self._intel_ask_buttons):
+            self._intel_ask_buttons.pop(index)
+        if taken is not None:
+            del taken
+
     def _clear_intel_feed(self) -> None:
-        self.intel_list.clear()
+        for i in range(self.intel_list.count() - 1, -1, -1):
+            self._remove_intel_row(i)
         self._intel_ask_buttons.clear()
 
     def _refresh_intel_ask_buttons(self) -> None:
@@ -1796,31 +1933,33 @@ class MainWindow(QMainWindow):
     def _get_timestamp_str(self) -> str:
         return time.strftime("%H:%M:%S")
 
+    def _disconnect_worker_signals(self, worker: WorkerThread) -> None:
+        for signal in (
+            worker.meta_received,
+            worker.token_received,
+            worker.done_received,
+            worker.error_received,
+            worker.finished,
+        ):
+            try:
+                signal.disconnect()
+            except (TypeError, RuntimeError):
+                pass
+
     def _cleanup_worker(self):
         """Disconnect signals and deleteLater only after the QThread has fully stopped."""
-        if self.worker is None:
+        sender = self.sender()
+        target = sender if isinstance(sender, WorkerThread) else self.worker
+        if target is None:
             return
-        if self.worker.isRunning():
+        if target.isRunning():
             # deleteLater on a live QThread can crash or leak the native thread.
             return
-        try:
-            self.worker.meta_received.disconnect()
-        except Exception:
-            pass
-        try:
-            self.worker.token_received.disconnect()
-        except Exception:
-            pass
-        try:
-            self.worker.done_received.disconnect()
-        except Exception:
-            pass
-        try:
-            self.worker.error_received.disconnect()
-        except Exception:
-            pass
-        self.worker.deleteLater()
-        self.worker = None
+        self._disconnect_worker_signals(target)
+        target.deleteLater()
+        if self.worker is target:
+            self.worker = None
+        self._abandoned_workers = [w for w in self._abandoned_workers if w is not target]
 
     def _force_stop_worker(self) -> None:
         """Stop active inference and tear down the worker thread safely."""
@@ -1829,23 +1968,7 @@ class MainWindow(QMainWindow):
                 self.worker.stop()
                 self.worker.wait(5000)
             if self.worker.isRunning():
-                # Keep the QObject alive until the native generate returns.
-                try:
-                    self.worker.meta_received.disconnect()
-                except Exception:
-                    pass
-                try:
-                    self.worker.token_received.disconnect()
-                except Exception:
-                    pass
-                try:
-                    self.worker.done_received.disconnect()
-                except Exception:
-                    pass
-                try:
-                    self.worker.error_received.disconnect()
-                except Exception:
-                    pass
+                self._disconnect_worker_signals(self.worker)
                 self._abandoned_workers.append(self.worker)
                 self.worker = None
             else:
@@ -1894,12 +2017,14 @@ class MainWindow(QMainWindow):
             "current_system": getattr(self, "current_system_name", "Unknown"),
             "region": getattr(self, "current_system_meta", {}).get("region", "New Eden") if isinstance(getattr(self, "current_system_meta", None), dict) else "New Eden",
             "security_status": getattr(self, "current_system_meta", {}).get("sec", 0.0) if isinstance(getattr(self, "current_system_meta", None), dict) else 0.0,
-            "active_fit_summary": self.fitting_lab.current_eft().split("\n", 1)[0].strip() if hasattr(self, "fitting_lab") else "",
+            "active_fit_summary": self._last_fit_summary or (
+                self.fitting_lab.current_eft().split("\n", 1)[0].strip() if hasattr(self, "fitting_lab") else ""
+            ),
             "active_wh_summary": str(self.wormhole_subsystem.get_chain_summary()) if hasattr(self, "wormhole_subsystem") else "",
             "top_threats": [
                 {"system": getattr(r, "system", ""), "threat": getattr(r, "threat_level", ""), "ships": getattr(r, "ships", [])}
-                for r in getattr(self.intel_subsystem, "active_reports", [])[:3]
-            ] if hasattr(self, "intel_subsystem") else [],
+                for r in (self.intel_subsystem.active_reports[:3] if hasattr(self, "intel_subsystem") else [])
+            ],
         }
 
         self.worker = WorkerThread(
@@ -1915,6 +2040,7 @@ class MainWindow(QMainWindow):
         self.worker.token_received.connect(self._on_token)
         self.worker.done_received.connect(self._on_done)
         self.worker.error_received.connect(self._on_worker_error)
+        self.worker.finished.connect(self._cleanup_worker, Qt.ConnectionType.QueuedConnection)
         self.worker.start()
 
         self.attachments.clear()
@@ -1938,7 +2064,6 @@ class MainWindow(QMainWindow):
         QApplication.processEvents()
 
     def _on_worker_error(self, err_msg: str):
-        self._cleanup_worker()
         self.engine.clear_abort()
         self.chat_display.append(f"<br>{err_msg}<br>")
         self.tier_badge.setText(self._get_idle_badge_text())
@@ -2042,6 +2167,7 @@ class MainWindow(QMainWindow):
         if self.engine.llm is not None:
             self.engine.unload_model()
             self.chat_history.clear()
+            self.chat_display.clear()
             self._update_context_display(0)
             self.tier_badge.setText(self._get_idle_badge_text())
             self.tier_badge.setStyleSheet(self._get_idle_badge_style())
@@ -2204,7 +2330,13 @@ class MainWindow(QMainWindow):
         full_reply = "".join(self.current_assistant_tokens)
         self.chat_history.append({"role": "assistant", "content": full_reply})
         self._trim_chat_history()
-        self._cleanup_worker()
+        self.event_bus.publish(
+            InferenceCompletedEvent(
+                full_response=full_reply,
+                tokens_per_second=float(tps or 0.0),
+                total_tokens=int(toks or 0),
+            )
+        )
         self.engine.clear_abort()
         self._update_context_display()
         self._reset_idle_timer()

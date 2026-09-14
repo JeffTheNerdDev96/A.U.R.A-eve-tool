@@ -35,6 +35,7 @@ from PyQt6.QtWidgets import (
 
 from core.eve_data import SHIP_DATABASE, MODULE_DATABASE, lookup_ship, lookup_module
 from subsystems.fitting.parser import FittingParser
+from subsystems.fitting.service import FittingSubsystem
 from core.error_handler import AURAErrorCode, log_diagnostic_error
 from subsystems.fitting.stats import compute_fit, module_load, validate_module_fit
 from ui.theme import (
@@ -239,8 +240,9 @@ class FittingLabWidget(QWidget):
     """In-game-inspired fitting window."""
     evaluate_requested = pyqtSignal(str, dict, str)
 
-    def __init__(self, parent=None):
+    def __init__(self, fitting_subsystem: Optional[FittingSubsystem] = None, parent=None):
         super().__init__(parent)
+        self.fitting_subsystem = fitting_subsystem
         self.slot_buttons: Dict[str, List[SlotButton]] = {
             "high": [], "mid": [], "low": [], "rig": [], "sub": [],
         }
@@ -741,6 +743,12 @@ class FittingLabWidget(QWidget):
         self.hp_armor.set_hp(stats["armor"])
         self.hp_hull.set_hp(stats["hull"])
         self.ehp_lbl.setText(f"EHP  {stats['ehp']:,.0f}   (approx. hull + modules)")
+        if self.fitting_subsystem is not None:
+            self.fitting_subsystem.publish_computed_stats(
+                hull,
+                self.fit_name_edit.text().strip(),
+                stats,
+            )
         warns = []
         if not stats["cpu_ok"]:
             warns.append("CPU overloaded")

@@ -171,7 +171,13 @@ def load_install_profile(path: str | None = None) -> HardwareProfile | None:
         if not isinstance(profiles, list) or not profiles:
             return None
         return data
-    except Exception:
+    except (OSError, json.JSONDecodeError) as exc:
+        from core.error_handler import log_soft_failure
+        log_soft_failure("load_install_profile", exc)
+        return None
+    except Exception as exc:
+        from core.error_handler import log_soft_failure
+        log_soft_failure("load_install_profile", exc)
         return None
 
 

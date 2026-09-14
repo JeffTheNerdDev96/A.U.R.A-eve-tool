@@ -76,7 +76,9 @@ class EveMapGraph:
         try:
             with open(self.map_path, "r", encoding="utf-8") as fh:
                 raw = json.load(fh)
-        except (OSError, json.JSONDecodeError):
+        except (OSError, json.JSONDecodeError) as exc:
+            from core.error_handler import log_soft_failure
+            log_soft_failure("EveMapGraph._load", exc)
             self.loaded = False
             return
 

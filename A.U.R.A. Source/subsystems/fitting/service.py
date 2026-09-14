@@ -51,7 +51,7 @@ class FittingSubsystem(BaseSubsystem):
 
     def parse_eft(self, eft_text: str) -> ParsedFitting | None:
         """Parses raw EFT text and calculates defense, DPS, and capacitor stats."""
-        raw_fit = self.parser.parse_eft_block(eft_text)
+        raw_fit = self.parser.parse(eft_text)
         if not raw_fit:
             return None
 
@@ -131,3 +131,20 @@ class FittingSubsystem(BaseSubsystem):
         self.event_bus.publish(evt)
 
         return parsed
+
+    def publish_computed_stats(self, ship_name: str, fit_name: str, stats: dict) -> None:
+        """Publish live fitting-lab stats onto the EventBus."""
+        cpu_out = float(stats.get("cpu_output") or 1.0) or 1.0
+        pg_out = float(stats.get("pg_output") or 1.0) or 1.0
+        self.event_bus.publish(
+            FittingCalculatedEvent(
+                ship_name=ship_name,
+                fit_name=fit_name,
+                effective_hp=float(stats.get("ehp", 0.0)),
+                total_dps=0.0,
+                cap_stable=False,
+                cap_time_seconds=0.0,
+                cpu_usage_pct=(float(stats.get("cpu_used", 0.0)) / cpu_out) * 100.0,
+                powergrid_usage_pct=(float(stats.get("pg_used", 0.0)) / pg_out) * 100.0,
+            )
+        )

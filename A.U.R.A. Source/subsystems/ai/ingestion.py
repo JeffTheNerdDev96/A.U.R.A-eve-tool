@@ -25,7 +25,7 @@ from typing import Dict, Any
 from PIL import Image, ImageEnhance
 
 from core.config import config
-from core.error_handler import AURAErrorCode, log_diagnostic_error
+from core.error_handler import AURAErrorCode, log_diagnostic_error, log_soft_failure
 from core.input_safety import clamp_text, strip_control_chars
 
 
@@ -52,7 +52,8 @@ class ImagePreprocessor:
         try:
             _check_file_size(image_path)
             Image.MAX_IMAGE_PIXELS = config.max_image_pixels
-            img = Image.open(image_path).convert("RGB")
+            with Image.open(image_path) as src:
+                img = src.convert("RGB")
             w, h = img.size
             extracted_lines = []
             
@@ -80,8 +81,8 @@ class ImagePreprocessor:
                         clean = line.strip()
                         if clean and clean not in extracted_lines:
                             extracted_lines.append(clean)
-            except Exception:
-                pass
+            except Exception as exc:
+                log_soft_failure("ImagePreprocessor.analyze_image_content.winocr", exc)
 
             extracted_text = _finalize_text(
                 "\n".join(extracted_lines) if extracted_lines

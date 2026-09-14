@@ -29,6 +29,7 @@ from core.events import (
     WormholeSystemAddedEvent,
     WormholeConnectionUpdatedEvent,
     CosmicSignatureUpdatedEvent,
+    WormholeChainUpdatedEvent,
 )
 from .models import (
     WormholeNode,
@@ -71,6 +72,7 @@ class WormholeSubsystem(BaseSubsystem):
     def stop(self) -> bool:
         """Cleans up timers and memory buffers."""
         super().stop()
+        self.active_chain = None
         return True
 
     def set_home_system(self, system_name: str, system_class: WormholeClass = WormholeClass.UNKNOWN) -> WormholeNode:
@@ -97,6 +99,7 @@ class WormholeSubsystem(BaseSubsystem):
                 is_home=True,
             )
         )
+        self._emit_chain_updated()
         return node
 
     def add_system(
@@ -158,6 +161,7 @@ class WormholeSubsystem(BaseSubsystem):
                 parent_system=parent_system or "",
             )
         )
+        self._emit_chain_updated()
         return node
 
     def remove_connection(self, source_system: str, target_system: str) -> bool:
@@ -171,6 +175,7 @@ class WormholeSubsystem(BaseSubsystem):
         ]
         if len(self.active_chain.connections) < before:
             self.active_chain.updated_at = time.time()
+            self._emit_chain_updated()
             return True
         return False
 
@@ -179,8 +184,8 @@ class WormholeSubsystem(BaseSubsystem):
         if not self.active_chain or system_name not in self.active_chain.nodes:
             return False
         if system_name == self.active_chain.home_system:
-            # Re-initialize chain if home system is removed
             self.initialize()
+            self._emit_chain_updated()
             return True
 
         del self.active_chain.nodes[system_name]
@@ -189,6 +194,7 @@ class WormholeSubsystem(BaseSubsystem):
             if c.source_system != system_name and c.target_system != system_name
         ]
         self.active_chain.updated_at = time.time()
+        self._emit_chain_updated()
         return True
 
     def update_connection_timers(self) -> tuple[list[str], list[str]]:
@@ -215,6 +221,8 @@ class WormholeSubsystem(BaseSubsystem):
             else:
                 conn.lifetime_state = LifetimeState.STABLE
 
+        if eol_ids or expired_ids:
+            self._emit_chain_updated()
         return eol_ids, expired_ids
 
     def clear_expired_connections(self) -> int:
@@ -236,6 +244,7 @@ class WormholeSubsystem(BaseSubsystem):
             if not has_inbound and target in self.active_chain.nodes and target != self.active_chain.home_system:
                 del self.active_chain.nodes[target]
         self.active_chain.updated_at = now
+        self._emit_chain_updated()
         return len(expired)
 
     def add_or_update_signature(
@@ -262,7 +271,20 @@ class WormholeSubsystem(BaseSubsystem):
                 signal_strength=signature.signal_strength,
             )
         )
+        self._emit_chain_updated()
         return True
+
+    def _emit_chain_updated(self) -> None:
+        if not self.active_chain:
+            return
+        self.event_bus.publish(
+            WormholeChainUpdatedEvent(
+                chain_id=self.active_chain.chain_id,
+                home_system=self.active_chain.home_system,
+                total_nodes=len(self.active_chain.nodes),
+                total_connections=len(self.active_chain.connections),
+            )
+        )
 
     def get_chain_summary(self) -> dict[str, Any]:
         """Returns diagnostic/state summary of the current chain."""

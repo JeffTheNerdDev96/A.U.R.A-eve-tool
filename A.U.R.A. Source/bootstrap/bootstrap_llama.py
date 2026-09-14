@@ -26,6 +26,8 @@ import site
 import sys
 from typing import List, Optional
 
+from core.error_handler import log_soft_failure
+
 
 def _add_dll_dir(path: str) -> None:
     if path and os.path.isdir(path) and hasattr(os, "add_dll_directory"):
@@ -50,14 +52,14 @@ def _resolve_site_packages(explicit: Optional[str] = None) -> List[str]:
     candidates: List[str] = []
     try:
         candidates.extend(site.getsitepackages())
-    except Exception:
-        pass
+    except Exception as exc:
+        log_soft_failure("bootstrap_llama._resolve_site_packages.getsitepackages", exc)
     try:
         user_site = site.getusersitepackages()
         if user_site:
             candidates.append(user_site)
-    except Exception:
-        pass
+    except Exception as exc:
+        log_soft_failure("bootstrap_llama._resolve_site_packages.getusersitepackages", exc)
 
     _this_dir = os.path.dirname(os.path.abspath(__file__))
     app_root = os.path.dirname(_this_dir) if os.path.basename(_this_dir) == "bootstrap" else _this_dir
@@ -224,7 +226,8 @@ def probe_llama_backend(require_cuda: bool = False, require_vulkan: bool = False
     if hasattr(llama_cpp, "llama_supports_gpu_offload"):
         try:
             gpu_offload = bool(llama_cpp.llama_supports_gpu_offload())
-        except Exception:
+        except Exception as exc:
+            log_soft_failure("bootstrap_llama.probe_llama_backend.gpu_offload", exc)
             gpu_offload = False
 
     if require_cuda and not has_cuda:

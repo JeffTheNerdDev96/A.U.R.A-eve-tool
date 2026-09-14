@@ -35,9 +35,9 @@ Please complete the checklist below:
   - [ ] Fedora Linux (39 / 40 / 41)
   - [ ] Ubuntu / Debian Linux (22.04 / 24.04 LTS)
   - [ ] Arch Linux / Other Linux
-- **A.U.R.A. Release**: `[e.g., v0.5.0-alpha.1]`
+- **A.U.R.A. Release**: `[e.g., v0.5.1-alpha.1]`
 - **Installation Method**:
-  - [ ] Windows Installer (`AURA_Setup_v0.5.0-alpha.1.exe`)
+  - [ ] Windows Installer (`AURA_Setup_v0.5.1-alpha.1.exe`)
   - [ ] Linux Standalone Bundle (see [Linux edition](https://github.com/JeffTheNerdDev96/A.U.R.A.-eve-tool-linux))
   - [ ] Source / Developer Checkout (`run.bat` or `app.py`)
 - **Hardware Acceleration Profile**:
