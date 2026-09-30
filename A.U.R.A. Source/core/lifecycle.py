@@ -37,14 +37,18 @@ CHAT_MONITOR_JOIN_MS = 1500
 XMPP_JOIN_MS = 3000
 
 
-def cleanup_temp_files() -> None:
-    """Purges orphaned __pycache__ and stale non-crash logs."""
-    pc = Path(get_app_root()) / "__pycache__"
-    if pc.exists():
-        try:
-            shutil.rmtree(pc, ignore_errors=True)
-        except OSError:
-            pass
+def cleanup_temp_files(*, purge_bytecode: bool = False) -> None:
+    """
+    Purges stale non-crash logs and orphaned temp artifacts.
+    
+    """
+    if purge_bytecode:
+        pc = Path(get_app_root()) / "__pycache__"
+        if pc.exists():
+            try:
+                shutil.rmtree(pc, ignore_errors=True)
+            except OSError:
+                pass
 
     log_dir = Path(get_logs_dir())
     if not log_dir.exists():

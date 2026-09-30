@@ -69,13 +69,33 @@ def safe_display_text(text: str, max_chars: int = MAX_CHAT_CHARS) -> str:
     return clamp_text(strip_control_chars(text or ""), max_chars)
 
 
+_REALPATH_CACHE: dict[str, str] = {}
+_REALPATH_CACHE_MAX = 512
+
+
+def _cached_realpath(path: str) -> str:
+    """
+    realpath() with a bounded memo.
+
+    LiveChatMonitor revalidates every tailed log file against every allowed root
+    on each 400 ms poll.
+    """
+    resolved = _REALPATH_CACHE.get(path)
+    if resolved is None:
+        resolved = os.path.realpath(os.path.abspath(path))
+        if len(_REALPATH_CACHE) >= _REALPATH_CACHE_MAX:
+            _REALPATH_CACHE.clear()
+        _REALPATH_CACHE[path] = resolved
+    return resolved
+
+
 def is_path_under(base: str, path: str) -> bool:
     """True when path resolves to a location under base (symlink-safe)."""
     if not base or not path:
         return False
     try:
-        base_real = os.path.realpath(os.path.abspath(base))
-        path_real = os.path.realpath(os.path.abspath(path))
+        base_real = _cached_realpath(base)
+        path_real = _cached_realpath(path)
         common = os.path.commonpath([base_real, path_real])
         return common == base_real
     except (OSError, ValueError):

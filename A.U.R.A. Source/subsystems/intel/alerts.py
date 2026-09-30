@@ -35,6 +35,9 @@ _LEVEL_RANK = {
     "CRITICAL": 3,
 }
 
+# Distinguishes "not yet cached" from a cached unreachable (None) result.
+_CACHE_MISS = object()
+
 
 class ThreatAlerter:
     def __init__(
@@ -51,6 +54,9 @@ class ThreatAlerter:
         self.current_system_id: Optional[int] = None
         self.current_system_name: Optional[str] = None
         self._neighborhood: Dict[int, int] = {}
+        # Cached system_id -> jump distance. Values may legitimately be None
+        # (unreachable within the search cap); _CACHE_MISS marks "not cached".
+        self._distance_cache: Dict[int, Optional[int]] = {}
         self._last_toast: Dict[str, float] = {}
 
     def set_jump_range(self, n: int) -> None:
@@ -65,8 +71,14 @@ class ThreatAlerter:
     def _refresh_neighborhood(self) -> None:
         if self.current_system_id is None:
             self._neighborhood = {}
+            self._distance_cache = {}
             return
         self._neighborhood = self.eve_map.systems_within(self.current_system_id, self.jump_range)
+        # Full BFS from the current system, reused for out-of-range lookups.
+        # Cleared on every location/range change so it can never go stale.
+        self._distance_cache: Dict[int, Optional[int]] = {
+            sid: d for sid, d in self._neighborhood.items()
+        }
 
     def annotate(self, parsed: Dict[str, Any]) -> Dict[str, Any]:
         """Attach map-resolved system, jump count, and in_range onto an intel event."""
@@ -93,7 +105,14 @@ class ThreatAlerter:
         if rec["id"] in self._neighborhood:
             jumps = self._neighborhood[rec["id"]]
         else:
-            jumps = self.eve_map.jump_distance(self.current_system_id, rec["id"], max_jumps=self.jump_range + 8)
+            # Sentinel required: an unreachable system legitimately caches as
+            # None, and a plain .get() would re-run the full BFS every time.
+            jumps = self._distance_cache.get(rec["id"], _CACHE_MISS)
+            if jumps is _CACHE_MISS:
+                jumps = self.eve_map.jump_distance(
+                    self.current_system_id, rec["id"], max_jumps=self.jump_range + 8
+                )
+                self._distance_cache[rec["id"]] = jumps
         out["jumps"] = jumps
         out["in_range"] = jumps is not None and jumps <= self.jump_range
         return out

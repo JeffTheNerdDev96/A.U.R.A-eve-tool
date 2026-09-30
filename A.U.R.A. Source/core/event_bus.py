@@ -25,7 +25,6 @@ from PyQt6.QtCore import QObject, pyqtSignal, QThreadPool, QRunnable
 from typing import Callable, Any
 import logging
 import traceback
-from collections import defaultdict
 
 from .events import BaseEvent
 
@@ -41,7 +40,9 @@ class EventBus(QObject):
 
     def __init__(self):
         super().__init__()
-        self._subscribers: dict[type[BaseEvent], list[Callable[[Any], None]]] = defaultdict(list)
+        # Plain dict, NOT defaultdict: reading a missing key during
+        # subscribe/unsubscribe/dispatch must not silently insert an empty list
+        self._subscribers: dict[type[BaseEvent], list[Callable[[Any], None]]] = {}
         self._thread_pool = QThreadPool.globalInstance()
         self._qt_event_signal.connect(self._dispatch_to_subscribers)
 
@@ -56,15 +57,27 @@ class EventBus(QObject):
         """
         Registers a callback handler for a specific event type.
         """
-        if handler not in self._subscribers[event_type]:
-            self._subscribers[event_type].append(handler)
+        handlers = self._subscribers.get(event_type)
+        if handlers is None:
+            self._subscribers[event_type] = [handler]
+        elif handler not in handlers:
+            handlers.append(handler)
 
     def unsubscribe[E: BaseEvent](self, event_type: type[E], handler: Callable[[E], None]) -> None:
         """
         Unregisters a callback handler for a specific event type.
         """
-        if handler in self._subscribers[event_type]:
-            self._subscribers[event_type].remove(handler)
+        handlers = self._subscribers.get(event_type)
+        if not handlers:
+            return
+        try:
+            handlers.remove(handler)
+        except ValueError:
+            return
+        # Drop the key entirely once empty so the dispatch-time isinstance()
+        # walk stays proportional to *live* subscribers, not historical ones.
+        if not handlers:
+            del self._subscribers[event_type]
 
     def clear(self) -> None:
         """Drop all subscribers (used during process shutdown)."""
@@ -73,14 +86,15 @@ class EventBus(QObject):
     def _dispatch_to_subscribers(self, event: BaseEvent) -> None:
         """Internal Qt slot executing on the thread associated with the EventBus instance."""
         event_type = type(event)
-        
+
         # Exact match handlers
-        handlers = list(self._subscribers.get(event_type, []))
-        
+        handlers = list(self._subscribers.get(event_type, ()))
+
         # Parent match handlers (e.g. subscribing to BaseEvent catches all)
-        for registered_type, subscriber_list in self._subscribers.items():
-            if registered_type != event_type and isinstance(event, registered_type):
-                handlers.extend(subscriber_list)
+        if len(self._subscribers) > 1:
+            for registered_type, subscriber_list in self._subscribers.items():
+                if registered_type is not event_type and isinstance(event, registered_type):
+                    handlers.extend(subscriber_list)
 
         for handler in handlers:
             try:

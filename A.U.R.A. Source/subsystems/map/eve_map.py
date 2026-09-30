@@ -28,12 +28,16 @@ from __future__ import annotations
 import json
 import os
 import sys
-from collections import defaultdict, deque
-from typing import Any, Dict, List, Optional, Set, Tuple
+from collections import deque
+from typing import AbstractSet, Any, Dict, List, Optional, Set, Tuple
 
 from core.paths import get_data_dir
 
 _MAP_INSTANCE: Optional["EveMapGraph"] = None
+
+# Shared immutable stand-in returned for isolated/unknown systems so BFS on
+# sparse graph regions never allocates a throwaway empty set per node visit.
+_EMPTY_ADJ: frozenset[int] = frozenset()
 
 
 def _default_map_path() -> str:
@@ -65,7 +69,7 @@ class EveMapGraph:
         self.map_path = map_path or _default_map_path()
         self.systems: Dict[int, Dict[str, Any]] = {}
         self.name_to_id: Dict[str, int] = {}
-        self.adj: Dict[int, Set[int]] = defaultdict(set)
+        self.adj: Dict[int, Set[int]] = {}
         self.loaded = False
         self._load()
 
@@ -111,8 +115,14 @@ class EveMapGraph:
                 continue
             if ia == ib:
                 continue
-            self.adj[ia].add(ib)
-            self.adj[ib].add(ia)
+            adj_a = self.adj.get(ia)
+            if adj_a is None:
+                adj_a = self.adj[ia] = set()
+            adj_a.add(ib)
+            adj_b = self.adj.get(ib)
+            if adj_b is None:
+                adj_b = self.adj[ib] = set()
+            adj_b.add(ia)
 
         self.loaded = bool(self.systems)
 
@@ -134,8 +144,13 @@ class EveMapGraph:
             return None
         return self.systems.get(sid)
 
-    def neighbors(self, system_id: int) -> Set[int]:
-        return set(self.adj.get(int(system_id), set()))
+    def neighbors(self, system_id: int) -> AbstractSet[int]:
+        """
+        Adjacent stargate system IDs.
+
+        Returns the live internal set. Callers MUST treat it as read-only.
+        """
+        return self.adj.get(int(system_id)) or _EMPTY_ADJ
 
     def jump_distance(self, origin_id: Optional[int], dest_id: Optional[int], max_jumps: int = 50) -> Optional[int]:
         """Stargate hop count. 0 if same system. None if unreachable or unknown."""
@@ -192,7 +207,7 @@ class EveMapGraph:
         edges: List[Tuple[int, int]] = []
         seen: Set[Tuple[int, int]] = set()
         for a in visible:
-            for b in self.adj.get(a, ()):
+            for b in self.adj.get(a, _EMPTY_ADJ):
                 if b not in visible or a >= b:
                     continue
                 key = (a, b)

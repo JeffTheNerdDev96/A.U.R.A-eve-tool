@@ -28,9 +28,8 @@ import atexit
 
 from version import INSTALLER_EXE_NAME
 
-# Enforce no stale bytecode caching across all executions
-sys.dont_write_bytecode = True
-os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+# Bytecode caching is intentionally ENABLED.
+sys.dont_write_bytecode = False
 
 if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')

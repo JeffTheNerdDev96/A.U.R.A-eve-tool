@@ -25,6 +25,19 @@ import time
 from typing import Dict, List, Optional
 from .models import IntelReport, ThreatStatus
 
+# Module-level: these were rebuilt as dict literals inside add_report() and
+# prune_expired() on every call (twice per prune pass per system).
+_THREAT_RANKS = {"CLEAR": 0, "INFO": 1, "LOW": 1, "SUSPICIOUS": 1,
+                 "MEDIUM": 2, "HIGH": 3, "HOSTILE": 3, "CRITICAL": 4}
+_INV_RANKS = {0: "CLEAR", 1: "LOW", 2: "MEDIUM", 3: "HIGH", 4: "CRITICAL"}
+
+
+def _recompute_status(status: "ThreatStatus") -> None:
+    """Recompute threat level and hostile count from the active report set."""
+    status.threat_level = _INV_RANKS[max(
+        (_THREAT_RANKS.get(r.threat_level, 0) for r in status.active_reports), default=0)]
+    status.hostile_count = sum(r.pilot_count for r in status.active_reports)
+
 
 class StaleIntelManager:
     """
@@ -50,12 +63,7 @@ class StaleIntelManager:
             status.hostile_count = 0
         else:
             status.active_reports.append(report)
-            # Re-evaluate maximum threat level among active reports
-            threat_ranks = {"CLEAR": 0, "INFO": 1, "LOW": 1, "SUSPICIOUS": 1, "MEDIUM": 2, "HIGH": 3, "HOSTILE": 3, "CRITICAL": 4}
-            highest_rank = max((threat_ranks.get(r.threat_level, 0) for r in status.active_reports), default=0)
-            inv_ranks = {0: "CLEAR", 1: "LOW", 2: "MEDIUM", 3: "HIGH", 4: "CRITICAL"}
-            status.threat_level = inv_ranks[highest_rank]
-            status.hostile_count = sum(r.pilot_count for r in status.active_reports)
+            _recompute_status(status)
 
         status.last_updated = time.time()
         return status
@@ -81,11 +89,7 @@ class StaleIntelManager:
                     status.hostile_count = 0
                     self._system_statuses.pop(sys_name, None)
                 else:
-                    threat_ranks = {"CLEAR": 0, "INFO": 1, "LOW": 1, "SUSPICIOUS": 1, "MEDIUM": 2, "HIGH": 3, "HOSTILE": 3, "CRITICAL": 4}
-                    highest_rank = max((threat_ranks.get(r.threat_level, 0) for r in status.active_reports), default=0)
-                    inv_ranks = {0: "CLEAR", 1: "LOW", 2: "MEDIUM", 3: "HIGH", 4: "CRITICAL"}
-                    status.threat_level = inv_ranks[highest_rank]
-                    status.hostile_count = sum(r.pilot_count for r in status.active_reports)
+                    _recompute_status(status)
 
         return modified_systems
 
