@@ -2,7 +2,7 @@
 
 All notable changes to Adaptive Underworld Recon Array (A.U.R.A.) are documented here. Canonical product version lives in `A.U.R.A. Source/version.py`.
 
-## [v0.6.0-alpha.1]
+## [v0.6.0-alpha.4]
 
 Sole currently supported release.
 
@@ -40,7 +40,7 @@ Sole currently supported release.
 
 - **Tactical Map 15-Minute Intel Feed Expiration**: Ensured all tactical alert effects added to the stargate map (threat star backdrops, threat rings, colored bold node labels, and right rail intel text) expire and are completely cleared within 15 minutes (900 seconds) of intel feed data ingestion. Synchronized with `IntelSubsystem` via `IntelStaleExpiredEvent` EventBus subscriptions, real-time JIT TTL validation in `_intel_for_id`, and periodic graph pruning that functions reliably across both player-centered and unlocated route views.
 - Nine-tab chrome: the VOIP tab sits between XMPP and A.U.R.A. Chat. Shutdown ordering stops the VOIP worker (Mumble thread joined, credentials wiped) alongside XMPP, and the tab unsubscribes its EventBus handlers on close.
-- Repository hygiene: 300+ stale artifacts, `__pycache__`, and build outputs removed; documentation consolidated and aligned on nine tabs and the v0.6.0-alpha.1 version string.
+- Repository hygiene: 300+ stale artifacts, `__pycache__`, and build outputs removed; documentation consolidated and aligned on nine tabs and the v0.6.0-alpha.4 version string.
 
 ### Dependencies
 
