@@ -121,12 +121,12 @@ class FittingSubsystem(BaseSubsystem):
         evt = FittingCalculatedEvent(
             ship_name=parsed.ship_name,
             fit_name=parsed.fit_name,
-            effective_hp=float(stats.get("ehp", 0.0)),
-            total_dps=float(stats.get("total_dps", 0.0)),
+            effective_hp=float(stats.get("ehp") or 0.0),
+            total_dps=float(stats.get("total_dps") or 0.0),
             cap_stable=bool(stats.get("cap_stable", False)),
-            cap_time_seconds=float(stats.get("cap_time_sec", 0.0)),
-            cpu_usage_pct=float(stats.get("cpu_pct", 0.0)),
-            powergrid_usage_pct=float(stats.get("pg_pct", 0.0))
+            cap_time_seconds=float(stats.get("cap_time_sec") or 0.0),
+            cpu_usage_pct=float(stats.get("cpu_pct") or 0.0),
+            powergrid_usage_pct=float(stats.get("pg_pct") or 0.0),
         )
         self.event_bus.publish(evt)
 

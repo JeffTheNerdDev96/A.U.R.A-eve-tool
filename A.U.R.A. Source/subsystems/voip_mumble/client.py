@@ -56,6 +56,42 @@ def _split_channel_path(path: str) -> list[str]:
     return [seg for seg in _CHANNEL_PATH_SEP_RE.split(path.strip()) if seg]
 
 
+def build_mumble_ssl_context(
+    allow_self_signed: bool = False,
+    certfile: str | None = None,
+    keyfile: str | None = None,
+) -> ssl.SSLContext:
+    """Creates a hardened SSLContext enforcing modern TLS 1.2+ encryption.
+
+    Explicitly disallows deprecated legacy protocols (SSLv2, SSLv3, TLSv1.0, TLSv1.1)
+    and weak ciphers to prevent downgrade attacks and satisfy CodeQL security rules.
+    """
+    ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
+    ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+    ctx.options |= (
+        ssl.OP_NO_SSLv2
+        | ssl.OP_NO_SSLv3
+        | ssl.OP_NO_TLSv1
+        | ssl.OP_NO_TLSv1_1
+        | ssl.OP_CIPHER_SERVER_PREFERENCE
+    )
+    ctx.set_ciphers(
+        "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!eNULL:!MD5:!3DES:!RC4:!DES:!DSS:!SEED:!IDEA"
+    )
+    if certfile:
+        try:
+            ctx.load_cert_chain(certfile, keyfile)
+        except OSError:
+            pass
+    if allow_self_signed:
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+    else:
+        ctx.check_hostname = True
+        ctx.verify_mode = ssl.CERT_REQUIRED
+    return ctx
+
+
 def _bind_compat_mumble(base_cls: type) -> type:
     """Create an A.U.R.A.-patched Mumble subclass with modern TLS connect."""
     from pymumble_py3 import mumble_pb2 as _pb2
@@ -70,15 +106,18 @@ def _bind_compat_mumble(base_cls: type) -> type:
                 self.connected = 3
                 return self.connected
 
-            context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-            if getattr(self, "certfile", None):
-                try:
-                    context.load_cert_chain(self.certfile, self.keyfile)
-                except OSError:
-                    pass
-            if getattr(self, "_aura_allow_self_signed", False):
-                context.check_hostname = False
-                context.verify_mode = ssl.CERT_NONE
+            context = build_mumble_ssl_context(
+                allow_self_signed=bool(getattr(self, "_aura_allow_self_signed", False)),
+                certfile=getattr(self, "certfile", None),
+                keyfile=getattr(self, "keyfile", None),
+            )
+            context.minimum_version = ssl.TLSVersion.TLSv1_2
+            context.options |= (
+                ssl.OP_NO_SSLv2
+                | ssl.OP_NO_SSLv3
+                | ssl.OP_NO_TLSv1
+                | ssl.OP_NO_TLSv1_1
+            )
             try:
                 self.control_socket = context.wrap_socket(std_sock, server_hostname=self.host)
                 self.control_socket.connect((self.host, self.port))

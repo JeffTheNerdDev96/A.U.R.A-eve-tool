@@ -30,7 +30,7 @@ from .models import (
     VOIPUser,
 )
 from .runtime import ensure_opus_dll_path, get_voip_runtime_dir, is_opus_available
-from .client import MumbleProtocolAdapter
+from .client import MumbleProtocolAdapter, build_mumble_ssl_context
 from .service import VOIPMumbleSubsystem
 
 __all__ = [
@@ -42,6 +42,7 @@ __all__ = [
     "VOIPTextMessage",
     "VOIPUser",
     "MumbleProtocolAdapter",
+    "build_mumble_ssl_context",
     "ensure_opus_dll_path",
     "get_voip_runtime_dir",
     "is_opus_available",
