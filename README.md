@@ -8,7 +8,9 @@ A.U.R.A. is an unofficial, community-developed, fan-made tactical companion. It 
 
 ---
 
-LINUX EDITION - https://github.com/JeffTheNerdDev96/A.U.R.A.-eve-tool-linux
+Windows client support: Works with Steam Proton 11+ (verified on Ubuntu 24.04 and Fedora 43).
+
+Linux edition: https://github.com/JeffTheNerdDev96/A.U.R.A.-eve-tool-linux (native Linux environments only).
 
 ---
 
