@@ -26,7 +26,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from core.eve_data import lookup_module, lookup_ship
 from subsystems.fitting.dogma import (
-    stacking_penalty_factor,
     calculate_resistances,
     calculate_layer_ehp,
     calculate_total_ehp,

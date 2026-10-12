@@ -8114,9 +8114,6 @@ def validate_fit_module_compatibility(hull_name: str, fit_dict: Dict[str, Any]) 
     if not ship_info:
         return warnings
 
-    s_class = ship_info.get("class", "Frigate")
-    tank_type = ship_info.get("tank", "Shield")
-    
     # Check dual tanking
     lows = fit_dict.get("low_slots", [])
     mids = fit_dict.get("mid_slots", [])

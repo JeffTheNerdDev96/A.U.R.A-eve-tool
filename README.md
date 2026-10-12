@@ -28,7 +28,6 @@ A.U.R.A. organizes its tactical suite into nine specialized desktop tabs:
    * *Security Notice:* Mumble credentials are ephemeral — volatile memory only, wiped on disconnect, **never saved to disk**. Self-signed community servers require an explicit per-session opt-in.
 9. **A.U.R.A. Chat** *(EXPERIMENTAL)* — Local GGUF neural reasoning core powered by `llama.cpp`. Serves as an onboard tactical assistant for combat briefings, live telemetry snapshots, document parsing, and screenshot OCR. The installer bundles **Phi-4 Mini (4-bit Q4_K_M)** for local execution. A custom tactical fine-tune (`AURA-Eve-Tactical-Instruct-3.8B`) is planned and is **not** the runtime default.
 
-> **Note:** Experimental tabs currently have limited backend integration. **Fitting** uses heuristic (not full live Dogma) stats from the bundled ship and module database. **A.U.R.A. Chat** runs Phi-4 Mini for local briefings ahead of custom model deployment.
 
 User operations: [USER_GUIDE.md](USER_GUIDE.md). Code internals & architecture: [DEVELOPER.md](DEVELOPER.md). Security & privacy policy: [SECURITY.md](SECURITY.md). Legal terms & disclaimers: [LEGAL.md](LEGAL.md). Release notes: [CHANGELOG.md](CHANGELOG.md).
 

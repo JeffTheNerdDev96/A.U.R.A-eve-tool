@@ -34,10 +34,10 @@ import numpy as np
 from concurrent import futures
 from typing import Generator, Dict, List, Any, Optional, Literal
 
-if sys.stdout and hasattr(sys.stdout, "reconfigure"):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if sys.stderr and hasattr(sys.stderr, "reconfigure"):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stdout, "reconfigure"):
+    getattr(sys.stdout, "reconfigure")(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, "reconfigure"):
+    getattr(sys.stderr, "reconfigure")(encoding='utf-8', errors='replace')
 
 from core.config import config
 from core.paths import find_model_path
@@ -790,7 +790,6 @@ class UnifiedInferenceEngine:
             "hardware_summary": self.detector.get_summary_string()
         }
 
-        hw_tag = hw_plan.get("hw_tag", "*A.U.R.A. ACCELERATED*")
         tokens_generated = 0
         gen_start_time = None
         first_token_time = None

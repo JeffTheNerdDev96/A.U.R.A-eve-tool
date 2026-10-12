@@ -22,6 +22,7 @@ Angel Cartel EVE Online Tactical AI Assistant - v0.6.0-alpha.1.
 """
 import sys
 import os
+import ctypes
 import traceback
 import time
 import atexit
@@ -31,10 +32,10 @@ from version import INSTALLER_EXE_NAME
 # Bytecode caching is intentionally ENABLED.
 sys.dont_write_bytecode = False
 
-if sys.stdout and hasattr(sys.stdout, "reconfigure"):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if sys.stderr and hasattr(sys.stderr, "reconfigure"):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stdout, "reconfigure"):
+    getattr(sys.stdout, "reconfigure")(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, "reconfigure"):
+    getattr(sys.stderr, "reconfigure")(encoding='utf-8', errors='replace')
 
 # Ensure legacy Protobuf stubs (e.g. pymumble) load under Protobuf 7.x+
 os.environ.setdefault("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", "python")
@@ -60,7 +61,6 @@ if sys.version_info < (3, 12):
         sys.stderr.write(f"[FATAL] {err_text}\n")
     if sys.platform == "win32":
         try:
-            import ctypes
             ctypes.windll.user32.MessageBoxW(0, err_text, "A.U.R.A. Version Error", 0x10)
         except (OSError, AttributeError):
             pass
@@ -69,7 +69,6 @@ if sys.version_info < (3, 12):
 # 1. Native Windows High-DPI Awareness (Per-Monitor V2)
 if sys.platform == "win32":
     try:
-        import ctypes
         ctypes.windll.shcore.SetProcessDpiAwareness(2)
     except (OSError, AttributeError):
         try:
@@ -128,7 +127,6 @@ def _show_startup_error(exc: BaseException) -> None:
         sys.stderr.write(f"\n[!] A.U.R.A. startup failed: {err_msg}\n")
     if sys.platform == "win32":
         try:
-            import ctypes
             ctypes.windll.user32.MessageBoxW(
                 0,
                 (

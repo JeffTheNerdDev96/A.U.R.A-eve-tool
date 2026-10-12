@@ -74,7 +74,8 @@ def _log_shutdown_error(exc: Exception, context: str) -> None:
         from .error_handler import AURAErrorCode, log_diagnostic_error
         log_diagnostic_error(AURAErrorCode.ERR_5001_WORKER_CRASH, exc, context)
     except Exception:
-        sys.stderr.write(f"[A.U.R.A.] Shutdown error ({context}): {exc}\n")
+        if sys.stderr is not None:
+            sys.stderr.write(f"[A.U.R.A.] Shutdown error ({context}): {exc}\n")
 
 
 def shutdown_application(window: Any | None = None) -> None:
@@ -228,6 +229,7 @@ def install_thread_excepthook() -> None:
             )
         except Exception:
             if args.exc_value is not None:
-                sys.stderr.write(f"[A.U.R.A.] Unhandled thread error: {args.exc_value}\n")
+                if sys.stderr is not None:
+                    sys.stderr.write(f"[A.U.R.A.] Unhandled thread error: {args.exc_value}\n")
 
     threading.excepthook = _thread_excepthook

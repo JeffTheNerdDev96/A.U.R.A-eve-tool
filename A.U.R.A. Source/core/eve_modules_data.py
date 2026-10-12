@@ -21,7 +21,7 @@ Canonical EVE Online Dogma Module Database for A.U.R.A.
 Contains 250+ canonical T1, T2, Meta, Compact, Enduring, Restrained, and Faction modules
 with verified CPU, PG, activation costs, cycle durations, stacking groups, and resistance matrices.
 """
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 CANONICAL_MODULES: Dict[str, Dict[str, Any]] = {
     'Multispectrum Energized Membrane I': {

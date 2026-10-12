@@ -417,7 +417,7 @@ class XMPPTabWidget(QWidget):
             self.connect_btn.setStyleSheet(btn_secondary_css())
             self.status_badge.setText("🟡 Connecting...")
             self.status_badge.setStyleSheet(
-                f"background:#854d0e; color:#fef08a; font-weight:bold; font-size:11px; padding:3px 8px; border-radius:4px; border:1px solid #ca8a04;"
+                "background:#854d0e; color:#fef08a; font-weight:bold; font-size:11px; padding:3px 8px; border-radius:4px; border:1px solid #ca8a04;"
             )
             self._append_system_notice(f"Establishing TCP socket to XMPP host {cfg.domain}:{cfg.port}...")
 
@@ -428,7 +428,7 @@ class XMPPTabWidget(QWidget):
         if state_str == XMPPConnectionState.CONNECTING.value:
             self.status_badge.setText("🟡 Connecting...")
             self.status_badge.setStyleSheet(
-                f"background:#854d0e; color:#fef08a; font-weight:bold; font-size:11px; padding:3px 8px; border-radius:4px; border:1px solid #ca8a04;"
+                "background:#854d0e; color:#fef08a; font-weight:bold; font-size:11px; padding:3px 8px; border-radius:4px; border:1px solid #ca8a04;"
             )
             self.connect_btn.setText("Cancel")
             self.connect_btn.setStyleSheet(btn_secondary_css())
@@ -439,14 +439,14 @@ class XMPPTabWidget(QWidget):
         elif state_str == XMPPConnectionState.AUTHENTICATING.value:
             self.status_badge.setText("🟡 Authenticating...")
             self.status_badge.setStyleSheet(
-                f"background:#854d0e; color:#fef08a; font-weight:bold; font-size:11px; padding:3px 8px; border-radius:4px; border:1px solid #ca8a04;"
+                "background:#854d0e; color:#fef08a; font-weight:bold; font-size:11px; padding:3px 8px; border-radius:4px; border:1px solid #ca8a04;"
             )
             self._append_system_notice("TLS session negotiated. Authenticating SASL credentials...")
 
         elif state_str == XMPPConnectionState.CONNECTED.value:
             self.status_badge.setText("🟢 Connected")
             self.status_badge.setStyleSheet(
-                f"background:#14532d; color:#bbf7d0; font-weight:bold; font-size:11px; padding:3px 8px; border-radius:4px; border:1px solid #16a34a;"
+                "background:#14532d; color:#bbf7d0; font-weight:bold; font-size:11px; padding:3px 8px; border-radius:4px; border:1px solid #16a34a;"
             )
             self.connect_btn.setText("Disconnect")
             self.connect_btn.setStyleSheet(btn_secondary_css())
@@ -459,7 +459,7 @@ class XMPPTabWidget(QWidget):
         elif state_str == XMPPConnectionState.ERROR.value:
             self.status_badge.setText("🔴 Error")
             self.status_badge.setStyleSheet(
-                f"background:#7f1d1d; color:#fecaca; font-weight:bold; font-size:11px; padding:3px 8px; border-radius:4px; border:1px solid #dc2626;"
+                "background:#7f1d1d; color:#fecaca; font-weight:bold; font-size:11px; padding:3px 8px; border-radius:4px; border:1px solid #dc2626;"
             )
             self.connect_btn.setText("Connect")
             self.connect_btn.setStyleSheet(radar_accent_btn_css())

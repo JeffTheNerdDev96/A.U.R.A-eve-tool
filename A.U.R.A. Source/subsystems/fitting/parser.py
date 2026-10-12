@@ -206,9 +206,9 @@ class FittingParser:
         ]
 
         if drones:
-            summary_lines.append(f"- 🐝 **Drone Bay:** " + ", ".join(format_item_list(drones)))
+            summary_lines.append("- 🐝 **Drone Bay:** " + ", ".join(format_item_list(drones)))
         if cargo_items:
-            summary_lines.append(f"- 📦 **Ammunition & Cargo:** " + ", ".join(cargo_items[:6]))
+            summary_lines.append("- 📦 **Ammunition & Cargo:** " + ", ".join(cargo_items[:6]))
 
         summary_lines.extend([
             "",
