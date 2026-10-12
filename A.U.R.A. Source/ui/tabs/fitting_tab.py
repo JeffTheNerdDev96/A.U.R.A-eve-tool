@@ -225,15 +225,176 @@ class SlotButton(QPushButton):
         accent = SLOT_ACCENT.get(self.kind, "#9ca3af")
         short = name if len(name) <= 11 else name[:10] + "…"
         self.setText(short)
+        cap_str = f"   Cap {load['cap_need']:.0f} GJ" if load.get("cap_need") else ""
+        cal_str = f"   Cal {load['calibration']:.0f}" if load.get("calibration") else ""
         self.setToolTip(
-            f"{name}\nCPU {load['cpu']:.0f} tf   PG {load['powergrid']:.0f} MW"
-            + (f"   Cal {load['calibration']:.0f}" if load["calibration"] else "")
+            f"{name}\nCPU {load['cpu']:.0f} tf   PG {load['powergrid']:.0f} MW{cap_str}{cal_str}"
         )
         self.setStyleSheet(
             f"QPushButton {{ background:#3d4450; color:{TEXT_PRIMARY}; border:1px solid {accent}; "
             f"border-bottom:3px solid {accent}; border-radius:2px; font-size:8px; font-weight:bold; }}"
             f"QPushButton:hover {{ background:#4b5563; border:2px solid {accent}; }}"
         )
+
+class ResistanceMatrixWidget(QWidget):
+    """EVE Online in-game style 4-damage-type resistance matrix (Shield, Armor, Hull)."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(4, 4, 4, 4)
+        layout.setSpacing(4)
+
+        grid = QGridLayout()
+        grid.setSpacing(4)
+        grid.setContentsMargins(0, 0, 0, 0)
+
+        headers = ["", "EM", "THM", "KIN", "EXP"]
+        col_colors = ["#9ca3af", "#38bdf8", "#ef4444", "#a3a3a3", "#eab308"]
+        for c, h in enumerate(headers):
+            lbl = QLabel(h)
+            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            lbl.setStyleSheet(f"color:{col_colors[c]}; font-size:10px; font-weight:bold; border:none;")
+            grid.addWidget(lbl, 0, c)
+
+        self.cells: Dict[str, Dict[str, QLabel]] = {}
+        rows = [
+            ("shield", "SHIELD", "#38bdf8"),
+            ("armor", "ARMOR", "#f59e0b"),
+            ("hull", "HULL", "#94a3b8"),
+        ]
+        for r_idx, (layer_key, label_txt, layer_color) in enumerate(rows, start=1):
+            lbl = QLabel(label_txt)
+            lbl.setFixedWidth(52)
+            lbl.setStyleSheet(f"color:{layer_color}; font-size:10px; font-weight:bold; border:none;")
+            grid.addWidget(lbl, r_idx, 0)
+
+            self.cells[layer_key] = {}
+            for c_idx, dt in enumerate(["em", "thermal", "kinetic", "explosive"], start=1):
+                val_lbl = QLabel("0%")
+                val_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                val_lbl.setFixedHeight(18)
+                val_lbl.setStyleSheet(
+                    "background:#1f2428; color:#f3f4f6; border:1px solid #374151; "
+                    "border-radius:2px; font-size:10px; font-family:Consolas, monospace;"
+                )
+                grid.addWidget(val_lbl, r_idx, c_idx)
+                self.cells[layer_key][dt] = val_lbl
+
+        layout.addLayout(grid)
+
+    def set_resistances(self, shield: Dict[str, float], armor: Dict[str, float], hull: Dict[str, float]):
+        data = {"shield": shield or {}, "armor": armor or {}, "hull": hull or {}}
+        for layer_key, layer_res in data.items():
+            for dt, val in layer_res.items():
+                lbl = self.cells.get(layer_key, {}).get(dt)
+                if lbl:
+                    pct = int(round(float(val) * 100))
+                    lbl.setText(f"{pct}%")
+                    bg = "#1e293b" if pct < 50 else ("#14532d" if pct >= 75 else "#1e3a5f")
+                    lbl.setStyleSheet(
+                        f"background:{bg}; color:#f3f4f6; border:1px solid #374151; "
+                        f"border-radius:2px; font-size:10px; font-family:Consolas, monospace; font-weight:bold;"
+                    )
+
+
+class CapacitorSimWidget(QWidget):
+    """EVE Online Capacitor recharge dynamics and stability simulation widget."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 4, 0, 4)
+        layout.setSpacing(4)
+
+        self.banner = QLabel("CAP STABLE (100.0%)")
+        self.banner.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.banner.setFixedHeight(24)
+        self.banner.setStyleSheet(
+            "background:#14532d; color:#86efac; border:1px solid #22c55e; "
+            "border-radius:2px; font-size:11px; font-weight:bold; font-family:Consolas, monospace;"
+        )
+        layout.addWidget(self.banner)
+
+        grid = QGridLayout()
+        grid.setSpacing(2)
+        grid.setContentsMargins(0, 0, 0, 0)
+
+        self.cap_val = QLabel("0 GJ")
+        self.recharge_val = QLabel("0 s")
+        self.peak_val = QLabel("+0.0 GJ/s")
+        self.drain_val = QLabel("-0.0 GJ/s")
+
+        labels = [
+            ("Capacity", self.cap_val),
+            ("Recharge", self.recharge_val),
+            ("Peak Rate", self.peak_val),
+            ("Active Drain", self.drain_val),
+        ]
+        for idx, (title, val_w) in enumerate(labels):
+            r = idx // 2
+            c = (idx % 2) * 2
+            t_lbl = QLabel(title)
+            t_lbl.setStyleSheet(f"color:{TEXT_HINT}; font-size:10px; border:none;")
+            val_w.setStyleSheet(f"color:{TEXT_PRIMARY}; font-size:11px; font-family:Consolas, monospace; border:none;")
+            grid.addWidget(t_lbl, r, c)
+            grid.addWidget(val_w, r, c + 1)
+
+        layout.addLayout(grid)
+
+    def set_cap_stats(self, capacity: float, recharge: float, sim: Dict[str, Any]):
+        self.cap_val.setText(f"{capacity:,.0f} GJ")
+        self.recharge_val.setText(f"{recharge:,.1f} s")
+        sim_data = sim or {}
+        peak = sim_data.get("peak_recharge_rate", 0.0)
+        drain = sim_data.get("continuous_drain", 0.0)
+        self.peak_val.setText(f"+{peak:.1f} GJ/s")
+        self.drain_val.setText(f"-{drain:.1f} GJ/s")
+
+        is_stable = sim_data.get("is_stable", True)
+        if is_stable:
+            eq = sim_data.get("equilibrium_pct", 100.0)
+            self.banner.setText(f"CAP STABLE ({eq:.1f}%)")
+            self.banner.setStyleSheet(
+                "background:#14532d; color:#86efac; border:1px solid #22c55e; "
+                "border-radius:2px; font-size:11px; font-weight:bold; font-family:Consolas, monospace;"
+            )
+        else:
+            dep_sec = sim_data.get("depletion_time_sec", 0.0)
+            mins = int(dep_sec // 60)
+            secs = int(dep_sec % 60)
+            self.banner.setText(f"DEPLETES IN {mins}m {secs:02d}s")
+            self.banner.setStyleSheet(
+                "background:#7f1d1d; color:#fca5a5; border:1px solid #ef4444; "
+                "border-radius:2px; font-size:11px; font-weight:bold; font-family:Consolas, monospace;"
+            )
+
+
+class MobilityWidget(QWidget):
+    """Maneuvering, align time, and sub-warp velocity readout."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 2, 0, 2)
+        layout.setSpacing(6)
+
+        self.speed_lbl = QLabel("Speed: 0 m/s")
+        self.align_lbl = QLabel("Align: 0.0 s")
+        self.warp_lbl = QLabel("Warp: 3.0 AU/s")
+
+        for w in (self.speed_lbl, self.align_lbl, self.warp_lbl):
+            w.setStyleSheet(f"color:{TEXT_PRIMARY}; font-size:11px; font-family:Consolas, monospace; border:none;")
+            layout.addWidget(w)
+
+    def set_mobility(self, mob: Dict[str, Any]):
+        mob_data = mob or {}
+        spd = mob_data.get("max_speed", 0.0)
+        align = mob_data.get("align_time", 0.0)
+        warp = mob_data.get("warp_speed", 3.0)
+        self.speed_lbl.setText(f"Speed: {spd:,.0f} m/s")
+        self.align_lbl.setText(f"Align: {align:.2f} s")
+        self.warp_lbl.setText(f"Warp: {warp:.1f} AU/s")
 
 
 class FittingLabWidget(QWidget):
@@ -401,6 +562,8 @@ class FittingLabWidget(QWidget):
             f"color:{TEXT_SECONDARY}; font-size:12px; font-weight:bold; border:none;"
         )
         hp_l.addWidget(self.ehp_lbl)
+        self.resist_matrix = ResistanceMatrixWidget()
+        hp_l.addWidget(self.resist_matrix)
         cl.addWidget(hp_box)
 
         extra = QHBoxLayout()
@@ -434,7 +597,16 @@ class FittingLabWidget(QWidget):
         rl.addWidget(self.cpu_bar)
         rl.addWidget(self.pg_bar)
         rl.addWidget(self.cal_bar)
-        self.resource_caption = QLabel("CPU and powergrid used vs this hull (approximate).")
+
+        rl.addWidget(self._section("CAPACITOR SIMULATION"))
+        self.cap_sim_widget = CapacitorSimWidget()
+        rl.addWidget(self.cap_sim_widget)
+
+        rl.addWidget(self._section("NAVIGATION & MOBILITY"))
+        self.mobility_widget = MobilityWidget()
+        rl.addWidget(self.mobility_widget)
+
+        self.resource_caption = QLabel("Exact Dogma metrics for current hull & module configuration.")
         self.resource_caption.setWordWrap(True)
         self.resource_caption.setStyleSheet(f"color:{TEXT_HINT}; font-size:10px; border:none;")
         rl.addWidget(self.resource_caption)
@@ -595,8 +767,9 @@ class FittingLabWidget(QWidget):
             load = module_load(name)
             kind = self._module_slot_kind(name)
             accent = SLOT_ACCENT.get(kind, "#6b7280")
+            extra_cap = f"  ·  Cap {load['cap_need']:.0f}" if load.get("cap_need") else ""
             item = QListWidgetItem(
-                f"{name}\n  {slot}  ·  CPU {load['cpu']:.0f}  PG {load['powergrid']:.0f}"
+                f"{name}\n  {slot}  ·  CPU {load['cpu']:.0f}  PG {load['powergrid']:.0f}{extra_cap}"
             )
             item.setData(Qt.ItemDataRole.UserRole, name)
             item.setData(Qt.ItemDataRole.UserRole + 1, accent)
@@ -604,6 +777,8 @@ class FittingLabWidget(QWidget):
             font = QFont()
             font.setPointSize(10)
             item.setFont(font)
+            desc = info.get("description", "")
+            item.setToolTip(f"{name}\nSlot: {slot} | Category: {info.get('category', 'Module')}\nCPU: {load['cpu']:.0f} tf | PG: {load['powergrid']:.0f} MW{extra_cap}\n{desc}")
             self.mod_list.addItem(item)
 
     def _selected_module_name(self, item: Optional[QListWidgetItem] = None) -> Optional[str]:
@@ -742,7 +917,20 @@ class FittingLabWidget(QWidget):
         self.hp_shield.set_hp(stats["shield"])
         self.hp_armor.set_hp(stats["armor"])
         self.hp_hull.set_hp(stats["hull"])
-        self.ehp_lbl.setText(f"EHP  {stats['ehp']:,.0f}   (approx. hull + modules)")
+        omni = stats.get("omni_ehp", stats.get("ehp", 0.0))
+        lowest = stats.get("lowest_ehp", 0.0)
+        self.ehp_lbl.setText(f"Omni EHP: {omni:,.0f}   (Lowest: {lowest:,.0f})")
+        self.resist_matrix.set_resistances(
+            stats.get("shield_resists", {}),
+            stats.get("armor_resists", {}),
+            stats.get("hull_resists", {}),
+        )
+        self.cap_sim_widget.set_cap_stats(
+            stats.get("capacitor", 0.0),
+            stats.get("cap_recharge", 0.0),
+            stats.get("cap_sim", {}),
+        )
+        self.mobility_widget.set_mobility(stats.get("mobility", {}))
         if self.fitting_subsystem is not None:
             self.fitting_subsystem.publish_computed_stats(
                 hull,
@@ -775,7 +963,7 @@ class FittingLabWidget(QWidget):
             leftover_cpu = stats["cpu_output"] - stats["cpu_used"]
             leftover_pg = stats["pg_output"] - stats["pg_used"]
             self.fit_status.setText(
-                f"Fit is legal (approx.)  ·  {leftover_cpu:.0f} tf / {leftover_pg:.0f} MW remaining"
+                f"Fit is legal (Dogma verified)  ·  {leftover_cpu:.1f} tf / {leftover_pg:.1f} MW remaining"
             )
             self.fit_status.setStyleSheet("color:#86efac; font-size:11px; border:none;")
         self._refresh_cargo_list()

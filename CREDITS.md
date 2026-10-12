@@ -1,7 +1,7 @@
 # Credits & Acknowledgements
 
 **Adaptive Underworld Recon Array (A.U.R.A.)**  
-Angel Cartel Cybernetics Division | Product Version: `v0.5.1-alpha.1`  
+Angel Cartel Cybernetics Division | Product Version: `v0.6.0-alpha.1`  
 Author & Lead Maintainer: **JeffTheNerdDev96**
 
 A.U.R.A. is an unofficial, fan-made tactical companion for EVE Online. It exists thanks to the open-source community, game data contributors, hardware architects, and third-party developer ecosystem listed below.
@@ -48,6 +48,7 @@ A.U.R.A. synthesizes and unifies core concepts from the most trusted tools in th
 | **[Pathfinder](https://www.pathfinder-w.space)** | exodus442 & Pathfinder Community | Dynamic wormhole chain visualization, mass tracking, and chain topology inspiration |
 | **[Wanderer](https://github.com/the-wanderer-project)** | Wanderer Team & Community | Wormhole navigation, signature lifecycle management, and mapping interface inspiration |
 | **[XMPP Standards Foundation (XSF)](https://xmpp.org)** | XSF & RFC 6120/6121 Authors | Open protocol specifications for extensible messaging, presence, and Multi-User Chat (XEP-0045) |
+| **[Mumble](https://www.mumble.info)** | Mumble Project & Contributors | Open voice-chat protocol specification used by the VOIP tab for alliance comms |
 | **EVE Fitting Tool (EFT)** | EFT Developers | Standard `[ShipName, Fit Name]` plain-text configuration format used across Fitting Lab |
 
 ---
@@ -92,7 +93,6 @@ The installation and distribution pipelines rely on high-grade packaging tools:
 | **[NuGet CPython Distribution](https://www.nuget.org/packages/python)** | Python Software Foundation | Fallback clean CPython 3.12 64-bit runtime archive |
 | **[Microsoft Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist)** | Microsoft Corporation | C/C++ native runtime libraries (`msvcp140.dll`, `vcruntime140.dll`) bundled for standalone isolation |
 | **[PowerShell Authenticode & Signtool](https://learn.microsoft.com/en-us/windows/win32/seccrypto/signtool)** | Microsoft Corporation | Code signing engine for binary verification and launcher integrity |
-| **[Inno Setup](https://jrsoftware.org/isinfo.php)** | Jordan Russell & Martijn Laan | Packaging and installer architecture reference |
 
 ---
 
@@ -109,6 +109,8 @@ The installation and distribution pipelines rely on high-grade packaging tools:
 | **[pypdf](https://github.com/py-pdf/pypdf)** | py-pdf team | Tactical PDF briefing document ingestion |
 | **[python-docx](https://github.com/python-openxml/python-docx)** | Steve Canny | Microsoft Word document ingestion |
 | **[openpyxl](https://openpyxl.readthedocs.io)** | Eric Gazoni, Charlie Clark | Tactical spreadsheet (.xlsx) data ingestion |
+| **[pymumble](https://github.com/azlux/pymumble)** | Azlux & contributors | Mumble client protocol library powering alliance VOIP voice sessions |
+| **[Opus Codec (libopus)](https://opus-codec.org)** | Xiph.Org Foundation, Skype & contributors | 48 kHz mono Opus voice encode/decode for the VOIP audio pipeline (conda-forge build) |
 
 ---
 
@@ -142,7 +144,6 @@ The table below highlights the trademarked names, copyrighted technologies, and 
 | **Google**, **Google Colab**, **Google Fonts** | **Google LLC** | Registered trademarks of Google LLC. Relates to development cloud GPU notebooks and typography distribution. |
 | **Hugging Face** | **Hugging Face Inc.** | Registered trademark of Hugging Face Inc. Relates to open model weight hosting and distribution. |
 | **Adobe**, **PDF** | **Adobe Systems Inc.** | Registered trademarks of Adobe Systems Inc. in the U.S. and/or other countries. Relates to briefing document parsing (.pdf). |
-| **Inno Setup** | **Jordan Russell / Martijn Laan** | Copyright © Jordan Russell and Martijn Laan. Relates to packaging architecture references. |
 | **PyInstaller** | **PyInstaller Development Team** | Copyright © PyInstaller Development Team. Relates to standalone executable freezing. |
 | **SIL Open Font License** | **SIL International** | Copyright © SIL International. Relates to typeface licensing. |
 

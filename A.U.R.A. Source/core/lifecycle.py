@@ -35,6 +35,8 @@ from .paths import get_app_root, get_logs_dir
 WORKER_JOIN_MS = 2000
 CHAT_MONITOR_JOIN_MS = 1500
 XMPP_JOIN_MS = 3000
+VOIP_JOIN_MS = 5000
+VOIP_CONNECT_TIMEOUT_SEC = 30
 
 
 def cleanup_temp_files(*, purge_bytecode: bool = False) -> None:
@@ -150,6 +152,14 @@ def shutdown_application(window: Any | None = None) -> None:
         except Exception as exc:
             _log_shutdown_error(exc, "shutdown: xmpp_subsystem")
 
+        # 3b. Stop VOIP worker (Mumble thread joined inside adapter, credentials wiped)
+        try:
+            voip = getattr(window, "voip_subsystem", None)
+            if voip is not None and hasattr(voip, "disconnect"):
+                voip.disconnect()
+        except Exception as exc:
+            _log_shutdown_error(exc, "shutdown: voip_subsystem")
+
         # 4. Unload neural model and coprocessors
         try:
             if engine is not None:
@@ -169,6 +179,7 @@ def shutdown_application(window: Any | None = None) -> None:
             "fleet_comp_subsystem",
             "wormhole_subsystem",
             "xmpp_subsystem",
+            "voip_subsystem",
             "fitting_subsystem",
             "ai_subsystem",
         ):

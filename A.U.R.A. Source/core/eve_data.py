@@ -18,7 +18,7 @@
 # ==============================================================================
 """
 EVE Online Tactical Database, Comprehensive Combat Matrix & Domain Grounding Engine.
-Customized for A.U.R.A. (Adaptive Underworld Recon Array) — v0.5.1-alpha.1 & Core.
+Customized for A.U.R.A. (Adaptive Underworld Recon Array) — v0.6.0-alpha.1 & Core.
 Contains encyclopedic vessel dossiers (350+ hulls), module matrix (250+ modules),
 subsystems, weapon tracking mathematics, capacitor warfare, and tactical grounding.
 Covers all standard empire, navy, pirate, faction, industrial, capital, and T3 vessels.
@@ -7983,6 +7983,27 @@ _COMMON_SHIP_ALIASES: Dict[str, str] = {
     "muni": "Muninn",
     "cera": "Cerberus",
 }
+
+# ------------------------------------------------------------------------------
+# Integration of Canonical Dogma Modules, New Ship Dossiers & Exact Base Profiles
+# ------------------------------------------------------------------------------
+try:
+    from .eve_ships_data import NEW_SHIP_DOSSIERS, EXACT_SHIP_PROFILES
+    from .eve_modules_data import CANONICAL_MODULES
+except ImportError:
+    from core.eve_ships_data import NEW_SHIP_DOSSIERS, EXACT_SHIP_PROFILES
+    from core.eve_modules_data import CANONICAL_MODULES
+
+# Merge new ship dossiers (Akoman, Squall, Deluge, Torrent, Avalanche) into SHIP_DATABASE
+SHIP_DATABASE.update(NEW_SHIP_DOSSIERS)
+
+# Enrich SHIP_DATABASE with exact base Dogma profiles
+for _s_name, _s_prof in EXACT_SHIP_PROFILES.items():
+    if _s_name in SHIP_DATABASE:
+        SHIP_DATABASE[_s_name].update(_s_prof)
+
+# Merge canonical modules into MODULE_DATABASE
+MODULE_DATABASE.update(CANONICAL_MODULES)
 
 _FAST_SHIP_LOOKUP: Dict[str, Dict[str, Any]] = {}
 for _k, _v in SHIP_DATABASE.items():

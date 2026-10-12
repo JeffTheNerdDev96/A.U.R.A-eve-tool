@@ -14,6 +14,7 @@ Thank you for your interest in **Adaptive Underworld Recon Array (A.U.R.A.)**! W
 > - The interactive Wormhole Mapping & topology chain engine (`subsystems/wormhole` / Anokis tab)
 > - The heuristic Fitting Lab and hardpoint / single-fit rules (`subsystems/fitting`)
 > - Alliance XMPP tactical messaging (`subsystems/xmpp_chat`)
+> - Built-in Mumble voice comms with Opus audio (`subsystems/voip_mumble` / VOIP tab)
 > - Local neural briefings and telemetry snapshots (`subsystems/ai`, Phi-4 Mini runtime)
 > - A planned custom tactical model (`AURA-Eve-Tactical-Instruct-3.8B`) that is **not** the current default
 >

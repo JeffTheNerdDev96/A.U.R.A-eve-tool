@@ -25,6 +25,15 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Tuple
 
 from core.eve_data import lookup_module, lookup_ship
+from subsystems.fitting.dogma import (
+    stacking_penalty_factor,
+    calculate_resistances,
+    calculate_layer_ehp,
+    calculate_total_ehp,
+    simulate_capacitor,
+    calculate_mobility,
+    calculate_resources,
+)
 
 # cpu, powergrid, shield, armor, hull, calibration
 _CLASS_HULL: Dict[str, Tuple[float, float, float, float, float, float]] = {
@@ -310,95 +319,259 @@ def _category_load(info: Optional[Dict[str, Any]], name: str) -> Tuple[float, fl
     return (12.0, 5.0)
 
 
-def module_load(name: str) -> Dict[str, float]:
-    """CPU, PG, calibration, and extra shield/armor HP from a fitted module name."""
-    info = lookup_module(name)
-    cpu, pg = _category_load(info, name)
+def module_load(name: str) -> Dict[str, Any]:
+    """Exact Dogma attributes with legacy fallback for CPU, PG, capacitor, and defense."""
+    info = lookup_module(name) or {}
     blob = name.lower()
-    cal = 0.0
-    if "rig" in blob or str((info or {}).get("slot") or "").lower().startswith("rig"):
-        cal = 150.0 if " ii" in blob or blob.endswith("ii") else 100.0
-        if "compact" in blob or " i " in f" {blob} ":
-            cal = 100.0
-    shield_add = 0.0
-    armor_add = 0.0
-    for key, hp in _SHIELD_HP.items():
-        if key in blob:
-            shield_add = hp
-            break
-    if "shield extender" in blob and not shield_add:
-        shield_add = 1500.0
-    for key, hp in _ARMOR_HP.items():
-        if key in blob:
-            armor_add = hp
-            break
-    cpu_bonus = 0.0
-    pg_bonus = 0.0
-    if "co-processor" in blob or "cpu" in blob and "upgrade" in blob:
-        cpu_bonus = 50.0
-        cpu = 0.0
-    if "reactor control" in blob:
-        pg_bonus = 50.0
-        cpu = 16.0
-        pg = 0.0
-    if "power diagnostic" in blob:
-        pg_bonus = 20.0
-        cpu_bonus = 15.0
-    shield_pct = 0.0
-    armor_pct = 0.0
-    if "core defense field extender" in blob or "cdfe" in blob:
-        shield_pct = 0.15
-        cal = cal or 150.0
-    if "trimark" in blob:
-        armor_pct = 0.15
-        cal = cal or 150.0
+
+    # Exact attributes if defined on the module
+    has_exact = "cpu" in info and "powergrid" in info
+    if has_exact:
+        cpu = float(info["cpu"])
+        pg = float(info["powergrid"])
+        cal = float(info.get("calibration", 0.0))
+        cap_need = float(info.get("cap_need", 0.0))
+        duration = float(info.get("duration", 0.0))
+        is_active = bool(info.get("is_active", duration > 0.0 or cap_need > 0.0))
+        hp_bonus = float(info.get("hp_bonus", 0.0))
+        cat = str(info.get("category", "")).lower()
+        shield_add = hp_bonus if ("shield" in cat or "shield" in blob) else 0.0
+        armor_add = hp_bonus if ("armor" in cat or "plate" in blob) else 0.0
+        shield_pct = float(info.get("shield_hp_pct", 0.0))
+        armor_pct = float(info.get("armor_hp_pct", 0.0))
+        cpu_bonus = float(info.get("cpu_bonus_pct", 0.0)) * 100.0 if "cpu_bonus_pct" in info else 0.0
+        pg_bonus = float(info.get("pg_bonus_pct", 0.0)) * 100.0 if "pg_bonus_pct" in info else 0.0
+    else:
+        cpu, pg = _category_load(info, name)
+        cal = 0.0
+        if "rig" in blob or str(info.get("slot", "")).lower().startswith("rig"):
+            cal = 150.0 if " ii" in blob or blob.endswith("ii") else 100.0
+            if "compact" in blob or " i " in f" {blob} ":
+                cal = 100.0
+        shield_add = 0.0
+        armor_add = 0.0
+        for key, hp in _SHIELD_HP.items():
+            if key in blob:
+                shield_add = hp
+                break
+        if "shield extender" in blob and not shield_add:
+            shield_add = 1500.0
+        for key, hp in _ARMOR_HP.items():
+            if key in blob:
+                armor_add = hp
+                break
+        cpu_bonus = 0.0
+        pg_bonus = 0.0
+        if "co-processor" in blob or ("cpu" in blob and "upgrade" in blob):
+            cpu_bonus = 50.0
+            cpu = 0.0
+        if "reactor control" in blob:
+            pg_bonus = 50.0
+            cpu = 16.0
+            pg = 0.0
+        if "power diagnostic" in blob:
+            pg_bonus = 20.0
+            cpu_bonus = 15.0
+        shield_pct = 0.0
+        armor_pct = 0.0
+        if "core defense field extender" in blob or "cdfe" in blob:
+            shield_pct = 0.15
+            cal = cal or 150.0
+        if "trimark" in blob:
+            armor_pct = 0.15
+            cal = cal or 150.0
+        cap_need = 0.0
+        duration = 0.0
+        is_active = False
+
+    # Resolve engineering upgrade multipliers and additions
+    pg_mult = info.get("pg_multiplier")
+    if pg_mult is None:
+        if "ancillary current router ii" in blob or "router ii" in blob:
+            pg_mult = 1.15
+        elif "ancillary current router" in blob or "router" in blob:
+            pg_mult = 1.10
+        elif "reactor control unit ii" in blob or "rcu ii" in blob:
+            pg_mult = 1.15
+        elif "reactor control unit" in blob or "rcu" in blob:
+            pg_mult = 1.10
+        elif "power diagnostic" in blob or "pdu" in blob:
+            pg_mult = 1.05
+
+    cpu_mult = info.get("cpu_multiplier")
+    if cpu_mult is None:
+        if "co-processor ii" in blob:
+            cpu_mult = 1.10
+        elif "co-processor" in blob:
+            cpu_mult = 1.06
+
+    pg_flat = float(info.get("pg_bonus_flat", info.get("pg_flat", 0.0)))
+    if pg_flat == 0.0:
+        if "micro auxiliary power core ii" in blob or "mapc ii" in blob:
+            pg_flat = 15.0
+        elif "micro auxiliary power core" in blob or "mapc" in blob:
+            pg_flat = 12.0
+
     return {
         "name": name,
         "cpu": cpu,
         "powergrid": pg,
         "calibration": cal,
+        "cap_need": cap_need,
+        "duration": duration,
+        "is_active": is_active,
         "cpu_bonus": cpu_bonus,
         "pg_bonus": pg_bonus,
+        "cpu_multiplier": cpu_mult,
+        "pg_multiplier": pg_mult,
+        "pg_flat": pg_flat,
         "shield_hp": shield_add,
         "armor_hp": armor_add,
         "shield_pct": shield_pct,
         "armor_pct": armor_pct,
-        "slot": str((info or {}).get("slot") or ""),
-        "category": str((info or {}).get("category") or ""),
+        "resists": info.get("resists", {}),
+        "stacking_group": info.get("stacking_group"),
+        "stacking_penalized": bool(info.get("stacking_penalized", True)),
+        "slot": str(info.get("slot", "")),
+        "category": str(info.get("category", "")),
+        "mass_add": float(info.get("mass_add", 0.0)),
+        "inertia_multiplier": float(info.get("inertia_multiplier", 1.0)),
+        "speed_multiplier": float(info.get("speed_multiplier", 1.0)),
+        "speed_boost": float(info.get("speed_boost", 0.0)),
+        "thrust": float(info.get("thrust", 0.0)),
     }
 
 
 def compute_fit(hull_name: str, fitted: List[str]) -> Dict[str, Any]:
     ship = lookup_ship(hull_name)
     base = hull_resources(ship)
-    modules = [module_load(n) for n in fitted if n]
-    cpu_used = sum(m["cpu"] for m in modules)
-    pg_used = sum(m["powergrid"] for m in modules)
+    modules = [dict(module_load(n)) for n in fitted if n]
+
+    # Apply hull-specific role fitting discounts (e.g. Attack Battlecruisers, Stealth Bombers)
+    ship_role = str(ship.get("role", "") if ship else "").lower()
+    ship_class = str(ship.get("class", "") if ship else "").lower()
+    hull_l = hull_name.lower().strip()
+    is_attack_bc = "attack battlecruiser" in ship_role or "attack battlecruiser" in ship_class or hull_l in ("oracle", "talos", "naga", "tornado", "akoman")
+    is_stealth_bomber = "stealth bomber" in ship_role or "stealth bomber" in ship_class or hull_l in ("hound", "manticore", "nemesis", "purifier")
+
+    if is_attack_bc:
+        for m in modules:
+            cat = str(m.get("category", "")).lower()
+            m_size = str(m.get("size", "")).lower()
+            m_name_l = m.get("name", "").lower()
+            is_large_weapon = m_size == "large" or any(k in m_name_l for k in ("mega ", "tachyon", "425mm rail", "350mm rail", "800mm", "1400mm", "cruise", "torpedo"))
+            if is_large_weapon and (is_turret_module(m["name"]) or is_launcher_module(m["name"]) or "turret" in cat):
+                m["powergrid"] = m["powergrid"] * 0.05
+                m["cpu"] = m["cpu"] * 0.50
+                if m.get("cap_need"):
+                    m["cap_need"] = m["cap_need"] * 0.50
+
+    if is_stealth_bomber:
+        for m in modules:
+            m_name_l = m.get("name", "").lower()
+            if "torpedo launcher" in m_name_l:
+                m["powergrid"] = m["powergrid"] * 0.005
+                m["cpu"] = m["cpu"] * 0.01
+            elif "cloaking" in m_name_l:
+                m["cpu"] = min(m["cpu"], 5.0)
+
+    ship_cpu = float((ship.get("cpu") if ship else None) or base["cpu"])
+    ship_pg = float((ship.get("powergrid") if ship else None) or base["powergrid"])
+    ship_cap = float((ship.get("capacitor") if ship else None) or 1500.0)
+    ship_cap_recharge = float((ship.get("cap_recharge") if ship else None) or 350.0)
+    ship_shield = float((ship.get("shield_hp") if ship else None) or base["shield"])
+    ship_armor = float((ship.get("armor_hp") if ship else None) or base["armor"])
+    ship_hull = float((ship.get("hull_hp") if ship else None) or base["hull"])
+    ship_cal = float((ship.get("calibration") if ship else None) or base["calibration"])
+    ship_mass = float((ship.get("mass") if ship else None) or 1500000.0)
+    ship_agility = float((ship.get("agility") if ship else None) or 0.50)
+    ship_velocity = float((ship.get("max_velocity") if ship else None) or 250.0)
+
+    # Base resistance dictionaries
+    s_res = ship.get("shield_resists") if ship else None
+    a_res = ship.get("armor_resists") if ship else None
+    h_res = ship.get("hull_resists") if ship else None
+    base_shield_res = s_res if isinstance(s_res, dict) else {"em": 0.0, "thermal": 0.20, "kinetic": 0.40, "explosive": 0.50}
+    base_armor_res = a_res if isinstance(a_res, dict) else {"em": 0.50, "thermal": 0.35, "kinetic": 0.25, "explosive": 0.10}
+    base_hull_res = h_res if isinstance(h_res, dict) else {"em": 0.33, "thermal": 0.33, "kinetic": 0.33, "explosive": 0.33}
+
+    # Engineering Dogma calculations
+    res_stats = calculate_resources(ship_cpu, ship_pg, modules)
+    cpu_out = res_stats["cpu_output"] + sum(m["cpu_bonus"] for m in modules if not m.get("cpu_multiplier"))
+    pg_out = res_stats["pg_output"] + sum(m["pg_bonus"] for m in modules if not m.get("pg_multiplier"))
+    cpu_used = res_stats["cpu_used"]
+    pg_used = res_stats["pg_used"]
     cal_used = sum(m["calibration"] for m in modules)
-    cpu_out = base["cpu"] + sum(m["cpu_bonus"] for m in modules)
-    pg_out = base["powergrid"] + sum(m["pg_bonus"] for m in modules)
-    shield = (base["shield"] + sum(m["shield_hp"] for m in modules)) * (1.0 + sum(m["shield_pct"] for m in modules))
-    armor = (base["armor"] + sum(m["armor_hp"] for m in modules)) * (1.0 + sum(m["armor_pct"] for m in modules))
-    hull = base["hull"]
-    ehp = shield + armor + hull
+
+    # HP structure additions and percentage bonuses
+    shield_flat = ship_shield + sum(m["shield_hp"] for m in modules)
+    armor_flat = ship_armor + sum(m["armor_hp"] for m in modules)
+    hull_flat = ship_hull
+    shield_hp = shield_flat * (1.0 + sum(m["shield_pct"] for m in modules))
+    armor_hp = armor_flat * (1.0 + sum(m["armor_pct"] for m in modules))
+    hull_hp = hull_flat
+
+    # Dogma Resistance Stacking
+    final_shield_res = calculate_resistances(base_shield_res, modules, "shield")
+    final_armor_res = calculate_resistances(base_armor_res, modules, "armor")
+    final_hull_res = calculate_resistances(base_hull_res, modules, "hull")
+
+    # Layer and Total EHP
+    shield_ehp = calculate_layer_ehp(shield_hp, final_shield_res)
+    armor_ehp = calculate_layer_ehp(armor_hp, final_armor_res)
+    hull_ehp = calculate_layer_ehp(hull_hp, final_hull_res)
+    omni_ehp, lowest_ehp = calculate_total_ehp({
+        "shield": (shield_hp, final_shield_res),
+        "armor": (armor_hp, final_armor_res),
+        "hull": (hull_hp, final_hull_res),
+    })
+
+    # Capacitor Simulation
+    cap_sim = simulate_capacitor(ship_cap, ship_cap_recharge, modules)
+
+    # Mobility Simulation
+    mobility = calculate_mobility(ship_velocity, ship_mass, ship_agility, modules)
+
     return {
         "hull_name": ship.get("canonical_name", hull_name) if ship else hull_name,
         "ship_class": ship.get("class", "") if ship else "",
         "cpu_output": cpu_out,
         "cpu_used": cpu_used,
+        "cpu_pct": (cpu_used / max(cpu_out, 1.0)) * 100.0,
+        "cpu_ok": cpu_used <= cpu_out + 0.05,
         "pg_output": pg_out,
         "pg_used": pg_used,
-        "cal_output": base["calibration"],
-        "cal_used": cal_used,
-        "shield": shield,
-        "armor": armor,
-        "hull": hull,
-        "ehp": ehp,
-        "cpu_ok": cpu_used <= cpu_out + 0.05,
+        "pg_pct": (pg_used / max(pg_out, 1.0)) * 100.0,
         "pg_ok": pg_used <= pg_out + 0.05,
-        "cal_ok": cal_used <= base["calibration"] + 0.05,
+        "cal_output": ship_cal,
+        "cal_used": cal_used,
+        "cal_ok": cal_used <= ship_cal + 0.05,
+        "shield": shield_hp,
+        "armor": armor_hp,
+        "hull": hull_hp,
+        "shield_hp": shield_hp,
+        "armor_hp": armor_hp,
+        "hull_hp": hull_hp,
+        "shield_ehp": shield_ehp,
+        "armor_ehp": armor_ehp,
+        "hull_ehp": hull_ehp,
+        "ehp": omni_ehp,
+        "omni_ehp": omni_ehp,
+        "lowest_ehp": lowest_ehp,
+        "shield_resists": final_shield_res,
+        "armor_resists": final_armor_res,
+        "hull_resists": final_hull_res,
+        "capacitor": ship_cap,
+        "cap_recharge": ship_cap_recharge,
+        "cap_sim": cap_sim,
+        "cap_stable": cap_sim["is_stable"],
+        "cap_time_sec": cap_sim["depletion_time_sec"],
+        "mobility": mobility,
+        "align_time": mobility["align_time"],
+        "max_velocity": mobility["max_speed"],
+        "warp_speed": mobility["warp_speed"],
         "modules": modules,
-        "approximate": True,
+        "approximate": False,
     }
 
 
@@ -413,16 +586,25 @@ def calculate_fit_stats(fit_dict: Dict[str, Any]) -> Dict[str, Any]:
     )
     res = compute_fit(ship_name, all_modules)
     ehp = res.get("ehp", 0.0)
-    cpu_pct = (res["cpu_used"] / max(res["cpu_output"], 1.0)) * 100.0
-    pg_pct = (res["pg_used"] / max(res["pg_output"], 1.0)) * 100.0
+    cpu_pct = res.get("cpu_pct", 0.0)
+    pg_pct = res.get("pg_pct", 0.0)
     return {
         "ehp": ehp,
+        "omni_ehp": res.get("omni_ehp", ehp),
+        "lowest_ehp": res.get("lowest_ehp", ehp),
         "total_dps": 0.0,
-        "cap_stable": True,
-        "cap_time_sec": 300.0,
+        "cap_stable": res.get("cap_stable", True),
+        "cap_time_sec": res.get("cap_time_sec", 0.0),
         "cpu_pct": cpu_pct,
         "pg_pct": pg_pct,
-        "compute_fit": res
+        "shield_resists": res.get("shield_resists", {}),
+        "armor_resists": res.get("armor_resists", {}),
+        "hull_resists": res.get("hull_resists", {}),
+        "mobility": res.get("mobility", {}),
+        "align_time": res.get("align_time", 0.0),
+        "max_velocity": res.get("max_velocity", 0.0),
+        "warp_speed": res.get("warp_speed", 3.0),
+        "compute_fit": res,
     }
 
 

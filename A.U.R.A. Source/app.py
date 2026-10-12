@@ -18,7 +18,7 @@
 # ==============================================================================
 """
 Main entry point for Adaptive Underworld Recon Array (A.U.R.A.).
-Angel Cartel EVE Online Tactical AI Assistant - v0.5.1-alpha.1.
+Angel Cartel EVE Online Tactical AI Assistant - v0.6.0-alpha.1.
 """
 import sys
 import os
@@ -35,6 +35,9 @@ if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 if sys.stderr and hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
+# Ensure legacy Protobuf stubs (e.g. pymumble) load under Protobuf 7.x+
+os.environ.setdefault("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", "python")
 
 # 0. Strict Python 3.12+ Architecture Requirement
 if sys.version_info < (3, 12):

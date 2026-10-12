@@ -34,6 +34,10 @@ runtime/
 python_runtime/
 **/python_runtime/
 
+# 2b. VOIP Native Codec Runtime (provisioned by tools/fetch_voip_runtime.py)
+voip_runtime/
+**/voip_runtime/
+
 # 3. Python Cache, Bytecode & Analysis Artifacts
 __pycache__/
 **/__pycache__/

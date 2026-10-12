@@ -59,7 +59,7 @@ from core.events import (
 )
 from core.input_safety import escape_html
 from ui.theme import (
-    BG_DEEP, BG_PANEL, BG_ELEVATED, BORDER, BORDER_MUTED,
+    BG_PANEL, BG_ELEVATED, BORDER, BORDER_MUTED,
     TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT, TEXT_BRAND,
     ACCENT, ACCENT_DIM,
     STATUS_STANDBY_BG,

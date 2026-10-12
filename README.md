@@ -1,6 +1,6 @@
 # Adaptive Underworld Recon Array (A.U.R.A.)
 
-**v0.5.1-alpha.1** — unofficial New Eden tactical companion. Designed with an offline-first architecture: A.U.R.A. **can be used as an offline-only app** with local neural reasoning, local log tailing, and offline stargate graphs, with optional opt-in network connectivity for Alliance XMPP communications. No cloud telemetry.
+**v0.6.0-alpha.1** — unofficial New Eden tactical companion. Designed with an offline-first architecture: A.U.R.A. **can be used as an offline-only app** with local neural reasoning, local log tailing, and offline stargate graphs, with optional opt-in network connectivity for Alliance XMPP communications and Mumble voice comms. No cloud telemetry.
 
 **EVE Online**, the **EVE logo**, and related marks are trademarks of **Fenris Creations** (FC Games / formerly CCP Games / CCP hf). All rights are reserved worldwide. All other trademarks are the property of their respective owners. EVE Online, the EVE logo, and all associated logos, designs, artwork, screenshots, character models, hulls, storylines, world lore, and game mechanics are the intellectual property of Fenris Creations.
 
@@ -14,17 +14,19 @@ LINUX EDITION - https://github.com/JeffTheNerdDev96/A.U.R.A.-eve-tool-linux
 
 ## Tabs/Features
 
-A.U.R.A. organizes its tactical suite into eight specialized desktop tabs:
+A.U.R.A. organizes its tactical suite into nine specialized desktop tabs:
 
 1. **Live Intel Radar** — Real-time chat log and game log tailer featuring heuristic threat classification (CLEAR to CRITICAL), hop-range proximity rings, and automated tactical responses.
-2. **D-Scan** *(EXPERIMENTAL)* — Dedicated Directional Scan analyzer with automatic ship class grouping, itemized vessel quantities (`Class : Count : Specific Ships xQty`), and on-demand "Ask A.U.R.A." tactical handovers.
+2. **D-Scan** — Dedicated Directional Scan analyzer with automatic ship class grouping, itemized vessel quantities (`Class : Count : Specific Ships xQty`), and on-demand "Ask A.U.R.A." tactical handovers.
 3. **Composition** — Friendly fleet composition vs. hostile fleet analyzer. Includes multi-role breakdowns (Logistics, Interdictors/Tackle, Strategic Cruisers, Mainline DPS, T2 Recons / EAS, Covert Ops) and local matchup heuristics.
 4. **Map** — Interactive stargate bubble graph centered on your current solar system, complete with intel threat overlays, BFS route planning, and custom system avoidance.
-5. **Anokis** *(EXPERIMENTAL)* — Wormhole chain mapping for Anoikis J-space: interactive topology hierarchies, system class badges (C1–C6, Thera, Pochven, K-space), mass/lifetime decay tracking (including remaining-time prune), and cosmic signature management via EVE probe scanner clipboard ingestion.
-6. **Fitting** *(EXPERIMENTAL)* — Fitting Lab and EFT import/export with visual slot layouts, heuristic CPU/PG/EHP from the local ship/module database (`core/eve_data.py`), Dogma hardpoint limits, single-module constraint enforcement, and "Ask A.U.R.A." role evaluations.
-7. **XMPP** *(EXPERIMENTAL)* — Alliance tactical messaging and broadcast ping receiver (`xmpp_chat`). Features real-time MUC broadcast channel monitoring, ping urgency classification (CTA, StratOp, Formup), roster DMs, server room directory, and one-click tactical handover to A.U.R.A. Chat.  
+5. **Anokis** — Wormhole chain mapping for Anoikis J-space: interactive topology hierarchies, system class badges (C1–C6, Thera, Pochven, K-space), mass/lifetime decay tracking (including remaining-time prune), and cosmic signature management via EVE probe scanner clipboard ingestion.
+6. **Fitting** — Fitting Lab and EFT import/export with visual slot layouts, heuristic CPU/PG/EHP from the local ship/module database (`core/eve_data.py`), Dogma hardpoint limits, single-module constraint enforcement, and "Ask A.U.R.A." role evaluations.
+7. **XMPP** — Alliance tactical messaging and broadcast ping receiver (`xmpp_chat`). Features real-time MUC broadcast channel monitoring, ping urgency classification (CTA, StratOp, Formup), roster DMs, server room directory, and one-click tactical handover to A.U.R.A. Chat.  
    * *Security Notice:* XMPP credentials exist strictly in volatile memory for the active session and are **never saved to disk or configuration files**.
-8. **A.U.R.A. Chat** *(EXPERIMENTAL)* — Local GGUF neural reasoning core powered by `llama.cpp`. Serves as an onboard tactical assistant for combat briefings, live telemetry snapshots, document parsing, and screenshot OCR. The installer bundles **Phi-4 Mini (4-bit Q4_K_M)** for local execution. A custom tactical fine-tune (`AURA-Eve-Tactical-Instruct-3.8B`) is planned and is **not** the runtime default.
+8. **VOIP** — Built-in Mumble client for alliance voice comms (`voip_mumble`). Channel tree with double-click join, hold-to-talk push-to-talk, server-synced mute/deafen, microphone and speaker device selection with live level meters, 48 kHz Opus voice, channel text chat, and Ask A.U.R.A. channel-transcript briefings.  
+   * *Security Notice:* Mumble credentials are ephemeral — volatile memory only, wiped on disconnect, **never saved to disk**. Self-signed community servers require an explicit per-session opt-in.
+9. **A.U.R.A. Chat** *(EXPERIMENTAL)* — Local GGUF neural reasoning core powered by `llama.cpp`. Serves as an onboard tactical assistant for combat briefings, live telemetry snapshots, document parsing, and screenshot OCR. The installer bundles **Phi-4 Mini (4-bit Q4_K_M)** for local execution. A custom tactical fine-tune (`AURA-Eve-Tactical-Instruct-3.8B`) is planned and is **not** the runtime default.
 
 > **Note:** Experimental tabs currently have limited backend integration. **Fitting** uses heuristic (not full live Dogma) stats from the bundled ship and module database. **A.U.R.A. Chat** runs Phi-4 Mini for local briefings ahead of custom model deployment.
 
@@ -63,7 +65,7 @@ A.U.R.A. is engineered so that it **can be used as an offline-only app**:
 * **Local Neural Inference:** Large language models run entirely locally via CPU, NVIDIA CUDA, AMD Vulkan, or Intel NPU coprocessors. Zero prompts or chat histories are sent to remote APIs.
 * **Offline SDE Database:** Solar systems, stargates, ship hulls, and dogma attributes are bundled locally in `eve_map.json` and `core/eve_data.py`.
 * **Passive Local Log Tailing:** Intel feeds read standard client text logs directly from disk.
-* **Opt-In External Connectivity:** Outbound network connections are strictly opt-in and restricted to user-configured Alliance XMPP servers. If not configured, the app operates completely offline in closed local compute mode.
+* **Opt-In External Connectivity:** Outbound network connections are strictly opt-in and restricted to user-configured Alliance XMPP servers and Mumble voice servers. If not configured, the app operates completely offline in closed local compute mode.
 
 ---
 
@@ -77,9 +79,11 @@ cd A.U.R.A-eve-tool
 1. `A.U.R.A. Source/requirements/install_auto.bat` (or a named hardware script in that folder).
 2. `run.bat`
 
-Standalone: `AURA_Setup_v0.5.1-alpha.1.exe` (bundled Python 3.12 and model weights).
+Standalone: `AURA_Setup_v0.6.0-alpha.1.exe` (bundled Python 3.12 and model weights).
 
 Details on hardware profiles and co-processors: [requirements/README.md](A.U.R.A.%20Source/requirements/README.md).
+
+VOIP voice requires the Opus codec DLL. If voice is unavailable, run `tools/fetch_voip_runtime.py` to provision `voip_runtime/opus.dll` (text-only mode is unaffected).
 
 ---
 
@@ -87,7 +91,7 @@ Details on hardware profiles and co-processors: [requirements/README.md](A.U.R.A
 
 Full attributions: [CREDITS.md](CREDITS.md) and the **Credits** modal in the application.
 
-Inspired by [RIFT](https://riftforeve.online), [PYFA](https://github.com/pyfa-org/Pyfa), and [dscan.info](https://dscan.info). Map data from [Fuzzwork](https://www.fuzzwork.co.uk). XMPP protocol specifications by the XMPP Standards Foundation (XSF). EVE Online is intellectual property of Fenris Creations / CCP Games.
+Inspired by [RIFT](https://riftforeve.online), [PYFA](https://github.com/pyfa-org/Pyfa), and [dscan.info](https://dscan.info). Map data from [Fuzzwork](https://www.fuzzwork.co.uk). XMPP protocol specifications by the XMPP Standards Foundation (XSF). Mumble voice protocol support via [pymumble](https://github.com/azlux/pymumble), with the Opus codec from the [Xiph.Org Foundation](https://opus-codec.org/) (conda-forge `libopus` build). EVE Online is intellectual property of Fenris Creations / CCP Games.
 
 ---
 

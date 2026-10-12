@@ -5,14 +5,14 @@
 > [!CAUTION]
 > **ALL PREVIOUS ALPHA RELEASES ARE DEPRECATED & UNSUPPORTED**
 >
-> All earlier development builds and alpha releases — including **v0.3.x** (`v0.3.0-alpha1`, `v0.3.1-alpha2`, `v0.3.2-alpha.1`), **v0.2.x**, and **v0.1.x** — are officially **deprecated and unsupported**.
+> All earlier development builds and alpha releases — including **v0.5.x**, **v0.4.x**,**v0.3.x**, **v0.2.x**, and **v0.1.x** — are officially **deprecated and unsupported**.
 >
-> **Version `v0.5.1-alpha.1` is the sole actively supported release.** All users and testers must upgrade to **`v0.5.1-alpha.1`** to receive security patches, bug fixes, and active maintenance.
+> **Version `v0.6.0-alpha.1` is the sole actively supported release.** All users and testers must upgrade to **`v0.6.0-alpha.1`** to receive security patches, bug fixes, and active maintenance.
 
 | Version | Supported | Status / Notes | Python Runtime | Architecture |
 | :--- | :--- | :--- | :--- | :--- |
-| **`v0.5.1-alpha.1`** | **Yes** | **Active / Sole Supported Release** (EventBus-wired tabs, single D-Scan parser, shared subsystems, AGPLv3) | Python 3.12+ | 64-bit AMD64 |
-| **`v0.5.0-alpha.1`** | **No** | **Deprecated & Unsupported** (Superseded by v0.5.1-alpha.1) | Python 3.12+ | 64-bit AMD64 |
+| **`v0.6.0-alpha.1`** | **Yes** | **Active / Sole Supported Release** (VOIP Mumble voice tab, EventBus-wired tabs, single D-Scan parser, shared subsystems, AGPLv3) | Python 3.12+ | 64-bit AMD64 |
+| **`v0.5.x`** | **No** | **Deprecated & Unsupported** (Superseded by v0.6.0-alpha.1) | Python 3.12+ | 64-bit AMD64 |
 | **`v0.4.x`** | **No** | **Deprecated & Unsupported** (Superseded by v0.5.1-alpha.1) | Python 3.12+ | 64-bit AMD64 |
 | **`v0.3.x`** | **No** | **Deprecated & Unsupported** (Superseded by v0.4.0-alpha.1) | Python 3.12+ | 64-bit AMD64 |
 | **`v0.2.x`** | **No** | **Deprecated & Unsupported** (Superseded due to major modular architecture overhaul) | Python 3.12+ | 64-bit AMD64 |
@@ -28,6 +28,7 @@ A.U.R.A. is engineered with an **offline-first** architecture and **can be used 
 - EVE Online chat/gamelog files written to disk (third-party player inputs)
 - User-selected attachments (images, PDF, DOCX, text)
 - Out-of-game XMPP broadcast streams (when explicitly connected by user)
+- Out-of-game Mumble voice traffic and channel text (when explicitly connected by user)
 - Crafted content aimed at the local LLM (prompt injection)
 
 ### What We Mitigate
@@ -39,6 +40,9 @@ A.U.R.A. is engineered with an **offline-first** architecture and **can be used 
 | **Qt HTML Injection in Chat/XMPP** | `input_safety.escape_html` on chat HTML and XMPP rich-text. Intel radar cards use `Qt.TextFormat.PlainText`. Map avoid-list names are HTML-escaped. |
 | **XMPP Link Clicks** | External `QDesktopServices.openUrl` is restricted to `http`/`https`. Internal `ask_aura:` and `opendm:` schemes stay in-app. |
 | **XMPP Stream DoS** | Incoming stanza buffer is capped (~1 MiB); oversized or incomplete stanzas drop the connection. |
+| **VOIP (Mumble) Credential Theft / Exposure** | **Zero Disk Persistence:** The Mumble server password exists strictly in volatile RAM for the active connection and is wiped on disconnect. Never saved to disk, config files, or logs. |
+| **VOIP Network Interception** | Mandatory TLS with a hardened `SSLContext` (TLS 1.2+ minimum, legacy TLSv1/1.1 and SSLv3 explicitly disabled, hostname verification on). The legacy `ssl.wrap_socket` path is replaced. “Allow Self-Signed TLS” is an explicit per-session opt-in (MITM risk). |
+| **VOIP Codec Supply Chain** | The Opus codec is provisioned only by `tools/fetch_voip_runtime.py` from a pinned, SHA256-verified conda-forge `libopus` artifact; a missing codec degrades to text-only mode. |
 | **Rich Clipboard Attacks** | `setAcceptRichText(False)` enforced across all user `QTextEdit` and `QLineEdit` inputs. |
 | **Oversized Attachments / Log Spikes** | `config.max_attachment_bytes`, `max_log_read_bytes`, PDF page count, and image pixel caps enforced. |
 | **Log Path Traversal / Escape** | `is_safe_log_file` realpath validation under selected Chatlogs/Gamelogs roots. |

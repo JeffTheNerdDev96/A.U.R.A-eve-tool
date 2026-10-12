@@ -4,12 +4,18 @@
 # Protected by GNU Affero General Public License Version 3 (AGPL-3.0)
 # ==============================================================================
 # Core Adaptive Underworld Recon Array (A.U.R.A.) Base Requirements
-PyQt6>=6.6.0
-psutil>=5.9.0
-numpy>=1.26.0,<3.0.0
-pillow>=10.0.0
-pypdf>=4.0.0
-python-docx>=1.0.0
-openpyxl>=3.1.0
-winocr>=0.0.15; sys_platform == 'win32'
-llama-cpp-python>=0.3.0
+PyQt6>=6.11.0
+psutil>=7.2.2
+numpy>=2.5.4
+pillow>=12.3.0
+pypdf>=6.20.0
+python-docx>=1.2.0
+openpyxl>=3.1.5
+winocr>=0.0.15
+llama-cpp-python>=0.3.36
+# VOIP alliance comms (Mumble protocol client; requires native Opus codec DLL,
+# provisioned by tools/fetch_voip_runtime.py into voip_runtime/)
+pymumble==1.6.1
+# pymumble pinned transitive dependencies (must match pymumble's own pins)
+protobuf==7.36.2
+opuslib==3.0.1

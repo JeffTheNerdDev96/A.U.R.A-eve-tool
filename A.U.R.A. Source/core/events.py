@@ -262,3 +262,43 @@ class XMPPDirectoryDiscoveredEvent(BaseEvent):
     """Fired when a public MUC directory listing arrives."""
     room_count: int = 0
 
+
+# --- VOIP (Mumble) Alliance Voice Events ---
+
+@dataclass(slots=True)
+class VOIPConnectionStateChangedEvent(BaseEvent):
+    """Fired when the Mumble voice client connection state transitions."""
+    state: str = "DISCONNECTED"
+    host: str = ""
+    username: str = ""
+    error_message: str = ""
+
+
+@dataclass(slots=True)
+class VOIPChannelUpdatedEvent(BaseEvent):
+    """Fired when Mumble channel tree membership or the active channel changes."""
+    channel_id: int = -1
+    channel_name: str = ""
+    channel_path: str = ""
+    user_count: int = 0
+
+
+@dataclass(slots=True)
+class VOIPUserSpeakingEvent(BaseEvent):
+    """Fired when a Mumble channel member starts or stops transmitting."""
+    session_id: int = 0
+    username: str = ""
+    channel_id: int = -1
+    is_speaking: bool = False
+
+
+@dataclass(slots=True)
+class VOIPTextMessageEvent(BaseEvent):
+    """Fired when a Mumble channel or direct text message arrives."""
+    msg_id: str = ""
+    sender: str = ""
+    channel_name: str = ""
+    body: str = ""
+    is_self: bool = False
+    message: Any = None
+

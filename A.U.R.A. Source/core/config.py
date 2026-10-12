@@ -62,6 +62,17 @@ class AppConfig:
         self.feed_in_range_only = False
         self.monitored_character = "Auto"
 
+        # VOIP (Mumble) Alliance Voice Settings (non-secret defaults only;
+        # credentials are ephemeral session memory, never persisted)
+        self.voip_default_port = 64738
+        self.voip_default_channel = ""
+        self.voip_push_to_talk_key = "SPACE"
+        self.voip_input_volume_pct = 80
+        self.voip_output_volume_pct = 80
+        self.voip_voice_activation = False
+        self.voip_max_text_chars = 4_000
+        self.voip_max_messages = 500
+
         # Input safety limits (untrusted chat, logs, attachments)
         self.max_chat_chars = 16_000
         self.max_attachment_bytes = 8 * 1024 * 1024

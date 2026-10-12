@@ -47,7 +47,7 @@ from subsystems.wormhole import (
 from core.event_bus import get_event_bus
 from core.events import WormholeChainUpdatedEvent
 from ui.theme import (
-    BG_DEEP, BG_PANEL, BG_ELEVATED, BORDER, BORDER_MUTED,
+    BG_PANEL, BG_ELEVATED, BORDER, BORDER_MUTED,
     TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT,
     ACCENT, ACCENT_DIM, STATUS_ONLINE,
     radar_accent_btn_css, radar_control_btn_css, btn_secondary_css, dialog_stylesheet,

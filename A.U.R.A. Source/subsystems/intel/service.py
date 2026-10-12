@@ -98,7 +98,11 @@ class IntelSubsystem(BaseSubsystem):
         )
         self.stale_manager.add_report(report)
 
+        parsed["ingested_at"] = report.created_at
+        parsed["created_at"] = report.created_at
+
         evt = IntelReportEvent(
+            timestamp=report.created_at,
             system=report.system_name,
             pilots=list(report.pilots),
             ship_classes=list(report.ship_classes),

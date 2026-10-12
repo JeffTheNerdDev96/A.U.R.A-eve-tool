@@ -17,7 +17,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Centralized Diagnostic Error Code Subsystem for Adaptive Underworld Recon Array (A.U.R.A.) - v0.5.1-alpha.1.
+Centralized Diagnostic Error Code Subsystem for Adaptive Underworld Recon Array (A.U.R.A.) - v0.6.0-alpha.1.
 Angel Cartel Cybernetics Division.
 
 Provides standardized, searchable error codes (AURA-ERR-xxxx), rich diagnostic logging,
@@ -67,6 +67,13 @@ class AURAErrorCode:
     ERR_7002_XMPP_TLS_HANDSHAKE = "AURA-ERR-7002"
     ERR_7003_XMPP_HOST_UNREACHABLE = "AURA-ERR-7003"
     ERR_7004_XMPP_MUC_JOIN_FAILED = "AURA-ERR-7004"
+
+    # 8000 Series: VOIP (Mumble) Alliance Voice Communications
+    ERR_8001_VOIP_AUTH_FAILED = "AURA-ERR-8001"
+    ERR_8002_VOIP_HOST_UNREACHABLE = "AURA-ERR-8002"
+    ERR_8003_VOIP_TLS_HANDSHAKE = "AURA-ERR-8003"
+    ERR_8004_VOIP_AUDIO_DEVICE = "AURA-ERR-8004"
+    ERR_8005_VOIP_CHANNEL_JOIN_FAILED = "AURA-ERR-8005"
 
 
 ERROR_REGISTRY: dict[str, dict[str, str]] = {
@@ -164,6 +171,31 @@ ERROR_REGISTRY: dict[str, dict[str, str]] = {
         "title": "XMPP MUC Room Join Error",
         "description": "Failed to enter Multi-User Chat room or alliance broadcast channel.",
         "resolution": "Check room JID syntax (e.g. 'broadcasts@conference.domain.com') and room access permissions."
+    },
+    AURAErrorCode.ERR_8001_VOIP_AUTH_FAILED: {
+        "title": "VOIP (Mumble) Authentication Failure",
+        "description": "Server rejected the provided username or password credentials.",
+        "resolution": "Verify pilot name and password with your alliance auth service. Check channel access tokens."
+    },
+    AURAErrorCode.ERR_8002_VOIP_HOST_UNREACHABLE: {
+        "title": "VOIP (Mumble) Server Unreachable",
+        "description": "Could not establish TCP connection to target Mumble hostname.",
+        "resolution": "Check internet connectivity, DNS resolution, and port (default 64738) or provide an explicit host."
+    },
+    AURAErrorCode.ERR_8003_VOIP_TLS_HANDSHAKE: {
+        "title": "VOIP (Mumble) TLS Handshake Error",
+        "description": "Failed to negotiate a secure TLS session with the Mumble host.",
+        "resolution": "Verify port 64738 and enable 'Allow Self-Signed TLS' if using internal alliance certificates."
+    },
+    AURAErrorCode.ERR_8004_VOIP_AUDIO_DEVICE: {
+        "title": "VOIP Audio Device Error",
+        "description": "Microphone or speaker device failed to initialize, or the Opus codec DLL is missing.",
+        "resolution": "Run tools/fetch_voip_runtime.py to provision the Opus codec, then check OS audio device permissions."
+    },
+    AURAErrorCode.ERR_8005_VOIP_CHANNEL_JOIN_FAILED: {
+        "title": "VOIP Channel Join Error",
+        "description": "Failed to enter the requested Mumble voice channel.",
+        "resolution": "Check channel path spelling (e.g. 'Fleet 1') and channel access tokens/passwords."
     },
 }
 

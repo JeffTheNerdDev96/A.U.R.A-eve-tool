@@ -73,6 +73,7 @@ from subsystems.map import MapSubsystem
 from subsystems.fleet_comp import FleetCompSubsystem
 from subsystems.wormhole import WormholeSubsystem
 from subsystems.xmpp_chat import XMPPChatSubsystem
+from subsystems.voip_mumble import VOIPMumbleSubsystem
 from subsystems.fitting import FittingSubsystem
 from subsystems.ai import AISubsystem
 from ui.tabs.dscan_tab import DScanTabWidget
@@ -81,6 +82,7 @@ from ui.tabs.map_tab import MapTabWidget
 from ui.tabs.composition_tab import CompositionTabWidget
 from ui.tabs.wormhole_tab import WormholeTabWidget
 from ui.tabs.xmpp_tab import XMPPTabWidget
+from ui.tabs.voip_tab import VOIPTabWidget
 from ui.theme import (
     ACCENT, ACCENT_HOVER, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT, TEXT_BRAND,
     BG_ELEVATED, BORDER, BTN_SECONDARY_BG,
@@ -100,7 +102,8 @@ _TAB_MIN_SIZES = {
     4: (960, 620),   # Anokis
     5: (960, 620),   # Fitting
     6: (800, 560),   # XMPP
-    7: (480, 500),   # A.U.R.A. Chat
+    7: (860, 580),   # VOIP
+    8: (480, 500),   # A.U.R.A. Chat
 }
 
 
@@ -520,7 +523,6 @@ class CreditsDialog(QDialog):
             <li><a href="https://www.nuget.org/packages/python" style="{link}">NuGet CPython Distribution</a> — fallback clean CPython 3.12 64-bit runtime archive (Python Software Foundation).</li>
             <li><a href="https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist" style="{link}">Microsoft Visual C++ Redistributable</a> — C/C++ native runtime libraries (<code>msvcp140.dll</code>, <code>vcruntime140.dll</code>) bundled for standalone isolation (Microsoft Corporation).</li>
             <li><a href="https://learn.microsoft.com/en-us/windows/win32/seccrypto/signtool" style="{link}">PowerShell Authenticode &amp; Signtool</a> — code signing engine for binary verification and launcher integrity (Microsoft Corporation).</li>
-            <li><a href="https://jrsoftware.org/isinfo.php" style="{link}">Inno Setup</a> — packaging and installer architecture reference (Jordan Russell &amp; Martijn Laan).</li>
           </ul>
 
           <h3 style="{h}">Python Core Libraries &amp; Dependencies</h3>
@@ -599,6 +601,9 @@ class MainWindow(QMainWindow):
         self.xmpp_subsystem = XMPPChatSubsystem()
         self.xmpp_subsystem.initialize()
         self.xmpp_subsystem.start()
+        self.voip_subsystem = VOIPMumbleSubsystem()
+        self.voip_subsystem.initialize()
+        self.voip_subsystem.start()
         self.fitting_subsystem = FittingSubsystem()
         self.fitting_subsystem.initialize()
         self.fitting_subsystem.start()
@@ -998,6 +1003,9 @@ class MainWindow(QMainWindow):
         self.xmpp_tab = XMPPTabWidget(self.xmpp_subsystem)
         self.xmpp_tab.ask_aura_requested.connect(self._handle_external_ask_aura)
 
+        self.voip_tab = VOIPTabWidget(self.voip_subsystem)
+        self.voip_tab.ask_aura_requested.connect(self._handle_external_ask_aura)
+
         self.radar_tab_page = self._wrap_tab_card(right_panel)
         self.dscan_tab_page = self._wrap_tab_card(self.dscan_tab)
         self.composition_tab_page = self._wrap_tab_card(self.composition_tab)
@@ -1005,6 +1013,7 @@ class MainWindow(QMainWindow):
         self.anokis_tab_page = self._wrap_tab_card(self.anokis_tab)
         self.fitting_tab_page = self._wrap_tab_card(self.fitting_lab)
         self.xmpp_tab_page = self._wrap_tab_card(self.xmpp_tab)
+        self.voip_tab_page = self._wrap_tab_card(self.voip_tab)
         self.chat_tab_page = self._wrap_tab_card(self.chat_tab)
 
         self.tabs.addTab(self.radar_tab_page, "Live Intel Radar")
@@ -1014,6 +1023,7 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.anokis_tab_page, "Anokis")
         self.tabs.addTab(self.fitting_tab_page, "Fitting")
         self.tabs.addTab(self.xmpp_tab_page, "XMPP")
+        self.tabs.addTab(self.voip_tab_page, "VOIP")
         self.tabs.addTab(self.chat_tab_page, "A.U.R.A. Chat")
         self.tabs.currentChanged.connect(self._on_main_tab_changed)
         main_layout.addWidget(self.tabs, stretch=1)
@@ -1197,7 +1207,7 @@ class MainWindow(QMainWindow):
         bus.unsubscribe(IntelStaleExpiredEvent, self._on_intel_expired_event)
         bus.unsubscribe(FittingCalculatedEvent, self._on_fitting_calculated_event)
         bus.unsubscribe(DScanParsedEvent, self._on_dscan_parsed_event)
-        for tab_attr in ("map_tab", "anokis_tab", "xmpp_tab"):
+        for tab_attr in ("map_tab", "anokis_tab", "xmpp_tab", "voip_tab"):
             tab = getattr(self, tab_attr, None)
             if tab is not None and hasattr(tab, "unsubscribe_events"):
                 try:

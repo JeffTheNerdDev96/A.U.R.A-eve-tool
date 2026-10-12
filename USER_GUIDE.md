@@ -1,7 +1,7 @@
-# Adaptive Underworld Recon Array (A.U.R.A.) — v0.5.1-alpha.1 — User Guide
+# Adaptive Underworld Recon Array (A.U.R.A.) — v0.6.0-alpha.1 — User Guide
 
 **Adaptive Underworld Recon Array (A.U.R.A.)**  
-*v0.5.1-alpha.1*  
+*v0.6.0-alpha.1*  
 *Angel Cartel Cybernetics Division — by JeffTheNerdDev96*
 
 Not affiliated with or endorsed by CCP Games / Fenris Creations. EVE Online is a trademark of CCP / Fenris Creations.
@@ -16,7 +16,7 @@ A.U.R.A. is an **offline-first Windows companion** for EVE Online (Linux/Proton 
 
 - An unofficial, offline-first tactical helper while you fly New Eden.
 - Designed with local architecture: **A.U.R.A. can be used as an offline-only app** without internet access.
-- Eight tabs arranged in operational sequence:
+- Nine tabs arranged in operational sequence:
   1. **Live Intel Radar** — Log tailer, threat classification, and proximity hop rings
   2. **D-Scan** *(experimental)* — Dedicated Directional Scan analyzer with class grouping
   3. **Composition** — Friendly fleet vs hostile D-scan matchup analysis
@@ -24,7 +24,8 @@ A.U.R.A. is an **offline-first Windows companion** for EVE Online (Linux/Proton 
   5. **Anokis** *(experimental)* — Anoikis J-space chain mapping, mass/life decay, and cosmic signature tracker
   6. **Fitting** *(experimental)* — Fitting Lab, EFT import/export, and role evaluation
   7. **XMPP** *(experimental)* — Alliance broadcast ping stream and MUC channel listener (ephemeral session)
-  8. **A.U.R.A. Chat** *(experimental)* — Local GGUF neural core for tactical briefings and OCR ingestion
+  8. **VOIP** *(experimental)* — Built-in Mumble voice client with channel tree, push-to-talk, and channel text (ephemeral session)
+  9. **A.U.R.A. Chat** *(experimental)* — Local GGUF neural core for tactical briefings and OCR ingestion
 - Background log monitoring continues seamlessly regardless of which tab is active.
 
 ### What it is not
@@ -33,14 +34,14 @@ A.U.R.A. is an **offline-first Windows companion** for EVE Online (Linux/Proton 
 - No ESI / SSO login, no reading of game memory (RAM), and no packet interception.
 - No live zKill, DOTLAN, or market server queries.
 - Not a market trader, not a bot, and contains zero automation/macro harnesses.
-- XMPP credentials exist **in-memory for the active session only**. To preserve operational security, A.U.R.A. **never saves XMPP passwords or JIDs to disk**.
+- XMPP and Mumble VOIP credentials exist **in-memory for the active session only**. To preserve operational security, A.U.R.A. **never saves XMPP passwords, JIDs, or Mumble server passwords to disk**.
 
 ---
 
 ## 2. Window Chrome & Controls
 
 - **Top Bar:** Current system (with security status & region once known), piloted hull grounding, context memory allocation, **Purge** action, live hardware status badge (Online / Standby), and **Credits**.
-- **Tab Strip:** `Live Intel Radar` → `D-Scan` → `Composition` → `Map` → `Anokis` → `Fitting` → `XMPP` → `A.U.R.A. Chat`.
+- **Tab Strip:** `Live Intel Radar` → `D-Scan` → `Composition` → `Map` → `Anokis` → `Fitting` → `XMPP` → `VOIP` → `A.U.R.A. Chat`.
 - **Footer:** Angel Cartel brand mark, author attribution, GitHub repository link, and issue reporting.
 - **System Tray:** Minimize-to-tray capability with optional Windows threat notifications.
 
@@ -136,18 +137,36 @@ Dedicated tactical management tab for Anoikis J-space exploration, chain mapping
 ---
 
 ## 8. Fitting (Fitting Lab)
-## EXPERIMENTAL/IN DEV FEATURE
 
-![Fitting Lab](docs/assets/fitting-tool-v0.5.0-alpha.1.png "Visual EFT Fitting Lab & Heuristic Attribute Breakdown")
+![Fitting Lab](docs/assets/fitting-tool-v0.5.0-alpha.1.png "Visual In-Game Fitting Lab & Dogma Attribute Engine")
 
-Visual EFT fitting lab and role evaluation console on a **single tab** (there is no separate optimizer window). Stats are heuristic estimates from the local ship/module database (`core/eve_data.py`), not a full live Dogma simulator.
+Full-featured in-game style fitting client and tactical combat doctrine evaluator (`subsystems/fitting`). Powered by an exact EVE Online Dogma mathematical engine (`subsystems/fitting/dogma.py`) and a canonical database of over 530 T1, T2, compact, and faction modules alongside 339 exact ship hulls.
 
-- **Hull Picker & Paperdoll:** Choose a hull; slot counts, turret/launcher hardpoints, CPU, powergrid, and calibration follow the selected ship.
-- **EFT Ingestion:** **Import** / paste ship fits in standard EFT block format (`[Hull, Fit Name]`). **Export** copies the current fit back out.
-- **Visual Slot Layout:** Categorizes modules into High, Medium, Low, Rig, and Subsystem racks. Cargo / ammo and drone bay are shown alongside HP bars.
-- **Hardpoint & Single-Fit Rules:** Enforces turret/launcher hardpoint limits and single-fit groups (for example Damage Control, Ancillary Armor Repairer).
-- **Attribute Estimation:** Heuristic calculations for baseline Effective HP (EHP), CPU/Powergrid/calibration load, and module sizing validity.
-- **Role Evaluation:** Submit fits via **Ask A.U.R.A.** for role-based review against intended combat doctrines (Solo PvP, Small Gang, Nano Kiting, Abyssal Deadspace, Fleet Anchor, WH Combat, and related presets).
+### Dogma Engine & Calculation Accuracy
+
+- **True Stacking Penalties**: Implements canonical EVE stacking penalty curves \(S(n) = \exp(-(n-1)^2 / 7.1289)\) for modules affecting resistances, damage, tracking, agility, velocity, and capacitor recharge.
+- **Unpenalized Exemptions**: Modules exempt from stacking penalties (`Damage Control II`, `Assault Damage Control II`, `Reactive Armor Hardener`, `Co-Processor II`) apply their full theoretical multipliers directly.
+- **True Effective Hit Points (EHP)**: Calculates exact Omni EHP and lowest-resistance hole EHP across Shield, Armor, and Structure layers with multi-layered damage resonance analysis.
+- **Engineering Multipliers & Role Bonuses**: Dynamically scales CPU and Powergrid outputs based on Co-Processors, Reactor Control Units, Ancillary Current Routers, and MAPCs. Automatically applies hull role bonuses (such as Attack Battlecruiser 95% PG / 50% CPU large weapon reductions).
+
+### In-Game Style UI & Telemetry
+
+- **4-Damage-Type Resistance Matrix**: Real-time breakdown of EM, Thermal, Kinetic, and Explosive resistances across Shield, Armor, and Structure. Resistances are color-coded to immediately identify defensive damage holes.
+- **Live Capacitor Dynamics Banner**:
+  - **Peak Recharge Rate**: Maximum recharge rate (\(2.5 \times C / \tau\)) in GJ/s.
+  - **Active Drain**: Continuous capacitor draw from all active combat modules in GJ/s.
+  - **Stability & Equilibrium**: Identifies whether the fit is cap-stable and calculates steady-state equilibrium capacity percentage (\(u^2 - u + k = 0\)).
+  - **Depletion Countdown**: For non-stable fits, numerically integrates discharge from 100% capacitor capacity under full combat load to display exact time until depletion (`Depletes in MM:SS`).
+- **Mobility & Flight Metrics**: Displays total ship mass (including armor plate mass penalties), stacking-penalized agility/inertia, 75% align time in seconds, maximum sub-warp velocity (cold and propulsion-active), and hyperspatial warp speed (AU/s).
+- **Exact Resource Bars**: Live meters for CPU (tf), Powergrid (MW), Calibration (points), and Drone Bandwidth with overload warnings.
+- **Module Browser & Racks**: Filter modules by High, Mid, Low, Rig, and Subsystem racks. Tooltips display exact CPU, Powergrid, activation cost, duration, and resonance attributes.
+
+### Expanded Ship & Module Catalog
+
+- **Latest New Eden Vessels**: Includes the October 2026 Crimson Harvest **Akoman** (Blood Raiders Attack Battlecruiser with large turret fitting bonuses, nosferatu drain/range boosts, and webifier range bonuses) and the Equinox Upwell logistics/freight lineup (**Squall**, **Deluge**, **Torrent**, **Avalanche**).
+- **Full T1 & T2 Modules**: Comprehensive coverage of Multispectrum Energized Membranes, Multispectrum Shield Hardeners, Steel Plates, Shield Extenders, Armor Repairers, Shield Boosters, 1MN/5MN/50MN/500MN Propulsion drives, Tackle/EWAR, Weapon Systems, Damage Enhancers, and Rigs.
+- **EFT Ingestion & Export**: Import or paste standard EFT blocks (`[Hull, Fit Name]`). Single-click **Export** copies formatted EFT text to the clipboard.
+- **Role Evaluation**: Submit fits via **Ask A.U.R.A.** for tactical review against combat roles (Solo PvP, Small Gang, Nano Kiting, Abyssal Deadspace, Fleet Anchor, WH Combat).
 
 ---
 
@@ -185,7 +204,46 @@ Dedicated out-of-game tactical communications tab (`subsystems/xmpp_chat`) for m
 
 ---
 
-## 10. A.U.R.A. Chat (Local Neural Core)
+## 10. VOIP (Alliance Voice Comms)
+## EXPERIMENTAL/IN DEV FEATURE
+
+Built-in Mumble voice client (`subsystems/voip_mumble`) for alliance fleet comms — connect to your alliance's Mumble server, join voice channels, and coordinate with hold-to-talk voice from inside A.U.R.A.
+
+### Ephemeral Security Architecture
+
+> [!IMPORTANT]
+> **Zero Disk Credential Persistence**: Like XMPP, Mumble server passwords exist strictly in volatile memory for the active session and are wiped immediately upon disconnect, purge, or application exit. They are **never saved to disk, configuration files, or the OS registry**.
+
+### Connecting to an Alliance Mumble Server
+
+1. Enter the Mumble server **Host** (e.g. `mumble.alliance.net`), **Port** (default `64738`), and your pilot name.
+2. Enter the server password if your alliance requires one; it is wiped from the field immediately after the connection attempt.
+3. Optionally set a channel path (e.g. `Fleet 1`) for automatic join once the session establishes.
+4. Enable **Allow Self-Signed TLS** only if your alliance server uses an internal/private CA certificate — this is an explicit per-session opt-in.
+5. Click **Connect**. The status badge tracks Connecting → Authenticating → Connected.
+
+### Voice Controls
+
+- **Push-to-Talk:** Hold **Hold to Talk** to transmit. With voice-activation mode enabled in settings, the transmit gate stays open and the button is disabled.
+- **Mute / Deafen:** Server-synced self-mute and self-deafen. Muting stops the local microphone pump; deafening silences both directions.
+- **Mic / Spk Sliders:** Live capture and playback gain, mirrored into in-memory settings only.
+- **Device Selection:** Pick microphone and speaker devices from the dropdowns; **Refresh** rescans devices. A live session restarts audio automatically when you switch devices.
+- **Level Meters:** The blocks next to each slider show live input/output levels.
+
+### Channels, Text & Ask A.U.R.A.
+
+- **Channel Tree:** Double-click a channel to join, or select one and click **Join**. Pilots appear under their channel with speaking and mute indicators.
+- **Channel Text:** Select a channel to view its text stream; compose messages in the bottom bar (Enter to send).
+- **Ask A.U.R.A.:** Sends the recent channel transcript to A.U.R.A. Chat for a tactical summary.
+- **Demo Msg:** Injects a synthetic channel message so you can exercise the stream without a live fleet.
+
+### Voice Codec Runtime
+
+Voice requires the Opus codec DLL. If `voip_runtime/opus.dll` is missing, run `tools/fetch_voip_runtime.py` (downloads the pinned conda-forge `libopus` build) — the VOIP tab shows a banner and text-only mode until it is provisioned.
+
+---
+
+## 11. A.U.R.A. Chat (Local Neural Core)
 ## EXPERIMENTAL/IN DEV FEATURE
 
 ![A.U.R.A. Chat Neural Core](docs/assets/chat-tool-v0.5.0-alpha.1.png "A.U.R.A. Chat Local Neural Assistant & OCR Console")
@@ -200,7 +258,7 @@ Local tactical AI assistant running quantized GGUF weights via `llama.cpp`. The 
 
 ---
 
-## 11. Hardware Profiles & Installation
+## 12. Hardware Profiles & Installation
 
 A.U.R.A. utilizes hardware-specific install scripts located in `A.U.R.A. Source/requirements/`:
 
@@ -216,11 +274,11 @@ A.U.R.A. utilizes hardware-specific install scripts located in `A.U.R.A. Source/
 | `install_intel_npu.bat` | Intel NPU (AI Boost Level Zero Coprocessor) |
 | `install_cpu.bat` | Standard Multi-Core CPU (SIMD AVX2 / AVX-512 Vector Mesh) |
 
-Launch the application via `run.bat` in the repository root or through the standalone package `AURA_Setup_v0.5.1-alpha.1.exe`.
+Launch the application via `run.bat` in the repository root or through the standalone package `AURA_Setup_v0.6.0-alpha.1.exe`.
 
 ---
 
-## 12. Troubleshooting & Diagnostic Error Registry (`AURA-ERR-xxxx`)
+## 13. Troubleshooting & Diagnostic Error Registry (`AURA-ERR-xxxx`)
 
 All diagnostic errors are logged to `logs/crash.log`:
 
@@ -250,14 +308,19 @@ All diagnostic errors are logged to `logs/crash.log`:
 | **`AURA-ERR-7002`** | XMPP TLS Handshake | Check port (5222/5223) and toggle 'Allow Self-Signed TLS' if using internal certs. |
 | **`AURA-ERR-7003`** | XMPP Host Unreachable | Check internet connection or provide an explicit server host override. |
 | **`AURA-ERR-7004`** | XMPP MUC Join Failed | Verify room JID syntax (e.g. `broadcasts@conference.domain.com`) and room permissions. |
+| **`AURA-ERR-8001`** | VOIP Connect Failed | Verify host/port and that the Mumble server is reachable; toggle 'Allow Self-Signed TLS' if using internal certs. |
+| **`AURA-ERR-8002`** | VOIP Auth Failed | Verify pilot name and server password with your alliance auth team. |
+| **`AURA-ERR-8003`** | VOIP Opus Codec Missing | Run `tools/fetch_voip_runtime.py` to provision `voip_runtime/opus.dll`, then restart A.U.R.A. |
+| **`AURA-ERR-8004`** | VOIP Audio Device Error | Check default microphone/speaker permissions and re-pick devices in the VOIP tab. |
+| **`AURA-ERR-8005`** | VOIP Channel Join Failed | Verify the channel path spelling (e.g. `Fleet 1 / Reserves`) and your channel access. |
 
 ---
 
-## 13. Linux, Steam Deck & Proton Compatibility
+## 14. Linux, Steam Deck & Proton Compatibility
 
 Native Linux packaging lives in a **separate repository**: [A.U.R.A.-eve-tool-linux](https://github.com/JeffTheNerdDev96/A.U.R.A.-eve-tool-linux). This Windows tree can still be run under **Valve Proton**, GE-Proton, Proton Experimental, or a standard Wine prefix.
 
-1. **Standalone Installation:** Run `AURA_Setup_v0.5.1-alpha.1.exe` via Proton, or copy the application folder to your Linux drive.
+1. **Standalone Installation:** Run `AURA_Setup_v0.6.0-alpha.1.exe` via Proton, or copy the application folder to your Linux drive.
 2. **Add Non-Steam Game:** In Steam, click **Add a Non-Steam Game** and point at the installed Windows executable (or `run.bat` / `Launch_A.U.R.A_Debug.bat` from a source checkout). Prefer the Linux edition repo when you want a native launcher.
 3. **Compatibility:** Under shortcut Properties → **Compatibility** → select **Proton 11** or Proton Experimental.
 4. **Chatlog Auto-Discovery:** Steam installations auto-discover the EVE Online log directory under:

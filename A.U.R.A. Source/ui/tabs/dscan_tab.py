@@ -36,7 +36,7 @@ from PyQt6.QtWidgets import (
 from subsystems.dscan import DScanSubsystem, DScanAnalysis
 from ui.theme import (
     TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT,
-    BG_PANEL, BG_DEEP, BG_ELEVATED, BORDER, BORDER_MUTED, ACCENT,
+    BG_PANEL, BG_DEEP, BG_ELEVATED, BORDER_MUTED, ACCENT,
     radar_accent_btn_css, radar_control_btn_css, btn_secondary_css,
 )
 
