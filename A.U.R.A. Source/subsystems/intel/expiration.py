@@ -23,16 +23,15 @@ Decays threat levels and purges expired intel reports gracefully over time.
 
 import time
 from typing import Dict, List, Optional
+
 from .models import IntelReport, ThreatStatus
 
-# Module-level: these were rebuilt as dict literals inside add_report() and
-# prune_expired() on every call (twice per prune pass per system).
 _THREAT_RANKS = {"CLEAR": 0, "INFO": 1, "LOW": 1, "SUSPICIOUS": 1,
                  "MEDIUM": 2, "HIGH": 3, "HOSTILE": 3, "CRITICAL": 4}
 _INV_RANKS = {0: "CLEAR", 1: "LOW", 2: "MEDIUM", 3: "HIGH", 4: "CRITICAL"}
 
 
-def _recompute_status(status: "ThreatStatus") -> None:
+def _recompute_status(status: ThreatStatus) -> None:
     """Recompute threat level and hostile count from the active report set."""
     status.threat_level = _INV_RANKS[max(
         (_THREAT_RANKS.get(r.threat_level, 0) for r in status.active_reports), default=0)]
@@ -51,11 +50,11 @@ class StaleIntelManager:
 
     def add_report(self, report: IntelReport) -> ThreatStatus:
         """Incorporates a new IntelReport and updates the system's ThreatStatus."""
-        sys_name = report.system_name
-        if sys_name not in self._system_statuses:
-            self._system_statuses[sys_name] = ThreatStatus(system_name=sys_name)
+        system_name = report.system_name
+        if system_name not in self._system_statuses:
+            self._system_statuses[system_name] = ThreatStatus(system_name=system_name)
 
-        status = self._system_statuses[sys_name]
+        status = self._system_statuses[system_name]
 
         if report.is_clear:
             status.active_reports.clear()
@@ -76,18 +75,18 @@ class StaleIntelManager:
         now = current_time or time.time()
         modified_systems: List[str] = []
 
-        for sys_name, status in list(self._system_statuses.items()):
+        for system_name, status in list(self._system_statuses.items()):
             initial_count = len(status.active_reports)
             status.active_reports = [
                 r for r in status.active_reports
                 if (now - r.created_at) < self.expiration_seconds
             ]
             if len(status.active_reports) != initial_count:
-                modified_systems.append(sys_name)
+                modified_systems.append(system_name)
                 if not status.active_reports:
                     status.threat_level = "CLEAR"
                     status.hostile_count = 0
-                    self._system_statuses.pop(sys_name, None)
+                    self._system_statuses.pop(system_name, None)
                 else:
                     _recompute_status(status)
 

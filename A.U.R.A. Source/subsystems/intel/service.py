@@ -51,13 +51,11 @@ class IntelSubsystem(BaseSubsystem):
 
     @override
     def start(self) -> bool:
-        super().start()
-        return True
+        return super().start()
 
     @override
     def stop(self) -> bool:
-        super().stop()
-        return True
+        return super().stop()
 
     def process_intel_line(self, line: str, channel_name: str = "Intel") -> list[IntelReport]:
         rep = self.process_raw_line(line, channel_name)

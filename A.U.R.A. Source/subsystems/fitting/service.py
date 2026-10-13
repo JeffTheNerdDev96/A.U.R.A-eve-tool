@@ -41,13 +41,11 @@ class FittingSubsystem(BaseSubsystem):
 
     @override
     def start(self) -> bool:
-        super().start()
-        return True
+        return super().start()
 
     @override
     def stop(self) -> bool:
-        super().stop()
-        return True
+        return super().stop()
 
     def parse_eft(self, eft_text: str) -> ParsedFitting | None:
         """Parses raw EFT text and calculates defense, DPS, and capacitor stats."""

@@ -35,7 +35,6 @@ class FittingParser:
     @staticmethod
     def parse(eft_text: str) -> Dict[str, Any]:
         raw_lines = [line.strip() for line in eft_text.split("\n")]
-        # Strip leading/trailing empty lines
         while raw_lines and not raw_lines[0]:
             raw_lines.pop(0)
         while raw_lines and not raw_lines[-1]:
@@ -51,7 +50,6 @@ class FittingParser:
         ship_info = lookup_ship(hull_name)
         s_class = ship_info.get("class", "Frigate") if ship_info else "Frigate"
 
-        # Split EFT text into distinct slot blocks separated by empty lines
         blocks: List[List[str]] = []
         current_block: List[str] = []
 

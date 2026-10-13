@@ -63,12 +63,12 @@ class MapRouter:
 
         avoid_ids: Set[int] = set()
         if avoid_systems:
-            for sys_name in avoid_systems:
-                node = self.get_system(sys_name)
+            for name in avoid_systems:
+                node = self.get_system(name)
                 if node and node.system_id not in (orig_node.system_id, dest_node.system_id):
                     avoid_ids.add(node.system_id)
 
-        # BFS for shortest path (parent pointers, not full path copies)
+        # Parent pointers keep BFS memory linear instead of copying full paths per node.
         parent: Dict[int, int] = {}
         q = deque([orig_node.system_id])
         visited = {orig_node.system_id}

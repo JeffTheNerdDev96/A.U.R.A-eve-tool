@@ -54,8 +54,7 @@ class WormholeSubsystem(BaseSubsystem):
 
     @override
     def initialize(self) -> bool:
-        """Initializes data structures and event subscriptions."""
-        # Initial chain placeholder
+        """Seed an empty chain so systems can be linked before any signature scan."""
         self.active_chain = WormholeChain(
             chain_id=str(uuid.uuid4()),
             home_system="",
@@ -65,15 +64,13 @@ class WormholeSubsystem(BaseSubsystem):
     @override
     def start(self) -> bool:
         """Starts active chain monitoring / timers."""
-        super().start()
-        return True
+        return super().start()
 
     @override
     def stop(self) -> bool:
         """Cleans up timers and memory buffers."""
-        super().stop()
         self.active_chain = None
-        return True
+        return super().stop()
 
     def set_home_system(self, system_name: str, system_class: WormholeClass = WormholeClass.UNKNOWN) -> WormholeNode:
         """Sets the root/home solar system of the current wormhole chain."""

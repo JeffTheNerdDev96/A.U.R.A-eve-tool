@@ -98,8 +98,7 @@ class XMPPChatSubsystem(BaseSubsystem):
     @override
     def start(self) -> bool:
         """Arms the subsystem for active connection sessions."""
-        super().start()
-        return True
+        return super().start()
 
     @override
     def stop(self) -> bool:
@@ -108,8 +107,7 @@ class XMPPChatSubsystem(BaseSubsystem):
         self.messages.clear()
         self.directory_rooms.clear()
         self.active_config = None
-        super().stop()
-        return True
+        return super().stop()
 
     def connect(self, config: XMPPAccountConfig) -> bool:
         """
@@ -350,20 +348,18 @@ class XMPPChatSubsystem(BaseSubsystem):
 
     def _handle_client_directory_discovered(self, rooms: list[XMPPMUCChannel]) -> None:
         """Handles public MUC directory discovery."""
-        for r in rooms:
-            self.directory_rooms[r.room_jid] = r
+        self.directory_rooms.update({room.room_jid: room for room in rooms})
         overflow = len(self.directory_rooms) - self.MAX_DIRECTORY_ROOMS
         if overflow > 0:
-            for key in list(self.directory_rooms.keys())[:overflow]:
-                self.directory_rooms.pop(key, None)
+            for room_jid in list(self.directory_rooms)[:overflow]:
+                del self.directory_rooms[room_jid]
         self.event_bus.publish(
             XMPPDirectoryDiscoveredEvent(room_count=len(self.directory_rooms))
         )
 
     def _handle_client_roster_updated(self, contacts: list[XMPPRosterContact]) -> None:
         """Handles roster updates."""
-        for c in contacts:
-            self.roster[c.jid] = c
+        self.roster.update({contact.jid: contact for contact in contacts})
         self._publish_roster()
 
     def _publish_roster(self) -> None:

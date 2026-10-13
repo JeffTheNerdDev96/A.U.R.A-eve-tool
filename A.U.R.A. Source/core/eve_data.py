@@ -18,7 +18,7 @@
 # ==============================================================================
 """
 EVE Online Tactical Database, Comprehensive Combat Matrix & Domain Grounding Engine.
-Customized for A.U.R.A. (Adaptive Underworld Recon Array) — v0.6.0-alpha.4 & Core.
+Customized for A.U.R.A. (Adaptive Underworld Recon Array) — v0.6.1-alpha.1 & Core.
 Contains encyclopedic vessel dossiers (350+ hulls), module matrix (250+ modules),
 subsystems, weapon tracking mathematics, capacitor warfare, and tactical grounding.
 Covers all standard empire, navy, pirate, faction, industrial, capital, and T3 vessels.
@@ -26,9 +26,9 @@ Ship and module facts are compiled from publicly documented EVE Online game data
 (CCP hf), with reference material from the EVE University Wiki, zKillboard, and
 DOTLAN EveMaps. See CREDITS.md.
 """
-from typing import Dict, List, Any, Optional
-import re
 import functools
+import re
+from typing import Any, Dict, List, Optional
 
 # Threat Classification Tags
 THREAT_BUBBLE = "DISRUPTIVE BUBBLE / TACKLE"

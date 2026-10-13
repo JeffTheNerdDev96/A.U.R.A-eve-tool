@@ -18,10 +18,10 @@
 # ==============================================================================
 """
 Composition tab: paste friendly fleet vs hostile D-scan, role breakdown, local assessment.
+
+CompositionTabWidget owns the dual paste panes, role table, and assessment panel; all parsing
+and matchup logic is delegated to subsystems.fleet_comp.analyzer (heuristics only, no LLM).
 """
-# Responsibilities:
-# - CompositionTabWidget UI: dual paste panes, role table, local assessment panel
-# - Delegates parsing and matchup logic to subsystems.fleet_comp.analyzer (no LLM)
 from __future__ import annotations
 
 from typing import Optional

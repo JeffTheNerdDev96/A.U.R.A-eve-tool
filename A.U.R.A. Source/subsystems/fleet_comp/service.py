@@ -40,13 +40,11 @@ class FleetCompSubsystem(BaseSubsystem):
 
     @override
     def start(self) -> bool:
-        super().start()
-        return True
+        return super().start()
 
     @override
     def stop(self) -> bool:
-        super().stop()
-        return True
+        return super().stop()
 
     def evaluate_fleet(self, fleet_data: Any) -> FleetCompAnalysis:
         """Evaluates fleet from either dict of counts or raw text and emits FleetCompUpdatedEvent."""

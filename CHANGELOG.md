@@ -2,6 +2,11 @@
 
 All notable changes to Adaptive Underworld Recon Array (A.U.R.A.) are documented here. Canonical product version lives in `A.U.R.A. Source/version.py`.
 
+## [v0.6.1-alpha.1]
+
+- Version bump to `v0.6.1-alpha.1` across source, build metadata, tests, and documentation.
+- No logic, API, or behavioral changes.
+
 ## [v0.6.0-alpha.4]
 
 Sole currently supported release.

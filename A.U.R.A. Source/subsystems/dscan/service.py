@@ -40,13 +40,11 @@ class DScanSubsystem(BaseSubsystem):
 
     @override
     def start(self) -> bool:
-        super().start()
-        return True
+        return super().start()
 
     @override
     def stop(self) -> bool:
-        super().stop()
-        return True
+        return super().stop()
 
     def parse_dscan(self, dscan_text: str) -> DScanAnalysis:
         """Parses raw D-Scan text and returns structured class breakdowns."""

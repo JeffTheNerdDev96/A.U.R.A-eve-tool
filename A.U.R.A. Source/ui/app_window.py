@@ -18,26 +18,27 @@
 # ==============================================================================
 """
 A.U.R.A. Tactical Desktop Interface (PyQt6).
+
 Adaptive Underworld Recon Array (Angel Cartel Cybernetics Division).
-Integrated Tactical Tools:
-- Live EVE Online Chat Log Tailer & Intel Radar Stream
-- D-Scan Fleet Analyzer (Fleet breakdown & threat ranking)
-- Fitting Lab & Optimizer (EFT format parsing & role-based AI fitting review)
-- Multiformat Screenshot & Document Ingestion
-- Dual Intel & AMD NPU Hardware Acceleration Telemetry
-- Automated Real-Time Threat Response Matrix
+
+Integrated tactical tools:
+- Live EVE Online chat log tailer & Live Intel Radar stream
+- D-Scan fleet analyzer (fleet breakdown and threat ranking)
+- Fitting Lab & Optimizer (EFT parsing and role-based AI fitting review)
+- Multiformat screenshot & document ingestion
+- Dual Intel & AMD NPU hardware acceleration telemetry
+- Automated real-time threat response matrix
+
+MainWindow owns the chrome, tabs, and tray icon; WorkerThread bridges the Qt UI to
+UnifiedInferenceEngine.generate_stream; closeEvent/run_app delegate ordered shutdown to
+core.lifecycle.shutdown_application.
 """
-# Responsibilities:
-# - MainWindow shell: chrome, tabs (Intel, Fitting, Map, Composition, Chat), tray icon
-# - WorkerThread bridges Qt UI to UnifiedInferenceEngine.generate_stream
-# - Modal analyzers (D-Scan, Fitting, Intel batch) and attachment ingestion entry points
-# - closeEvent / run_app delegate ordered shutdown to lifecycle.shutdown_application
-import sys
-import os
-import time
-import re
 import gc
-from typing import List, Dict, Any, Optional
+import os
+import re
+import sys
+import time
+from typing import Any, Dict, List, Optional
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,

@@ -18,26 +18,26 @@
 # ==============================================================================
 """
 Angel Cartel A.U.R.A. Neural Inference Engine.
-Combines Adaptive Underworld Recon Array tactical persona, NPU-prioritized hardware acceleration,
-and multi-turn combat reasoning for EVE Online.
+
+Combines the Adaptive Underworld Recon Array tactical persona, NPU-prioritized hardware
+acceleration, and multi-turn combat reasoning for EVE Online. UnifiedInferenceEngine owns
+GGUF load/unload and token streaming, NeuralHardwareCoProcessor drives the OpenVINO NPU/GPU
+mesh, and tactical grounding comes from core.eve_data.get_tactical_grounding.
 """
-# Responsibilities:
-# - UnifiedInferenceEngine: GGUF load/unload, generate_stream token yields
-# - NeuralHardwareCoProcessor: OpenVINO NPU/GPU mesh threads during inference
-# - Tactical prompt grounding via eve_data.get_tactical_grounding
 import os
 import sys
-import time
 import threading
-import psutil
-import numpy as np
+import time
 from concurrent import futures
-from typing import Generator, Dict, List, Any, Optional, Literal
+from typing import Any, Dict, Generator, List, Literal, Optional
+
+import numpy as np
+import psutil
 
 if hasattr(sys.stdout, "reconfigure"):
-    getattr(sys.stdout, "reconfigure")(encoding='utf-8', errors='replace')
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 if hasattr(sys.stderr, "reconfigure"):
-    getattr(sys.stderr, "reconfigure")(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 from core.config import config
 from core.paths import find_model_path
@@ -724,30 +724,26 @@ class UnifiedInferenceEngine:
 
     def _prune_context(self, history: List[Dict[str, str]], current_prompt: str, max_tokens: int = 1500) -> List[Dict[str, str]]:
         """Prunes oldest conversation turns to fit within token budget using fast byte-length heuristic."""
-        # Fast heuristic: ~4.5 chars per token for English text (avoids .split() allocation overhead)
+        # ~4 chars per token for English text; cheaper than allocating .split() results.
         def _est_tokens(text: str) -> int:
             return max(1, len(text) // 4)
-        
-        total_tokens = _est_tokens(current_prompt)
-        msg_tokens = []
-        for msg in history:
-            t = _est_tokens(msg.get("content", ""))
-            msg_tokens.append(t)
-            total_tokens += t
-        
-        pruned = list(history)
-        idx = 0
-        while pruned and len(pruned) > 1 and total_tokens > max_tokens:
-            total_tokens -= msg_tokens[idx]
-            pruned.pop(0)
-            idx += 1
-            # Drop paired assistant response if it was a user->assistant turn
-            if pruned and pruned[0].get("role") == "assistant" and len(pruned) > 1:
-                total_tokens -= msg_tokens[idx]
-                pruned.pop(0)
-                idx += 1
-        
-        return pruned
+
+        msg_tokens = [_est_tokens(msg.get("content", "")) for msg in history]
+        total_tokens = _est_tokens(current_prompt) + sum(msg_tokens)
+
+        remaining = list(history)
+        dropped = 0
+        while len(remaining) > 1 and total_tokens > max_tokens:
+            total_tokens -= msg_tokens[dropped]
+            remaining.pop(0)
+            dropped += 1
+            # Keep user/assistant turns paired so the model never sees an orphaned reply.
+            if len(remaining) > 1 and remaining[0].get("role") == "assistant":
+                total_tokens -= msg_tokens[dropped]
+                remaining.pop(0)
+                dropped += 1
+
+        return remaining
 
     def generate_stream(
         self,

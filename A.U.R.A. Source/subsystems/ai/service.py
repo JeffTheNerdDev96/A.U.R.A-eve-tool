@@ -43,14 +43,12 @@ class AISubsystem(BaseSubsystem):
 
     @override
     def start(self) -> bool:
-        super().start()
-        return True
+        return super().start()
 
     @override
     def stop(self) -> bool:
         self.engine.unload_model()
-        super().stop()
-        return True
+        return super().stop()
 
     def generate_response(self, request: InferenceRequest) -> InferenceResult:
         """Runs inference generation, emitting token events and completion event."""

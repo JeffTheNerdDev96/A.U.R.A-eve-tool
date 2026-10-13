@@ -40,28 +40,25 @@ VOIP_CONNECT_TIMEOUT_SEC = 30
 
 
 def cleanup_temp_files(*, purge_bytecode: bool = False) -> None:
-    """
-    Purges stale non-crash logs and orphaned temp artifacts.
-    
-    """
+    """Delete logs older than 3 days (never crash.log) and optional stale bytecode."""
     if purge_bytecode:
-        pc = Path(get_app_root()) / "__pycache__"
-        if pc.exists():
+        bytecode = Path(get_app_root()) / "__pycache__"
+        if bytecode.exists():
             try:
-                shutil.rmtree(pc, ignore_errors=True)
+                shutil.rmtree(bytecode, ignore_errors=True)
             except OSError:
                 pass
 
     log_dir = Path(get_logs_dir())
     if not log_dir.exists():
         return
-    now = time.time()
+    cutoff = time.time() - (3 * 86400)
     try:
         for entry in log_dir.iterdir():
             if not entry.is_file() or not entry.name.endswith(".log") or entry.name == "crash.log":
                 continue
             try:
-                if entry.stat().st_mtime < now - (3 * 86400):
+                if entry.stat().st_mtime < cutoff:
                     entry.unlink(missing_ok=True)
             except OSError:
                 pass

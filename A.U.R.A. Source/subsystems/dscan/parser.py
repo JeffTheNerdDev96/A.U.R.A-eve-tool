@@ -83,11 +83,10 @@ class DScanParser:
 
     @staticmethod
     def _extract_quantity_and_clean(text: str) -> tuple[int, str]:
-        """Extracts quantity like '5x', 'x5', '5 Sabre' and returns (count, clean_text)."""
+        """Split a '5x Sabre' style token into (count, hull text)."""
         clean = text.strip()
         count = 1
 
-        # Match '5x Sabre' or '5x'
         m1 = _RE_QTY_PREFIX.match(clean)
         if m1:
             try:
@@ -97,7 +96,6 @@ class DScanParser:
                 pass
             return count, clean
 
-        # Match 'Sabre x5' or 'Sabre 5x'
         m2 = _RE_QTY_SUFFIX.search(clean)
         if m2:
             try:
@@ -107,7 +105,6 @@ class DScanParser:
                 pass
             return count, clean
 
-        # Match leading number e.g. '5 Sabre'
         m3 = _RE_QTY_LEADING.match(clean)
         if m3:
             try:
@@ -127,12 +124,10 @@ class DScanParser:
         if not text:
             return None
 
-        # 1. Direct exact lookup
         info = lookup_ship(text)
         if info:
             return info.get("canonical_name", text), info
 
-        # 2. Fast split if tab present
         if "\t" in text:
             for p in text.split("\t"):
                 p_clean = p.strip()
@@ -142,7 +137,6 @@ class DScanParser:
                 if info:
                     return info.get("canonical_name", p_clean), info
 
-        # 3. Check parts split by tab or multiple spaces
         parts = [p.strip() for p in _RE_TAB_SPLIT.split(text) if p.strip()]
         for p in parts:
             if not p or _is_dist_or_id(p):
@@ -151,7 +145,6 @@ class DScanParser:
             if info:
                 return info.get("canonical_name", p), info
 
-        # 4. Check individual tokens
         words = [w.strip() for w in _RE_DELIM_SPLIT.split(text) if w.strip()]
         for w in words:
             if not w or _is_dist_or_id(w):
@@ -160,7 +153,6 @@ class DScanParser:
             if info:
                 return info.get("canonical_name", w), info
 
-        # 5. Search for known ship names inside the string
         text_lower = text.lower()
         match = _SHIP_SUBSTR_PATTERN.search(text_lower)
         if match:
@@ -176,7 +168,6 @@ class DScanParser:
         """Parses distance string and returns (display_distance, category, km_val)."""
         clean = text.strip()
 
-        # Check for AU
         m_au = _RE_DIST_AU.search(clean)
         if m_au:
             try:
@@ -185,7 +176,6 @@ class DScanParser:
             except ValueError:
                 return clean, "Off-Grid / Warping (> 150 km / AU)", None
 
-        # Check for km
         m_km = _RE_DIST_KM.search(clean)
         if m_km:
             try:
@@ -199,7 +189,6 @@ class DScanParser:
             except ValueError:
                 return clean, "Grid Range (20 - 150 km)", None
 
-        # Check for meters
         m_m = _RE_DIST_M.search(clean)
         if m_m and not m_km and not m_au:
             try:
@@ -282,7 +271,6 @@ class DScanParser:
 
         total_ships = sum(ship_counts.values())
 
-        # Build class summaries: Example "Heavy Assault Cruiser : 3 : Muninn, Cerberus x2"
         class_summaries: List[DScanClassSummary] = []
         class_counts: Dict[str, int] = {}
 
@@ -290,13 +278,10 @@ class DScanParser:
             cls_total = sum(ships_in_class.values())
             class_counts[ship_class] = cls_total
 
-            # Format items: e.g. "Muninn, Cerberus x2"
-            formatted_types: List[str] = []
-            for s_name, s_qty in sorted(ships_in_class.items(), key=lambda x: (-x[1], x[0])):
-                if s_qty > 1:
-                    formatted_types.append(f"{s_name} x{s_qty}")
-                else:
-                    formatted_types.append(s_name)
+            formatted_types = [
+                f"{name} x{qty}" if qty > 1 else name
+                for name, qty in sorted(ships_in_class.items(), key=lambda item: (-item[1], item[0]))
+            ]
 
             types_str = ", ".join(formatted_types)
             breakdown_line = f"{ship_class} : {cls_total} : {types_str}"
@@ -312,7 +297,6 @@ class DScanParser:
                 )
             )
 
-        # Threat evaluation score
         threat_level = "CLEAR"
         threat_color = "#34d399"
 
@@ -329,7 +313,6 @@ class DScanParser:
             threat_level = "YELLOW (ACTIVE HOSTILES)"
             threat_color = "#facc15"
 
-        # Build human-readable formatted summary text
         summary_lines = [
             f"📡 **D-Scan Readout: {total_ships} Hostile Vessels Detected** (`{threat_level}`)",
             "",

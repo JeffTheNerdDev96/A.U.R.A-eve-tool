@@ -41,13 +41,11 @@ class MapSubsystem(BaseSubsystem):
 
     @override
     def start(self) -> bool:
-        super().start()
-        return True
+        return super().start()
 
     @override
     def stop(self) -> bool:
-        super().stop()
-        return True
+        return super().stop()
 
     def select_system(self, system_name: str) -> SystemNode | None:
         """Looks up system and emits SystemSelectedEvent over EventBus."""
