@@ -4,8 +4,17 @@ All notable changes to Adaptive Underworld Recon Array (A.U.R.A.) are documented
 
 ## [v0.6.1-alpha.1]
 
-- Version bump to `v0.6.1-alpha.1` across source, build metadata, tests, and documentation.
-- No logic, API, or behavioral changes.
+Active release.
+
+- **Architecture, Code Style & Idioms (PEP 8)**:
+  - Repository-wide code audit: converted mechanical indexing and legacy patterns into idiomatic constructs, pattern matching, and comprehension expressions.
+  - Standardized module imports adhering to PEP 8 grouping across all subsystem service layers and UI tabs.
+  - Purged conversational AI narration, redundant inline boilerplates, and step-by-step markers.
+- **Subsystem Logic & Resilience Hardening**:
+  - **VoIP Subsystem (`subsystems/voip_mumble`)**: Audited socket lifecycles, non-blocking connection loops, and packet buffer draining; verified graceful worker thread joining, audio pipeline state cleanup, and ephemeral in-memory credential zeroization on disconnect.
+  - **Fitting Engine (`subsystems/fitting`)**: Hardened Dogma stat aggregation loops, attribute lookups, nested item/slot traversal, and index guards to prevent UI freeze or unhandled KeyError/IndexError exceptions.
+- **Version Release Synchronization**:
+  - Standardized version metadata (`v0.6.1-alpha.1` / PEP 440 `0.6.1a1`) across all launchers, bootstrap scripts, build tools, packaging manifests, and documentation.
 
 ## [v0.6.0-alpha.4]
 

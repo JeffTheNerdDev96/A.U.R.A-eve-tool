@@ -17,6 +17,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 VERSION = "v0.6.1-alpha.1"
+__version__ = "0.6.1-alpha.1"
+APP_VERSION = "0.6.1-alpha.1"
 PUBLISHER = "JeffTheNerdDev96"
 LICENSE = "GNU Affero General Public License v3.0 (AGPL-3.0)"
 COMPANY_URL = "https://github.com/JeffTheNerdDev96/A.U.R.A-eve-tool"
