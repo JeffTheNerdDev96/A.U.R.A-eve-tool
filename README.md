@@ -1,6 +1,6 @@
 # Adaptive Underworld Recon Array (A.U.R.A.)
 
-**v0.6.1-alpha.1** — unofficial New Eden tactical companion. Designed with an offline-first architecture: A.U.R.A. **can be used as an offline-only app** with local neural reasoning, local log tailing, and offline stargate graphs, with optional opt-in network connectivity for Alliance XMPP communications and Mumble voice comms. No cloud telemetry.
+**v0.7.0-alpha.1** — unofficial New Eden tactical companion. Designed with a 100% No-ESI, offline-first architecture: A.U.R.A. operates with local neural reasoning, local log tailing, clipboard parsing, and offline SDE Dogma datasets, with optional opt-in network connectivity for Alliance XMPP communications and Mumble voice comms. No cloud telemetry. Zero ESI calls.
 
 **EVE Online**, the **EVE logo**, and related marks are trademarks of **Fenris Creations** (FC Games / formerly CCP Games / CCP hf). All rights are reserved worldwide. All other trademarks are the property of their respective owners. EVE Online, the EVE logo, and all associated logos, designs, artwork, screenshots, character models, hulls, storylines, world lore, and game mechanics are the intellectual property of Fenris Creations.
 
@@ -16,24 +16,29 @@ Linux edition: https://github.com/JeffTheNerdDev96/A.U.R.A.-eve-tool-linux (nati
 
 ## Tabs/Features
 
-A.U.R.A. organizes its tactical suite into nine specialized desktop tabs:
+A.U.R.A. organizes its tactical suite into eleven specialized desktop tabs:
 
-1. **Live Intel Radar** — Real-time chat log and game log tailer featuring heuristic threat classification (CLEAR to CRITICAL), hop-range proximity rings, and automated tactical responses.
-2. **D-Scan** — Dedicated Directional Scan analyzer with automatic ship class grouping, itemized vessel quantities (`Class : Count : Specific Ships xQty`), and on-demand "Ask A.U.R.A." tactical handovers.
-3. **Composition** — Friendly fleet composition vs. hostile fleet analyzer. Includes multi-role breakdowns (Logistics, Interdictors/Tackle, Strategic Cruisers, Mainline DPS, T2 Recons / EAS, Covert Ops) and local matchup heuristics.
-4. **Map** — Interactive stargate bubble graph centered on your current solar system, complete with intel threat overlays, BFS route planning, and custom system avoidance.
-5. **Anokis** — Wormhole chain mapping for Anoikis J-space: interactive topology hierarchies, system class badges (C1–C6, Thera, Pochven, K-space), mass/lifetime decay tracking (including remaining-time prune), and cosmic signature management via EVE probe scanner clipboard ingestion.
-6. **Fitting** — Fitting Lab and EFT import/export with visual slot layouts, heuristic CPU/PG/EHP from the local ship/module database (`core/eve_data.py`), Dogma hardpoint limits, single-module constraint enforcement, and "Ask A.U.R.A." role evaluations.
-7. **XMPP** — Alliance tactical messaging and broadcast ping receiver (`xmpp_chat`). Features real-time MUC broadcast channel monitoring, ping urgency classification (CTA, StratOp, Formup), roster DMs, server room directory, and one-click tactical handover to A.U.R.A. Chat.  
+1. **Live Intel Radar** — Real-time chat log and game log tailer featuring heuristic threat classification (CLEAR to CRITICAL), hop-range proximity rings, and automated Windows alerts.
+2. **Combat & Threat HUD** — Real-time combat telemetry tailing active gamelogs: 10s/30s/60s rolling incoming and outgoing DPS, 4-tier damage profiles (EM, Thermal, Kinetic, Explosive), active hostile tackle & EWAR tracking, live event stream, and one-click neural handover.
+3. **D-Scan** — Dedicated Directional Scan analyzer with automatic ship class grouping, itemized vessel quantities (`Class : Count : Specific Ships xQty`), snapshot diffing (`DScanSnapshotDiff`), and on-demand "Ask A.U.R.A." tactical handovers.
+4. **Composition** — Friendly fleet composition vs. hostile fleet analyzer. Includes multi-role breakdowns (Logistics, Interdictors/Tackle, Strategic Cruisers, Mainline DPS, T2 Recons / EAS, Covert Ops) and local matchup heuristics.
+5. **Map** — Interactive stargate bubble graph centered on your current solar system, complete with intel threat overlays, BFS route planning, and custom system avoidance.
+6. **Anokis** — Wormhole chain mapping for Anoikis J-space: interactive topology hierarchies, system class badges (C1–C6, Thera, Pochven, K-space), mass/lifetime decay tracking, static exit resolution, environmental weather multipliers (Wolf-Rayet, Pulsar, Magnetar, etc.), and cosmic signature management via EVE probe scanner clipboard ingestion.
+7. **Utilities** — Industrial & tactical multi-suite:
+   - *Cargo & Loot Valuation*: Offline inventory appraisal ($m^3$, ISK value, hauler sizing).
+   - *Reprocessing & Refining*: Ore refining yields and net profit/loss with station/citadel tax adjustments.
+   - *Survey Scanner & Mining Ledger*: Rock depletion planner, laser cycle throughput ($m^3$/hr), and session mining ledger.
+   - *Killmail Importer & EFT Exporter*: Kill report analysis and automated EFT fitting conversion.
+   - *Planetary Industry (PI)*: P0–P4 commodity production trees and POCO customs export tax.
+   - *Item & Market Index*: Offline SDE baseline prices and volumes.
+8. **Fitting** — Fitting Lab and EFT import/export with visual slot layouts, Dogma mathematical engine (stacking penalties, capacitor stability, align time, drone bay DPS, pirate implants, combat boosters, and J-space weather), hardpoint limits, and single-module constraints.
+9. **XMPP** — Alliance tactical messaging and broadcast ping receiver (`xmpp_chat`). Features real-time MUC broadcast channel monitoring, ping urgency classification (CTA, StratOp, Formup), roster DMs, server room directory, and one-click tactical handover to A.U.R.A. Chat.  
    * *Security Notice:* XMPP credentials exist strictly in volatile memory for the active session and are **never saved to disk or configuration files**.
-8. **VOIP** — Built-in Mumble client for alliance voice comms (`voip_mumble`). Channel tree with double-click join, hold-to-talk push-to-talk, server-synced mute/deafen, microphone and speaker device selection with live level meters, 48 kHz Opus voice, channel text chat, and Ask A.U.R.A. channel-transcript briefings.  
+10. **VOIP** — Built-in Mumble client for alliance voice comms (`voip_mumble`). Channel tree with double-click join, hold-to-talk push-to-talk, server-synced mute/deafen, microphone and speaker device selection with live level meters, 48 kHz Opus voice, channel text chat, and Ask A.U.R.A. channel-transcript briefings.  
    * *Security Notice:* Mumble credentials are ephemeral — volatile memory only, wiped on disconnect, **never saved to disk**. Self-signed community servers require an explicit per-session opt-in.
-9. **A.U.R.A. Chat** *(EXPERIMENTAL)* — Local GGUF neural reasoning core powered by `llama.cpp`. Serves as an onboard tactical assistant for combat briefings, live telemetry snapshots, document parsing, and screenshot OCR. The installer bundles **Phi-4 Mini (4-bit Q4_K_M)** for local execution. A custom tactical fine-tune (`AURA-Eve-Tactical-Instruct-3.8B`) is planned and is **not** the runtime default.
-
+11. **A.U.R.A. Chat** *(EXPERIMENTAL)* — Local GGUF neural reasoning core powered by `llama.cpp`. Serves as an onboard tactical assistant for combat briefings, live telemetry snapshots, document parsing, and screenshot OCR. The installer bundles **Phi-4 Mini (4-bit Q4_K_M)** for local execution. A custom tactical fine-tune (`AURA-Eve-Tactical-Instruct-3.8B`) is planned and is **not** the runtime default.
 
 User operations: [USER_GUIDE.md](USER_GUIDE.md). Code internals & architecture: [DEVELOPER.md](DEVELOPER.md). Security & privacy policy: [SECURITY.md](SECURITY.md). Legal terms & disclaimers: [LEGAL.md](LEGAL.md). Release notes: [CHANGELOG.md](CHANGELOG.md).
-
----
 
 ## Screenshots
 

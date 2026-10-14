@@ -1,7 +1,7 @@
-# Adaptive Underworld Recon Array (A.U.R.A.) — v0.6.1-alpha.1 — User Guide
+# Adaptive Underworld Recon Array (A.U.R.A.) — v0.7.0-alpha.1 — User Guide
 
 **Adaptive Underworld Recon Array (A.U.R.A.)**  
-*v0.6.1-alpha.1*  
+*v0.7.0-alpha.1*  
 *Angel Cartel Cybernetics Division — by JeffTheNerdDev96*
 
 Not affiliated with or endorsed by CCP Games / Fenris Creations. EVE Online is a trademark of CCP / Fenris Creations.
@@ -10,22 +10,24 @@ Not affiliated with or endorsed by CCP Games / Fenris Creations. EVE Online is a
 
 ## 1. Overview
 
-A.U.R.A. is an **offline-first Windows companion** for EVE Online (Linux/Proton users: see the [Linux edition](https://github.com/JeffTheNerdDev96/A.U.R.A.-eve-tool-linux)). It tails local **Chatlogs** and **Gamelogs** on disk, parses clipboard **pastes** (intel, D-scan, fleet rosters, EFT, probe scanner), renders **stargate bubble graphs** from a bundled map snapshot, provides **wormhole chain topology and signature tracking**, integrates **Alliance XMPP tactical communications**, and provides onboard AI reasoning via a local **Phi-4 Mini 4-bit GGUF** (`llama.cpp`). There is no cloud telemetry at runtime.
+A.U.R.A. is an **offline-first Windows companion** for EVE Online (Linux/Proton users: see the [Linux edition](https://github.com/JeffTheNerdDev96/A.U.R.A.-eve-tool-linux)). Operating with **100% No-ESI architecture**, it tails local **Chatlogs** and **Gamelogs** on disk, parses clipboard **pastes** (intel, D-scan, fleet rosters, EFT, probe scanner, survey scans, cargo/loot, killmails), renders **stargate bubble graphs** from a bundled map snapshot, provides **wormhole chain topology and signature tracking**, integrates **Alliance XMPP tactical communications**, and provides onboard AI reasoning via a local **Phi-4 Mini 4-bit GGUF** (`llama.cpp`). There is no cloud telemetry at runtime.
 
 ### What it is
 
 - An unofficial, offline-first tactical helper while you fly New Eden.
-- Designed with local architecture: **A.U.R.A. can be used as an offline-only app** without internet access.
-- Nine tabs arranged in operational sequence:
+- Designed with local architecture: **A.U.R.A. operates 100% without ESI** and can be used as an offline-only app without internet access.
+- Eleven tabs arranged in operational sequence:
   1. **Live Intel Radar** — Log tailer, threat classification, and proximity hop rings
-  2. **D-Scan** *(experimental)* — Dedicated Directional Scan analyzer with class grouping
-  3. **Composition** — Friendly fleet vs hostile D-scan matchup analysis
-  4. **Map** — Stargate bubble graph around your current solar system
-  5. **Anokis** *(experimental)* — Anoikis J-space chain mapping, mass/life decay, and cosmic signature tracker
-  6. **Fitting** *(experimental)* — Fitting Lab, EFT import/export, and role evaluation
-  7. **XMPP** *(experimental)* — Alliance broadcast ping stream and MUC channel listener (ephemeral session)
-  8. **VOIP** *(experimental)* — Built-in Mumble voice client with channel tree, push-to-talk, and channel text (ephemeral session)
-  9. **A.U.R.A. Chat** *(experimental)* — Local GGUF neural core for tactical briefings and OCR ingestion
+  2. **Combat & Threat HUD** — Real-time rolling 10s/30s/60s DPS, 4-tier damage profiles, active EWAR/tackle alerts, and live event feed
+  3. **D-Scan** — Dedicated Directional Scan analyzer with class grouping and snapshot diffing
+  4. **Composition** — Friendly fleet vs hostile D-scan matchup analysis
+  5. **Map** — Stargate bubble graph around your current solar system
+  6. **Anokis** — Anoikis J-space chain mapping, statics resolution, environmental weather multipliers, and cosmic signature tracker
+  7. **Utilities** — Cargo appraisal, ore reprocessing, survey scanning/mining ledger, killmail EFT conversion, and PI schematics
+  8. **Fitting** — Fitting Lab, EFT import/export, and full Dogma engine (drones, implants, boosters, weather)
+  9. **XMPP** — Alliance broadcast ping stream and MUC channel listener (ephemeral session)
+  10. **VOIP** — Built-in Mumble voice client with channel tree, push-to-talk, and channel text (ephemeral session)
+  11. **A.U.R.A. Chat** — Local GGUF neural core for tactical briefings and OCR ingestion
 - Background log monitoring continues seamlessly regardless of which tab is active.
 
 ### What it is not

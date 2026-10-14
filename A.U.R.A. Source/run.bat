@@ -27,17 +27,17 @@ set "SCRIPT_DIR=%~dp0"
 set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8
 set PYTHONDONTWRITEBYTECODE=1
-title Adaptive Underworld Recon Array (A.U.R.A.) - v0.6.1-alpha.1
+title Adaptive Underworld Recon Array (A.U.R.A.) - v0.7.0-alpha.1
 
 cls
 echo ===================================================================
-echo   [+] Adaptive Underworld Recon Array (A.U.R.A.) - v0.6.1-alpha.1
+echo   [+] Adaptive Underworld Recon Array (A.U.R.A.) - v0.7.0-alpha.1
 echo   Angel Cartel Cybernetics Division
 echo ===================================================================
 echo.
 
-if exist "%SCRIPT_DIR%A.U.R.A.-v0.6.1-alpha.1.exe" (
-    start "" /d "%SCRIPT_DIR%" "%SCRIPT_DIR%A.U.R.A.-v0.6.1-alpha.1.exe"
+if exist "%SCRIPT_DIR%A.U.R.A.-v0.7.0-alpha.1.exe" (
+    start "" /d "%SCRIPT_DIR%" "%SCRIPT_DIR%A.U.R.A.-v0.7.0-alpha.1.exe"
     exit /b 0
 )
 if exist "%SCRIPT_DIR%A.U.R.A.exe" (

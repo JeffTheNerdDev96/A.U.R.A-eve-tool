@@ -23,18 +23,22 @@
 A.U.R.A. UI Tabs Package.
 """
 
+from .combat_tab import CombatTabWidget
 from .dscan_tab import DScanTabWidget
 from .map_tab import MapTabWidget
 from .composition_tab import CompositionTabWidget
 from .fitting_tab import FittingLabWidget
 from .wormhole_tab import WormholeTabWidget
 from .xmpp_tab import XMPPTabWidget
+from .utilities_tab import UtilitiesTabWidget
 
 __all__ = [
+    "CombatTabWidget",
     "DScanTabWidget",
     "MapTabWidget",
     "CompositionTabWidget",
     "FittingLabWidget",
     "WormholeTabWidget",
     "XMPPTabWidget",
+    "UtilitiesTabWidget",
 ]

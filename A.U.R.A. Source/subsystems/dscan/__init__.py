@@ -23,7 +23,7 @@
 A.U.R.A. Directional Scan (D-Scan) Subsystem Package.
 """
 
-from .models import DScanEntry, DScanClassSummary, DScanAnalysis
+from .models import DScanEntry, DScanClassSummary, DScanAnalysis, DScanSnapshotDiff
 from .parser import DScanParser
 from .service import DScanSubsystem
 
@@ -31,6 +31,7 @@ __all__ = [
     "DScanEntry",
     "DScanClassSummary",
     "DScanAnalysis",
+    "DScanSnapshotDiff",
     "DScanParser",
     "DScanSubsystem",
 ]

@@ -305,3 +305,49 @@ class VOIPTextMessageEvent(BaseEvent):
     is_self: bool = False
     message: Any = None
 
+
+# --- Combat & Mining Gamelog Events ---
+
+@dataclass(slots=True)
+class CombatDamageEvent(BaseEvent):
+    """Fired when an incoming or outgoing combat damage volley is parsed."""
+    target: str = ""
+    attacker: str = ""
+    attacker_ship: str = ""
+    weapon: str = ""
+    damage_amount: int = 0
+    damage_type: str = "Kinetic"
+    quality: str = "Penetrating"
+    is_incoming: bool = True
+    time_str: str = ""
+
+
+@dataclass(slots=True)
+class EWARAlertEvent(BaseEvent):
+    """Fired when incoming Electronic Warfare, tackle, or neuting occurs."""
+    attacker: str = ""
+    attacker_ship: str = ""
+    target: str = ""
+    ewar_type: str = "SCRAMBLE"
+    intensity: str = ""
+    active: bool = True
+    time_str: str = ""
+
+
+@dataclass(slots=True)
+class CombatShipDestroyedEvent(BaseEvent):
+    """Fired when a ship or pod destruction line appears in the gamelog."""
+    victim: str = ""
+    ship: str = ""
+    is_self: bool = False
+    time_str: str = ""
+
+
+@dataclass(slots=True)
+class MiningYieldEvent(BaseEvent):
+    """Fired when a mining laser or strip miner cycle completes."""
+    ore_name: str = ""
+    units: int = 0
+    volume_m3: float = 0.0
+    time_str: str = ""
+
