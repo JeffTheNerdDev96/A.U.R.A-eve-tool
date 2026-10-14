@@ -691,7 +691,16 @@ def apply_pirate_implant_set(base_stats: Dict[str, Any], set_name: str) -> Dict[
 
 def apply_combat_booster(base_stats: Dict[str, Any], booster_name: str) -> Dict[str, Any]:
     """Applies synthetic combat booster modifiers."""
-    modifiers = COMBAT_BOOSTERS.get(booster_name, {})
+    modifiers = {}
+    b_norm = booster_name.lower().replace("-", " ").strip()
+    if b_norm.endswith(" booster"):
+        b_norm = b_norm[:-8].strip()
+    for k, v in COMBAT_BOOSTERS.items():
+        if k.lower().replace("-", " ").strip() == b_norm:
+            modifiers = v
+            break
+    if not modifiers:
+        modifiers = COMBAT_BOOSTERS.get(booster_name, {})
     out = dict(base_stats)
     for stat, mult in modifiers.items():
         if stat in out and isinstance(out[stat], (int, float)):

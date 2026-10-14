@@ -94,9 +94,11 @@ class EventBus(QObject):
         handlers = list(self._subscribers.get(event_type, ()))
 
         # Parent match handlers (e.g. subscribing to BaseEvent catches all)
-        for registered_type, subscriber_list in self._subscribers.items():
+        for registered_type, subscriber_list in list(self._subscribers.items()):
             if registered_type is not event_type and isinstance(event, registered_type):
-                handlers.extend(subscriber_list)
+                for sub in subscriber_list:
+                    if sub not in handlers:
+                        handlers.append(sub)
 
         for handler in handlers:
             try:
