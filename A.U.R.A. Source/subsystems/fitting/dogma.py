@@ -572,3 +572,167 @@ def calculate_resources(
         "pg_pct": pg_pct,
         "pg_ok": total_pg_used <= total_pg_output + 0.05,
     }
+
+
+# --- v0.7.0 Tactical Dogma Enhancements: Drones, Implants, Boosters & J-Space Weather ---
+
+PIRATE_IMPLANT_SETS: Dict[str, Dict[str, float]] = {
+    "High-Grade Snake": {"max_velocity": 1.247, "agility": 0.84},
+    "High-Grade Amulet": {"armor_hp": 1.338},
+    "High-Grade Crystal": {"shield_boost_mult": 1.536},
+    "High-Grade Asklepian": {"armor_rep_mult": 1.536},
+    "High-Grade Talisman": {"cap_recharge_mult": 0.674},
+    "High-Grade Halo": {"signature_radius": 0.793},
+    "High-Grade Grail": {"sensor_strength": 1.326},
+}
+
+COMBAT_BOOSTERS: Dict[str, Dict[str, float]] = {
+    "Standard Crash": {"missile_explosion_radius": 0.80},
+    "Standard Drop": {"tracking_speed": 1.25},
+    "Standard Exile": {"armor_rep_mult": 1.20},
+    "Standard Blue Pill": {"shield_boost_mult": 1.20},
+    "Standard Frentix": {"optimal_range": 1.20},
+    "Standard X-Instinct": {"signature_radius": 0.80},
+}
+
+CANONICAL_DRONE_PROFILES: Dict[str, Dict[str, Any]] = {
+    "Hobgoblin II": {"type": "Light", "bandwidth": 5, "volume": 5, "base_dps": 28.0, "dmg_type": "Thermal"},
+    "Warrior II": {"type": "Light", "bandwidth": 5, "volume": 5, "base_dps": 24.0, "dmg_type": "Explosive"},
+    "Acolyte II": {"type": "Light", "bandwidth": 5, "volume": 5, "base_dps": 22.0, "dmg_type": "EM"},
+    "Hornet II": {"type": "Light", "bandwidth": 5, "volume": 5, "base_dps": 20.0, "dmg_type": "Kinetic"},
+    "Hammerhead II": {"type": "Medium", "bandwidth": 10, "volume": 10, "base_dps": 56.0, "dmg_type": "Thermal"},
+    "Valkyrie II": {"type": "Medium", "bandwidth": 10, "volume": 10, "base_dps": 48.0, "dmg_type": "Explosive"},
+    "Infiltrator II": {"type": "Medium", "bandwidth": 10, "volume": 10, "base_dps": 44.0, "dmg_type": "EM"},
+    "Vespa II": {"type": "Medium", "bandwidth": 10, "volume": 10, "base_dps": 40.0, "dmg_type": "Kinetic"},
+    "Ogre II": {"type": "Heavy", "bandwidth": 25, "volume": 25, "base_dps": 112.0, "dmg_type": "Thermal"},
+    "Berserker II": {"type": "Heavy", "bandwidth": 25, "volume": 25, "base_dps": 96.0, "dmg_type": "Explosive"},
+    "Bouncer II": {"type": "Sentry", "bandwidth": 25, "volume": 25, "base_dps": 100.0, "dmg_type": "Explosive"},
+    "Curator II": {"type": "Sentry", "bandwidth": 25, "volume": 25, "base_dps": 110.0, "dmg_type": "EM"},
+    "Garde II": {"type": "Sentry", "bandwidth": 25, "volume": 25, "base_dps": 125.0, "dmg_type": "Thermal"},
+    "Warden II": {"type": "Sentry", "bandwidth": 25, "volume": 25, "base_dps": 90.0, "dmg_type": "Kinetic"},
+}
+
+
+def calculate_drone_dps(
+    drone_bay_capacity: float,
+    drone_bandwidth: float,
+    drones_in_bay: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """
+    Computes active drone DPS, active bandwidth usage, and bay volume usage.
+    Enforces maximum 5 active drones and total bandwidth <= ship drone_bandwidth.
+    """
+    total_bay_used = 0.0
+    active_drones: List[Dict[str, Any]] = []
+    used_bandwidth = 0.0
+
+    for item in drones_in_bay:
+        name = item.get("name", "")
+        qty = int(item.get("count", 1))
+        profile = CANONICAL_DRONE_PROFILES.get(name, {
+            "type": "Light", "bandwidth": 5, "volume": 5, "base_dps": 22.0, "dmg_type": "Kinetic"
+        })
+        bw = profile["bandwidth"]
+        vol = profile["volume"]
+        dps = profile["base_dps"]
+
+        total_bay_used += vol * qty
+
+        # Try to launch up to 5 active drones within bandwidth limit
+        for _ in range(qty):
+            if len(active_drones) < 5 and (used_bandwidth + bw) <= drone_bandwidth:
+                active_drones.append({"name": name, "dps": dps, "dmg_type": profile["dmg_type"]})
+                used_bandwidth += bw
+
+    total_drone_dps = sum(d["dps"] for d in active_drones)
+
+    return {
+        "active_drones_count": len(active_drones),
+        "active_drones": active_drones,
+        "used_bandwidth": used_bandwidth,
+        "max_bandwidth": drone_bandwidth,
+        "bandwidth_ok": used_bandwidth <= drone_bandwidth,
+        "total_drone_dps": round(total_drone_dps, 1),
+        "bay_used_m3": round(total_bay_used, 1),
+        "bay_capacity_m3": drone_bay_capacity,
+        "bay_ok": total_bay_used <= drone_bay_capacity,
+    }
+
+
+def apply_pirate_implant_set(base_stats: Dict[str, Any], set_name: str) -> Dict[str, Any]:
+    """Applies pirate implant set multipliers to fitting performance metrics."""
+    modifiers = {}
+    s_norm = set_name.lower().replace("-", " ").strip()
+    for k, v in PIRATE_IMPLANT_SETS.items():
+        if k.lower().replace("-", " ").strip() == s_norm:
+            modifiers = v
+            break
+    out = dict(base_stats)
+    stat_aliases = {
+        "agility": "align_time",
+        "armor_hp": "ehp",
+        "shield_hp": "ehp",
+    }
+    for stat, mult in modifiers.items():
+        target_key = stat if stat in out else stat_aliases.get(stat)
+        if target_key and target_key in out and isinstance(out[target_key], (int, float)):
+            out[target_key] = round(out[target_key] * mult, 2)
+        if isinstance(out.get("mobility"), dict):
+            mob = dict(out["mobility"])
+            if stat in mob and isinstance(mob[stat], (int, float)):
+                mob[stat] = round(mob[stat] * mult, 2)
+            elif stat == "max_velocity" and "max_speed" in mob:
+                mob["max_speed"] = round(mob["max_speed"] * mult, 2)
+            elif stat == "agility" and "align_time" in mob:
+                mob["align_time"] = round(mob["align_time"] * mult, 2)
+            out["mobility"] = mob
+    return out
+
+
+def apply_combat_booster(base_stats: Dict[str, Any], booster_name: str) -> Dict[str, Any]:
+    """Applies synthetic combat booster modifiers."""
+    modifiers = {}
+    b_norm = booster_name.lower().replace("-", " ").strip()
+    if b_norm.endswith(" booster"):
+        b_norm = b_norm[:-8].strip()
+    for k, v in COMBAT_BOOSTERS.items():
+        if k.lower().replace("-", " ").strip() == b_norm:
+            modifiers = v
+            break
+    if not modifiers:
+        modifiers = COMBAT_BOOSTERS.get(booster_name, {})
+    out = dict(base_stats)
+    for stat, mult in modifiers.items():
+        if stat in out and isinstance(out[stat], (int, float)):
+            out[stat] = round(out[stat] * mult, 2)
+    return out
+
+
+def apply_wormhole_weather(base_stats: Dict[str, Any], weather_name: str, wh_class: int) -> Dict[str, Any]:
+    """Applies J-Space environmental weather multipliers from core/eve_wormhole_data."""
+    from core.eve_wormhole_data import get_weather_effects
+    effects = get_weather_effects(weather_name, wh_class)
+    out = dict(base_stats)
+    stat_aliases = {
+        "damage": "total_dps",
+        "velocity": "max_velocity",
+        "inertia": "align_time",
+        "armor_hp": "ehp",
+        "shield_hp": "ehp",
+    }
+
+    for stat, mult in effects.items():
+        factor = 1.0 + mult if -1.0 <= mult <= 5.0 else mult
+        target_key = stat if stat in out else stat_aliases.get(stat)
+        if target_key and target_key in out and isinstance(out[target_key], (int, float)):
+            out[target_key] = round(out[target_key] * factor, 2)
+        if isinstance(out.get("mobility"), dict):
+            mob = dict(out["mobility"])
+            if stat == "velocity" and "max_speed" in mob:
+                mob["max_speed"] = round(mob["max_speed"] * factor, 2)
+            elif stat == "inertia" and "align_time" in mob:
+                mob["align_time"] = round(mob["align_time"] * factor, 2)
+            out["mobility"] = mob
+
+    return out
+

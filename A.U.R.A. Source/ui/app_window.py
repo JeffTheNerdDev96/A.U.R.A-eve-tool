@@ -73,6 +73,8 @@ from core.events import (
 from core.input_safety import escape_html, safe_display_text, clamp_text
 from subsystems.intel import IntelSubsystem
 from subsystems.dscan import DScanSubsystem
+from subsystems.combat import CombatSubsystem
+from subsystems.utilities import UtilitiesSubsystem
 from subsystems.map import MapSubsystem
 from subsystems.fleet_comp import FleetCompSubsystem
 from subsystems.wormhole import WormholeSubsystem
@@ -80,11 +82,13 @@ from subsystems.xmpp_chat import XMPPChatSubsystem
 from subsystems.voip_mumble import VOIPMumbleSubsystem
 from subsystems.fitting import FittingSubsystem
 from subsystems.ai import AISubsystem
+from ui.tabs.combat_tab import CombatTabWidget
 from ui.tabs.dscan_tab import DScanTabWidget
 from ui.tabs.fitting_tab import FittingLabWidget
 from ui.tabs.map_tab import MapTabWidget
 from ui.tabs.composition_tab import CompositionTabWidget
 from ui.tabs.wormhole_tab import WormholeTabWidget
+from ui.tabs.utilities_tab import UtilitiesTabWidget
 from ui.tabs.xmpp_tab import XMPPTabWidget
 from ui.tabs.voip_tab import VOIPTabWidget
 from ui.theme import (
@@ -100,14 +104,16 @@ from ui.theme import (
 
 _TAB_MIN_SIZES = {
     0: (420, 480),   # Live Intel Radar
-    1: (780, 520),   # D-Scan
-    2: (960, 620),   # Composition
-    3: (720, 500),   # Map
-    4: (960, 620),   # Anokis
-    5: (960, 620),   # Fitting
-    6: (800, 560),   # XMPP
-    7: (860, 580),   # VOIP
-    8: (480, 500),   # A.U.R.A. Chat
+    1: (860, 560),   # Combat & Threat HUD
+    2: (780, 520),   # D-Scan
+    3: (960, 620),   # Composition
+    4: (720, 500),   # Map
+    5: (960, 620),   # Anokis
+    6: (900, 580),   # Utilities
+    7: (960, 620),   # Fitting
+    8: (800, 560),   # XMPP
+    9: (860, 580),   # VOIP
+    10: (480, 500),  # A.U.R.A. Chat
 }
 
 
@@ -611,6 +617,12 @@ class MainWindow(QMainWindow):
         self.fitting_subsystem = FittingSubsystem()
         self.fitting_subsystem.initialize()
         self.fitting_subsystem.start()
+        self.combat_subsystem = CombatSubsystem()
+        self.combat_subsystem.initialize()
+        self.combat_subsystem.start()
+        self.utilities_subsystem = UtilitiesSubsystem()
+        self.utilities_subsystem.initialize()
+        self.utilities_subsystem.start()
         self.ai_subsystem = AISubsystem()
         self.ai_subsystem.initialize()
         self.ai_subsystem.start()
@@ -658,10 +670,15 @@ class MainWindow(QMainWindow):
         # Set window icon
         this_dir = os.path.dirname(os.path.abspath(__file__))
         icon_candidates = [
+            os.path.join(this_dir, "..", "assets", "brand", "app_icon.ico"),
+            os.path.join(this_dir, "..", "assets", "brand", "app_icon.png"),
             os.path.join(this_dir, "app_icon.ico"),
             os.path.join(this_dir, "..", "app_icon.ico"),
+            os.path.join(getattr(sys, "_MEIPASS", ""), "assets", "brand", "app_icon.ico"),
             os.path.join(getattr(sys, "_MEIPASS", ""), "app_icon.ico"),
+            os.path.join(os.path.dirname(sys.executable), "assets", "brand", "app_icon.ico"),
             os.path.join(os.path.dirname(sys.executable), "app_icon.ico"),
+            os.path.join(os.getcwd(), "assets", "brand", "app_icon.ico"),
             os.path.join(os.getcwd(), "app_icon.ico"),
         ]
         for ip in icon_candidates:
@@ -989,20 +1006,27 @@ class MainWindow(QMainWindow):
 
         right_layout.addLayout(feed_actions)
 
+        self.combat_tab = CombatTabWidget(self.combat_subsystem)
+        self.combat_tab.ask_aura_requested.connect(self._handle_external_ask_aura)
+
         self.dscan_tab = DScanTabWidget(self.dscan_subsystem)
         self.dscan_tab.ask_aura_requested.connect(self._handle_external_ask_aura)
-
-        self.fitting_lab = FittingLabWidget(fitting_subsystem=self.fitting_subsystem)
-        self.fitting_lab.evaluate_requested.connect(self._on_fitting_submitted)
-
-        self.map_tab = MapTabWidget(self.eve_map, map_subsystem=self.map_subsystem)
-        self.map_tab.set_jump_range(int(getattr(config, "alert_jump_range", 5)))
 
         self.composition_tab = CompositionTabWidget(fleet_comp_subsystem=self.fleet_comp_subsystem)
         self.composition_tab.fleet_eval_requested.connect(self._handle_fleet_eval_submission)
 
+        self.map_tab = MapTabWidget(self.eve_map, map_subsystem=self.map_subsystem)
+        self.map_tab.set_jump_range(int(getattr(config, "alert_jump_range", 5)))
+
         self.anokis_tab = WormholeTabWidget(self.wormhole_subsystem)
         self.anokis_tab.ask_aura_requested.connect(self._handle_external_ask_aura)
+
+        self.utilities_tab = UtilitiesTabWidget(self.utilities_subsystem)
+        self.utilities_tab.ask_aura_requested.connect(self._handle_external_ask_aura)
+        self.utilities_tab.fit_export_requested.connect(self._handle_external_fit_export)
+
+        self.fitting_lab = FittingLabWidget(fitting_subsystem=self.fitting_subsystem)
+        self.fitting_lab.evaluate_requested.connect(self._on_fitting_submitted)
 
         self.xmpp_tab = XMPPTabWidget(self.xmpp_subsystem)
         self.xmpp_tab.ask_aura_requested.connect(self._handle_external_ask_aura)
@@ -1011,20 +1035,24 @@ class MainWindow(QMainWindow):
         self.voip_tab.ask_aura_requested.connect(self._handle_external_ask_aura)
 
         self.radar_tab_page = self._wrap_tab_card(right_panel)
+        self.combat_tab_page = self._wrap_tab_card(self.combat_tab)
         self.dscan_tab_page = self._wrap_tab_card(self.dscan_tab)
         self.composition_tab_page = self._wrap_tab_card(self.composition_tab)
         self.map_tab_page = self._wrap_tab_card(self.map_tab)
         self.anokis_tab_page = self._wrap_tab_card(self.anokis_tab)
+        self.utilities_tab_page = self._wrap_tab_card(self.utilities_tab)
         self.fitting_tab_page = self._wrap_tab_card(self.fitting_lab)
         self.xmpp_tab_page = self._wrap_tab_card(self.xmpp_tab)
         self.voip_tab_page = self._wrap_tab_card(self.voip_tab)
         self.chat_tab_page = self._wrap_tab_card(self.chat_tab)
 
         self.tabs.addTab(self.radar_tab_page, "Live Intel Radar")
+        self.tabs.addTab(self.combat_tab_page, "Combat & Threat HUD")
         self.tabs.addTab(self.dscan_tab_page, "D-Scan")
         self.tabs.addTab(self.composition_tab_page, "Composition")
         self.tabs.addTab(self.map_tab_page, "Map")
         self.tabs.addTab(self.anokis_tab_page, "Anokis")
+        self.tabs.addTab(self.utilities_tab_page, "Utilities")
         self.tabs.addTab(self.fitting_tab_page, "Fitting")
         self.tabs.addTab(self.xmpp_tab_page, "XMPP")
         self.tabs.addTab(self.voip_tab_page, "VOIP")
@@ -1933,6 +1961,13 @@ class MainWindow(QMainWindow):
         if hasattr(self, "chat_tab_page"):
             self.tabs.setCurrentIndex(self.tabs.indexOf(self.chat_tab_page))
         self._execute_tactical_prompt(prompt, "Tactical Assistant Inquiry")
+
+    def _handle_external_fit_export(self, eft_str: str):
+        """Loads an exported EFT fit string into the Fitting Lab and switches tabs."""
+        if hasattr(self, "fitting_lab") and hasattr(self.fitting_lab, "fit_text"):
+            self.fitting_lab.fit_text.setPlainText(eft_str)
+        if hasattr(self, "fitting_tab_page"):
+            self.tabs.setCurrentIndex(self.tabs.indexOf(self.fitting_tab_page))
 
     # ---------------- Tool Dialog Callbacks ----------------
 

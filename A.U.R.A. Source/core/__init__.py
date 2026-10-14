@@ -36,7 +36,12 @@ from .lifecycle import cleanup_temp_files, shutdown_application, install_thread_
 from .eve_data import lookup_ship, get_tactical_grounding, SHIP_DATABASE
 from .paths import (
     get_app_root, get_models_dir, get_data_dir, get_logs_dir,
-    get_assets_dir, get_bootstrap_dir, find_model_path
+    get_assets_dir, get_app_icon_path, get_checksum_path, get_bootstrap_dir, find_model_path
+)
+from .version import (
+    VERSION, __version__, APP_VERSION, PUBLISHER, LICENSE,
+    COMPANY_URL, PRODUCT_NAME, INSTALL_DIR_NAME, INSTALLER_EXE_NAME,
+    APP_EXE_NAME, MODEL_FOLDER, MODEL_FILE, MODEL_DOWNLOAD_URL
 )
 
 __all__ = [
@@ -48,7 +53,10 @@ __all__ = [
     "cleanup_temp_files", "shutdown_application", "install_thread_excepthook",
     "lookup_ship", "get_tactical_grounding", "SHIP_DATABASE",
     "get_app_root", "get_models_dir", "get_data_dir", "get_logs_dir",
-    "get_assets_dir", "get_bootstrap_dir", "find_model_path",
+    "get_assets_dir", "get_app_icon_path", "get_checksum_path", "get_bootstrap_dir", "find_model_path",
+    "VERSION", "__version__", "APP_VERSION", "PUBLISHER", "LICENSE",
+    "COMPANY_URL", "PRODUCT_NAME", "INSTALL_DIR_NAME", "INSTALLER_EXE_NAME",
+    "APP_EXE_NAME", "MODEL_FOLDER", "MODEL_FILE", "MODEL_DOWNLOAD_URL",
 ]
 
 

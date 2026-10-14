@@ -1,96 +1,84 @@
 # Changelog
 
-All notable changes to Adaptive Underworld Recon Array (A.U.R.A.) are documented here. Canonical product version lives in `A.U.R.A. Source/version.py`.
+All notable changes to Adaptive Underworld Recon Array (A.U.R.A.) are documented here. Canonical product version lives in `A.U.R.A. Source/core/version.py`.
 
-## [v0.6.1-alpha.1]
+## [v0.7.0-alpha.1]
 
-Active release.
+Active release (Final Alpha Release — 100% No-ESI Tactical Operations).
 
-### Added — UI Overhaul (Angel Cartel Tactical Design System)
+### Added — Real-Time Combat & Threat HUD Subsystem (`subsystems/combat/`, `ui/tabs/combat_tab.py`)
 
-- **Centralized design tokens (`ui/theme.py`)**: new Angel Cartel / EVE HUD palette, all defined in the single theme module:
-  - Void/obsidian bases: `VOID_OBSIDIAN #0D0E12`, `VOID_GRAY #14171D`, `VOID_PANEL #1A1F26`, `VOID_ELEVATED #222831`.
-  - Graphite framing: `GRAPHITE #2A323D`, `GRAPHITE_LIGHT #3A4553`.
-  - Cartel accents: `CARTEL_CRIMSON #C0392B`, `CARTEL_VERMILION #E74C3C`, `CARTEL_ALERT #FF4B4B`.
-  - HUD typography: `HUD_WHITE #E0E6ED`, `HUD_AMBER #F39C12` (headers / active highlights), plus steel/muted secondary tones.
-  - Legacy names (`BURNT_IRON*`, `BONE_*`, `OXIDE_RED*`, `BG_*`, `TEXT_*`, `ACCENT*`) are kept as aliases, so every existing import and tab stylesheet picks up the new palette without code changes. New `ACCENT_ALERT` and `HUD_HIGHLIGHT` role aliases were added.
-- **Angular framing**: the browser chrome and footer now use asymmetric angled corners with a crimson left rail. The main tab pane is square-cornered with a crimson top seam. Tabs have one angled corner, and the selected tab shows an amber label with an alert-red top bar.
+- **Passive Gamelog Tailer**: Real-time non-blocking background parser tailing active EVE Online Gamelogs in `Documents/EVE/logs/Gamelogs/` with zero ESI dependency.
+- **Rolling DPS Telemetry**:
+  - Live 10s, 30s, and 60s rolling windows for incoming and outgoing DPS.
+  - Peak incoming and peak outgoing DPS tracking.
+  - Cumulative engagement session damage dealt and taken.
+- **4-Layer Damage Profiling**:
+  - Real-time percentage breakdown across EM, Thermal, Kinetic, and Explosive damage layers with visual color-coded HUD gauges.
+- **Active EWAR & Tackle Tracker**:
+  - Real-time hostility detection for Warp Scrambles, Warp Disruptions, Stasis Webs, Energy Neutralizers/Nosferatus, Target Painters, Sensor Dampeners, and ECM Jams.
+  - Automatic 15-second decay timer for stale electronic warfare debuffs.
+- **Live Gamelog Event Feed**:
+  - Real-time tabular display of volleys, weapon types, ammo types, hit qualities (Glances, Penetrates, Smashes, Wrecks), and vessel destruction.
+- **Tactical Handover**: One-click handover button transferring live combat telemetry directly into A.U.R.A. Neural Chat for instant defensive counter-play suggestions.
 
-### Fixed — Backend
+### Added — Unified Utilities Subsystem (`subsystems/utilities/`, `ui/tabs/utilities_tab.py`)
 
-- **VOIP / Mumble channel tree (`subsystems/voip_mumble/client.py`)**: fields were coerced with `int(x or -1)`, which turned Mumble's Root channel (id `0`) into `-1`. As a result, sub-channels of Root were orphaned in the topology tree, pilots in Root were counted as zero, and the speaking-telemetry channel was wrong for Root. Added a zero-safe `_as_int()` helper and used it for channel id, parent id, user channel id and the channel path walk.
-- **Fitting Dogma engine (`subsystems/fitting/dogma.py`)**: corrected the `warp_speed_mods` type annotation (`List[float]`, was `List[Dict]`) so it matches the values it actually holds. This clears a static operator/type mismatch in the warp-speed multiplier calculation.
-- **EFT fitting parser (`subsystems/fitting/parser.py`)**: slot lists were redeclared after the single-block early-return branch had already assigned them. They are now declared once before both paths, and the item-count dict is typed.
-- **Tactical grounding (`core/eve_data.py`)**: fixed an implicit-`Optional` default for `attachments`, typed the compatibility `warnings` list, and stopped a loop variable (`s_info`) from being reused with a conflicting type.
-- **Diagnostics (`core/error_handler.py`)**: `log_diagnostic_error()` now accepts `BaseException | str`. It takes the traceback from the exception object itself, so thread-excepthook crashes outside an `except` block are no longer logged as `NoneType: None`. String messages (as passed by the hardware OpenVINO probe) are accepted explicitly.
-- **Installer hang at "Installing Intel NPU OpenVINO stack..." (`requirements/`, `tools/installer_gui.py`)**:
-  - **Root cause**: `requirements.txt` listed `pymumble==1.6.1` alongside `protobuf==7.36.2`, but pymumble's metadata pins `protobuf==3.12.2`, so the set was unresolvable. The core install step failed silently, because its exit code was ignored. Every profile step then re-resolved the same conflict. With OpenVINO added to the set, pip backtracked through dozens of `openvino`/`openvino-genai`/`openvino-tokenizers` releases. pip ran with no console window and its output was discarded, so setup appeared frozen.
-  - **Fix**: `pymumble` moves to the new `requirements/requirements-nodeps.txt`, installed with `--no-deps`. Its real runtime dependencies (`protobuf==7.36.2`, `opuslib==3.0.1`) stay pinned in `requirements.txt`. Every requirements file (core, Intel NPU, Intel GPU, AMD NPU) now resolves in about 15–20 s.
-  - **Installer hardening**:
-    - pip runs non-interactively with UTF-8 output, and its output is streamed to `logs/install_pip.log`.
-    - Progress lines (`Collecting…`, `Downloading…`) appear in the setup window.
-    - A watchdog kills the pip process tree after 10 minutes with no output, so setup can no longer hang indefinitely.
-    - A core requirements failure now stops setup with a clear error. A failed optional acceleration stack (OpenVINO, DirectML) falls back to the CPU stack and appears as a post-install warning.
-    - Cancel now terminates pip's whole process tree.
-  - The same `--no-deps` step was added to `select_hardware_profile.py` and all eight `install_*.bat` developer scripts.
-- **XMPP / VOIP tabs (`ui/tabs/xmpp_tab.py`, `ui/tabs/voip_tab.py`)**: `if not subsystem.is_running:` tested the bound method, which is always truthy, instead of calling it. Standalone tabs therefore never initialized or started their own subsystem. The method is now called correctly.
+- **Cargo & Loot Valuation Suite**:
+  - High-speed clipboard parser for inventory, cargo hold, asset safety, and loot pastes.
+  - Offline market appraisal using baseline ISK price indices.
+  - Volume computation ($m^3$) and automated hauler class recommendation (Blockade Runner, Deep Space Transport, Standard Industrial, Freighter).
+- **Reprocessing & Refining Calculator**:
+  - Standard ore refining calculator supporting all standard ores and compressed variants.
+  - Customizable station/citadel efficiency (50%–90%) and take-rate tax percentages (0%–20%).
+  - Detailed mineral output matrix (Tritanium, Pyerite, Mexallon, Isogen, Nocxium, Zydrine, Megacyte, Morphite) and net gain/loss profit analysis.
+- **Survey Scanner & Mining Ledger**:
+  - Clipboard parser for in-game survey scanner results (asteroid volumes, units, distance).
+  - Depletion cycle planner calculating required laser cycles, completion timers, and extraction throughput ($m^3$/hr).
+  - Live session mining ledger automatically recording mined ores, units, and cumulative volumes from gamelog events.
+- **Killmail Importer & EFT Fitting Exporter**:
+  - Clipboard parser for in-game kill report text and zKillboard summaries.
+  - Automated module slot deduction (high/mid/low/rig/subsystem) matching Dogma modules.
+  - Reconstructs EFT-compliant fitting blocks with one-click export into the Fitting Lab.
+- **Planetary Industry (PI) Production Schematics**:
+  - Recursive ingredient tree solver for P4, P3, and P2 high-tech commodities.
+  - Calculates daily P0 raw extraction requirements, intermediate volumes, and Customs Office (POCO) export tax.
+- **Item & Market Index**:
+  - Searchable offline directory of canonical item prices, volumes, and classifications.
 
-- **Architecture, Code Style & Idioms (PEP 8)**:
-  - Repository-wide code audit: converted mechanical indexing and legacy patterns into idiomatic constructs, pattern matching, and comprehension expressions.
-  - Standardized module imports adhering to PEP 8 grouping across all subsystem service layers and UI tabs.
-  - Purged conversational AI narration, redundant inline boilerplates, and step-by-step markers.
-- **Subsystem Logic & Resilience Hardening**:
-  - **VoIP Subsystem (`subsystems/voip_mumble`)**: Audited socket lifecycles, non-blocking connection loops, and packet buffer draining; verified graceful worker thread joining, audio pipeline state cleanup, and ephemeral in-memory credential zeroization on disconnect.
-  - **Fitting Engine (`subsystems/fitting`)**: Hardened Dogma stat aggregation loops, attribute lookups, nested item/slot traversal, and index guards to prevent UI freeze or unhandled KeyError/IndexError exceptions.
-- **Version Release Synchronization**:
-  - Standardized version metadata (`v0.6.1-alpha.1` / PEP 440 `0.6.1a1`) across all launchers, bootstrap scripts, build tools, packaging manifests, and documentation.
+### Added — Tactical Dogma & Subsystem Enhancements
 
-## [v0.6.0-alpha.4]
+- **D-Scan Snapshot Diffing (`subsystems/dscan/`)**:
+  - Added `DScanSnapshotDiff` and `diff_snapshots` to track vessel arrivals and departures between sweeps.
+- **Wormhole Space Weather & Statics (`subsystems/wormhole/`, `core/eve_wormhole_data.py`)**:
+  - J-space statics lookup and environmental weather multipliers for C1–C6 phenomena (Wolf-Rayet, Pulsar, Magnetar, Cataclysmic Variable, Red Giant, Black Hole).
+- **Dogma Fitting Engine Extensions (`subsystems/fitting/dogma.py`)**:
+  - Active drone bay bandwidth and DPS calculator with 5-drone and bandwidth limits.
+  - Pirate implant set bonuses (High-Grade Snake, Amulet, Crystal, Asklepian, Talisman, Halo, Grail).
+  - Combat booster modifiers (Standard Crash, Drop, Exile, Blue Pill, Frentix, X-Instinct).
+  - J-Space environmental weather stat multipliers.
 
-Sole currently supported release.
+### Added — Canonical 11-Tab Desktop Hierarchy (`ui/app_window.py`)
 
-- **In-Game Dogma Fitting Engine (`subsystems/fitting/dogma.py`, `stats.py`)**:
-  - Standard EVE Online Dogma mathematical engine implementing exact stacking penalties (\(S(n) = \exp(-(n-1)^2 / 7.1289)\)) for resistances, damage, tracking, velocity, agility, and capacitor recharge.
-  - Exemptions for unpenalized modules (`Damage Control II`, `Assault Damage Control II`, `Reactive Armor Hardener`, `Co-Processor II`).
-  - True Effective Hit Points (Omni EHP and worst-hole EHP) with multi-layer nested resistance calculations.
-  - Capacitor simulation engine: calculates peak recharge rate (\(2.5 \times C / \tau\)), continuous module drain, capacitor stability, exact equilibrium capacity (\(u^2 - u + k = 0\)), and time-to-depletion numerical discharge integration under full combat load.
-  - Flight mobility calculation: total mass (including armor plates), stacking-penalized inertia, align time (\(1.386294 \times M \times A \times 10^{-6}\)), sub-warp speed with propulsion thrust scaling, and hyperspatial warp speed.
-  - Engineering resource calculations: CPU and Powergrid load with dynamic scaling from Co-Processors, Reactor Control Units, Ancillary Current Routers, and Micro Auxiliary Power Cores.
-  - Hull role bonus integration (e.g. Attack Battlecruiser 95% PG / 50% CPU weapon fitting reductions).
-- **Expanded Canonical EVE Modules & Ship Database (`core/eve_modules_data.py`, `core/eve_ships_data.py`, `core/eve_data.py`)**:
-  - 539 canonical modules with exact Dogma attributes: complete T1, T2, Compact, Enduring, Restrained, and Faction lines for Multispectrum Energized Membranes, Shield Hardeners, Armor Plates, Shield Extenders, Local Armor Repairers, Shield Boosters, 1MN/5MN/50MN/500MN Propulsion, Tackle/EWAR, Weapon Systems, Damage Enhancers, and Rigs.
-  - 339 exact ship profiles with base CPU, Powergrid, Capacitor Capacity, Capacitor Recharge, Shield/Armor/Hull HP, and racial base resistance matrices.
-  - October 2026 update ships added: **Akoman** (Blood Raiders Attack Battlecruiser), plus Equinox Upwell haulers and freighters (**Squall**, **Deluge**, **Torrent**, **Avalanche**).
-- **In-Game Style Fitting Lab UI (`ui/tabs/fitting_tab.py`)**:
-  - Live **Resistance Matrix**: 4-damage-type breakdown (EM, Thermal, Kinetic, Explosive) across Shield, Armor, and Structure with color-coded resistance percentages and layer EHP.
-  - Live **Capacitor Dynamics Banner**: Real-time peak recharge (GJ/s), active continuous drain (GJ/s), stability badge (Stable % / Depletes in MM:SS), and delta.
-  - Live **Mobility Readout**: Align time, maximum sub-warp velocity (cold & prop-active), total mass, and warp speed.
-  - Module browser and slot rack tooltips with exact CPU (tf), Powergrid (MW), and Capacitor activation requirements.
-- **VOIP** tab with a built-in Mumble client for alliance voice comms (`subsystems/voip_mumble`): channel tree with double-click join, hold-to-talk push-to-talk (or voice-activation mode), server-synced self-mute/self-deafen, microphone/speaker device selection with live level meters, and a channel text stream with one-click **Ask A.U.R.A.** handover. Voice runs 48 kHz mono Opus via QtMultimedia capture/playback pumps bridged to `pymumble`.
-- VOIP runtime bootstrap: `tools/fetch_voip_runtime.py` provisions the Opus codec DLL into `voip_runtime/` from conda-forge (`libopus` 1.5.2); a missing codec degrades gracefully to text-only with a status banner.
-- Typed VOIP EventBus events (`VOIPConnectionStateChangedEvent`, `VOIPChannelUpdatedEvent`, `VOIPUserSpeakingEvent`, `VOIPTextMessageEvent`) and 8000-series diagnostics (`AURA-ERR-8001`–`AURA-ERR-8005`).
+- Exact canonical 11-tab order established:
+  `Live Intel Radar` $\to$ `Combat & Threat HUD` $\to$ `D-Scan` $\to$ `Composition` $\to$ `Map` $\to$ `Anokis` $\to$ `Utilities` $\to$ `Fitting` $\to$ `XMPP` $\to$ `VOIP` $\to$ `A.U.R.A. Chat`.
 
-### Security
+### Hardened — Multi-System Distribution & Tooling Suite
 
-- Mumble credentials are ephemeral: held in volatile memory only, copied into the protocol adapter, wiped on disconnect and shutdown, and never persisted to disk. pymumble's removed `ssl.wrap_socket` call path is replaced with a hardened `SSLContext` (TLS 1.2+ minimum, disabled legacy protocols, hostname verification); self-signed community servers require an explicit per-session opt-in checkbox.
-- **Python Dependency Remediation (152 CVEs / Advisories Mitigated)**: Audited and resolved 152 vulnerabilities identified by dependency security scans across four core packages, ensuring all attack vectors are either completely removed by version upgrades or neutralized through application-level defense-in-depth:
-  - **`numpy` (13 CVEs / advisories)**: Mitigated legacy vulnerabilities including arbitrary code execution via `numpy.load(allow_pickle=True)` (CVE-2019-6446, GHSA-9fq2-x9r6-wfmf, PYSEC-2019-108), `typestr` string comparison DoS (CVE-2021-34141, GHSA-2fc2-6r4j-p65h, PYSEC-2021-856), `numpy.pad` recursion DoS (CVE-2017-12852, GHSA-5545-2q6w-2gh6, PYSEC-2017-1), and `f2py` buffer overflows/temp file flaws (CVE-2021-41495, CVE-2021-41496, CVE-2014-1858, CVE-2014-1859). In A.U.R.A., NumPy is strictly used for internal NPU coprocessor test tensors with zero untrusted input ingestion, and upgrading to `numpy>=2.5.4` completely eliminates the legacy code paths.
-  - **`pillow` (34 CVEs / advisories)**: Mitigated vulnerabilities including `ImageMath.eval` arbitrary environment code execution (CVE-2023-50447, GHSA-3f63-hfp8-52jq, PYSEC-2023-175), `ImageColor` buffer overflow (CVE-2024-28219, GHSA-44wm-f244-xhp3), decompression bombs (GHSA-62p4-gmf7-7g93, PYSEC-2026-2874), and decoder out-of-bounds reads/memory corruption across 30+ format handlers. Mitigated in A.U.R.A. via `Image.MAX_IMAGE_PIXELS = config.max_image_pixels` decompression bomb defense, strict attachment byte limit verification, RGB format normalization, and upgrading to `pillow>=12.3.0`.
-  - **`pypdf` (98 CVEs / advisories across 49 GHSA/PYSEC pairs)**: Mitigated extensive denial-of-service vectors including cyclic cross-reference (`xref`) object loops (GHSA-23w6-3w8w-8484, PYSEC-2026-1827), FlateDecode/LZW decompression bombs (GHSA-2q4j-m29v-hq73, GHSA-4f6g-68pf-7vhv), circular AcroForm dependencies (GHSA-52x6-gq3r-vpf4), font CMap recursion (GHSA-2rw7-x74f-jg35), and outline/catalog cyclic reference hangs. Mitigated in A.U.R.A. via strict attachment size limits, hard page traversal capping (`config.max_pdf_pages`), `try/except` sandbox containment, control character stripping in `_finalize_text()`, and upgrading to `pypdf>=6.20.0`.
-  - **`protobuf` (7 CVEs / advisories)**: Mitigated Message parsing DoS via deep recursion (CVE-2022-1941, GHSA-7gcm-g887-7qv7), core parser null pointer dereferences (CVE-2021-22570, GHSA-8gq9-2x98-w8hf, PYSEC-2022-48), text format DoS (CVE-2022-3509, GHSA-8qvm-5x2c-j2w7), and legacy unpacker memory issues (PYSEC-2026-1805, PYSEC-2026-1806, PYSEC-2026-899). Upgraded to `protobuf==7.36.2`. Configured `PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python` runtime bridge in `subsystems/voip_mumble/runtime.py` and `app.py` to allow `pymumble`'s legacy `protoc` stubs (`mumble_pb2.py`) to run seamlessly under Protobuf 7.x without descriptor creation errors.
-
-### Changed
-
-- **Tactical Map 15-Minute Intel Feed Expiration**: Ensured all tactical alert effects added to the stargate map (threat star backdrops, threat rings, colored bold node labels, and right rail intel text) expire and are completely cleared within 15 minutes (900 seconds) of intel feed data ingestion. Synchronized with `IntelSubsystem` via `IntelStaleExpiredEvent` EventBus subscriptions, real-time JIT TTL validation in `_intel_for_id`, and periodic graph pruning that functions reliably across both player-centered and unlocated route views.
-- Nine-tab chrome: the VOIP tab sits between XMPP and A.U.R.A. Chat. Shutdown ordering stops the VOIP worker (Mumble thread joined, credentials wiped) alongside XMPP, and the tab unsubscribes its EventBus handlers on close.
-- Repository hygiene: 300+ stale artifacts, `__pycache__`, and build outputs removed; documentation consolidated and aligned on nine tabs and the v0.6.0-alpha.4 version string.
-
-### Dependencies
-
-- Added `pymumble==1.6.1` (alliance Mumble protocol adapter).
-- Upgraded and pinned security remediated dependencies:
-  - `numpy>=2.5.4` (was `>=1.26.0,<3.0.0`)
-  - `pillow>=12.3.0` (was `>=10.0.0`)
-  - `pypdf>=6.20.0` (was `>=4.0.0`)
-  - `protobuf==7.36.2` (was pinned to `3.12.2`)
-
+- **Pure Upstream Distribution (`tools/install_fetch.py`, `tools/verify_installer_payload.py`)**:
+  - Eliminated local host directory scraping in installer runtime extraction; enforced fresh downloads from official upstream sources (Astral standalone Python, NuGet, Microsoft, Conda-Forge) with cryptographic SHA256 checksum verification.
+- **Diagnostic & Test Tooling**:
+  - `tools/validate_sde_integrity.py`: 100% verification of stargate graphs, ship profiles, Dogma modules, wormhole data, and PI schematics.
+  - `tools/verify_installer_payload.py`: Multi-system distribution verifier ensuring zero host path leakage and complete offline asset packaging.
+  - `tools/simulate_eve_client.py`: High-speed synthetic combat and gamelog stream generator.
+  - `tools/audit_diagnostics.py`: Repository diagnostic error code auditor.
+- **Workspace Organization & Clean Architecture**:
+  - Relocated install batch scripts to `A.U.R.A. Source/bat scripts for install/`.
+  - Relocated test results and manifests to `tools/artifacts/test_results/` and `tools/artifacts/manifests/`.
+  - Moved static configuration files in main repo to `config/` (`config/pyrightconfig.json`, `config/mypy.ini`).
+  - Moved main repository launcher to `scripts/run.bat`.
+  - Organized application entry point into `A.U.R.A. Source/entry/app.py`.
+  - Organized application launch scripts into `A.U.R.A. Source/scripts/` (`run.bat`, `Launch_A.U.R.A_Debug.bat`).
+  - Relocated product version metadata into `A.U.R.A. Source/core/version.py`.
+  - Organized icon and checksum assets into `assets/brand/app_icon.ico` and `data/checksums.sha256`.
+  - Cleaned all root-level loose files and transient caches across the repository.

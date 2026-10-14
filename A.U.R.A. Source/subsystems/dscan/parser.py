@@ -35,7 +35,7 @@ from core.eve_data import (
     THREAT_CAPITAL, THREAT_SUPER, THREAT_LOGI, THREAT_PIRATE,
     THREAT_T2_COMBAT, THREAT_HAULER, THREAT_COMBATANT, THREAT_COVERT, THREAT_MINING,
 )
-from .models import DScanEntry, DScanClassSummary, DScanAnalysis
+from .models import DScanEntry, DScanClassSummary, DScanAnalysis, DScanSnapshotDiff
 
 _THREAT_BY_KEY = {
     "THREAT_BUBBLE": THREAT_BUBBLE,
@@ -334,3 +334,48 @@ class DScanParser:
             raw_entries=raw_entries,
             summary_text="\n".join(summary_lines),
         )
+
+    @staticmethod
+    def diff_snapshots(
+        current: DScanAnalysis,
+        previous: Optional[DScanAnalysis],
+    ) -> DScanSnapshotDiff:
+        """Computes incremental vessel arrivals and departures between two D-Scan sweeps."""
+        if not previous:
+            return DScanSnapshotDiff(
+                delta_total=current.total_ships,
+                summary_msg=f"Initial Scan: {current.total_ships} vessels on grid" if current.total_ships > 0 else "Grid Clear",
+            )
+
+        added: Dict[str, int] = {}
+        removed: Dict[str, int] = {}
+
+        all_keys = set(current.ship_counts.keys()) | set(previous.ship_counts.keys())
+        for ship in all_keys:
+            c_cnt = current.ship_counts.get(ship, 0)
+            p_cnt = previous.ship_counts.get(ship, 0)
+            diff = c_cnt - p_cnt
+            if diff > 0:
+                added[ship] = diff
+            elif diff < 0:
+                removed[ship] = abs(diff)
+
+        delta_total = current.total_ships - previous.total_ships
+        time_delta = max(0.0, current.created_at - previous.created_at)
+
+        parts = []
+        if added:
+            parts.append("+" + ", +".join(f"{count} {ship}" for ship, count in sorted(added.items())))
+        if removed:
+            parts.append("-" + ", -".join(f"{count} {ship}" for ship, count in sorted(removed.items())))
+
+        summary = " | ".join(parts) if parts else "Grid Stable (No Changes)"
+
+        return DScanSnapshotDiff(
+            added_ships=added,
+            removed_ships=removed,
+            delta_total=delta_total,
+            time_delta_sec=round(time_delta, 1),
+            summary_msg=summary,
+        )
+

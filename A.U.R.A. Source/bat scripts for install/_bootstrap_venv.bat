@@ -21,9 +21,11 @@
 :: ============================================================================
 rem Shared venv bootstrap for hardware setup bats. Sets PYTHON_EXE for the caller.
 
-set "REQ_DIR=%~dp0"
+set "BAT_DIR=%~dp0"
+set "SOURCE_DIR=%~dp0.."
+set "REQ_DIR=%SOURCE_DIR%\requirements\"
 set "PYTHON_EXE=%REQ_DIR%venv\Scripts\python.exe"
-set "RUNTIME_PY=%REQ_DIR%..\runtime\python.exe"
+set "RUNTIME_PY=%SOURCE_DIR%\runtime\python.exe"
 set "PY_CHECK=%REQ_DIR%_check_py312.py"
 
 if exist "%PYTHON_EXE%" (
@@ -49,7 +51,7 @@ if %ERRORLEVEL% EQU 0 goto :AFTER_CREATE
 python "%PY_CHECK%" 2>nul
 if %ERRORLEVEL% NEQ 0 (
     echo [X] Error: Python 3.12+ is required. Found an unsupported Python version.
-    echo [!] Please install Python 3.12 64-bit from python.org or run AURA_Setup_v0.6.1-alpha.1.exe.
+    echo [!] Please install Python 3.12 64-bit from python.org or run AURA_Setup_v0.7.0-alpha.1.exe.
     exit /b 1
 )
 python -m venv "%REQ_DIR%venv"

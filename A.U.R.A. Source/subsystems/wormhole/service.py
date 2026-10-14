@@ -298,3 +298,39 @@ class WormholeSubsystem(BaseSubsystem):
             "connections_count": len(self.active_chain.connections),
             "updated_at": self.active_chain.updated_at,
         }
+
+    @staticmethod
+    def lookup_system_details(system_name: str) -> dict[str, Any]:
+        """Looks up wormhole class, static exits, and environmental weather."""
+        from core.eve_wormhole_data import lookup_wormhole_system, get_weather_effects
+        data = lookup_wormhole_system(system_name)
+        if not data:
+            return {"class": 0, "statics": [], "weather": None, "effects": {}}
+        wh_class = data.get("class", 0)
+        weather = data.get("weather")
+        effects = get_weather_effects(weather, wh_class) if weather else {}
+        return {
+            "class": wh_class,
+            "statics": data.get("statics", []),
+            "weather": weather,
+            "effects": effects,
+        }
+
+    @staticmethod
+    def lookup_statics(system_name: str) -> list[str]:
+        """Returns static wormhole exit codes for a given J-system."""
+        details = WormholeSubsystem.lookup_system_details(system_name)
+        return details.get("statics", [])
+
+    @staticmethod
+    def lookup_weather(system_name: str) -> tuple[str | None, int, dict[str, float]]:
+        """Returns (weather_name, wh_class, effects_multiplier_dict)."""
+        details = WormholeSubsystem.lookup_system_details(system_name)
+        return details.get("weather"), details.get("class", 0), details.get("effects", {})
+
+    @staticmethod
+    def lookup_wormhole_type(code: str) -> dict[str, Any] | None:
+        """Returns canonical properties (dest, max mass, jump mass, lifetime) for a wormhole type."""
+        from core.eve_wormhole_data import WORMHOLE_TYPES
+        return WORMHOLE_TYPES.get(code.strip().upper())
+

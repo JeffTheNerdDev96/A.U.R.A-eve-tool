@@ -75,6 +75,16 @@ def get_assets_dir() -> str:
     return os.path.join(get_app_root(), "assets")
 
 
+def get_app_icon_path() -> str:
+    """Returns the application icon path (.ico)."""
+    return os.path.join(get_assets_dir(), "brand", "app_icon.ico")
+
+
+def get_checksum_path() -> str:
+    """Returns the payload checksum manifest path."""
+    return os.path.join(get_data_dir(), "checksums.sha256")
+
+
 def get_bootstrap_dir() -> str:
     """Returns the bootstrap directory path."""
     return os.path.join(get_app_root(), "bootstrap")

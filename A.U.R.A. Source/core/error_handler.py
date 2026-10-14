@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Centralized Diagnostic Error Code Subsystem for Adaptive Underworld Recon Array (A.U.R.A.) - v0.6.1-alpha.1.
+Centralized Diagnostic Error Code Subsystem for Adaptive Underworld Recon Array (A.U.R.A.) - v0.7.0-alpha.1.
 Angel Cartel Cybernetics Division.
 
 Provides standardized, searchable error codes (AURA-ERR-xxxx), rich diagnostic logging,
@@ -36,7 +36,7 @@ import traceback
 from .paths import get_logs_dir
 from .input_safety import clamp_text, escape_html
 
-from version import INSTALLER_EXE_NAME
+from .version import INSTALLER_EXE_NAME
 
 
 class AURAErrorCode:
@@ -65,6 +65,10 @@ class AURAErrorCode:
     ERR_5001_WORKER_CRASH = "AURA-ERR-5001"
     ERR_5002_MODEL_SWITCH_FAILED = "AURA-ERR-5002"
 
+    # 6000 Series: Wormhole & Anokis Chain Mapping Topology
+    ERR_6001_WH_TOPOLOGY_INVALID = "AURA-ERR-6001"
+    ERR_6002_WH_SIGNATURE_PARSE = "AURA-ERR-6002"
+
     # 7000 Series: XMPP Tactical Communications
     ERR_7001_XMPP_AUTH_FAILED = "AURA-ERR-7001"
     ERR_7002_XMPP_TLS_HANDSHAKE = "AURA-ERR-7002"
@@ -77,6 +81,17 @@ class AURAErrorCode:
     ERR_8003_VOIP_TLS_HANDSHAKE = "AURA-ERR-8003"
     ERR_8004_VOIP_AUDIO_DEVICE = "AURA-ERR-8004"
     ERR_8005_VOIP_CHANNEL_JOIN_FAILED = "AURA-ERR-8005"
+
+    # 9000 Series: Combat Subsystem & Gamelog Parser
+    ERR_9001_GAMELOG_DIR_MISSING = "AURA-ERR-9001"
+    ERR_9002_COMBAT_PARSE_FAILED = "AURA-ERR-9002"
+    ERR_9003_EWAR_STREAM_ERROR = "AURA-ERR-9003"
+
+    # 10000 Series: Utilities Subsystem (Valuation, Reprocessing, Mining, PI)
+    ERR_10001_VALUATION_PARSE_FAILED = "AURA-ERR-10001"
+    ERR_10002_MINING_SCAN_PARSE_FAILED = "AURA-ERR-10002"
+    ERR_10003_REPROCESSING_CALC_FAILED = "AURA-ERR-10003"
+    ERR_10004_KILLMAIL_PARSE_FAILED = "AURA-ERR-10004"
 
 
 ERROR_REGISTRY: dict[str, dict[str, str]] = {
@@ -199,6 +214,51 @@ ERROR_REGISTRY: dict[str, dict[str, str]] = {
         "title": "VOIP Channel Join Error",
         "description": "Failed to enter the requested Mumble voice channel.",
         "resolution": "Check channel path spelling (e.g. 'Fleet 1') and channel access tokens/passwords."
+    },
+    AURAErrorCode.ERR_6001_WH_TOPOLOGY_INVALID: {
+        "title": "Wormhole Topology Error",
+        "description": "Anoikis wormhole system connection or chain topology is invalid.",
+        "resolution": "Refresh the chain topology or verify solar system J-number."
+    },
+    AURAErrorCode.ERR_6002_WH_SIGNATURE_PARSE: {
+        "title": "Probe Scanner Signature Parse Error",
+        "description": "Failed to parse in-game cosmic signature clipboard paste.",
+        "resolution": "Copy signatures directly from EVE Online Probe Scanner window (Ctrl+A -> Ctrl+C)."
+    },
+    AURAErrorCode.ERR_9001_GAMELOG_DIR_MISSING: {
+        "title": "Combat Gamelogs Directory Not Accessible",
+        "description": "EVE Online Gamelogs folder could not be located in 'Documents/EVE/logs/Gamelogs'.",
+        "resolution": "Ensure EVE Online is configured to write gamelogs (Esc -> Reset Settings -> Log Combat Events)."
+    },
+    AURAErrorCode.ERR_9002_COMBAT_PARSE_FAILED: {
+        "title": "Combat Stream Parse Error",
+        "description": "Failed to extract combat damage or weapon metrics from active gamelog stream.",
+        "resolution": "Verify gamelog file encoding and format."
+    },
+    AURAErrorCode.ERR_9003_EWAR_STREAM_ERROR: {
+        "title": "Electronic Warfare Alert Error",
+        "description": "Failed to decode incoming tackle or EWAR event telemetry.",
+        "resolution": "Ensure log lines follow standard EVE client combat syntax."
+    },
+    AURAErrorCode.ERR_10001_VALUATION_PARSE_FAILED: {
+        "title": "Inventory / Cargo Valuation Parse Error",
+        "description": "Failed to parse clipboard items for cargo appraisal.",
+        "resolution": "Copy items directly from in-game Inventory, Cargo, or Loot window (Ctrl+A -> Ctrl+C)."
+    },
+    AURAErrorCode.ERR_10002_MINING_SCAN_PARSE_FAILED: {
+        "title": "Survey Scanner Parse Error",
+        "description": "Failed to parse asteroid field survey scanner clipboard text.",
+        "resolution": "Copy results directly from EVE Online Survey Scanner window (Ctrl+A -> Ctrl+C)."
+    },
+    AURAErrorCode.ERR_10003_REPROCESSING_CALC_FAILED: {
+        "title": "Reprocessing Yield Calculation Error",
+        "description": "Failed to compute mineral yields for selected ore or scrap materials.",
+        "resolution": "Verify ore quantities and reprocessing station tax rate settings."
+    },
+    AURAErrorCode.ERR_10004_KILLMAIL_PARSE_FAILED: {
+        "title": "Killmail Parse Error",
+        "description": "Failed to parse in-game killmail text or external kill link.",
+        "resolution": "Copy killmail text or link directly from in-game Combat Log / Character Sheet -> Losses/Kills."
     },
 }
 

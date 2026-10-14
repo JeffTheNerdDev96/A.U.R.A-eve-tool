@@ -1,5 +1,5 @@
 # A.U.R.A. Developer Guide
-**v0.6.1-alpha.1 — Pure Modular Architecture**
+**v0.7.0-alpha.1 — Pure Modular Architecture**
 
 Internal reference for contributors and engineers working on the A.U.R.A. codebase.
 
@@ -11,12 +11,15 @@ The codebase is organized into domain-specific packages with strict separation o
 
 ```
 A.U.R.A. Source/
-├── app.py                         # Single desktop application entrypoint
-├── version.py                     # Single source of truth for version (v0.6.1-alpha.1)
-├── Launch_A.U.R.A_Debug.bat       # Low-level debug launcher with runtime probe
-├── run.bat                        # Production launcher script
+├── entry/                         # Desktop application entrypoint
+│   └── app.py                     # Single desktop application entrypoint
+├── scripts/                       # Application runtime launchers
+│   ├── Launch_A.U.R.A_Debug.bat   # Low-level debug launcher with runtime probe
+│   └── run.bat                    # Production launcher script
+├── bat scripts for install/       # Hardware-specific venv/wheel installer scripts
 │
 ├── core/                          # Cross-cutting foundational infrastructure
+│   ├── version.py                 # Single source of truth for version (v0.7.0-alpha.1)
 │   ├── event_bus.py               # Asynchronous Qt EventBus singleton
 │   ├── events.py                  # Strongly-typed event dataclasses
 │   ├── base_subsystem.py          # Subsystem lifecycle contract
@@ -24,7 +27,12 @@ A.U.R.A. Source/
 │   ├── error_handler.py           # Standardized diagnostic error registry (AURA-ERR-xxxx)
 │   ├── input_safety.py            # Sanitization, clamping, HTML escape, prompt wrapping
 │   ├── lifecycle.py               # Memory purging, temp file cleaning, crash hooks
-│   └── eve_data.py                # SDE ship database & tactical metadata
+│   ├── eve_data.py                # SDE ship database & tactical metadata
+│   ├── eve_ships_data.py          # Exact canonical ship Dogma attributes
+│   ├── eve_modules_data.py        # 539+ Canonical Dogma modules and slot racks
+│   ├── eve_wormhole_data.py       # J-space statics, classes, and C1-C6 weather matrices
+│   ├── eve_market_data.py         # Offline mineral baselines, ore reprocessing & haulers
+│   └── eve_pi_data.py             # Planetary Industry schematics & POCO export tax
 │
 ├── bootstrap/                     # Low-level runtime initialization
 │   ├── bootstrap_runtime.py       # Qt plugin discovery & PATH configuration
@@ -36,33 +44,38 @@ A.U.R.A. Source/
 │
 ├── subsystems/                    # Domain Subsystem Services
 │   ├── intel/                     # Live chat monitoring, location tracking, threat alerts
-│   ├── dscan/                     # Dedicated Directional Scan parse & class grouping
+│   ├── combat/                    # Passive Gamelog tailer, rolling DPS, 4-tier damage profiles, EWAR
+│   ├── dscan/                     # Dedicated Directional Scan parse, class grouping, snapshot diffing
 │   ├── map/                       # Stargate graph, BFS routing, navigation
 │   ├── fleet_comp/                # Fleet roster parse, 6-role composition, matchup analysis
-│   ├── fitting/                   # EFT fitting parsing, heuristic stats, slot layouts
 │   ├── wormhole/                  # Wormhole chain mapping, signature tracking & topology (Anokis)
+│   ├── utilities/                 # Cargo appraisal, reprocessing, mining ledger, killmail EFT, PI
+│   ├── fitting/                   # EFT fitting parsing, Dogma engine, slot layouts, drones/implants
 │   ├── xmpp_chat/                 # Alliance XMPP messaging, MUC broadcast receiver & ping extraction
 │   ├── voip_mumble/               # Alliance Mumble voice client, Opus audio pumps & channel text
 │   └── ai/                        # Local neural core GGUF inference & OCR document parsing
 │
 ├── ui/                            # Desktop Presentation Layer
-│   ├── app_window.py              # MainWindow shell & browser-chrome strip (9 tabs)
+│   ├── app_window.py              # MainWindow shell & browser-chrome strip (11 tabs)
 │   ├── theme.py                   # Theme palette & stylesheets
 │   └── tabs/                      # Tab components:
+│       ├── combat_tab.py          # Combat & Threat HUD (rolling DPS, damage profile, EWAR)
 │       ├── dscan_tab.py           # Dedicated D-Scan analyzer
 │       ├── composition_tab.py     # Friendly fleet vs hostile D-scan analysis
 │       ├── map_tab.py             # Stargate neighborhood bubble graph
 │       ├── wormhole_tab.py        # Anokis chain topology & cosmic signature tracker
+│       ├── utilities_tab.py       # Unified utilities (6 industrial & tactical sub-tabs)
 │       ├── fitting_tab.py         # Fitting Lab & visual EFT editor
 │       ├── xmpp_tab.py            # XMPP tactical communications & broadcast pings
 │       └── voip_tab.py            # Mumble voice session, channel tree & text stream
 │
-└── tools/                         # Build, packaging, diagnostics & tests (gitignored locally)
+├── bat scripts for install/       # Organized environment install and venv scripts
+└── tools/                         # Build, packaging, diagnostics & tests
 ```
 
 Live Intel Radar and A.U.R.A. Chat are assembled in `ui/app_window.py` rather than dedicated files under `ui/tabs/`. Canonical tab order:
 
-`Live Intel Radar` → `D-Scan` → `Composition` → `Map` → `Anokis` → `Fitting` → `XMPP` → `VOIP` → `A.U.R.A. Chat`.
+`Live Intel Radar` → `Combat & Threat HUD` → `D-Scan` → `Composition` → `Map` → `Anokis` → `Utilities` → `Fitting` → `XMPP` → `VOIP` → `A.U.R.A. Chat`.
 
 The `tools/` directory is **gitignored**. It is a local packaging and test tree (installer builders, codesign helpers, smoke tests). Paths below are relative to `A.U.R.A. Source/tools/` when that folder exists on a developer machine.
 

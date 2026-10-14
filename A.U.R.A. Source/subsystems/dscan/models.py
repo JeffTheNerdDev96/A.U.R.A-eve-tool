@@ -69,3 +69,14 @@ class DScanAnalysis:
     raw_entries: list[DScanEntry] = field(default_factory=list)
     summary_text: str = ""
     created_at: float = field(default_factory=time.time)
+
+
+@dataclass(slots=True)
+class DScanSnapshotDiff:
+    """Differences between two consecutive D-Scan snapshots."""
+    added_ships: dict[str, int] = field(default_factory=dict)
+    removed_ships: dict[str, int] = field(default_factory=dict)
+    delta_total: int = 0
+    time_delta_sec: float = 0.0
+    summary_msg: str = "Grid Stable"
+

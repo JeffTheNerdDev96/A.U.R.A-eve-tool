@@ -179,6 +179,8 @@ def shutdown_application(window: Any | None = None) -> None:
             "map_subsystem",
             "fleet_comp_subsystem",
             "wormhole_subsystem",
+            "combat_subsystem",
+            "utilities_subsystem",
             "xmpp_subsystem",
             "voip_subsystem",
             "fitting_subsystem",

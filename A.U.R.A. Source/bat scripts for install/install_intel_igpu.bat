@@ -21,6 +21,7 @@
 :: ============================================================================
 setlocal
 set "SCRIPT_DIR=%~dp0"
+set "REQ_DIR=%~dp0..\requirements\"
 set "AURA_UNATTENDED=0"
 if /i "%~1"=="--unattended" set "AURA_UNATTENDED=1"
 
@@ -32,15 +33,15 @@ echo.
 
 call "%SCRIPT_DIR%_bootstrap_venv.bat"
 if %ERRORLEVEL% NEQ 0 goto :FINISH
-set "PYTHON_EXE=%SCRIPT_DIR%venv\Scripts\python.exe"
+set "PYTHON_EXE=%REQ_DIR%venv\Scripts\python.exe"
 
-"%PYTHON_EXE%" -m pip install --prefer-binary -r "%SCRIPT_DIR%requirements-intel-gpu.txt"
+"%PYTHON_EXE%" -m pip install --prefer-binary -r "%REQ_DIR%requirements-intel-gpu.txt"
 if %ERRORLEVEL% NEQ 0 goto :FINISH
-"%PYTHON_EXE%" -m pip install --no-deps --prefer-binary -r "%SCRIPT_DIR%requirements-nodeps.txt"
+"%PYTHON_EXE%" -m pip install --no-deps --prefer-binary -r "%REQ_DIR%requirements-nodeps.txt"
 if %ERRORLEVEL% NEQ 0 goto :FINISH
 call "%SCRIPT_DIR%_install_llama_wheel.bat" vulkan
-"%PYTHON_EXE%" "%SCRIPT_DIR%write_hardware_profile.py" intel_igpu --llama-wheel %AURA_LLAMA_WHEEL%
-"%PYTHON_EXE%" "%SCRIPT_DIR%_check_drivers.py" --profiles intel_igpu
+"%PYTHON_EXE%" "%REQ_DIR%write_hardware_profile.py" intel_igpu --llama-wheel %AURA_LLAMA_WHEEL%
+"%PYTHON_EXE%" "%REQ_DIR%_check_drivers.py" --profiles intel_igpu
 
 echo.
 echo [OK] Intel iGPU setup complete. Launch run.bat to start A.U.R.A.

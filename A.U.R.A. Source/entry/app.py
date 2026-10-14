@@ -21,7 +21,7 @@
 # ==============================================================================
 """
 Main entry point for Adaptive Underworld Recon Array (A.U.R.A.).
-Angel Cartel EVE Online Tactical AI Assistant - v0.6.1-alpha.1.
+Angel Cartel EVE Online Tactical AI Assistant - v0.7.0-alpha.1.
 """
 import sys
 import os
@@ -30,7 +30,15 @@ import traceback
 import time
 import atexit
 
-from version import INSTALLER_EXE_NAME
+_ENTRY_DIR = os.path.dirname(os.path.abspath(__file__))
+_SRC_ROOT = os.path.dirname(_ENTRY_DIR)
+if _SRC_ROOT not in sys.path:
+    sys.path.insert(0, _SRC_ROOT)
+_CORE_DIR = os.path.join(_SRC_ROOT, "core")
+if _CORE_DIR not in sys.path:
+    sys.path.insert(0, _CORE_DIR)
+
+from core.version import INSTALLER_EXE_NAME
 
 # Bytecode caching is intentionally ENABLED.
 sys.dont_write_bytecode = False
@@ -52,7 +60,7 @@ if sys.version_info < (3, 12):
         f"Legacy versions (< 3.12) are not supported. Please run the {INSTALLER_EXE_NAME} installer."
     )
     try:
-        _log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+        _log_dir = os.path.join(_SRC_ROOT, "logs")
         os.makedirs(_log_dir, exist_ok=True)
         with open(os.path.join(_log_dir, "crash.log"), "a", encoding="utf-8") as _f:
             _f.write(
@@ -97,7 +105,7 @@ def _global_exception_handler(exc_type, exc_value, exc_traceback):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
 
-    log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+    log_dir = os.path.join(_SRC_ROOT, "logs")
     os.makedirs(log_dir, exist_ok=True)
     crash_log = os.path.join(log_dir, "crash.log")
 
@@ -117,7 +125,7 @@ sys.excepthook = _global_exception_handler
 
 
 def _show_startup_error(exc: BaseException) -> None:
-    log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+    log_dir = os.path.join(_SRC_ROOT, "logs")
     crash_log = os.path.join(log_dir, "crash.log")
     err_msg = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
     try:
@@ -136,7 +144,7 @@ def _show_startup_error(exc: BaseException) -> None:
                     "A.U.R.A. failed to start.\n\n"
                     f"{type(exc).__name__}: {exc}\n\n"
                     f"Details were written to:\n{crash_log}\n\n"
-                    "Try Launch_A.U.R.A_Debug.bat in the install folder."
+                    "Try scripts\\Launch_A.U.R.A_Debug.bat in the install folder."
                 ),
                 "A.U.R.A. Startup Error",
                 0x10,

@@ -19,12 +19,12 @@
 :: You should have received a copy of the GNU Affero General Public License
 :: along with this program.  If not, see <https://www.gnu.org/licenses/>.
 :: ============================================================================
-cd /d "%~dp0"
+cd /d "%~dp0.."
 set PYTHONUTF8=1
 if exist "requirements\venv\Scripts\python.exe" (
-  "requirements\venv\Scripts\python.exe" -c "from bootstrap import configure_qt_paths; configure_qt_paths()" && "requirements\venv\Scripts\python.exe" app.py
+  "requirements\venv\Scripts\python.exe" -c "from bootstrap import configure_qt_paths; configure_qt_paths()" && "requirements\venv\Scripts\python.exe" "entry\app.py"
 ) else if exist "runtime\python.exe" (
-  "runtime\python.exe" -c "from bootstrap import configure_qt_paths; configure_qt_paths()" && "runtime\python.exe" app.py
+  "runtime\python.exe" -c "from bootstrap import configure_qt_paths; configure_qt_paths()" && "runtime\python.exe" "entry\app.py"
 ) else (
   echo Python environment not found.
   pause
