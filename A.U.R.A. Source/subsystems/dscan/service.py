@@ -27,7 +27,7 @@ from typing import override
 from core.base_subsystem import BaseSubsystem
 from core.events import DScanParsedEvent
 from .parser import DScanParser
-from .models import DScanAnalysis
+from .models import DScanAnalysis, DScanSnapshotDiff
 
 
 class DScanSubsystem(BaseSubsystem):
@@ -36,9 +36,11 @@ class DScanSubsystem(BaseSubsystem):
     def __init__(self):
         super().__init__(name="DScanSubsystem")
         self.parser = DScanParser()
+        self.last_analysis: DScanAnalysis | None = None
 
     @override
     def initialize(self) -> bool:
+        self.last_analysis = None
         return True
 
     @override
@@ -47,6 +49,7 @@ class DScanSubsystem(BaseSubsystem):
 
     @override
     def stop(self) -> bool:
+        self.last_analysis = None
         return super().stop()
 
     def parse_dscan(self, dscan_text: str) -> DScanAnalysis:
@@ -61,3 +64,12 @@ class DScanSubsystem(BaseSubsystem):
             )
         )
         return analysis
+
+    def diff_snapshots(
+        self,
+        current: DScanAnalysis,
+        previous: DScanAnalysis | None = None,
+    ) -> DScanSnapshotDiff:
+        """Computes incremental vessel arrivals and departures between two D-Scan sweeps."""
+        prev = previous if previous is not None else self.last_analysis
+        return self.parser.diff_snapshots(current, prev)

@@ -358,9 +358,7 @@ class CombatTabWidget(QWidget):
         self._refresh_hud()
 
     def _on_simulate_click(self):
-        from tools.simulate_eve_client import generate_synthetic_combat_stream
-        for line in generate_synthetic_combat_stream(20):
-            self.combat_subsystem.feed_line(line)
+        self.combat_subsystem.inject_simulation(20)
         self._refresh_hud()
 
     _on_inject_simulation = _on_simulate_click

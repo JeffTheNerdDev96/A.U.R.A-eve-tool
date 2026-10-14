@@ -122,6 +122,44 @@ BASELINE_ITEM_PRICES: Dict[str, float] = {
     "Mega Pulse Laser II": 2_400_000.0,
     "Heavy Neutron Blaster II": 2_100_000.0,
 
+    # Raw Ores (Refining & Cargo Baselines)
+    "Veldspar": 17.6,
+    "Concentrated Veldspar": 18.5,
+    "Dense Veldspar": 19.4,
+    "Scordite": 39.8,
+    "Condensed Scordite": 41.8,
+    "Glossy Scordite": 43.8,
+    "Pyroxeres": 108.7,
+    "Solid Pyroxeres": 114.1,
+    "Viscous Pyroxeres": 119.5,
+    "Plagioclase": 147.8,
+    "Azure Plagioclase": 155.2,
+    "Rich Plagioclase": 162.6,
+    "Omber": 331.5,
+    "Silvery Omber": 348.1,
+    "Golden Omber": 364.7,
+    "Kernite": 795.2,
+    "Luminous Kernite": 835.0,
+    "Fiery Kernite": 874.8,
+    "Jaspet": 859.8,
+    "Hemorphite": 1475.5,
+    "Hedbergite": 1825.1,
+    "Gneiss": 2106.7,
+    "Dark Ochre": 3785.6,
+    "Spodumain": 815.2,
+    "Crokite": 6381.5,
+    "Bistot": 9567.0,
+    "Arkonor": 16436.0,
+    "Mercoxit": 34500.0,
+
+    # Exploration & Probes
+    "Core Scanner Probe I": 10_000.0,
+    "Core Probe Launcher I": 50_000.0,
+    "Expanded Probe Launcher I": 65_000.0,
+    "Combat Scanner Probe I": 15_000.0,
+    "Sisters Core Scanner Probe": 500_000.0,
+    "Sisters Core Probe Launcher": 35_000_000.0,
+
     # Salvage & Exploration
     "Alloyed Tritanium Bar": 18_000.0,
     "Armor Plates": 35_000.0,
@@ -167,11 +205,14 @@ def lookup_market_price(item_name: str) -> float:
 
     # Fallback heuristic based on module tiers
     lower = clean.lower()
-    if "officer" in lower or "estamel" in lower or "cormack" in lower:
+    if "officer" in lower or "estamel" in lower or "cormack" in lower or "brynn" in lower:
         return 2_500_000_000.0
-    if "deadspace" in lower or "pith" in lower or "gist" in lower or "core" in lower:
+    if (
+        "deadspace" in lower
+        or any(t in lower for t in ("-type", "pith", "gist", "centus", "centum", "corpus", "corpum", "coreli", "corelum"))
+    ):
         return 180_000_000.0
-    if "faction" in lower or "federation navy" in lower or "caldari navy" in lower or "imperial navy" in lower:
+    if "faction" in lower or any(f in lower for f in ("federation navy", "caldari navy", "imperial navy", "republic fleet", "dark blood", "shadow serpentis", "dread guristas", "true sansha")):
         return 45_000_000.0
     if " ii" in lower:
         return 2_500_000.0

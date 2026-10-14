@@ -27,6 +27,7 @@ ship destructions, and mining extraction volumes.
 """
 from __future__ import annotations
 
+import calendar
 import re
 import time
 from dataclasses import dataclass
@@ -172,7 +173,18 @@ class CombatLogParser:
     @staticmethod
     def _parse_timestamp(time_str: str) -> float:
         try:
-            return time.mktime(time.strptime(time_str, "%Y.%m.%d %H:%M:%S"))
+            st = time.strptime(time_str, "%Y.%m.%d %H:%M:%S")
+            utc_ts = float(calendar.timegm(st))
+            now = time.time()
+            # EVE Online gamelogs record timestamps in UTC (EVE Time).
+            # If within 2 hours of system time, this is an authentic UTC log line.
+            if abs(now - utc_ts) <= 7200:
+                return utc_ts
+            # If a local test passed a timestamp generated with time.localtime() within 5m:
+            loc_ts = float(time.mktime(st))
+            if abs(now - loc_ts) <= 300:
+                return loc_ts
+            return utc_ts
         except Exception:
             return time.time()
 

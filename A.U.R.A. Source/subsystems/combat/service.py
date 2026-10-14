@@ -309,43 +309,94 @@ class CombatSubsystem(BaseSubsystem):
 
         return {k: round((v / total) * 100.0, 1) for k, v in by_type.items()}
 
+    def inject_simulation(self, count: int = 20) -> None:
+        """Injects synthetic real-time combat lines for demonstration and testing."""
+        import random
+        hostiles = [
+            ("Vespera", "Huginn", "Minmatar Force Recon"),
+            ("Malice", "Bhaalgorn", "Blood Raiders Battleship"),
+            ("Xander", "Sabre", "Minmatar Interdictor"),
+            ("Drakon", "Loki", "Strategic Cruiser"),
+            ("Torval", "Cerberus", "Heavy Assault Cruiser"),
+        ]
+        weapons = {
+            "EM": [("Mega Pulse Laser II", 1200, 2400)],
+            "Thermal": [("Heavy Neutron Blaster II", 900, 2200)],
+            "Kinetic": [("Heavy Missile Launcher II", 480, 1020)],
+            "Explosive": [("425mm AutoCannon II", 600, 1500)],
+        }
+        ewar_types = [
+            ("Warp scramble attempt from {pilot} [{ship}] to You!", "SCRAMBLE"),
+            ("Warp disruption attempt from {pilot} [{ship}] to You!", "DISRUPT"),
+            ("300 GJ energy drained from You by {pilot} [{ship}]", "NEUT"),
+            ("Stasis webification attempt from {pilot} [{ship}] to You!", "WEB"),
+        ]
+        now = time.time()
+        for i in range(count):
+            t_offset = now - (count - i)
+            t_str = time.strftime("%Y.%m.%d %H:%M:%S", time.gmtime(t_offset))
+            pilot, ship, _ = random.choice(hostiles)
+            if i % 4 == 0:
+                tmpl, _ = random.choice(ewar_types)
+                msg = tmpl.format(pilot=pilot, ship=ship)
+                self.feed_line(f"[ {t_str} ] (combat) {msg}")
+            else:
+                is_in = (i % 3 != 0)
+                dtype = random.choice(["EM", "Thermal", "Kinetic", "Explosive"])
+                wpn, min_d, max_d = weapons[dtype][0]
+                dmg = random.randint(min_d, max_d)
+                if is_in:
+                    line = f"[ {t_str} ] (combat) {dmg} to You - {pilot} [{ship}] - {wpn} - {dtype} - Penetrating"
+                else:
+                    line = f"[ {t_str} ] (combat) {dmg} to {pilot} [{ship}] - You - {wpn} - {dtype} - Penetrating"
+                self.feed_line(line)
+
     def _tail_worker(self) -> None:
         """Background thread tailing the latest gamelog file."""
         current_file: Optional[str] = None
         file_obj = None
+        last_dir_check = 0.0
 
         while not self._stop_event.is_set():
+            now = time.time()
             if not self._custom_log_dir or not os.path.isdir(self._custom_log_dir):
                 self._stop_event.wait(3.0)
                 continue
 
-            # Pick newest gamelog file
-            try:
-                candidates = glob.glob(os.path.join(self._custom_log_dir, "*.txt"))
-                if not candidates:
-                    self._stop_event.wait(2.0)
-                    continue
-                newest = max(candidates, key=os.path.getmtime)
-                if newest != current_file:
-                    if file_obj:
-                        file_obj.close()
-                    current_file = newest
-                    file_obj = open(current_file, "r", encoding="utf-8", errors="ignore")
-                    file_obj.seek(0, os.SEEK_END)  # Start at end for real-time events
-            except Exception:
+            # Periodically scan for newest gamelog file (every 5 seconds or if none open)
+            if file_obj is None or (now - last_dir_check) >= 5.0:
+                last_dir_check = now
+                try:
+                    candidates = glob.glob(os.path.join(self._custom_log_dir, "*.txt"))
+                    if candidates:
+                        newest = max(candidates, key=os.path.getmtime)
+                        if newest != current_file:
+                            if file_obj:
+                                file_obj.close()
+                            current_file = newest
+                            file_obj = open(current_file, "r", encoding="utf-8", errors="ignore")
+                            file_obj.seek(0, os.SEEK_END)  # Start at end for real-time events
+                except Exception:
+                    pass
+
+            if not file_obj:
                 self._stop_event.wait(2.0)
                 continue
 
-            # Read new lines
+            # Read all currently available lines
+            had_line = False
             try:
-                if file_obj:
+                while not self._stop_event.is_set():
                     line = file_obj.readline()
-                    if line:
-                        self.feed_line(line)
-                    else:
-                        self._stop_event.wait(0.2)
+                    if not line:
+                        break
+                    had_line = True
+                    self.feed_line(line)
             except Exception:
-                self._stop_event.wait(1.0)
+                pass
+
+            if not had_line:
+                self._stop_event.wait(0.2)
 
         if file_obj:
             try:

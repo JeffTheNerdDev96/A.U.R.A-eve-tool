@@ -668,9 +668,24 @@ def apply_pirate_implant_set(base_stats: Dict[str, Any], set_name: str) -> Dict[
             modifiers = v
             break
     out = dict(base_stats)
+    stat_aliases = {
+        "agility": "align_time",
+        "armor_hp": "ehp",
+        "shield_hp": "ehp",
+    }
     for stat, mult in modifiers.items():
-        if stat in out and isinstance(out[stat], (int, float)):
-            out[stat] = round(out[stat] * mult, 2)
+        target_key = stat if stat in out else stat_aliases.get(stat)
+        if target_key and target_key in out and isinstance(out[target_key], (int, float)):
+            out[target_key] = round(out[target_key] * mult, 2)
+        if isinstance(out.get("mobility"), dict):
+            mob = dict(out["mobility"])
+            if stat in mob and isinstance(mob[stat], (int, float)):
+                mob[stat] = round(mob[stat] * mult, 2)
+            elif stat == "max_velocity" and "max_speed" in mob:
+                mob["max_speed"] = round(mob["max_speed"] * mult, 2)
+            elif stat == "agility" and "align_time" in mob:
+                mob["align_time"] = round(mob["align_time"] * mult, 2)
+            out["mobility"] = mob
     return out
 
 
@@ -689,11 +704,26 @@ def apply_wormhole_weather(base_stats: Dict[str, Any], weather_name: str, wh_cla
     from core.eve_wormhole_data import get_weather_effects
     effects = get_weather_effects(weather_name, wh_class)
     out = dict(base_stats)
+    stat_aliases = {
+        "damage": "total_dps",
+        "velocity": "max_velocity",
+        "inertia": "align_time",
+        "armor_hp": "ehp",
+        "shield_hp": "ehp",
+    }
 
     for stat, mult in effects.items():
-        if stat in out and isinstance(out[stat], (int, float)):
-            factor = 1.0 + mult if -1.0 <= mult <= 5.0 else mult
-            out[stat] = round(out[stat] * factor, 2)
+        factor = 1.0 + mult if -1.0 <= mult <= 5.0 else mult
+        target_key = stat if stat in out else stat_aliases.get(stat)
+        if target_key and target_key in out and isinstance(out[target_key], (int, float)):
+            out[target_key] = round(out[target_key] * factor, 2)
+        if isinstance(out.get("mobility"), dict):
+            mob = dict(out["mobility"])
+            if stat == "velocity" and "max_speed" in mob:
+                mob["max_speed"] = round(mob["max_speed"] * factor, 2)
+            elif stat == "inertia" and "align_time" in mob:
+                mob["align_time"] = round(mob["align_time"] * factor, 2)
+            out["mobility"] = mob
 
     return out
 

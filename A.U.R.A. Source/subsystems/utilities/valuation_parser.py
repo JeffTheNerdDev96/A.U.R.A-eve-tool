@@ -112,16 +112,28 @@ class CargoValuationParser:
             parts = [p.strip() for p in clean.split("\t") if p.strip()]
             if len(parts) >= 2:
                 name = parts[0]
+                if name.lower() in ("name", "item", "item name", "type", "total", "subtotal"):
+                    return None
+                if parts[1].lower() in ("quantity", "qty", "count"):
+                    return None
+
                 qty_str = parts[1].replace(",", "").replace(".", "").replace(" ", "")
                 qty = int(qty_str) if qty_str.isdigit() else 1
                 group = parts[2] if len(parts) >= 3 else "General"
                 
                 vol = 0.0
-                if len(parts) >= 4 and "m3" in parts[3].lower():
-                    vol_m = re.search(r"([\d,.]+)", parts[3])
-                    if vol_m:
-                        vol = float(vol_m.group(1).replace(",", ""))
-                else:
+                vol_found = False
+                for p in parts[2:]:
+                    if "m3" in p.lower():
+                        vol_m = re.search(r"([\d,.]+)", p)
+                        if vol_m:
+                            try:
+                                vol = float(vol_m.group(1).replace(",", ""))
+                                vol_found = True
+                                break
+                            except ValueError:
+                                pass
+                if not vol_found:
                     vol = cls._estimate_volume(name, qty, group)
 
                 unit_price = lookup_market_price(name)
@@ -134,6 +146,8 @@ class CargoValuationParser:
             qty_str = m_x_prefix.group(1).replace(",", "")
             qty = int(qty_str) if qty_str.isdigit() else 1
             name = m_x_prefix.group(2).strip()
+            if name.lower() in ("name", "item", "item name", "type", "total", "subtotal"):
+                return None
             unit_price = lookup_market_price(name)
             vol = cls._estimate_volume(name, qty, "General")
             return ItemValuation(name, qty, unit_price, unit_price * qty, vol, "General")
@@ -141,6 +155,8 @@ class CargoValuationParser:
         m_x_suffix = re.match(r"^(.+?)\s+x?\s*([\d,]+)$", clean, re.IGNORECASE)
         if m_x_suffix:
             name = m_x_suffix.group(1).strip()
+            if name.lower() in ("name", "item", "item name", "type", "total", "subtotal"):
+                return None
             qty_str = m_x_suffix.group(2).replace(",", "")
             qty = int(qty_str) if qty_str.isdigit() else 1
             unit_price = lookup_market_price(name)
@@ -149,6 +165,8 @@ class CargoValuationParser:
 
         # Single item line
         name = clean
+        if name.lower() in ("name", "item", "item name", "type", "total", "subtotal"):
+            return None
         unit_price = lookup_market_price(name)
         vol = cls._estimate_volume(name, 1, "General")
         return ItemValuation(name, 1, unit_price, unit_price, vol, "General")

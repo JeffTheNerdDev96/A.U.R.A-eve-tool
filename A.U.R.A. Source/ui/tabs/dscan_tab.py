@@ -56,6 +56,7 @@ class DScanTabWidget(QWidget):
         super().__init__(parent)
         self.dscan_subsystem = dscan_subsystem or DScanSubsystem()
         self.current_analysis: Optional[DScanAnalysis] = None
+        self.previous_analysis: Optional[DScanAnalysis] = None
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setStyleSheet(
             f"DScanTabWidget {{ background:transparent; }}"
@@ -150,6 +151,11 @@ class DScanTabWidget(QWidget):
             f"background:{BG_PANEL}; border:1px solid #34d399; border-radius:4px;"
         )
         sum_row.addWidget(self.threat_badge)
+
+        sum_row.addSpacing(16)
+        self.diff_lbl = QLabel("")
+        self.diff_lbl.setStyleSheet(f"color:{TEXT_HINT}; font-size:11px;")
+        sum_row.addWidget(self.diff_lbl)
         sum_row.addStretch()
 
         self.copy_summary_btn = QPushButton("📋 Copy Breakdown")
@@ -217,7 +223,11 @@ class DScanTabWidget(QWidget):
             "color:#34d399; font-size:11px; font-weight:bold; padding:2px 6px; "
             f"background:{BG_PANEL}; border:1px solid #34d399; border-radius:4px;"
         )
+        self.diff_lbl.setText("")
         self.current_analysis = None
+        self.previous_analysis = None
+        if self.dscan_subsystem:
+            self.dscan_subsystem.last_analysis = None
 
     def _on_analyze(self):
         text = self.input_edit.toPlainText().strip()
@@ -225,7 +235,10 @@ class DScanTabWidget(QWidget):
             return
 
         analysis = self.dscan_subsystem.parse_dscan(text)
+        diff = self.dscan_subsystem.diff_snapshots(analysis, self.previous_analysis)
+        self.previous_analysis = self.current_analysis
         self.current_analysis = analysis
+        self.dscan_subsystem.last_analysis = analysis
 
         # Update summary labels
         self.total_ships_lbl.setText(f"Total Hostiles: {analysis.total_ships}")
@@ -234,6 +247,15 @@ class DScanTabWidget(QWidget):
             f"color:{analysis.threat_color}; font-size:11px; font-weight:bold; padding:2px 6px; "
             f"background:{BG_PANEL}; border:1px solid {analysis.threat_color}; border-radius:4px;"
         )
+
+        # Update snapshot diff label
+        if diff.summary_msg:
+            if "Grid Stable" in diff.summary_msg or "Clear" in diff.summary_msg:
+                self.diff_lbl.setText(f"Δ {diff.summary_msg}")
+                self.diff_lbl.setStyleSheet(f"color:{TEXT_HINT}; font-size:11px;")
+            else:
+                self.diff_lbl.setText(f"Δ {diff.summary_msg}")
+                self.diff_lbl.setStyleSheet(f"color:#38bdf8; font-size:11px; font-weight:bold;")
 
         # Populate table
         self.table.setRowCount(len(analysis.class_summaries))

@@ -78,14 +78,21 @@ class SurveyScannerParser:
         parts = [p.strip() for p in clean.split("\t") if p.strip()]
         if len(parts) >= 3:
             raw_name = parts[0]
+            if raw_name.lower() in ("ore", "name", "type", "asteroid", "item"):
+                return None
             m_ore = re.search(r"\(([^)]+)\)", raw_name)
             ore_name = m_ore.group(1).strip() if m_ore else raw_name.replace("Asteroid", "").strip()
+            if not ore_name or ore_name.lower() in ("ore", "name", "type", "asteroid", "item"):
+                return None
 
             units_str = parts[1].replace(",", "").replace(".", "").replace("units", "").strip()
             units = int(units_str) if units_str.isdigit() else 0
 
             vol_m = re.search(r"([\d,.]+)", parts[2])
             volume_m3 = float(vol_m.group(1).replace(",", "")) if vol_m else 0.0
+
+            if units == 0 and volume_m3 == 0.0:
+                return None
 
             dist_km = 0.0
             if len(parts) >= 4:
