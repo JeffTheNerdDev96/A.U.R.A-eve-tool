@@ -212,7 +212,6 @@ class DScanTabWidget(QWidget):
         clip = QApplication.clipboard().text().strip()
         if clip:
             self.input_edit.setPlainText(clip)
-            self._on_analyze()
 
     def _on_clear(self):
         self.input_edit.clear()
@@ -235,7 +234,7 @@ class DScanTabWidget(QWidget):
             return
 
         analysis = self.dscan_subsystem.parse_dscan(text)
-        diff = self.dscan_subsystem.diff_snapshots(analysis, self.previous_analysis)
+        diff = self.dscan_subsystem.diff_snapshots(analysis, self.current_analysis)
         self.previous_analysis = self.current_analysis
         self.current_analysis = analysis
         self.dscan_subsystem.last_analysis = analysis

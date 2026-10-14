@@ -174,17 +174,8 @@ class CombatLogParser:
     def _parse_timestamp(time_str: str) -> float:
         try:
             st = time.strptime(time_str, "%Y.%m.%d %H:%M:%S")
-            utc_ts = float(calendar.timegm(st))
-            now = time.time()
-            # EVE Online gamelogs record timestamps in UTC (EVE Time).
-            # If within 2 hours of system time, this is an authentic UTC log line.
-            if abs(now - utc_ts) <= 7200:
-                return utc_ts
-            # If a local test passed a timestamp generated with time.localtime() within 5m:
-            loc_ts = float(time.mktime(st))
-            if abs(now - loc_ts) <= 300:
-                return loc_ts
-            return utc_ts
+            # EVE Time is UTC, including historical lines and simulated streams.
+            return float(calendar.timegm(st))
         except Exception:
             return time.time()
 

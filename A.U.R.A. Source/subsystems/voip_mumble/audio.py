@@ -300,16 +300,23 @@ class QtAudioEngine(QObject):
             try:
                 written = sink_device.write(frame[:_FRAME_BYTES])
             except Exception:
+                self._playback_queue.appendleft(frame)
                 break
             if written is None:
+                self._playback_queue.appendleft(frame)
                 break
             try:
                 written = int(written)
             except Exception:
+                self._playback_queue.appendleft(frame)
                 break
             if written <= 0:
                 self._playback_queue.appendleft(frame)
                 break
+            # Decoded packets can span multiple frames; QIODevice writes may
+            # also be partial. Keep all bytes the sink has not accepted.
+            if written < len(frame):
+                self._playback_queue.appendleft(frame[written:])
             free -= written
             try:
                 self.inbound_level.emit(self._frame_peak_level(frame))
