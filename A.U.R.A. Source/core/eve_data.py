@@ -8109,7 +8109,7 @@ def lookup_module(name: str) -> Optional[Dict[str, Any]]:
 
 def validate_fit_module_compatibility(hull_name: str, fit_dict: Dict[str, Any]) -> List[str]:
     """Validates module sizing, hull weapon affinity, and tank exclusivity rules."""
-    warnings = []
+    warnings: List[str] = []
     ship_info = lookup_ship(hull_name)
     if not ship_info:
         return warnings
@@ -8127,7 +8127,7 @@ def validate_fit_module_compatibility(hull_name: str, fit_dict: Dict[str, Any]) 
     return warnings
 
 
-def get_tactical_grounding(prompt: str, attachments: List[Dict[str, Any]] = None, piloted_ship: Optional[str] = None) -> str:
+def get_tactical_grounding(prompt: str, attachments: Optional[List[Dict[str, Any]]] = None, piloted_ship: Optional[str] = None) -> str:
     """
     Extracts verified ship dossiers and tactical axioms for everything mentioned in the prompt.
     Correctly distinguishes Capsuleer's own piloted vessel from hostile contacts.
@@ -8177,15 +8177,15 @@ def get_tactical_grounding(prompt: str, attachments: List[Dict[str, Any]] = None
     # Deduplicate non-stopwords before querying ship dictionary
     unique_words = {w for w in raw_words if len(w) >= 2 and w.lower() not in _COMMON_STOPWORDS}
     for w in unique_words:
-        s_info = lookup_ship(w)
-        if s_info:
-            cname = s_info.get("canonical_name", w.capitalize())
+        word_info = lookup_ship(w)
+        if word_info:
+            cname = word_info.get("canonical_name", w.capitalize())
             cname_l = cname.lower()
             if piloted_ship_name and cname_l == piloted_ship_name.lower():
                 continue
             if cname_l not in detected_hulls:
                 detected_hulls.add(cname_l)
-                grounding_blocks.append(s_info.get("pre_rendered_dossier", f"• {cname}"))
+                grounding_blocks.append(word_info.get("pre_rendered_dossier", f"• {cname}"))
 
     # Check for Role Doctrine Grounding
     for role_key_l, role_doctrine in _ROLE_DOCTRINES_LOWER:

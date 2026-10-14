@@ -66,6 +66,14 @@ class FittingParser:
         if current_block:
             blocks.append(current_block)
 
+        low_slots: List[str] = []
+        mid_slots: List[str] = []
+        high_slots: List[str] = []
+        rig_slots: List[str] = []
+        subsystems: List[str] = []
+        cargo_items: List[str] = []
+        drones: List[str] = []
+
         if len(blocks) == 1:
             low_slots, mid_slots, high_slots, rig_slots, subsystems, cargo_items, drones = (
                 FittingParser._classify_mixed_block(blocks[0])
@@ -83,14 +91,6 @@ class FittingParser:
         # Block 3: Rig Slots
         # Block 4: Subsystems (T3C) or Cargo/Drones
         # Block 5+: Drones / Cargo
-
-        low_slots: List[str] = []
-        mid_slots: List[str] = []
-        high_slots: List[str] = []
-        rig_slots: List[str] = []
-        subsystems: List[str] = []
-        cargo_items: List[str] = []
-        drones: List[str] = []
 
         for block_idx, blk in enumerate(blocks):
             # Check if this block is entirely cargo / ammo / drones
@@ -183,7 +183,7 @@ class FittingParser:
 
         # Aggregate counts of identical items
         def format_item_list(items: List[str]) -> List[str]:
-            counts = {}
+            counts: Dict[str, int] = {}
             for item in items:
                 counts[item] = counts.get(item, 0) + 1
             res = []

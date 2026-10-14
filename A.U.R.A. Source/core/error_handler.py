@@ -232,10 +232,14 @@ def log_soft_failure(context: str, exc: BaseException) -> None:
     _SOFT_LOGGER.debug("%s: %s", context or "soft failure", exc, exc_info=exc)
 
 
-def log_diagnostic_error(code: str, exc: Exception | None = None, context: str = "") -> str:
+def log_diagnostic_error(code: str, exc: BaseException | str | None = None, context: str = "") -> str:
     """
     Records a structured diagnostic error into logs/crash.log with stack trace and context.
     Returns the formatted error code string.
+
+    ``exc`` may be an exception object (traceback is taken from the object itself,
+    so it is preserved even outside an ``except`` block, e.g. thread excepthooks)
+    or a plain message string.
     """
     meta = ERROR_REGISTRY.get(code, {
         "title": "Tactical Anomaly",
@@ -243,7 +247,7 @@ def log_diagnostic_error(code: str, exc: Exception | None = None, context: str =
         "resolution": "Review application logs"
     })
 
-    if exc is not None:
+    if isinstance(exc, BaseException):
         try:
             exc.add_note(f"A.U.R.A. Error Code: {code}")
             if context:
@@ -252,7 +256,12 @@ def log_diagnostic_error(code: str, exc: Exception | None = None, context: str =
             pass
     
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    tb = traceback.format_exc() if exc else "No traceback available."
+    if isinstance(exc, BaseException) and exc.__traceback__ is not None:
+        tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+    elif isinstance(exc, BaseException):
+        tb = traceback.format_exc() if sys.exc_info()[1] is exc else f"{type(exc).__name__}: {exc}"
+    else:
+        tb = "No traceback available."
     safe_context = clamp_text(context or "General Operation", 2_000)
     
     log_dir = get_logs_dir()

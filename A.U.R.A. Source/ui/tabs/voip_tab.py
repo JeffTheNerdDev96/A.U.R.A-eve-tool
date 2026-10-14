@@ -73,7 +73,7 @@ class VOIPTabWidget(QWidget):
     def __init__(self, voip_subsystem: Optional[VOIPMumbleSubsystem] = None, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.voip_subsystem = voip_subsystem or VOIPMumbleSubsystem()
-        if not self.voip_subsystem.is_running:
+        if not self.voip_subsystem.is_running():
             self.voip_subsystem.initialize()
             try:
                 self.voip_subsystem.start()

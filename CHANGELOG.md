@@ -6,6 +6,28 @@ All notable changes to Adaptive Underworld Recon Array (A.U.R.A.) are documented
 
 Active release.
 
+### Added — UI Overhaul (Angel Cartel Tactical Design System)
+
+- **Centralized design tokens (`ui/theme.py`)**: new Angel Cartel / EVE HUD palette, all defined in the single theme module:
+  - Void/obsidian bases: `VOID_OBSIDIAN #0D0E12`, `VOID_GRAY #14171D`, `VOID_PANEL #1A1F26`, `VOID_ELEVATED #222831`.
+  - Graphite framing: `GRAPHITE #2A323D`, `GRAPHITE_LIGHT #3A4553`.
+  - Cartel accents: `CARTEL_CRIMSON #C0392B`, `CARTEL_VERMILION #E74C3C`, `CARTEL_ALERT #FF4B4B`.
+  - HUD typography: `HUD_WHITE #E0E6ED`, `HUD_AMBER #F39C12` (headers / active highlights), plus steel/muted secondary tones.
+  - Legacy names (`BURNT_IRON*`, `BONE_*`, `OXIDE_RED*`, `BG_*`, `TEXT_*`, `ACCENT*`) are kept as aliases, so every existing import and tab stylesheet picks up the new palette without code changes. New `ACCENT_ALERT` and `HUD_HIGHLIGHT` role aliases were added.
+- **Angular framing**: the browser chrome and footer now use asymmetric angled corners with a crimson left rail. The main tab pane is square-cornered with a crimson top seam. Tabs have one angled corner, and the selected tab shows an amber label with an alert-red top bar.
+- **Tactical data tables**: new global rules for `QTableWidget`/`QTableView`/`QTreeWidget`/`QTreeView`/`QListWidget`, including obsidian wells, alternate-row tint, graphite gridlines, hover rows and crimson selection. `QHeaderView` sections use amber bold HUD headers with a crimson underline.
+- **Controls**: inputs get a graphite hover border and a crimson focus border with an alert-red left edge. Buttons have tighter angular radii and letter-spaced labels. `ChromeAction` buttons turn amber on hover. Square scrollbar handles go crimson on hover and alert-red when pressed. Tooltips, menus and splitter handles are now themed.
+- Purely presentational. No widget object names, layouts, geometry, signals, event filters or data bindings were changed.
+
+### Fixed — Backend
+
+- **VOIP / Mumble channel tree (`subsystems/voip_mumble/client.py`)**: fields were coerced with `int(x or -1)`, which turned Mumble's Root channel (id `0`) into `-1`. As a result, sub-channels of Root were orphaned in the topology tree, pilots in Root were counted as zero, and the speaking-telemetry channel was wrong for Root. Added a zero-safe `_as_int()` helper and used it for channel id, parent id, user channel id and the channel path walk.
+- **Fitting Dogma engine (`subsystems/fitting/dogma.py`)**: corrected the `warp_speed_mods` type annotation (`List[float]`, was `List[Dict]`) so it matches the values it actually holds. This clears a static operator/type mismatch in the warp-speed multiplier calculation.
+- **EFT fitting parser (`subsystems/fitting/parser.py`)**: slot lists were redeclared after the single-block early-return branch had already assigned them. They are now declared once before both paths, and the item-count dict is typed.
+- **Tactical grounding (`core/eve_data.py`)**: fixed an implicit-`Optional` default for `attachments`, typed the compatibility `warnings` list, and stopped a loop variable (`s_info`) from being reused with a conflicting type.
+- **Diagnostics (`core/error_handler.py`)**: `log_diagnostic_error()` now accepts `BaseException | str`. It takes the traceback from the exception object itself, so thread-excepthook crashes outside an `except` block are no longer logged as `NoneType: None`. String messages (as passed by the hardware OpenVINO probe) are accepted explicitly.
+- **XMPP / VOIP tabs (`ui/tabs/xmpp_tab.py`, `ui/tabs/voip_tab.py`)**: `if not subsystem.is_running:` tested the bound method, which is always truthy, instead of calling it. Standalone tabs therefore never initialized or started their own subsystem. The method is now called correctly.
+
 - **Architecture, Code Style & Idioms (PEP 8)**:
   - Repository-wide code audit: converted mechanical indexing and legacy patterns into idiomatic constructs, pattern matching, and comprehension expressions.
   - Standardized module imports adhering to PEP 8 grouping across all subsystem service layers and UI tabs.

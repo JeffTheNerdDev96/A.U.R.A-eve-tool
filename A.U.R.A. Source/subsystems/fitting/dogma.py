@@ -326,7 +326,7 @@ def calculate_mobility(
     inertia_mods: List[Dict[str, Any]] = []
     speed_mods: List[Dict[str, Any]] = []
     prop_modules: List[Dict[str, Any]] = []
-    warp_speed_mods: List[Dict[str, Any]] = []
+    warp_speed_mods: List[float] = []
 
     for mod in modules:
         # Mass addition (e.g. Armor Plates, Shield Extenders)

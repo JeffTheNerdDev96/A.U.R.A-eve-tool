@@ -87,7 +87,7 @@ class XMPPTabWidget(QWidget):
     def __init__(self, xmpp_subsystem: Optional[XMPPChatSubsystem] = None, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.xmpp_subsystem = xmpp_subsystem or XMPPChatSubsystem()
-        if not self.xmpp_subsystem.is_running:
+        if not self.xmpp_subsystem.is_running():
             self.xmpp_subsystem.initialize()
 
         self.selected_target: str = "broadcasts@conference.alliance.net"
