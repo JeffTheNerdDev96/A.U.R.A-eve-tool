@@ -670,10 +670,15 @@ class MainWindow(QMainWindow):
         # Set window icon
         this_dir = os.path.dirname(os.path.abspath(__file__))
         icon_candidates = [
+            os.path.join(this_dir, "..", "assets", "brand", "app_icon.ico"),
+            os.path.join(this_dir, "..", "assets", "brand", "app_icon.png"),
             os.path.join(this_dir, "app_icon.ico"),
             os.path.join(this_dir, "..", "app_icon.ico"),
+            os.path.join(getattr(sys, "_MEIPASS", ""), "assets", "brand", "app_icon.ico"),
             os.path.join(getattr(sys, "_MEIPASS", ""), "app_icon.ico"),
+            os.path.join(os.path.dirname(sys.executable), "assets", "brand", "app_icon.ico"),
             os.path.join(os.path.dirname(sys.executable), "app_icon.ico"),
+            os.path.join(os.getcwd(), "assets", "brand", "app_icon.ico"),
             os.path.join(os.getcwd(), "app_icon.ico"),
         ]
         for ip in icon_candidates:

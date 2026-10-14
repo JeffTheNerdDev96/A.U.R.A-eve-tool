@@ -23,7 +23,7 @@
 Configuration settings for Adaptive Underworld Recon Array (A.U.R.A.).
 Angel Cartel EVE Online Tactical AI Assistant with NPU Acceleration & Dedicated Phi-4 Mini Neural Core.
 """
-from version import VERSION
+from .version import VERSION
 
 
 class AppConfig:

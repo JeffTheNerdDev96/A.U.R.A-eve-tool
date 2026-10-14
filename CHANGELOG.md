@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Adaptive Underworld Recon Array (A.U.R.A.) are documented here. Canonical product version lives in `A.U.R.A. Source/version.py`.
+All notable changes to Adaptive Underworld Recon Array (A.U.R.A.) are documented here. Canonical product version lives in `A.U.R.A. Source/core/version.py`.
 
 ## [v0.7.0-alpha.1]
 
@@ -72,6 +72,13 @@ Active release (Final Alpha Release — 100% No-ESI Tactical Operations).
   - `tools/verify_installer_payload.py`: Multi-system distribution verifier ensuring zero host path leakage and complete offline asset packaging.
   - `tools/simulate_eve_client.py`: High-speed synthetic combat and gamelog stream generator.
   - `tools/audit_diagnostics.py`: Repository diagnostic error code auditor.
-- **Workspace Organization**:
+- **Workspace Organization & Clean Architecture**:
   - Relocated install batch scripts to `A.U.R.A. Source/bat scripts for install/`.
-  - Relocated test results to `tools/artifacts/test_results/`.
+  - Relocated test results and manifests to `tools/artifacts/test_results/` and `tools/artifacts/manifests/`.
+  - Moved static configuration files in main repo to `config/` (`config/pyrightconfig.json`, `config/mypy.ini`).
+  - Moved main repository launcher to `scripts/run.bat`.
+  - Organized application entry point into `A.U.R.A. Source/entry/app.py`.
+  - Organized application launch scripts into `A.U.R.A. Source/scripts/` (`run.bat`, `Launch_A.U.R.A_Debug.bat`).
+  - Relocated product version metadata into `A.U.R.A. Source/core/version.py`.
+  - Organized icon and checksum assets into `assets/brand/app_icon.ico` and `data/checksums.sha256`.
+  - Cleaned all root-level loose files and transient caches across the repository.

@@ -36,7 +36,7 @@ import traceback
 from .paths import get_logs_dir
 from .input_safety import clamp_text, escape_html
 
-from version import INSTALLER_EXE_NAME
+from .version import INSTALLER_EXE_NAME
 
 
 class AURAErrorCode:

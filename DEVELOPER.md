@@ -11,12 +11,15 @@ The codebase is organized into domain-specific packages with strict separation o
 
 ```
 A.U.R.A. Source/
-├── app.py                         # Single desktop application entrypoint
-├── version.py                     # Single source of truth for version (v0.7.0-alpha.1)
-├── Launch_A.U.R.A_Debug.bat       # Low-level debug launcher with runtime probe
-├── run.bat                        # Production launcher script
+├── entry/                         # Desktop application entrypoint
+│   └── app.py                     # Single desktop application entrypoint
+├── scripts/                       # Application runtime launchers
+│   ├── Launch_A.U.R.A_Debug.bat   # Low-level debug launcher with runtime probe
+│   └── run.bat                    # Production launcher script
+├── bat scripts for install/       # Hardware-specific venv/wheel installer scripts
 │
 ├── core/                          # Cross-cutting foundational infrastructure
+│   ├── version.py                 # Single source of truth for version (v0.7.0-alpha.1)
 │   ├── event_bus.py               # Asynchronous Qt EventBus singleton
 │   ├── events.py                  # Strongly-typed event dataclasses
 │   ├── base_subsystem.py          # Subsystem lifecycle contract

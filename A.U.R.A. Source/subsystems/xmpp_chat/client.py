@@ -39,7 +39,7 @@ import xml.etree.ElementTree as ET
 from dataclasses import replace
 from typing import Callable
 
-from version import VERSION
+from core.version import VERSION
 from core.error_handler import AURAErrorCode, log_diagnostic_error, log_soft_failure
 from core.eve_data import lookup_ship
 from core.lifecycle import XMPP_JOIN_MS

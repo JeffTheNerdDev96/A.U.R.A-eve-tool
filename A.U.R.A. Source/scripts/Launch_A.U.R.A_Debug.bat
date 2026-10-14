@@ -19,6 +19,15 @@
 :: You should have received a copy of the GNU Affero General Public License
 :: along with this program.  If not, see <https://www.gnu.org/licenses/>.
 :: ============================================================================
-setlocal
-cd /d "%~dp0"
-call "%~dp0A.U.R.A. Source\run.bat" %*
+cd /d "%~dp0.."
+set PYTHONUTF8=1
+if exist "requirements\venv\Scripts\python.exe" (
+  "requirements\venv\Scripts\python.exe" -c "from bootstrap import configure_qt_paths; configure_qt_paths()" && "requirements\venv\Scripts\python.exe" "entry\app.py"
+) else if exist "runtime\python.exe" (
+  "runtime\python.exe" -c "from bootstrap import configure_qt_paths; configure_qt_paths()" && "runtime\python.exe" "entry\app.py"
+) else (
+  echo Python environment not found.
+  pause
+  exit /b 1
+)
+pause

@@ -82,10 +82,10 @@ git clone https://github.com/JeffTheNerdDev96/A.U.R.A-eve-tool.git
 cd A.U.R.A-eve-tool
 ```
 
-1. `A.U.R.A. Source/requirements/install_auto.bat` (or a named hardware script in that folder).
-2. `run.bat`
+1. `A.U.R.A. Source/bat scripts for install/install_auto.bat` (or a named hardware script in that folder).
+2. `scripts/run.bat` (or `A.U.R.A. Source/scripts/run.bat`)
 
-Standalone: `AURA_Setup_v0.6.1-alpha.1.exe` (bundled Python 3.12 and model weights).
+Standalone: `AURA_Setup_v0.7.0-alpha.1.exe` (multi-system installer with clean upstream provisioning).
 
 Details on hardware profiles and co-processors: [requirements/README.md](A.U.R.A.%20Source/requirements/README.md).
 
