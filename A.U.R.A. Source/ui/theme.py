@@ -3,6 +3,9 @@
 # Adaptive Underworld Recon Array (A.U.R.A.)
 # Copyright (C) 2026 JeffTheNerdDev96
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 JeffTheNerdDev96
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -30,12 +33,12 @@ import os
 import sys
 from typing import Dict
 
-# --- Angel Cartel tactical design tokens ---
+# --- Angel Cartel tactical design tokens (Shell & Chrome) ---
 VOID_OBSIDIAN = "#0D0E12"      # deepest well / data surfaces
 VOID_GRAY = "#14171D"          # chrome, sidebars, dropdowns
-VOID_PANEL = "#1A1F26"         # panes, cards, idle tabs
-VOID_ELEVATED = "#222831"      # hovered / raised surfaces
-GRAPHITE = "#2A323D"           # primary framing borders
+VOID_PANEL = "#1A1F26"         # upper/lower chrome panels, cards
+VOID_ELEVATED = "#222831"      # chrome hovered / raised surfaces
+GRAPHITE = "#2A323D"           # primary chrome framing borders
 GRAPHITE_LIGHT = "#3A4553"     # emphasised borders / handles
 CARTEL_CRIMSON = "#C0392B"     # primary accent
 CARTEL_VERMILION = "#E74C3C"   # hover accent
@@ -46,28 +49,28 @@ HUD_AMBER = "#F39C12"          # tactical highlights / headers
 HUD_STEEL = "#AEB8C4"          # secondary text
 HUD_MUTED = "#7A8594"          # hints, disabled text
 
-# --- Legacy faction names (aliased to the new tokens for compatibility) ---
-BLACKENED_METAL = VOID_OBSIDIAN
-BURNT_IRON = VOID_PANEL
-BURNT_IRON_LIGHT = VOID_ELEVATED
-BURNT_IRON_BORDER = GRAPHITE
-BONE_WHITE = HUD_WHITE
-BONE_IVORY = HUD_STEEL
-BONE_MUTED = HUD_MUTED
+# --- Canonical Angel Cartel faction colors (Burnt iron, bone ivory, oxide red) ---
+BLACKENED_METAL = "#0c0a09"    # deep blackened warm metal well
+BURNT_IRON = "#2a2522"         # signature Angel Cartel warm burnt iron / chocolate
+BURNT_IRON_LIGHT = "#3a3430"   # lighter warm burnt iron
+BURNT_IRON_BORDER = "#524840"  # warm brownish framing border
+BONE_WHITE = "#ece8e0"         # crisp bone white
+BONE_IVORY = "#d4cec4"         # warm bone ivory
+BONE_MUTED = "#9a9288"         # muted bone ivory
 OXIDE_RED = CARTEL_CRIMSON
 OXIDE_RED_HOVER = CARTEL_VERMILION
 OXIDE_RED_DIM = CARTEL_CRIMSON_DIM
 
 # --- UI role aliases (keep names for imports across the app) ---
-BG_DEEP = VOID_OBSIDIAN
-BG_PANEL = VOID_PANEL
-BG_ELEVATED = VOID_ELEVATED
+BG_DEEP = BLACKENED_METAL
+BG_PANEL = BURNT_IRON
+BG_ELEVATED = BURNT_IRON_LIGHT
 BG_CHROME = VOID_GRAY
 BG_TITLEBAR = "#171A21"
-BG_INPUT = "#101318"
+BG_INPUT = "#1a1816"
 
 BORDER = GRAPHITE
-BORDER_MUTED = "#232A33"
+BORDER_MUTED = BURNT_IRON_BORDER
 BORDER_FOCUS = CARTEL_ALERT
 
 ACCENT = CARTEL_CRIMSON
@@ -77,18 +80,18 @@ ACCENT_PRESSED = "#962D22"
 ACCENT_ALERT = CARTEL_ALERT
 HUD_HIGHLIGHT = HUD_AMBER
 
-TEXT_PRIMARY = HUD_WHITE
-TEXT_SECONDARY = HUD_STEEL
-TEXT_HINT = HUD_MUTED
-TEXT_HEADER = HUD_AMBER
-TEXT_BRAND = HUD_WHITE
+TEXT_PRIMARY = BONE_WHITE
+TEXT_SECONDARY = BONE_IVORY
+TEXT_HINT = BONE_MUTED
+TEXT_HEADER = BONE_IVORY
+TEXT_BRAND = BONE_WHITE
 
-BTN_SECONDARY_BG = BURNT_IRON
-BTN_SECONDARY_BORDER = BURNT_IRON_BORDER
+BTN_SECONDARY_BG = VOID_PANEL
+BTN_SECONDARY_BORDER = GRAPHITE
 
 STATUS_ONLINE = "#34d399"
-STATUS_STANDBY_BG = BURNT_IRON
-STATUS_STANDBY_BORDER = BURNT_IRON_BORDER
+STATUS_STANDBY_BG = VOID_PANEL
+STATUS_STANDBY_BORDER = GRAPHITE
 
 BTN_TEXT_ON_ACCENT = BONE_WHITE
 
@@ -104,16 +107,16 @@ GRAD_CHROME = (
     f"qlineargradient(x1:0, y1:0, x2:0, y2:1, "
     f"stop:0 {BG_TITLEBAR}, stop:1 {BG_CHROME})"
 )
-GRAD_PANE = BG_PANEL
+GRAD_PANE = BURNT_IRON
 GRAD_TAB_IDLE = (
     f"qlineargradient(x1:0, y1:0, x2:0, y2:1, "
-    f"stop:0 {BG_TITLEBAR}, stop:1 {BG_PANEL})"
+    f"stop:0 #1a1614, stop:1 {BURNT_IRON})"
 )
 GRAD_TAB_HOVER = (
     f"qlineargradient(x1:0, y1:0, x2:0, y2:1, "
-    f"stop:0 {BG_PANEL}, stop:1 {BG_CHROME})"
+    f"stop:0 {BURNT_IRON_LIGHT}, stop:1 {BURNT_IRON})"
 )
-GRAD_TAB_SELECTED = GRAD_PANE
+GRAD_TAB_SELECTED = BURNT_IRON
 GRAD_BTN = (
     f"qlineargradient(x1:0, y1:0, x2:1, y2:0, "
     f"stop:0 {ACCENT_DIM}, stop:0.45 {ACCENT}, stop:1 {ACCENT_HOVER})"
@@ -337,15 +340,15 @@ def tier_badge_standby_css() -> str:
 
 def radar_control_btn_css() -> str:
     return (
-        f"font-size: 12px; padding: 2px 10px; background: {BTN_SECONDARY_BG}; "
-        f"border: 1px solid {BTN_SECONDARY_BORDER}; color: {TEXT_PRIMARY}; font-weight: bold;"
+        f"font-size: 12px; padding: 2px 10px; background: {BURNT_IRON_LIGHT}; "
+        f"border: 1px solid {BURNT_IRON_BORDER}; color: {TEXT_PRIMARY}; font-weight: bold; border-radius: 2px;"
     )
 
 
 def radar_accent_btn_css() -> str:
     return (
         f"font-size: 12px; padding: 2px 10px; background: {ACCENT_DIM}; "
-        f"border: 1px solid {ACCENT}; color: {TEXT_PRIMARY}; font-weight: bold;"
+        f"border: 1px solid {ACCENT}; color: {TEXT_PRIMARY}; font-weight: bold; border-radius: 2px;"
     )
 
 
@@ -439,7 +442,7 @@ def main_stylesheet() -> str:
             font-weight: bold;
         }}
         QPushButton#ChromeAction:hover {{
-            background-color: {BURNT_IRON_LIGHT};
+            background-color: {VOID_ELEVATED};
             border: 1px solid {ACCENT};
             color: {HUD_AMBER};
         }}
@@ -489,19 +492,19 @@ def main_stylesheet() -> str:
         }}
 
         QFrame#LiveIntelPanel {{
-            background: transparent;
+            background-color: {BURNT_IRON};
             border: none;
             border-radius: 0;
             padding: 12px;
         }}
         QFrame#TabCard {{
-            background: transparent;
+            background: {BURNT_IRON};
             border: none;
             border-radius: 0;
         }}
         QListWidget#LiveIntelList {{
             background-color: {BG_DEEP};
-            border: 1px solid {BORDER};
+            border: 1px solid {BURNT_IRON_BORDER};
             border-radius: 6px;
             color: {TEXT_PRIMARY};
             font-size: 13px;
@@ -521,7 +524,7 @@ def main_stylesheet() -> str:
         }}
         QTextEdit#ChatDisplay {{
             background-color: {BG_DEEP};
-            border: 1px solid {BORDER};
+            border: 1px solid {BURNT_IRON_BORDER};
             border-radius: 8px;
             padding: 16px;
             color: {TEXT_PRIMARY};
@@ -661,53 +664,66 @@ def main_stylesheet() -> str:
         QTabBar {{
             background: transparent;
         }}
+        QTabBar QToolButton {{
+            background: {BURNT_IRON};
+            border: 1px solid {BURNT_IRON_BORDER};
+            border-radius: 4px;
+            color: {TEXT_PRIMARY};
+            margin: 4px 1px;
+        }}
+        QTabBar QToolButton:hover {{
+            background: {BURNT_IRON_LIGHT};
+            border: 1px solid {ACCENT};
+        }}
         QTabWidget#MainTabs {{
             background: transparent;
             border: none;
         }}
         QTabWidget#MainTabs::pane {{
-            border: 1px solid {BORDER};
-            border-top: 1px solid {ACCENT_DIM};
+            border: 1px solid {BURNT_IRON_BORDER};
             background: {GRAD_PANE};
             top: -1px;
             padding: 8px;
-            border-radius: 0;
+            border-top-left-radius: 0;
+            border-top-right-radius: 8px;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
         }}
         QTabWidget#MainTabs QTabBar::tab {{
             background: {GRAD_TAB_IDLE};
             color: {TEXT_SECONDARY};
-            border: 1px solid {BORDER};
+            border: 1px solid {BURNT_IRON_BORDER};
             border-bottom: none;
             padding: 11px 20px;
             margin-right: 6px;
             margin-top: 4px;
-            border-top-left-radius: 0;
-            border-top-right-radius: 6px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
             font-weight: bold;
             font-size: 13px;
             letter-spacing: 0.5px;
         }}
         QTabWidget#MainTabs QTabBar::tab:selected {{
             background: {GRAD_TAB_SELECTED};
-            color: {HUD_AMBER};
-            border: 1px solid {BORDER};
-            border-top: 2px solid {ACCENT_ALERT};
+            color: {TEXT_PRIMARY};
+            border: 1px solid {BURNT_IRON_BORDER};
+            border-top: 2px solid {ACCENT};
             border-bottom: 1px solid {BG_PANEL};
             margin-bottom: -1px;
         }}
         QTabWidget#MainTabs QTabBar::tab:hover:!selected {{
             color: {TEXT_PRIMARY};
             background: {GRAD_TAB_HOVER};
-            border: 1px solid {GRAPHITE_LIGHT};
+            border: 1px solid {BURNT_IRON_BORDER};
             border-bottom: none;
-            border-top: 2px solid {ACCENT};
+            border-top: 2px solid {ACCENT_DIM};
         }}
         QTableWidget, QTableView, QTreeWidget, QTreeView, QListWidget {{
             background-color: {BG_DEEP};
             alternate-background-color: {BG_INPUT};
             color: {TEXT_PRIMARY};
-            gridline-color: {BORDER_MUTED};
-            border: 1px solid {BORDER};
+            gridline-color: {BURNT_IRON_BORDER};
+            border: 1px solid {BURNT_IRON_BORDER};
             selection-background-color: {ACCENT_DIM};
             selection-color: {TEXT_PRIMARY};
         }}

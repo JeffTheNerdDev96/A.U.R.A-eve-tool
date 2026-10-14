@@ -1,6 +1,10 @@
 # ==============================================================================
 # Adaptive Underworld Recon Array (A.U.R.A.)
 # Copyright (C) 2026 JeffTheNerdDev96
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 JeffTheNerdDev96
+#
 # Protected by GNU Affero General Public License Version 3 (AGPL-3.0)
 # ==============================================================================
 # Core Adaptive Underworld Recon Array (A.U.R.A.) Base Requirements
