@@ -15,9 +15,6 @@ Active release.
   - HUD typography: `HUD_WHITE #E0E6ED`, `HUD_AMBER #F39C12` (headers / active highlights), plus steel/muted secondary tones.
   - Legacy names (`BURNT_IRON*`, `BONE_*`, `OXIDE_RED*`, `BG_*`, `TEXT_*`, `ACCENT*`) are kept as aliases, so every existing import and tab stylesheet picks up the new palette without code changes. New `ACCENT_ALERT` and `HUD_HIGHLIGHT` role aliases were added.
 - **Angular framing**: the browser chrome and footer now use asymmetric angled corners with a crimson left rail. The main tab pane is square-cornered with a crimson top seam. Tabs have one angled corner, and the selected tab shows an amber label with an alert-red top bar.
-- **Tactical data tables**: new global rules for `QTableWidget`/`QTableView`/`QTreeWidget`/`QTreeView`/`QListWidget`, including obsidian wells, alternate-row tint, graphite gridlines, hover rows and crimson selection. `QHeaderView` sections use amber bold HUD headers with a crimson underline.
-- **Controls**: inputs get a graphite hover border and a crimson focus border with an alert-red left edge. Buttons have tighter angular radii and letter-spaced labels. `ChromeAction` buttons turn amber on hover. Square scrollbar handles go crimson on hover and alert-red when pressed. Tooltips, menus and splitter handles are now themed.
-- Purely presentational. No widget object names, layouts, geometry, signals, event filters or data bindings were changed.
 
 ### Fixed — Backend
 
