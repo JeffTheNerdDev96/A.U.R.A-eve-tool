@@ -68,6 +68,8 @@ class SurveyScannerParser:
                 results.append(rock)
         return results
 
+    parse_clipboard = parse
+
     @classmethod
     def _parse_line(cls, line: str) -> Optional[SurveyScannerRock]:
         clean = line.strip()
