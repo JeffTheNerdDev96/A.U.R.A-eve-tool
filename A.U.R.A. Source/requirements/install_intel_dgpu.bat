@@ -33,6 +33,8 @@ set "PYTHON_EXE=%SCRIPT_DIR%venv\Scripts\python.exe"
 
 "%PYTHON_EXE%" -m pip install --prefer-binary -r "%SCRIPT_DIR%requirements-intel-gpu.txt"
 if %ERRORLEVEL% NEQ 0 goto :FINISH
+"%PYTHON_EXE%" -m pip install --no-deps --prefer-binary -r "%SCRIPT_DIR%requirements-nodeps.txt"
+if %ERRORLEVEL% NEQ 0 goto :FINISH
 call "%SCRIPT_DIR%_install_llama_wheel.bat" vulkan
 "%PYTHON_EXE%" "%SCRIPT_DIR%write_hardware_profile.py" intel_dgpu --llama-wheel %AURA_LLAMA_WHEEL%
 "%PYTHON_EXE%" "%SCRIPT_DIR%_check_drivers.py" --profiles intel_dgpu

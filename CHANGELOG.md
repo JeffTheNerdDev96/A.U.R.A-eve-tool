@@ -26,6 +26,16 @@ Active release.
 - **EFT fitting parser (`subsystems/fitting/parser.py`)**: slot lists were redeclared after the single-block early-return branch had already assigned them. They are now declared once before both paths, and the item-count dict is typed.
 - **Tactical grounding (`core/eve_data.py`)**: fixed an implicit-`Optional` default for `attachments`, typed the compatibility `warnings` list, and stopped a loop variable (`s_info`) from being reused with a conflicting type.
 - **Diagnostics (`core/error_handler.py`)**: `log_diagnostic_error()` now accepts `BaseException | str`. It takes the traceback from the exception object itself, so thread-excepthook crashes outside an `except` block are no longer logged as `NoneType: None`. String messages (as passed by the hardware OpenVINO probe) are accepted explicitly.
+- **Installer hang at "Installing Intel NPU OpenVINO stack..." (`requirements/`, `tools/installer_gui.py`)**:
+  - **Root cause**: `requirements.txt` listed `pymumble==1.6.1` alongside `protobuf==7.36.2`, but pymumble's metadata pins `protobuf==3.12.2`, so the set was unresolvable. The core install step failed silently, because its exit code was ignored. Every profile step then re-resolved the same conflict. With OpenVINO added to the set, pip backtracked through dozens of `openvino`/`openvino-genai`/`openvino-tokenizers` releases. pip ran with no console window and its output was discarded, so setup appeared frozen.
+  - **Fix**: `pymumble` moves to the new `requirements/requirements-nodeps.txt`, installed with `--no-deps`. Its real runtime dependencies (`protobuf==7.36.2`, `opuslib==3.0.1`) stay pinned in `requirements.txt`. Every requirements file (core, Intel NPU, Intel GPU, AMD NPU) now resolves in about 15–20 s.
+  - **Installer hardening**:
+    - pip runs non-interactively with UTF-8 output, and its output is streamed to `logs/install_pip.log`.
+    - Progress lines (`Collecting…`, `Downloading…`) appear in the setup window.
+    - A watchdog kills the pip process tree after 10 minutes with no output, so setup can no longer hang indefinitely.
+    - A core requirements failure now stops setup with a clear error. A failed optional acceleration stack (OpenVINO, DirectML) falls back to the CPU stack and appears as a post-install warning.
+    - Cancel now terminates pip's whole process tree.
+  - The same `--no-deps` step was added to `select_hardware_profile.py` and all eight `install_*.bat` developer scripts.
 - **XMPP / VOIP tabs (`ui/tabs/xmpp_tab.py`, `ui/tabs/voip_tab.py`)**: `if not subsystem.is_running:` tested the bound method, which is always truthy, instead of calling it. Standalone tabs therefore never initialized or started their own subsystem. The method is now called correctly.
 
 - **Architecture, Code Style & Idioms (PEP 8)**:

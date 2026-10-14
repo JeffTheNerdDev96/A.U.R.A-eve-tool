@@ -173,6 +173,8 @@ def main() -> int:
                 req("requirements.txt"),
             ],
         )
+        # pymumble pins protobuf==3.12.2; install it without deps (see requirements-nodeps.txt).
+        _pip(python_exe, ["install", "--no-deps", "--prefer-binary", "-r", req("requirements-nodeps.txt")])
 
     from hardware.detector import HardwareDetector
 
