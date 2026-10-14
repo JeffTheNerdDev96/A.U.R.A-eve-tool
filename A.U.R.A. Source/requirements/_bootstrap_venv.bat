@@ -3,6 +3,9 @@
 :: Adaptive Underworld Recon Array (A.U.R.A.)
 :: Copyright (C) 2026 JeffTheNerdDev96
 ::
+:: SPDX-License-Identifier: AGPL-3.0-or-later
+:: SPDX-FileCopyrightText: 2026 JeffTheNerdDev96
+::
 :: This program is free software: you can redistribute it and/or modify
 :: it under the terms of the GNU Affero General Public License as published by
 :: the Free Software Foundation, either version 3 of the License, or
@@ -46,7 +49,7 @@ if %ERRORLEVEL% EQU 0 goto :AFTER_CREATE
 python "%PY_CHECK%" 2>nul
 if %ERRORLEVEL% NEQ 0 (
     echo [X] Error: Python 3.12+ is required. Found an unsupported Python version.
-    echo [!] Please install Python 3.12 64-bit from python.org or run AURA_Setup_v0.6.0-alpha.4.exe.
+    echo [!] Please install Python 3.12 64-bit from python.org or run AURA_Setup_v0.6.1-alpha.1.exe.
     exit /b 1
 )
 python -m venv "%REQ_DIR%venv"

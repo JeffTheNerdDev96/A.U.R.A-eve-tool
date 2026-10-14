@@ -3,6 +3,9 @@
 # Adaptive Underworld Recon Array (A.U.R.A.)
 # Copyright (C) 2026 JeffTheNerdDev96
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 JeffTheNerdDev96
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -17,8 +20,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Angel Cartel UI theme — blackened metal, burnt iron, bone ivory, oxide red accents.
-Single source of truth for A.U.R.A. desktop styling.
+Angel Cartel tactical sci-fi theme (EVE Online HUD inspired).
+
+Void-grey / obsidian bases, graphite framing, Angel Cartel crimson-vermilion
+accents and amber/white HUD typography. Single source of truth for A.U.R.A.
+desktop styling. Legacy constant names (BURNT_IRON, BONE_*, OXIDE_RED*) are
+retained as aliases so every existing ``from ui.theme import ...`` keeps working.
 """
 from __future__ import annotations
 
@@ -26,34 +33,52 @@ import os
 import sys
 from typing import Dict
 
-# --- Canonical Angel Cartel faction colors ---
-BLACKENED_METAL = "#0c0a09"
-BURNT_IRON = "#2a2522"
-BURNT_IRON_LIGHT = "#3a3430"
-BURNT_IRON_BORDER = "#524840"
-BONE_WHITE = "#ece8e0"
-BONE_IVORY = "#d4cec4"
-BONE_MUTED = "#9a9288"
-OXIDE_RED = "#b91c1c"
-OXIDE_RED_HOVER = "#dc2626"
-OXIDE_RED_DIM = "#6b1414"
+# --- Angel Cartel tactical design tokens (Shell & Chrome) ---
+VOID_OBSIDIAN = "#0D0E12"      # deepest well / data surfaces
+VOID_GRAY = "#14171D"          # chrome, sidebars, dropdowns
+VOID_PANEL = "#1A1F26"         # upper/lower chrome panels, cards
+VOID_ELEVATED = "#222831"      # chrome hovered / raised surfaces
+GRAPHITE = "#2A323D"           # primary chrome framing borders
+GRAPHITE_LIGHT = "#3A4553"     # emphasised borders / handles
+CARTEL_CRIMSON = "#C0392B"     # primary accent
+CARTEL_VERMILION = "#E74C3C"   # hover accent
+CARTEL_ALERT = "#FF4B4B"       # high-visibility alert / focus glow
+CARTEL_CRIMSON_DIM = "#5E1C16"  # selection fills / dim accent
+HUD_WHITE = "#E0E6ED"          # primary HUD text
+HUD_AMBER = "#F39C12"          # tactical highlights / headers
+HUD_STEEL = "#AEB8C4"          # secondary text
+HUD_MUTED = "#7A8594"          # hints, disabled text
+
+# --- Canonical Angel Cartel faction colors (Burnt iron, bone ivory, oxide red) ---
+BLACKENED_METAL = "#0c0a09"    # deep blackened warm metal well
+BURNT_IRON = "#2a2522"         # signature Angel Cartel warm burnt iron / chocolate
+BURNT_IRON_LIGHT = "#3a3430"   # lighter warm burnt iron
+BURNT_IRON_BORDER = "#524840"  # warm brownish framing border
+BONE_WHITE = "#ece8e0"         # crisp bone white
+BONE_IVORY = "#d4cec4"         # warm bone ivory
+BONE_MUTED = "#9a9288"         # muted bone ivory
+OXIDE_RED = CARTEL_CRIMSON
+OXIDE_RED_HOVER = CARTEL_VERMILION
+OXIDE_RED_DIM = CARTEL_CRIMSON_DIM
 
 # --- UI role aliases (keep names for imports across the app) ---
 BG_DEEP = BLACKENED_METAL
 BG_PANEL = BURNT_IRON
-BG_ELEVATED = "#32302c"
-BG_CHROME = "#141210"
-BG_TITLEBAR = "#1a1614"
+BG_ELEVATED = BURNT_IRON_LIGHT
+BG_CHROME = VOID_GRAY
+BG_TITLEBAR = "#171A21"
 BG_INPUT = "#1a1816"
 
-BORDER = BURNT_IRON_BORDER
-BORDER_MUTED = BURNT_IRON_LIGHT
-BORDER_FOCUS = OXIDE_RED
+BORDER = GRAPHITE
+BORDER_MUTED = BURNT_IRON_BORDER
+BORDER_FOCUS = CARTEL_ALERT
 
-ACCENT = OXIDE_RED
-ACCENT_HOVER = OXIDE_RED_HOVER
-ACCENT_DIM = OXIDE_RED_DIM
-ACCENT_PRESSED = "#991b1b"
+ACCENT = CARTEL_CRIMSON
+ACCENT_HOVER = CARTEL_VERMILION
+ACCENT_DIM = CARTEL_CRIMSON_DIM
+ACCENT_PRESSED = "#962D22"
+ACCENT_ALERT = CARTEL_ALERT
+HUD_HIGHLIGHT = HUD_AMBER
 
 TEXT_PRIMARY = BONE_WHITE
 TEXT_SECONDARY = BONE_IVORY
@@ -61,18 +86,18 @@ TEXT_HINT = BONE_MUTED
 TEXT_HEADER = BONE_IVORY
 TEXT_BRAND = BONE_WHITE
 
-BTN_SECONDARY_BG = BURNT_IRON
-BTN_SECONDARY_BORDER = BURNT_IRON_BORDER
+BTN_SECONDARY_BG = VOID_PANEL
+BTN_SECONDARY_BORDER = GRAPHITE
 
 STATUS_ONLINE = "#34d399"
-STATUS_STANDBY_BG = BURNT_IRON
-STATUS_STANDBY_BORDER = BURNT_IRON_BORDER
+STATUS_STANDBY_BG = VOID_PANEL
+STATUS_STANDBY_BORDER = GRAPHITE
 
 BTN_TEXT_ON_ACCENT = BONE_WHITE
 
-GUNMETAL_HIGH = "#1a1c20"
-GUNMETAL = "#121418"
-GUNMETAL_DEEP = "#0a0b0d"
+GUNMETAL_HIGH = "#181C23"
+GUNMETAL = VOID_GRAY
+GUNMETAL_DEEP = VOID_OBSIDIAN
 
 GRAD_SHELL = (
     f"qlineargradient(x1:0, y1:0, x2:0, y2:1, "
@@ -82,16 +107,16 @@ GRAD_CHROME = (
     f"qlineargradient(x1:0, y1:0, x2:0, y2:1, "
     f"stop:0 {BG_TITLEBAR}, stop:1 {BG_CHROME})"
 )
-GRAD_PANE = BG_PANEL
+GRAD_PANE = BURNT_IRON
 GRAD_TAB_IDLE = (
     f"qlineargradient(x1:0, y1:0, x2:0, y2:1, "
-    f"stop:0 {BG_TITLEBAR}, stop:1 {BG_PANEL})"
+    f"stop:0 #1a1614, stop:1 {BURNT_IRON})"
 )
 GRAD_TAB_HOVER = (
     f"qlineargradient(x1:0, y1:0, x2:0, y2:1, "
-    f"stop:0 {BG_PANEL}, stop:1 {BG_CHROME})"
+    f"stop:0 {BURNT_IRON_LIGHT}, stop:1 {BURNT_IRON})"
 )
-GRAD_TAB_SELECTED = GRAD_PANE
+GRAD_TAB_SELECTED = BURNT_IRON
 GRAD_BTN = (
     f"qlineargradient(x1:0, y1:0, x2:1, y2:0, "
     f"stop:0 {ACCENT_DIM}, stop:0.45 {ACCENT}, stop:1 {ACCENT_HOVER})"
@@ -167,12 +192,16 @@ def input_field_css() -> str:
             background-color: {BG_INPUT};
             color: {TEXT_PRIMARY};
             border: 1px solid {BORDER_MUTED};
-            border-radius: 6px;
+            border-radius: 2px;
             padding: 6px 10px;
             selection-background-color: {ACCENT_DIM};
         }}
+        QLineEdit:hover, QTextEdit:hover, QPlainTextEdit:hover, QComboBox:hover, QSpinBox:hover {{
+            border: 1px solid {GRAPHITE_LIGHT};
+        }}
         QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus, QComboBox:focus, QSpinBox:focus {{
             border: 1px solid {ACCENT};
+            border-left: 2px solid {ACCENT_ALERT};
         }}
         QComboBox::drop-down {{
             border: none;
@@ -311,15 +340,15 @@ def tier_badge_standby_css() -> str:
 
 def radar_control_btn_css() -> str:
     return (
-        f"font-size: 12px; padding: 2px 10px; background: {BTN_SECONDARY_BG}; "
-        f"border: 1px solid {BTN_SECONDARY_BORDER}; color: {TEXT_PRIMARY}; font-weight: bold;"
+        f"font-size: 12px; padding: 2px 10px; background: {BURNT_IRON_LIGHT}; "
+        f"border: 1px solid {BURNT_IRON_BORDER}; color: {TEXT_PRIMARY}; font-weight: bold; border-radius: 2px;"
     )
 
 
 def radar_accent_btn_css() -> str:
     return (
         f"font-size: 12px; padding: 2px 10px; background: {ACCENT_DIM}; "
-        f"border: 1px solid {ACCENT}; color: {TEXT_PRIMARY}; font-weight: bold;"
+        f"border: 1px solid {ACCENT}; color: {TEXT_PRIMARY}; font-weight: bold; border-radius: 2px;"
     )
 
 
@@ -351,15 +380,19 @@ def main_stylesheet() -> str:
         QFrame#BrowserChrome {{
             background: {GRAD_CHROME};
             border: 1px solid {BORDER};
+            border-left: 3px solid {ACCENT};
             border-bottom: 2px solid {ACCENT};
-            border-radius: 8px;
+            border-radius: 0;
+            border-top-right-radius: 10px;
             padding: 6px 12px;
         }}
         QFrame#BrowserFooter {{
             background: {GRAD_CHROME};
             border: 1px solid {BORDER};
+            border-left: 3px solid {ACCENT_DIM};
             border-top: 2px solid {ACCENT};
-            border-radius: 8px;
+            border-radius: 0;
+            border-bottom-left-radius: 10px;
             padding: 6px 12px;
         }}
         QFrame#ChromeStripe {{
@@ -402,14 +435,16 @@ def main_stylesheet() -> str:
             background-color: {BTN_SECONDARY_BG};
             color: {TEXT_PRIMARY};
             border: 1px solid {BTN_SECONDARY_BORDER};
-            border-radius: 6px;
+            border-radius: 0;
+            border-top-right-radius: 6px;
             padding: 6px 14px;
             font-size: 13px;
             font-weight: bold;
         }}
         QPushButton#ChromeAction:hover {{
-            background-color: {BURNT_IRON_LIGHT};
+            background-color: {VOID_ELEVATED};
             border: 1px solid {ACCENT};
+            color: {HUD_AMBER};
         }}
         QLabel#TierBadge {{
             font-family: {FONT_DISPLAY};
@@ -457,19 +492,19 @@ def main_stylesheet() -> str:
         }}
 
         QFrame#LiveIntelPanel {{
-            background: transparent;
+            background-color: {BURNT_IRON};
             border: none;
             border-radius: 0;
             padding: 12px;
         }}
         QFrame#TabCard {{
-            background: transparent;
+            background: {BURNT_IRON};
             border: none;
             border-radius: 0;
         }}
         QListWidget#LiveIntelList {{
             background-color: {BG_DEEP};
-            border: 1px solid {BORDER};
+            border: 1px solid {BURNT_IRON_BORDER};
             border-radius: 6px;
             color: {TEXT_PRIMARY};
             font-size: 13px;
@@ -489,7 +524,7 @@ def main_stylesheet() -> str:
         }}
         QTextEdit#ChatDisplay {{
             background-color: {BG_DEEP};
-            border: 1px solid {BORDER};
+            border: 1px solid {BURNT_IRON_BORDER};
             border-radius: 8px;
             padding: 16px;
             color: {TEXT_PRIMARY};
@@ -515,12 +550,16 @@ def main_stylesheet() -> str:
             margin: 0px;
         }}
         QScrollBar::handle:vertical {{
-            background: {BTN_SECONDARY_BORDER};
+            background: {GRAPHITE_LIGHT};
             min-height: 24px;
-            border-radius: 5px;
+            border-radius: 0;
+            margin: 0 2px;
         }}
         QScrollBar::handle:vertical:hover {{
             background: {ACCENT};
+        }}
+        QScrollBar::handle:vertical:pressed {{
+            background: {ACCENT_ALERT};
         }}
         QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
             height: 0px;
@@ -537,10 +576,11 @@ def main_stylesheet() -> str:
             background: {GRAD_BTN};
             color: {BTN_TEXT_ON_ACCENT};
             border: none;
-            border-radius: 6px;
+            border-radius: 2px;
             padding: 8px 16px;
             font-weight: bold;
             font-size: 13.5px;
+            letter-spacing: 0.5px;
         }}
         QPushButton:hover {{
             background: {GRAD_BTN_HOVER};
@@ -624,12 +664,23 @@ def main_stylesheet() -> str:
         QTabBar {{
             background: transparent;
         }}
+        QTabBar QToolButton {{
+            background: {BURNT_IRON};
+            border: 1px solid {BURNT_IRON_BORDER};
+            border-radius: 4px;
+            color: {TEXT_PRIMARY};
+            margin: 4px 1px;
+        }}
+        QTabBar QToolButton:hover {{
+            background: {BURNT_IRON_LIGHT};
+            border: 1px solid {ACCENT};
+        }}
         QTabWidget#MainTabs {{
             background: transparent;
             border: none;
         }}
         QTabWidget#MainTabs::pane {{
-            border: 1px solid {BORDER};
+            border: 1px solid {BURNT_IRON_BORDER};
             background: {GRAD_PANE};
             top: -1px;
             padding: 8px;
@@ -641,7 +692,7 @@ def main_stylesheet() -> str:
         QTabWidget#MainTabs QTabBar::tab {{
             background: {GRAD_TAB_IDLE};
             color: {TEXT_SECONDARY};
-            border: 1px solid {BORDER};
+            border: 1px solid {BURNT_IRON_BORDER};
             border-bottom: none;
             padding: 11px 20px;
             margin-right: 6px;
@@ -650,11 +701,12 @@ def main_stylesheet() -> str:
             border-top-right-radius: 8px;
             font-weight: bold;
             font-size: 13px;
+            letter-spacing: 0.5px;
         }}
         QTabWidget#MainTabs QTabBar::tab:selected {{
             background: {GRAD_TAB_SELECTED};
             color: {TEXT_PRIMARY};
-            border: 1px solid {BORDER};
+            border: 1px solid {BURNT_IRON_BORDER};
             border-top: 2px solid {ACCENT};
             border-bottom: 1px solid {BG_PANEL};
             margin-bottom: -1px;
@@ -662,9 +714,63 @@ def main_stylesheet() -> str:
         QTabWidget#MainTabs QTabBar::tab:hover:!selected {{
             color: {TEXT_PRIMARY};
             background: {GRAD_TAB_HOVER};
-            border: 1px solid {BORDER};
+            border: 1px solid {BURNT_IRON_BORDER};
             border-bottom: none;
             border-top: 2px solid {ACCENT_DIM};
+        }}
+        QTableWidget, QTableView, QTreeWidget, QTreeView, QListWidget {{
+            background-color: {BG_DEEP};
+            alternate-background-color: {BG_INPUT};
+            color: {TEXT_PRIMARY};
+            gridline-color: {BURNT_IRON_BORDER};
+            border: 1px solid {BURNT_IRON_BORDER};
+            selection-background-color: {ACCENT_DIM};
+            selection-color: {TEXT_PRIMARY};
+        }}
+        QTableWidget::item:hover, QTableView::item:hover,
+        QTreeWidget::item:hover, QTreeView::item:hover {{
+            background-color: {BG_ELEVATED};
+        }}
+        QTableWidget::item:selected, QTableView::item:selected,
+        QTreeWidget::item:selected, QTreeView::item:selected {{
+            background-color: {ACCENT_DIM};
+            color: {TEXT_PRIMARY};
+        }}
+        QHeaderView::section {{
+            background-color: {BG_CHROME};
+            color: {HUD_AMBER};
+            border: none;
+            border-right: 1px solid {BORDER_MUTED};
+            border-bottom: 1px solid {ACCENT_DIM};
+            padding: 4px 8px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }}
+        QTableCornerButton::section {{
+            background-color: {BG_CHROME};
+            border: none;
+            border-bottom: 1px solid {ACCENT_DIM};
+        }}
+        QToolTip {{
+            background-color: {BG_CHROME};
+            color: {TEXT_PRIMARY};
+            border: 1px solid {ACCENT};
+            padding: 4px 8px;
+        }}
+        QSplitter::handle {{
+            background-color: {BORDER_MUTED};
+        }}
+        QSplitter::handle:hover {{
+            background-color: {ACCENT};
+        }}
+        QMenu {{
+            background-color: {BG_CHROME};
+            color: {TEXT_PRIMARY};
+            border: 1px solid {BORDER};
+        }}
+        QMenu::item:selected {{
+            background-color: {ACCENT_DIM};
+            color: {TEXT_PRIMARY};
         }}
     """
 

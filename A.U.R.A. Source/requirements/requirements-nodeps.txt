@@ -1,0 +1,18 @@
+# ==============================================================================
+# Adaptive Underworld Recon Array (A.U.R.A.)
+# Copyright (C) 2026 JeffTheNerdDev96
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 JeffTheNerdDev96
+#
+# Protected by GNU Affero General Public License Version 3 (AGPL-3.0)
+# ==============================================================================
+# Packages installed with `pip install --no-deps -r requirements-nodeps.txt`.
+#
+# pymumble 1.6.1 declares protobuf==3.12.2, which conflicts with the
+# security-pinned protobuf==7.36.2 in requirements.txt and makes pip's resolver
+# fail (or backtrack indefinitely once OpenVINO is in the set). A.U.R.A. runs
+# pymumble's legacy stubs on protobuf 7 via
+# PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python (see subsystems/voip_mumble/runtime.py).
+# Its real runtime dependencies (protobuf, opuslib) are pinned in requirements.txt.
+pymumble==1.6.1

@@ -3,6 +3,9 @@
 # Adaptive Underworld Recon Array (A.U.R.A.)
 # Copyright (C) 2026 JeffTheNerdDev96
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 JeffTheNerdDev96
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -47,6 +50,19 @@ _SPEAKING_TIMEOUT_SEC = 3.0
 _MAX_CHANNEL_SNAPSHOT = 500
 _MAX_USER_SNAPSHOT = 1000
 _CHANNEL_PATH_SEP_RE = re.compile(r"\s*(?:/|>|›|»)\s*")
+
+
+def _as_int(value: Any, default: int) -> int:
+    """Coerce a pymumble field to int without collapsing a valid 0 to ``default``.
+
+    Mumble's Root channel is id 0, so ``int(x or -1)`` would misreport it.
+    """
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
 
 
 def _split_channel_path(path: str) -> list[str]:
@@ -400,7 +416,7 @@ class MumbleProtocolAdapter:
         if not was and self.on_speaking_changed:
             try:
                 name = str(user.get("name", "") or "")
-                channel = int(user.get("channel_id", -1) or -1)
+                channel = _as_int(user.get("channel_id"), -1)
                 self.on_speaking_changed(session, name, channel, True)
             except Exception as exc:
                 log_soft_failure("MumbleProtocolAdapter._mark_speaking", exc)
@@ -516,12 +532,12 @@ class MumbleProtocolAdapter:
                     own_session = int(client.users.myself_session or -1)
                 except Exception:
                     own_session = -1
-            by_id = {int(c.get("channel_id", -1)): c for c in raw_channels}
+            by_id = {_as_int(c.get("channel_id"), -1): c for c in raw_channels}
             for raw in raw_channels:
-                cid = int(raw.get("channel_id", -1) or 0)
-                parent = int(raw.get("parent", -1) or -1)
+                cid = _as_int(raw.get("channel_id"), 0)
+                parent = _as_int(raw.get("parent"), -1)
                 path = self._channel_path(by_id, cid)
-                count = sum(1 for u in raw_users if int(u.get("channel_id", -1) or -1) == cid)
+                count = sum(1 for u in raw_users if _as_int(u.get("channel_id"), -1) == cid)
                 channels.append(VOIPChannel(
                     channel_id=cid,
                     name=str(raw.get("name", "") or ""),
@@ -536,7 +552,7 @@ class MumbleProtocolAdapter:
                 users.append(VOIPUser(
                     session_id=session,
                     name=str(raw.get("name", "") or ""),
-                    channel_id=int(raw.get("channel_id", 0) or 0),
+                    channel_id=_as_int(raw.get("channel_id"), 0),
                     is_muted=bool(raw.get("mute", False)),
                     is_deafened=bool(raw.get("deaf", False)),
                     is_self_muted=bool(raw.get("self_mute", False)),
@@ -559,10 +575,7 @@ class MumbleProtocolAdapter:
             name = str(node.get("name", "") or "")
             if name and current != 0:
                 parts.insert(0, name)
-            try:
-                current = int(node.get("parent", -1) or -1)
-            except Exception:
-                break
+            current = _as_int(node.get("parent"), -1)
             if current < 0:
                 break
         return " / ".join(parts)

@@ -1,6 +1,10 @@
 # ==============================================================================
 # Adaptive Underworld Recon Array (A.U.R.A.)
 # Copyright (C) 2026 JeffTheNerdDev96
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 JeffTheNerdDev96
+#
 # Protected by GNU Affero General Public License Version 3 (AGPL-3.0)
 # ==============================================================================
 # Core Adaptive Underworld Recon Array (A.U.R.A.) Base Requirements
@@ -14,8 +18,10 @@ openpyxl>=3.1.5
 winocr>=0.0.15
 llama-cpp-python>=0.3.36
 # VOIP alliance comms (Mumble protocol client; requires native Opus codec DLL,
-# provisioned by tools/fetch_voip_runtime.py into voip_runtime/)
-pymumble==1.6.1
-# pymumble pinned transitive dependencies (must match pymumble's own pins)
+# provisioned by tools/fetch_voip_runtime.py into voip_runtime/).
+# pymumble itself lives in requirements-nodeps.txt and is installed with
+# --no-deps: its metadata pins protobuf==3.12.2 (no Python 3.12 wheels, known
+# CVEs), which makes this file unresolvable if pymumble is listed here.
+# These are pymumble's runtime dependencies, at the versions A.U.R.A. ships.
 protobuf==7.36.2
 opuslib==3.0.1

@@ -3,6 +3,9 @@
 # Adaptive Underworld Recon Array (A.U.R.A.)
 # Copyright (C) 2026 JeffTheNerdDev96
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 JeffTheNerdDev96
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -54,8 +57,7 @@ class WormholeSubsystem(BaseSubsystem):
 
     @override
     def initialize(self) -> bool:
-        """Initializes data structures and event subscriptions."""
-        # Initial chain placeholder
+        """Seed an empty chain so systems can be linked before any signature scan."""
         self.active_chain = WormholeChain(
             chain_id=str(uuid.uuid4()),
             home_system="",
@@ -65,15 +67,13 @@ class WormholeSubsystem(BaseSubsystem):
     @override
     def start(self) -> bool:
         """Starts active chain monitoring / timers."""
-        super().start()
-        return True
+        return super().start()
 
     @override
     def stop(self) -> bool:
         """Cleans up timers and memory buffers."""
-        super().stop()
         self.active_chain = None
-        return True
+        return super().stop()
 
     def set_home_system(self, system_name: str, system_class: WormholeClass = WormholeClass.UNKNOWN) -> WormholeNode:
         """Sets the root/home solar system of the current wormhole chain."""

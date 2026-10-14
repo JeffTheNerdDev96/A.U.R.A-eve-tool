@@ -3,6 +3,9 @@
 # Adaptive Underworld Recon Array (A.U.R.A.)
 # Copyright (C) 2026 JeffTheNerdDev96
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 JeffTheNerdDev96
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -76,8 +79,7 @@ class VOIPMumbleSubsystem(BaseSubsystem):
     @override
     def start(self) -> bool:
         """Arms the subsystem for voice sessions."""
-        super().start()
-        return True
+        return super().start()
 
     @override
     def stop(self) -> bool:
@@ -89,8 +91,7 @@ class VOIPMumbleSubsystem(BaseSubsystem):
         self.own_session_id = -1
         self.active_channel_id = 0
         self.active_config = None
-        super().stop()
-        return True
+        return super().stop()
 
     def connect(self, cfg: VOIPAccountConfig) -> bool:
         """Initiates a voice session with ephemeral credentials."""
@@ -194,8 +195,8 @@ class VOIPMumbleSubsystem(BaseSubsystem):
         """Buffers inbound channel text and notifies listeners."""
         max_messages = int(getattr(config, "voip_max_messages", self.MAX_HISTORY_MESSAGES) or self.MAX_HISTORY_MESSAGES)
         self.messages.append(message)
-        while len(self.messages) > max_messages:
-            self.messages.pop(0)
+        if len(self.messages) > max_messages:
+            del self.messages[: len(self.messages) - max_messages]
         self.event_bus.publish(
             VOIPTextMessageEvent(
                 msg_id=message.msg_id,
@@ -216,27 +217,19 @@ class VOIPMumbleSubsystem(BaseSubsystem):
         self.channels = {c.channel_id: c for c in channels}
         self.users = {u.session_id: u for u in users}
         self.own_session_id = own_session
-        active_id = 0
-        active_name = ""
-        active_path = ""
-        active_count = 0
         try:
-            if own_session in self.users:
-                active_id = int(self.users[own_session].channel_id or 0)
-            if active_id in self.channels:
-                active = self.channels[active_id]
-                active_name = active.name
-                active_path = active.path
-                active_count = active.user_count
+            user = self.users.get(own_session)
+            active_id = int(user.channel_id or 0) if user else 0
+            active_channel = self.channels.get(active_id)
         except Exception:
-            pass
+            active_id, active_channel = 0, None
         self.active_channel_id = active_id
         self.event_bus.publish(
             VOIPChannelUpdatedEvent(
                 channel_id=active_id,
-                channel_name=active_name,
-                channel_path=active_path,
-                user_count=active_count,
+                channel_name=active_channel.name if active_channel else "",
+                channel_path=active_channel.path if active_channel else "",
+                user_count=active_channel.user_count if active_channel else 0,
             )
         )
 

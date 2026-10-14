@@ -3,6 +3,9 @@
 # Adaptive Underworld Recon Array (A.U.R.A.)
 # Copyright (C) 2026 JeffTheNerdDev96
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 JeffTheNerdDev96
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -35,7 +38,6 @@ class FittingParser:
     @staticmethod
     def parse(eft_text: str) -> Dict[str, Any]:
         raw_lines = [line.strip() for line in eft_text.split("\n")]
-        # Strip leading/trailing empty lines
         while raw_lines and not raw_lines[0]:
             raw_lines.pop(0)
         while raw_lines and not raw_lines[-1]:
@@ -51,7 +53,6 @@ class FittingParser:
         ship_info = lookup_ship(hull_name)
         s_class = ship_info.get("class", "Frigate") if ship_info else "Frigate"
 
-        # Split EFT text into distinct slot blocks separated by empty lines
         blocks: List[List[str]] = []
         current_block: List[str] = []
 
@@ -67,6 +68,14 @@ class FittingParser:
 
         if current_block:
             blocks.append(current_block)
+
+        low_slots: List[str] = []
+        mid_slots: List[str] = []
+        high_slots: List[str] = []
+        rig_slots: List[str] = []
+        subsystems: List[str] = []
+        cargo_items: List[str] = []
+        drones: List[str] = []
 
         if len(blocks) == 1:
             low_slots, mid_slots, high_slots, rig_slots, subsystems, cargo_items, drones = (
@@ -85,14 +94,6 @@ class FittingParser:
         # Block 3: Rig Slots
         # Block 4: Subsystems (T3C) or Cargo/Drones
         # Block 5+: Drones / Cargo
-
-        low_slots: List[str] = []
-        mid_slots: List[str] = []
-        high_slots: List[str] = []
-        rig_slots: List[str] = []
-        subsystems: List[str] = []
-        cargo_items: List[str] = []
-        drones: List[str] = []
 
         for block_idx, blk in enumerate(blocks):
             # Check if this block is entirely cargo / ammo / drones
@@ -185,7 +186,7 @@ class FittingParser:
 
         # Aggregate counts of identical items
         def format_item_list(items: List[str]) -> List[str]:
-            counts = {}
+            counts: Dict[str, int] = {}
             for item in items:
                 counts[item] = counts.get(item, 0) + 1
             res = []

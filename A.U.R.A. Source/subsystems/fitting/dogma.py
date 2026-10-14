@@ -3,6 +3,9 @@
 # Adaptive Underworld Recon Array (A.U.R.A.)
 # Copyright (C) 2026 JeffTheNerdDev96
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 JeffTheNerdDev96
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -84,19 +87,14 @@ def calculate_resistances(
     dmg_bonuses: Dict[str, List[Dict[str, Any]]] = {dt: [] for dt in dmg_types}
 
     for mod in modules:
-        # Check layer applicability
         mod_layer = mod.get("layer")
         if mod_layer is not None and str(mod_layer).lower().strip() != target_layer:
             continue
         
-        # Determine stacking penalty exemption
         penalized = bool(mod.get("stacking_penalized", True))
         group = mod.get("stacking_group") or f"{target_layer}_resist"
 
-        # Check for resist bonus specifications
-        # Format A: mod["resists"] = {"em": 0.20, ...}
-        # Format B: mod["bonuses"] = {"em": 0.20, ...}
-        # Format C: mod["bonus"] = 0.20, mod["damage_types"] = ["em", "thermal"] (or all)
+        # Module bonus layouts: {"resists"|"bonuses": {dmg: val}}, or {"bonus": val, "damage_types": [...]}
         mod_resists = mod.get("resists") or mod.get("bonuses")
         if isinstance(mod_resists, dict):
             if target_layer in mod_resists and isinstance(mod_resists[target_layer], dict):
@@ -331,7 +329,7 @@ def calculate_mobility(
     inertia_mods: List[Dict[str, Any]] = []
     speed_mods: List[Dict[str, Any]] = []
     prop_modules: List[Dict[str, Any]] = []
-    warp_speed_mods: List[Dict[str, Any]] = []
+    warp_speed_mods: List[float] = []
 
     for mod in modules:
         # Mass addition (e.g. Armor Plates, Shield Extenders)

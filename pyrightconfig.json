@@ -1,0 +1,47 @@
+{
+  "include": [
+    "A.U.R.A. Source"
+  ],
+
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.git",
+    "**/.mypy_cache",
+    "**/.ruff_cache",
+    "**/.pytest_cache",
+    "**/.*",
+    "**/.*/**",
+
+    "A.U.R.A. Source/runtime",
+    "A.U.R.A. Source/runtime/**",
+    "A.U.R.A. Source/requirements/venv",
+    "A.U.R.A. Source/requirements/venv/**",
+    "A.U.R.A. Source/venv",
+    "A.U.R.A. Source/venv/**",
+    "A.U.R.A. Source/venv_app",
+    "A.U.R.A. Source/venv_app/**",
+    "A.U.R.A. Source/voip_runtime/**",
+    "A.U.R.A. Source/models/**",
+    "A.U.R.A. Source/logs/**",
+    "A.U.R.A. Source/tools/build_temp/**",
+
+    "A.U.R.A Distro/**",
+    "docs/**",
+    "build_installer_temp/**",
+    "build_standalone_temp/**",
+    "build_launcher_temp/**"
+  ],
+
+  "venvPath": "A.U.R.A. Source/requirements",
+  "venv": "venv",
+  "extraPaths": [
+    "A.U.R.A. Source"
+  ],
+  "pythonVersion": "3.12",
+  "pythonPlatform": "Windows",
+  "typeCheckingMode": "standard",
+  "useLibraryCodeForTypes": true,
+  "reportMissingImports": true,
+  "reportMissingTypeStubs": false
+}

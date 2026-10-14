@@ -3,6 +3,9 @@
 # Adaptive Underworld Recon Array (A.U.R.A.)
 # Copyright (C) 2026 JeffTheNerdDev96
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 JeffTheNerdDev96
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -173,6 +176,8 @@ def main() -> int:
                 req("requirements.txt"),
             ],
         )
+        # pymumble pins protobuf==3.12.2; install it without deps (see requirements-nodeps.txt).
+        _pip(python_exe, ["install", "--no-deps", "--prefer-binary", "-r", req("requirements-nodeps.txt")])
 
     from hardware.detector import HardwareDetector
 

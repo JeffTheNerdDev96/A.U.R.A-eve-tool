@@ -3,6 +3,9 @@
 :: Adaptive Underworld Recon Array (A.U.R.A.)
 :: Copyright (C) 2026 JeffTheNerdDev96
 ::
+:: SPDX-License-Identifier: AGPL-3.0-or-later
+:: SPDX-FileCopyrightText: 2026 JeffTheNerdDev96
+::
 :: This program is free software: you can redistribute it and/or modify
 :: it under the terms of the GNU Affero General Public License as published by
 :: the Free Software Foundation, either version 3 of the License, or
@@ -32,6 +35,8 @@ if %ERRORLEVEL% NEQ 0 goto :FINISH
 set "PYTHON_EXE=%SCRIPT_DIR%venv\Scripts\python.exe"
 
 "%PYTHON_EXE%" -m pip install --prefer-binary -r "%SCRIPT_DIR%requirements-amd-gpu.txt"
+if %ERRORLEVEL% NEQ 0 goto :FINISH
+"%PYTHON_EXE%" -m pip install --no-deps --prefer-binary -r "%SCRIPT_DIR%requirements-nodeps.txt"
 if %ERRORLEVEL% NEQ 0 goto :FINISH
 call "%SCRIPT_DIR%_install_llama_wheel.bat" vulkan
 "%PYTHON_EXE%" "%SCRIPT_DIR%write_hardware_profile.py" amd_dgpu --llama-wheel %AURA_LLAMA_WHEEL%

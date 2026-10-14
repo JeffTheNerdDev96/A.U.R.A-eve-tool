@@ -3,6 +3,9 @@
 # Adaptive Underworld Recon Array (A.U.R.A.)
 # Copyright (C) 2026 JeffTheNerdDev96
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 JeffTheNerdDev96
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -63,12 +66,12 @@ class MapRouter:
 
         avoid_ids: Set[int] = set()
         if avoid_systems:
-            for sys_name in avoid_systems:
-                node = self.get_system(sys_name)
+            for name in avoid_systems:
+                node = self.get_system(name)
                 if node and node.system_id not in (orig_node.system_id, dest_node.system_id):
                     avoid_ids.add(node.system_id)
 
-        # BFS for shortest path (parent pointers, not full path copies)
+        # Parent pointers keep BFS memory linear instead of copying full paths per node.
         parent: Dict[int, int] = {}
         q = deque([orig_node.system_id])
         visited = {orig_node.system_id}

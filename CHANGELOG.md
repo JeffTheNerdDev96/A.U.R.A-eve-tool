@@ -2,6 +2,49 @@
 
 All notable changes to Adaptive Underworld Recon Array (A.U.R.A.) are documented here. Canonical product version lives in `A.U.R.A. Source/version.py`.
 
+## [v0.6.1-alpha.1]
+
+Active release.
+
+### Added — UI Overhaul (Angel Cartel Tactical Design System)
+
+- **Centralized design tokens (`ui/theme.py`)**: new Angel Cartel / EVE HUD palette, all defined in the single theme module:
+  - Void/obsidian bases: `VOID_OBSIDIAN #0D0E12`, `VOID_GRAY #14171D`, `VOID_PANEL #1A1F26`, `VOID_ELEVATED #222831`.
+  - Graphite framing: `GRAPHITE #2A323D`, `GRAPHITE_LIGHT #3A4553`.
+  - Cartel accents: `CARTEL_CRIMSON #C0392B`, `CARTEL_VERMILION #E74C3C`, `CARTEL_ALERT #FF4B4B`.
+  - HUD typography: `HUD_WHITE #E0E6ED`, `HUD_AMBER #F39C12` (headers / active highlights), plus steel/muted secondary tones.
+  - Legacy names (`BURNT_IRON*`, `BONE_*`, `OXIDE_RED*`, `BG_*`, `TEXT_*`, `ACCENT*`) are kept as aliases, so every existing import and tab stylesheet picks up the new palette without code changes. New `ACCENT_ALERT` and `HUD_HIGHLIGHT` role aliases were added.
+- **Angular framing**: the browser chrome and footer now use asymmetric angled corners with a crimson left rail. The main tab pane is square-cornered with a crimson top seam. Tabs have one angled corner, and the selected tab shows an amber label with an alert-red top bar.
+
+### Fixed — Backend
+
+- **VOIP / Mumble channel tree (`subsystems/voip_mumble/client.py`)**: fields were coerced with `int(x or -1)`, which turned Mumble's Root channel (id `0`) into `-1`. As a result, sub-channels of Root were orphaned in the topology tree, pilots in Root were counted as zero, and the speaking-telemetry channel was wrong for Root. Added a zero-safe `_as_int()` helper and used it for channel id, parent id, user channel id and the channel path walk.
+- **Fitting Dogma engine (`subsystems/fitting/dogma.py`)**: corrected the `warp_speed_mods` type annotation (`List[float]`, was `List[Dict]`) so it matches the values it actually holds. This clears a static operator/type mismatch in the warp-speed multiplier calculation.
+- **EFT fitting parser (`subsystems/fitting/parser.py`)**: slot lists were redeclared after the single-block early-return branch had already assigned them. They are now declared once before both paths, and the item-count dict is typed.
+- **Tactical grounding (`core/eve_data.py`)**: fixed an implicit-`Optional` default for `attachments`, typed the compatibility `warnings` list, and stopped a loop variable (`s_info`) from being reused with a conflicting type.
+- **Diagnostics (`core/error_handler.py`)**: `log_diagnostic_error()` now accepts `BaseException | str`. It takes the traceback from the exception object itself, so thread-excepthook crashes outside an `except` block are no longer logged as `NoneType: None`. String messages (as passed by the hardware OpenVINO probe) are accepted explicitly.
+- **Installer hang at "Installing Intel NPU OpenVINO stack..." (`requirements/`, `tools/installer_gui.py`)**:
+  - **Root cause**: `requirements.txt` listed `pymumble==1.6.1` alongside `protobuf==7.36.2`, but pymumble's metadata pins `protobuf==3.12.2`, so the set was unresolvable. The core install step failed silently, because its exit code was ignored. Every profile step then re-resolved the same conflict. With OpenVINO added to the set, pip backtracked through dozens of `openvino`/`openvino-genai`/`openvino-tokenizers` releases. pip ran with no console window and its output was discarded, so setup appeared frozen.
+  - **Fix**: `pymumble` moves to the new `requirements/requirements-nodeps.txt`, installed with `--no-deps`. Its real runtime dependencies (`protobuf==7.36.2`, `opuslib==3.0.1`) stay pinned in `requirements.txt`. Every requirements file (core, Intel NPU, Intel GPU, AMD NPU) now resolves in about 15–20 s.
+  - **Installer hardening**:
+    - pip runs non-interactively with UTF-8 output, and its output is streamed to `logs/install_pip.log`.
+    - Progress lines (`Collecting…`, `Downloading…`) appear in the setup window.
+    - A watchdog kills the pip process tree after 10 minutes with no output, so setup can no longer hang indefinitely.
+    - A core requirements failure now stops setup with a clear error. A failed optional acceleration stack (OpenVINO, DirectML) falls back to the CPU stack and appears as a post-install warning.
+    - Cancel now terminates pip's whole process tree.
+  - The same `--no-deps` step was added to `select_hardware_profile.py` and all eight `install_*.bat` developer scripts.
+- **XMPP / VOIP tabs (`ui/tabs/xmpp_tab.py`, `ui/tabs/voip_tab.py`)**: `if not subsystem.is_running:` tested the bound method, which is always truthy, instead of calling it. Standalone tabs therefore never initialized or started their own subsystem. The method is now called correctly.
+
+- **Architecture, Code Style & Idioms (PEP 8)**:
+  - Repository-wide code audit: converted mechanical indexing and legacy patterns into idiomatic constructs, pattern matching, and comprehension expressions.
+  - Standardized module imports adhering to PEP 8 grouping across all subsystem service layers and UI tabs.
+  - Purged conversational AI narration, redundant inline boilerplates, and step-by-step markers.
+- **Subsystem Logic & Resilience Hardening**:
+  - **VoIP Subsystem (`subsystems/voip_mumble`)**: Audited socket lifecycles, non-blocking connection loops, and packet buffer draining; verified graceful worker thread joining, audio pipeline state cleanup, and ephemeral in-memory credential zeroization on disconnect.
+  - **Fitting Engine (`subsystems/fitting`)**: Hardened Dogma stat aggregation loops, attribute lookups, nested item/slot traversal, and index guards to prevent UI freeze or unhandled KeyError/IndexError exceptions.
+- **Version Release Synchronization**:
+  - Standardized version metadata (`v0.6.1-alpha.1` / PEP 440 `0.6.1a1`) across all launchers, bootstrap scripts, build tools, packaging manifests, and documentation.
+
 ## [v0.6.0-alpha.4]
 
 Sole currently supported release.

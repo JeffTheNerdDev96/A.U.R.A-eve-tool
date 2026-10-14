@@ -3,6 +3,9 @@
 # Adaptive Underworld Recon Array (A.U.R.A.)
 # Copyright (C) 2026 JeffTheNerdDev96
 #
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 JeffTheNerdDev96
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -87,7 +90,7 @@ class XMPPTabWidget(QWidget):
     def __init__(self, xmpp_subsystem: Optional[XMPPChatSubsystem] = None, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.xmpp_subsystem = xmpp_subsystem or XMPPChatSubsystem()
-        if not self.xmpp_subsystem.is_running:
+        if not self.xmpp_subsystem.is_running():
             self.xmpp_subsystem.initialize()
 
         self.selected_target: str = "broadcasts@conference.alliance.net"
