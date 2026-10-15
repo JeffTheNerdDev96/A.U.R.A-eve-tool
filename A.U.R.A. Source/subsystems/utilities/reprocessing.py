@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Reprocessing & Refining Calculator for A.U.R.A. v0.7.0-alpha.1.
+Reprocessing & Refining Calculator for A.U.R.A. v0.7.1-alpha.1.
 Calculates exact mineral yields, gross mineral value, ore raw value,
 and net profit/loss with station/citadel tax adjustments.
 """
