@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Killmail Clipboard Parser & EFT Fit Exporter for A.U.R.A. v0.7.1-alpha.1.
+Killmail Clipboard Parser & EFT Fit Exporter for A.U.R.A. v0.7.1-alpha.2.
 Parses in-game kill report copy text and zKillboard exports, extracts destroyed
 and dropped modules, and reconstructs EFT-compliant ship fittings.
 """
@@ -28,9 +28,9 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional
 
-from core.eve_data import lookup_ship, lookup_module
+from core.eve_data import lookup_module
 from core.eve_modules_data import CANONICAL_MODULES
 
 

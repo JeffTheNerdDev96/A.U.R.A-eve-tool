@@ -65,6 +65,11 @@ class AppConfig:
         self.feed_in_range_only = False
         self.monitored_character = "Auto"
 
+        # Multibox & Gamelog Tailer Settings
+        # Maximum concurrent active EVE Online client gamelogs tailed simultaneously.
+        # Defaults to 4; power users with 5+ accounts can increase this limit.
+        self.max_multibox_clients = 4
+
         # VOIP (Mumble) Alliance Voice Settings (non-secret defaults only;
         # credentials are ephemeral session memory, never persisted)
         self.voip_default_port = 64738

@@ -20,21 +20,16 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Planetary Industry (PI) Production Schematics & POCO Tax Calculator for A.U.R.A. v0.7.1-alpha.1.
+Planetary Industry (PI) Production Schematics & POCO Tax Calculator for A.U.R.A. v0.7.1-alpha.2.
 Recursively resolves complex P4/P3/P2 factory schematics down to base P0 planets,
 calculates daily extraction demands, volume requirements, and Customs Office export fees.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from core.eve_pi_data import (
-    EXPORT_BASE_PRICES,
-    P0_TO_P1_MAP,
-    P2_RECIPES,
-    P3_RECIPES,
-    P4_RECIPES,
     TIER_VOLUMES_M3,
     calculate_poco_export_tax,
     get_commodity_tier,

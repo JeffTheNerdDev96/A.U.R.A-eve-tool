@@ -21,7 +21,7 @@
 # ==============================================================================
 """
 Main entry point for Adaptive Underworld Recon Array (A.U.R.A.).
-Angel Cartel EVE Online Tactical AI Assistant - v0.7.0-alpha.1.
+Angel Cartel EVE Online Tactical AI Assistant - v0.7.1-alpha.2.
 """
 import sys
 import os

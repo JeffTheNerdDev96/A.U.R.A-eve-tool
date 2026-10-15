@@ -7,11 +7,12 @@
 >
 > All earlier development builds and alpha releases — including **v0.6.x**, **v0.5.x**, **v0.4.x**, **v0.3.x**, **v0.2.x**, and **v0.1.x** — are officially **deprecated and unsupported**.
 >
-> **Version `v0.7.1-alpha.1` is the sole actively supported release.** All users and testers must upgrade to **`v0.7.1-alpha.1`** to receive security patches, bug fixes, and active maintenance.
+> **Version `v0.7.1-alpha.2` is the sole actively supported release.** All users and testers must upgrade to **`v0.7.1-alpha.2`** to receive security patches, bug fixes, and active maintenance.
 
 | Version | Supported | Status / Notes | Python Runtime | Architecture |
 | :--- | :--- | :--- | :--- | :--- |
-| **`v0.7.1-alpha.1`** | **Yes** | **Active / Sole Supported Release** (100% No-ESI, Combat HUD, Unified Utilities, EventBus-wired tabs) | Python 3.12+ | 64-bit AMD64 |
+| **`v0.7.1-alpha.2`** | **Yes** | **Active / Sole Supported Release** (100% No-ESI, Combat HUD, Unified Utilities, EventBus-wired tabs) | Python 3.12+ | 64-bit AMD64 |
+| **`v0.7.1-alpha.1`** | **No** | **Deprecated & Unsupported** (Superseded by v0.7.1-alpha.2) | Python 3.12+ | 64-bit AMD64 |
 | **`v0.7.0-alpha.1`** | **No** | **Deprecated & Unsupported** (Superseded by v0.7.1-alpha.1) | Python 3.12+ | 64-bit AMD64 |
 | **`v0.6.x`** | **No** | **Deprecated & Unsupported** (Superseded by v0.7.0-alpha.1) | Python 3.12+ | 64-bit AMD64 |
 | **`v0.5.x`** | **No** | **Deprecated & Unsupported** (Superseded by v0.6.0-alpha.1) | Python 3.12+ | 64-bit AMD64 |

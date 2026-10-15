@@ -27,17 +27,17 @@ set "SOURCE_DIR=%~dp0.."
 set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8
 set PYTHONDONTWRITEBYTECODE=1
-title Adaptive Underworld Recon Array (A.U.R.A.) - v0.7.0-alpha.1
+title Adaptive Underworld Recon Array (A.U.R.A.) - v0.7.1-alpha.2
 
 cls
 echo ===================================================================
-echo   [+] Adaptive Underworld Recon Array (A.U.R.A.) - v0.7.0-alpha.1
+echo   [+] Adaptive Underworld Recon Array (A.U.R.A.) - v0.7.1-alpha.2
 echo   Angel Cartel Cybernetics Division
 echo ===================================================================
 echo.
 
-if exist "%SOURCE_DIR%\A.U.R.A.-v0.7.0-alpha.1.exe" (
-    start "" /d "%SOURCE_DIR%" "%SOURCE_DIR%\A.U.R.A.-v0.7.0-alpha.1.exe"
+if exist "%SOURCE_DIR%\A.U.R.A.-v0.7.1-alpha.2.exe" (
+    start "" /d "%SOURCE_DIR%" "%SOURCE_DIR%\A.U.R.A.-v0.7.1-alpha.2.exe"
     exit /b 0
 )
 if exist "%SOURCE_DIR%\A.U.R.A.exe" (
@@ -63,7 +63,7 @@ if exist "%SOURCE_DIR%\runtime\python.exe" (
     goto :LAUNCH
 )
 
-echo [X] Python 3.12+ was not found. Run AURA_Setup_v0.7.0-alpha.1.exe or "bat scripts for install\install_auto.bat"
+echo [X] Python 3.12+ was not found. Run AURA_Setup_v0.7.1-alpha.2.exe or "bat scripts for install\install_auto.bat"
 pause
 exit /b 1
 

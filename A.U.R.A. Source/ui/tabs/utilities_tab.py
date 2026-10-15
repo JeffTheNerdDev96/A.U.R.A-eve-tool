@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Unified Tactical & Industrial Utilities Tab for A.U.R.A. v0.7.1-alpha.1.
+Unified Tactical & Industrial Utilities Tab for A.U.R.A. v0.7.1-alpha.2.
 Houses 6 comprehensive offline utility suites:
 1. Cargo & Loot Valuation (ISK appraisal, m3 volume, hauler sizing)
 2. Mineral Reprocessing & Refining Calculator (yields, tax, margins)
@@ -31,10 +31,9 @@ Houses 6 comprehensive offline utility suites:
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer
-from PyQt6.QtGui import QColor, QFont
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit, QPushButton,
     QFrame, QTableWidget, QTableWidgetItem, QHeaderView, QTabWidget,
@@ -47,7 +46,7 @@ from core.eve_market_data import ORE_REPROCESSING_TABLE, BASELINE_ITEM_PRICES
 from core.eve_pi_data import P4_RECIPES, P3_RECIPES, P2_RECIPES
 from ui.theme import (
     TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT,
-    BG_PANEL, BG_DEEP, BG_ELEVATED, BORDER_MUTED, ACCENT,
+    BG_PANEL, BG_DEEP, BG_ELEVATED, BORDER_MUTED,
     radar_accent_btn_css, radar_control_btn_css, btn_secondary_css,
 )
 

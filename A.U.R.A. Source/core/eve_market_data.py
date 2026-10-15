@@ -26,7 +26,7 @@ Provides 100% offline valuation indices and mineral refining calculations.
 from __future__ import annotations
 
 import math
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, Tuple
 
 # Baseline Mineral Prices (ISK per unit)
 MINERAL_PRICES: Dict[str, float] = {

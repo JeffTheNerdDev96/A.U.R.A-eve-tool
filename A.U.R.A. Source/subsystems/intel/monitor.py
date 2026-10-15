@@ -361,7 +361,7 @@ class LiveChatMonitor(QThread):
             all_locals.sort(key=os.path.getmtime, reverse=True)
             local_files = all_locals[:8]
 
-        game_files = self._list_recent(self.gamelog_dir, 4)
+        game_files = self._list_recent(self.gamelog_dir, getattr(config, "max_multibox_clients", 4))
 
         merged: List[str] = []
         seen = set()

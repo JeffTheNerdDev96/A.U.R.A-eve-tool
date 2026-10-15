@@ -20,19 +20,17 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Reprocessing & Refining Calculator for A.U.R.A. v0.7.1-alpha.1.
+Reprocessing & Refining Calculator for A.U.R.A. v0.7.1-alpha.2.
 Calculates exact mineral yields, gross mineral value, ore raw value,
 and net profit/loss with station/citadel tax adjustments.
 """
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import List
 
 from core.eve_market_data import (
     MINERAL_PRICES,
-    ORE_REPROCESSING_TABLE,
     calculate_reprocessing_yield,
     lookup_market_price,
 )

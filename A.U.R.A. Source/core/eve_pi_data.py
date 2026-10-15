@@ -25,7 +25,7 @@ Provides 100% offline lookup for P0 through P4 commodity trees and customs expor
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Set
 
 # Commodity tier volume per unit in cubic meters (m3)
 TIER_VOLUMES_M3: Dict[str, float] = {

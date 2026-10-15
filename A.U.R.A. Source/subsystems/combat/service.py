@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Combat & Threat Subsystem for A.U.R.A. v0.7.1-alpha.1.
+Combat & Threat Subsystem for A.U.R.A. v0.7.1-alpha.2.
 Tails EVE Online Gamelogs, computes rolling 10s/30s/60s incoming/outgoing DPS,
 aggregates 4-layer damage profiles (EM/Thermal/Kinetic/Explosive), tracks active EWAR debuffs,
 and publishes real-time combat events across the EventBus.
@@ -29,14 +29,13 @@ from __future__ import annotations
 
 import glob
 import os
-import sys
 import threading
 import time
 from collections import deque
-from dataclasses import asdict
 from typing import Any, Dict, List, Optional
 
-from core.base_subsystem import BaseSubsystem, SubsystemStatus
+from core.base_subsystem import BaseSubsystem
+from core.config import config
 from core.events import CombatDamageEvent, EWARAlertEvent, CombatShipDestroyedEvent, MiningYieldEvent
 from .parser import CombatLogParser, DamageVolley, EWARAction, ShipDestruction, MiningCycle
 
@@ -47,9 +46,10 @@ class CombatSubsystem(BaseSubsystem):
     EWAR hostility state, and damage profile telemetry.
     """
 
-    def __init__(self, log_directory: Optional[str] = None):
+    def __init__(self, log_directory: Optional[str] = None, max_multibox_clients: Optional[int] = None):
         super().__init__(name="CombatSubsystem")
         self._custom_log_dir = log_directory
+        self.max_multibox_clients: int = max_multibox_clients or getattr(config, "max_multibox_clients", 4)
         self._active_log_path: Optional[str] = None
         self._tail_thread: Optional[threading.Thread] = None
         self._stop_event = threading.Event()
@@ -412,14 +412,14 @@ class CombatSubsystem(BaseSubsystem):
                 self._stop_event.wait(3.0)
                 continue
 
-            # Periodically scan for active gamelog files (multibox support: up to 4 recent files)
+            # Periodically scan for active gamelog files (multibox support: up to max_multibox_clients files)
             if not active_files or (now - last_dir_check) >= 5.0:
                 last_dir_check = now
                 try:
                     candidates = glob.glob(os.path.join(self._custom_log_dir, "*.txt"))
                     if candidates:
                         candidates.sort(key=os.path.getmtime, reverse=True)
-                        active_files = candidates[:4]
+                        active_files = candidates[:self.max_multibox_clients]
                     else:
                         active_files = []
                 except Exception:

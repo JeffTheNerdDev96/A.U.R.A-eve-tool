@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Unified Utilities Subsystem for A.U.R.A. v0.7.1-alpha.1.
+Unified Utilities Subsystem for A.U.R.A. v0.7.1-alpha.2.
 Coordinates Cargo & Loot Appraisals, Mineral Reprocessing, Survey Scanner planning,
 live Mining Session Ledgers, Killmail EFT generation, and Planetary Industry supply chains.
 """
@@ -29,7 +29,7 @@ from __future__ import annotations
 import threading
 from typing import Any, Dict, List, Optional
 
-from core.base_subsystem import BaseSubsystem, SubsystemStatus
+from core.base_subsystem import BaseSubsystem
 from core.events import MiningYieldEvent
 from .valuation_parser import CargoValuationParser, ValuationReport
 from .reprocessing import ReprocessingCalculator, ReprocessingReport

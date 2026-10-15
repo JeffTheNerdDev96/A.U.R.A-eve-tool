@@ -20,14 +20,14 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Combat & Threat HUD Tab for A.U.R.A. v0.7.1-alpha.1.
+Combat & Threat HUD Tab for A.U.R.A. v0.7.1-alpha.2.
 Displays real-time rolling 10s/30s/60s incoming and outgoing DPS gauges,
 4-layer damage profiles (EM/Thermal/Kinetic/Explosive), active EWAR threat cards,
 live gamelog combat feed, and seamless neural counter-tactics handover.
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor, QFont
@@ -40,7 +40,7 @@ from PyQt6.QtWidgets import (
 from subsystems.combat import CombatSubsystem
 from ui.theme import (
     TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT,
-    BG_PANEL, BG_DEEP, BG_ELEVATED, BORDER_MUTED, ACCENT,
+    BG_PANEL, BG_DEEP, BG_ELEVATED, BORDER_MUTED,
     radar_accent_btn_css, radar_control_btn_css, btn_secondary_css,
 )
 

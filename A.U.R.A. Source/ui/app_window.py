@@ -208,8 +208,8 @@ class RadarOptionsDialog(QDialog):
         super().__init__(parent or main_window)
         self.main_window = main_window
         self.setWindowTitle("A.U.R.A. — Live Intel Radar Options")
-        self.resize(580, 520)
-        self.setMinimumSize(480, 420)
+        self.resize(580, 560)
+        self.setMinimumSize(480, 460)
         self.setStyleSheet(dialog_stylesheet())
         self._init_ui()
 
@@ -307,6 +307,28 @@ class RadarOptionsDialog(QDialog):
         self.custom_channel_edit.setText(self.main_window.custom_channel_edit.text())
         self.custom_channel_edit.textChanged.connect(self._on_custom_patterns_changed)
         log_layout.addWidget(self.custom_channel_edit)
+
+        multibox_row = QHBoxLayout()
+        multibox_row.setSpacing(8)
+        multibox_lbl = QLabel("Multibox Clients:")
+        multibox_lbl.setFixedWidth(115)
+        multibox_lbl.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px; font-weight: bold;")
+        multibox_row.addWidget(multibox_lbl)
+
+        self.multibox_clients_spin = QSpinBox()
+        self.multibox_clients_spin.setFixedHeight(30)
+        self.multibox_clients_spin.setFixedWidth(70)
+        self.multibox_clients_spin.setRange(1, 32)
+        self.multibox_clients_spin.setValue(self.main_window.multibox_clients_spin.value())
+        self.multibox_clients_spin.setToolTip("Maximum concurrent active EVE Online client gamelogs tailed simultaneously for combat DPS and session tracking. Defaults to 4.")
+        self.multibox_clients_spin.valueChanged.connect(self._sync_multibox_clients)
+        multibox_row.addWidget(self.multibox_clients_spin)
+
+        multibox_desc = QLabel("(Max concurrent EVE gamelog tails; defaults to 4)")
+        multibox_desc.setStyleSheet(f"color: {TEXT_HINT}; font-size: 11px;")
+        multibox_row.addWidget(multibox_desc, stretch=1)
+        log_layout.addLayout(multibox_row)
+
         layout.addWidget(log_group)
 
         # 3. Proximity & Notification Alerts Section
@@ -396,6 +418,9 @@ class RadarOptionsDialog(QDialog):
 
     def _sync_jump_range(self, val: int):
         self.main_window.jump_range_spin.setValue(val)
+
+    def _sync_multibox_clients(self, val: int):
+        self.main_window.multibox_clients_spin.setValue(val)
 
     def _sync_in_range_only(self, checked: bool):
         self.main_window.in_range_only_cb.setChecked(checked)
@@ -968,6 +993,11 @@ class MainWindow(QMainWindow):
         self.jump_range_spin.valueChanged.connect(self._on_jump_range_changed)
         self.jump_range_spin.valueChanged.connect(self._reapply_feed_filters)
 
+        self.multibox_clients_spin = QSpinBox()
+        self.multibox_clients_spin.setRange(1, 32)
+        self.multibox_clients_spin.setValue(int(getattr(config, "max_multibox_clients", 4)))
+        self.multibox_clients_spin.valueChanged.connect(self._on_multibox_clients_changed)
+
         self.in_range_only_cb = QCheckBox("Show in-range only")
         self.in_range_only_cb.setChecked(bool(getattr(config, "feed_in_range_only", False)))
         self.in_range_only_cb.toggled.connect(self._reapply_feed_filters)
@@ -1223,6 +1253,14 @@ class MainWindow(QMainWindow):
         self.alerter.set_jump_range(int(value))
         if hasattr(self, "map_tab"):
             self.map_tab.set_jump_range(int(value))
+
+    def _on_multibox_clients_changed(self, value: int):
+        val = int(value)
+        config.max_multibox_clients = val
+        if hasattr(self, "combat_subsystem") and self.combat_subsystem:
+            self.combat_subsystem.max_multibox_clients = val
+        if hasattr(self, "chat_monitor") and self.chat_monitor:
+            self.chat_monitor.last_dir_scan_time = 0.0
 
     def _subscribe_event_bus(self) -> None:
         bus = self.event_bus

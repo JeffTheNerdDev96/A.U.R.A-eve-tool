@@ -26,7 +26,7 @@ and Class 1-6 celestial phenomena effects (Wolf-Rayet, Pulsar, Magnetar, etc.).
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 # Canonical Wormhole Types (Static and Wandering connection specifications)
 WORMHOLE_TYPES: Dict[str, Dict[str, Any]] = {
