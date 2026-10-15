@@ -175,16 +175,19 @@ BASELINE_ITEM_PRICES: Dict[str, float] = {
     "Tripped Power Circuit": 28_000.0,
 }
 
-# Hauling Ship Classes & Effective Cargo Capacities (m3)
+# Hauling Ship Classes & Effective Cargo Capacities (m3) - sorted ascending by capacity
 HAULER_CAPACITIES = [
     ("Blockade Runner (Prorator, Crane)", 12_000),
-    ("Deep Space Transport (Occator, Bustard)", 62_500),
     ("Standard Industrial (Tayra, Mammoth)", 35_000),
+    ("Deep Space Transport (Occator, Bustard)", 62_500),
     ("Orca (Ore Hold + Fleet Hangar)", 250_000),
     ("Jump Freighter (Anshar, Nomad)", 380_000),
     ("Standard Freighter (Fenrir, Charon)", 880_000),
     ("Bowhead (Ship Maintenance Array)", 1_300_000),
 ]
+
+_LOWER_BASELINE_ITEM_PRICES = {k.lower(): v for k, v in BASELINE_ITEM_PRICES.items()}
+_LOWER_MINERAL_PRICES = {k.lower(): v for k, v in MINERAL_PRICES.items()}
 
 
 def lookup_market_price(item_name: str) -> float:
@@ -195,13 +198,12 @@ def lookup_market_price(item_name: str) -> float:
     if clean in BASELINE_ITEM_PRICES:
         return BASELINE_ITEM_PRICES[clean]
     
-    # Check lowercase/prefix matches
-    for k, v in BASELINE_ITEM_PRICES.items():
-        if k.lower() == clean.lower():
-            return v
-    for k, v in MINERAL_PRICES.items():
-        if k.lower() == clean.lower():
-            return v
+    # Check lowercase exact matches in O(1)
+    lower = clean.lower()
+    if lower in _LOWER_MINERAL_PRICES:
+        return _LOWER_MINERAL_PRICES[lower]
+    if lower in _LOWER_BASELINE_ITEM_PRICES:
+        return _LOWER_BASELINE_ITEM_PRICES[lower]
 
     # Fallback heuristic based on module tiers
     lower = clean.lower()
@@ -220,6 +222,46 @@ def lookup_market_price(item_name: str) -> float:
     return 100_000.0  # Conservative default
 
 
+def reprocess_ore(ore_name: str, yield_pct: float = 1.0) -> Dict[str, int]:
+    """
+    Compute mineral yield for 100 units (1 batch) of ore.
+    Matches exact keys first; for partial matching, sorts candidate keys by length descending
+    so enhanced variants ('Compressed Concentrated Veldspar') match their specific entry before base ore ('Veldspar').
+    """
+    clean_ore = ore_name.strip() if ore_name else ""
+    if not clean_ore:
+        return {}
+
+    # Exact match first
+    base_yield = ORE_REPROCESSING_TABLE.get(clean_ore)
+    if not base_yield:
+        clean_lower = clean_ore.lower()
+        for k, v in ORE_REPROCESSING_TABLE.items():
+            if k.lower() == clean_lower:
+                base_yield = v
+                break
+
+    # Partial match with candidate keys sorted by length descending
+    if not base_yield:
+        clean_lower = clean_ore.lower()
+        for k in sorted(ORE_REPROCESSING_TABLE.keys(), key=len, reverse=True):
+            if k.lower() in clean_lower or k in clean_ore:
+                base_yield = ORE_REPROCESSING_TABLE[k]
+                break
+
+    if not base_yield:
+        return {}
+
+    eff = max(0.0, min(1.0, float(yield_pct)))
+    yields: Dict[str, int] = {}
+    for mineral, base_amount in base_yield.items():
+        min_yield = math.floor(base_amount * eff)
+        if min_yield > 0:
+            yields[mineral] = min_yield
+
+    return yields
+
+
 def calculate_reprocessing_yield(
     ore_name: str,
     units: int,
@@ -229,15 +271,29 @@ def calculate_reprocessing_yield(
     """
     Compute mineral yield for a batch of ore.
     Formula: output = floor(base_minerals * batches * (efficiency * (1 - tax)))
+    Matches exact keys first; for partial matching, sorts candidate keys by length descending.
     """
-    clean_ore = ore_name.strip()
+    clean_ore = ore_name.strip() if ore_name else ""
+    if not clean_ore:
+        return {}
+
+    # Exact match first
     base_yield = ORE_REPROCESSING_TABLE.get(clean_ore)
     if not base_yield:
-        # Check matching base ore if enhanced variant
-        for k in ORE_REPROCESSING_TABLE:
-            if k in clean_ore:
+        clean_lower = clean_ore.lower()
+        for k, v in ORE_REPROCESSING_TABLE.items():
+            if k.lower() == clean_lower:
+                base_yield = v
+                break
+
+    # Partial match with candidate keys sorted by length descending
+    if not base_yield:
+        clean_lower = clean_ore.lower()
+        for k in sorted(ORE_REPROCESSING_TABLE.keys(), key=len, reverse=True):
+            if k.lower() in clean_lower or k in clean_ore:
                 base_yield = ORE_REPROCESSING_TABLE[k]
                 break
+
     if not base_yield:
         return {}
 

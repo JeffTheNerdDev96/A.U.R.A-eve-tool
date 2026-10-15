@@ -108,6 +108,12 @@ _LOOKUP_KEYS = sorted(
     reverse=True,
 )
 
+_LOWER_HULL_MAP: Dict[str, str] = {k: k.lower() for k in _LOOKUP_KEYS}
+_PRECOMPUTED_HULL_KEYS = [
+    (k, _LOWER_HULL_MAP[k], len(_LOWER_HULL_MAP[k]), str(lookup_ship(k).get("canonical_name", k)) if lookup_ship(k) else k)
+    for k in _LOOKUP_KEYS
+]
+
 
 def _boundary_ok(text: str, start: int, end: int) -> bool:
     if start > 0 and text[start - 1].isalnum():
@@ -118,16 +124,12 @@ def _boundary_ok(text: str, start: int, end: int) -> bool:
 
 
 def _hull_at(lower: str, idx: int) -> Optional[Tuple[str, int]]:
-    for key in _LOOKUP_KEYS:
-        kl = key.lower()
-        end = idx + len(kl)
+    for key, kl, klen, canonical in _PRECOMPUTED_HULL_KEYS:
+        end = idx + klen
         if end > len(lower):
             continue
         if lower.startswith(kl, idx) and _boundary_ok(lower, idx, end):
-            info = lookup_ship(key)
-            if not info:
-                continue
-            return str(info.get("canonical_name", key)), end
+            return canonical, end
     return None
 
 
@@ -203,6 +205,10 @@ def _is_columnar_overview(line: str) -> bool:
 
 class FleetCompAnalyzer:
     """Classifies fleet pasted text or ship dictionary into role buckets and calculates counter advice."""
+
+    def __init__(self):
+        self._LOWER_HULL_MAP: Dict[str, str] = dict(_LOWER_HULL_MAP)
+        self._precomputed_hulls = list(_PRECOMPUTED_HULL_KEYS)
 
     def categorize_ship(self, ship_name: str) -> str:
         """Maps a hull to a tactical role using class, role, and threat from SHIP_DATABASE."""

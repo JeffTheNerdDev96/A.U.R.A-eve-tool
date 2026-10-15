@@ -59,6 +59,15 @@ class CombatSubsystem(BaseSubsystem):
         self._incoming_volleys: deque[DamageVolley] = deque(maxlen=2000)
         self._outgoing_volleys: deque[DamageVolley] = deque(maxlen=2000)
 
+        # Volley deduplication
+        self._seen_volleys: deque[tuple] = deque(maxlen=2000)
+        self._seen_volleys_set: set[tuple] = set()
+
+        # Multi-client tracking
+        self._file_positions: Dict[str, int] = {}
+        self._file_encodings: Dict[str, str] = {}
+        self._partial_buffers: Dict[str, str] = {}
+
         # Totals
         self._total_incoming_damage: int = 0
         self._total_outgoing_damage: int = 0
@@ -109,6 +118,24 @@ class CombatSubsystem(BaseSubsystem):
 
         with self._lock:
             if isinstance(record, DamageVolley):
+                volley_sig = (
+                    record.time_str,
+                    record.amount,
+                    record.attacker,
+                    record.target,
+                    record.weapon,
+                    record.damage_type,
+                    record.quality,
+                    record.is_incoming,
+                )
+                if volley_sig in self._seen_volleys_set:
+                    return
+                if len(self._seen_volleys) >= self._seen_volleys.maxlen:
+                    oldest = self._seen_volleys.popleft()
+                    self._seen_volleys_set.discard(oldest)
+                self._seen_volleys.append(volley_sig)
+                self._seen_volleys_set.add(volley_sig)
+
                 if record.is_incoming:
                     self._incoming_volleys.append(record)
                     self._total_incoming_damage += record.amount
@@ -143,8 +170,10 @@ class CombatSubsystem(BaseSubsystem):
                 ))
 
             elif isinstance(record, EWARAction):
-                key = (record.attacker, record.ewar_type)
-                self._active_ewar[key] = record
+                # Only incoming EWAR debuffs on You are tracked as active hostile debuffs (BUG-COMBAT-03)
+                if record.target.lower() == "you":
+                    key = (record.attacker, record.ewar_type)
+                    self._active_ewar[key] = record
 
                 self._recent_events.append({
                     "type": "ewar",
@@ -203,6 +232,8 @@ class CombatSubsystem(BaseSubsystem):
         with self._lock:
             self._incoming_volleys.clear()
             self._outgoing_volleys.clear()
+            self._seen_volleys.clear()
+            self._seen_volleys_set.clear()
             self._total_incoming_damage = 0
             self._total_outgoing_damage = 0
             self._peak_incoming_dps = 0.0
@@ -351,11 +382,29 @@ class CombatSubsystem(BaseSubsystem):
                     line = f"[ {t_str} ] (combat) {dmg} to {pilot} [{ship}] - You - {wpn} - {dtype} - Penetrating"
                 self.feed_line(line)
 
+    @staticmethod
+    def _detect_gamelog_encoding(filepath: str) -> str:
+        """Detects encoding of EVE Online gamelog (typically UTF-16-LE with/without BOM or UTF-8)."""
+        try:
+            with open(filepath, "rb") as bf:
+                header = bf.read(4)
+                if header.startswith(b"\xff\xfe"):
+                    return "utf-16-le"
+                if header.startswith(b"\xfe\xff"):
+                    return "utf-16-be"
+                if header.startswith(b"\xef\xbb\xbf"):
+                    return "utf-8-sig"
+                sample = header + bf.read(1020)
+                if sample.count(b"\x00") > len(sample) // 4:
+                    return "utf-16-le"
+        except Exception:
+            pass
+        return "utf-8"
+
     def _tail_worker(self) -> None:
-        """Background thread tailing the latest gamelog file."""
-        current_file: Optional[str] = None
-        file_obj = None
+        """Background thread tailing gamelog files across active EVE clients."""
         last_dir_check = 0.0
+        active_files: List[str] = []
 
         while not self._stop_event.is_set():
             now = time.time()
@@ -363,43 +412,111 @@ class CombatSubsystem(BaseSubsystem):
                 self._stop_event.wait(3.0)
                 continue
 
-            # Periodically scan for newest gamelog file (every 5 seconds or if none open)
-            if file_obj is None or (now - last_dir_check) >= 5.0:
+            # Periodically scan for active gamelog files (multibox support: up to 4 recent files)
+            if not active_files or (now - last_dir_check) >= 5.0:
                 last_dir_check = now
                 try:
                     candidates = glob.glob(os.path.join(self._custom_log_dir, "*.txt"))
                     if candidates:
-                        newest = max(candidates, key=os.path.getmtime)
-                        if newest != current_file:
-                            if file_obj:
-                                file_obj.close()
-                            current_file = newest
-                            file_obj = open(current_file, "r", encoding="utf-8", errors="ignore")
-                            file_obj.seek(0, os.SEEK_END)  # Start at end for real-time events
+                        candidates.sort(key=os.path.getmtime, reverse=True)
+                        active_files = candidates[:4]
+                    else:
+                        active_files = []
                 except Exception:
                     pass
 
-            if not file_obj:
+            if not active_files:
                 self._stop_event.wait(2.0)
                 continue
 
-            # Read all currently available lines
-            had_line = False
-            try:
-                while not self._stop_event.is_set():
-                    line = file_obj.readline()
-                    if not line:
-                        break
-                    had_line = True
-                    self.feed_line(line)
-            except Exception:
-                pass
+            had_data = False
+            for path in active_files:
+                if self._stop_event.is_set():
+                    break
+                try:
+                    if not os.path.isfile(path):
+                        continue
+                    current_size = os.path.getsize(path)
+                    if path not in self._file_positions:
+                        if path not in self._file_encodings:
+                            self._file_encodings[path] = self._detect_gamelog_encoding(path)
+                        enc = self._file_encodings[path]
+                        sz = current_size
+                        if "utf-16" in enc.lower():
+                            sz = sz - (sz % 2)
+                        self._file_positions[path] = sz
+                        continue
 
-            if not had_line:
+                    last_pos = self._file_positions.get(path, 0)
+                    if current_size > last_pos:
+                        had_data = True
+                        if path not in self._file_encodings or (self._file_encodings[path] == "utf-8" and current_size > 0):
+                            old_enc = self._file_encodings.get(path)
+                            new_enc = self._detect_gamelog_encoding(path)
+                            self._file_encodings[path] = new_enc
+                            if old_enc != new_enc and "utf-16" in new_enc.lower():
+                                if (last_pos % 2) != 0:
+                                    last_pos = last_pos - (last_pos % 2)
+                                    self._file_positions[path] = last_pos
+                                if old_enc == "utf-8" and last_pos <= 2:
+                                    last_pos = 0
+                                    self._file_positions[path] = 0
+                                self._partial_buffers.pop(path, None)
+
+                        enc = self._file_encodings[path]
+
+                        # For any UTF-16 file, enforce that last_pos is strictly aligned to even boundaries before seeking
+                        if "utf-16" in enc.lower() and (last_pos % 2) != 0:
+                            last_pos = last_pos - (last_pos % 2)
+                            self._file_positions[path] = last_pos
+
+                        read_len = current_size - last_pos
+                        # Enforce 2-byte alignment for UTF-16
+                        if "utf-16" in enc.lower() and (read_len % 2) != 0:
+                            read_len -= 1
+
+                        if read_len <= 0:
+                            continue
+
+                        with open(path, "rb") as fp:
+                            fp.seek(last_pos)
+                            new_bytes = fp.read(read_len)
+
+                        if "utf-16" in enc.lower() and (len(new_bytes) % 2) != 0:
+                            new_bytes = new_bytes[:-1]
+
+                        consumed = len(new_bytes)
+                        self._file_positions[path] = last_pos + consumed
+
+                        if new_bytes:
+                            # Clean decoding without NUL pollution (BUG-COMBAT-01)
+                            text = new_bytes.decode(enc, errors="replace").replace("\x00", "").replace("\ufeff", "")
+                            buffered = self._partial_buffers.get(path, "") + text
+                            if not text.endswith(("\n", "\r")):
+                                lines = buffered.splitlines()
+                                if lines:
+                                    self._partial_buffers[path] = lines[-1]
+                                    lines_to_feed = lines[:-1]
+                                else:
+                                    self._partial_buffers[path] = buffered
+                                    lines_to_feed = []
+                            else:
+                                self._partial_buffers[path] = ""
+                                lines_to_feed = buffered.splitlines()
+
+                            for line in lines_to_feed:
+                                self.feed_line(line)
+
+                    elif current_size < last_pos:
+                        sz = current_size
+                        enc = self._file_encodings.get(path, "")
+                        if "utf-16" in enc.lower():
+                            sz = sz - (sz % 2)
+                        self._file_positions[path] = sz
+                        self._partial_buffers.pop(path, None)
+
+                except Exception:
+                    continue
+
+            if not had_data:
                 self._stop_event.wait(0.2)
-
-        if file_obj:
-            try:
-                file_obj.close()
-            except Exception:
-                pass

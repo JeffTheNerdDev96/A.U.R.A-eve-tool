@@ -140,12 +140,14 @@ class IntelSubsystem(BaseSubsystem):
 
     def tick_expiration(self) -> None:
         """Periodic tick to prune expired reports and dispatch notifications."""
-        expired_systems = self.stale_manager.prune_expired()
-        if expired_systems:
+        modified_systems = self.stale_manager.prune_expired()
+        active_threats = self.stale_manager.get_all_active_threats()
+        fully_expired = [s for s in modified_systems if s not in active_threats]
+        if fully_expired:
             self.event_bus.publish(
                 IntelStaleExpiredEvent(
-                    system=expired_systems[0],
-                    expired_report_ids=expired_systems,
+                    system=fully_expired[0],
+                    expired_report_ids=fully_expired,
                 )
             )
 

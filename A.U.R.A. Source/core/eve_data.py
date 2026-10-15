@@ -8096,7 +8096,7 @@ def lookup_ship(name: str) -> Optional[Dict[str, Any]]:
 @functools.lru_cache(maxsize=4096)
 def lookup_module(name: str) -> Optional[Dict[str, Any]]:
     """O(1) canonical module retrieval with C-level LRU caching and pre-indexed fuzzy fallback."""
-    if not name:
+    if not name or not name.strip():
         return None
     raw_lower = name.strip().lower()
     if raw_lower in _FAST_MODULE_LOOKUP:

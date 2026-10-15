@@ -164,8 +164,42 @@ class WormholeSubsystem(BaseSubsystem):
         self._emit_chain_updated()
         return node
 
+    def _cleanup_orphans(self) -> None:
+        """Removes connections without valid endpoints, and cascades removal of orphaned nodes."""
+        if not self.active_chain:
+            return
+        home = self.active_chain.home_system
+        if home and home in self.active_chain.nodes:
+            # Determine all systems reachable from home system
+            reachable = {home}
+            changed = True
+            while changed:
+                changed = False
+                for c in self.active_chain.connections:
+                    if c.source_system in reachable and c.target_system not in reachable and c.target_system in self.active_chain.nodes:
+                        reachable.add(c.target_system)
+                        changed = True
+
+            # Prune unreachable nodes (cascading orphan removal)
+            for node_name in list(self.active_chain.nodes.keys()):
+                if node_name not in reachable:
+                    del self.active_chain.nodes[node_name]
+
+            # Purge connections referencing pruned nodes
+            self.active_chain.connections = [
+                c for c in self.active_chain.connections
+                if c.source_system in reachable and c.target_system in reachable
+            ]
+        else:
+            # No home system: drop connections with missing endpoints
+            valid_nodes = set(self.active_chain.nodes.keys())
+            self.active_chain.connections = [
+                c for c in self.active_chain.connections
+                if c.source_system in valid_nodes and c.target_system in valid_nodes
+            ]
+
     def remove_connection(self, source_system: str, target_system: str) -> bool:
-        """Removes an active connection link between two systems."""
+        """Removes an active connection link between two systems and cleans up orphaned subtrees."""
         if not self.active_chain:
             return False
         before = len(self.active_chain.connections)
@@ -174,13 +208,14 @@ class WormholeSubsystem(BaseSubsystem):
             if not (c.source_system == source_system and c.target_system == target_system)
         ]
         if len(self.active_chain.connections) < before:
+            self._cleanup_orphans()
             self.active_chain.updated_at = time.time()
             self._emit_chain_updated()
             return True
         return False
 
     def remove_system(self, system_name: str) -> bool:
-        """Removes a solar system and all its associated connections from the active chain."""
+        """Removes a solar system and cascades removal of orphaned downstream connections."""
         if not self.active_chain or system_name not in self.active_chain.nodes:
             return False
         if system_name == self.active_chain.home_system:
@@ -193,6 +228,7 @@ class WormholeSubsystem(BaseSubsystem):
             c for c in self.active_chain.connections
             if c.source_system != system_name and c.target_system != system_name
         ]
+        self._cleanup_orphans()
         self.active_chain.updated_at = time.time()
         self._emit_chain_updated()
         return True
@@ -226,23 +262,18 @@ class WormholeSubsystem(BaseSubsystem):
         return eol_ids, expired_ids
 
     def clear_expired_connections(self) -> int:
-        """Removes all connections that have exceeded their lifetime timer."""
+        """Removes all connections that have exceeded their lifetime timer and cascades orphan cleanup."""
         if not self.active_chain:
             return 0
         now = time.time()
         expired = [c for c in self.active_chain.connections if c.expires_at and c.expires_at <= now]
         if not expired:
             return 0
-        expired_targets = {c.target_system for c in expired}
         self.active_chain.connections = [
             c for c in self.active_chain.connections
             if not (c.expires_at and c.expires_at <= now)
         ]
-        # Remove orphaned child nodes that no longer have inbound links
-        for target in expired_targets:
-            has_inbound = any(c.target_system == target for c in self.active_chain.connections)
-            if not has_inbound and target in self.active_chain.nodes and target != self.active_chain.home_system:
-                del self.active_chain.nodes[target]
+        self._cleanup_orphans()
         self.active_chain.updated_at = now
         self._emit_chain_updated()
         return len(expired)

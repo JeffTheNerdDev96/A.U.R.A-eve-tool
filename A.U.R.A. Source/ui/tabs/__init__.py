@@ -31,6 +31,7 @@ from .fitting_tab import FittingLabWidget
 from .wormhole_tab import WormholeTabWidget
 from .xmpp_tab import XMPPTabWidget
 from .utilities_tab import UtilitiesTabWidget
+from .voip_tab import VOIPTabWidget
 
 __all__ = [
     "CombatTabWidget",
@@ -41,4 +42,5 @@ __all__ = [
     "WormholeTabWidget",
     "XMPPTabWidget",
     "UtilitiesTabWidget",
+    "VOIPTabWidget",
 ]

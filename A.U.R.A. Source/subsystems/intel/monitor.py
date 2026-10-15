@@ -26,7 +26,9 @@ Watches Chatlogs for intel pings and Local + Gamelogs for current system.
 from __future__ import annotations
 
 import glob
+import heapq
 import os
+import re
 import time
 from typing import Any, Dict, List, Optional, Set
 
@@ -84,44 +86,77 @@ def find_default_gamelog_dir(chatlog_dir: Optional[str] = None) -> str:
     return os.path.abspath(os.path.join(home, "Documents", "EVE", "logs", "Gamelogs"))
 
 
-def decode_log_bytes(raw: bytes) -> str:
+_RE_LOG_DATESTAMP = re.compile(r"_\d{8}_\d{6}")
+
+
+def decode_log_bytes(raw: bytes, encoding: Optional[str] = None) -> str:
     if not raw:
         return ""
+    if encoding:
+        if "utf-16" in encoding.lower():
+            even_len = len(raw) - (len(raw) % 2)
+            decoded = raw[:even_len].decode(encoding, errors="replace")
+            return decoded.replace("\x00", "").replace("\ufeff", "")
+        decoded = raw.decode(encoding, errors="replace")
+        return decoded.replace("\x00", "").replace("\ufeff", "")
+
     if raw.startswith(b"\xff\xfe"):
         even_len = len(raw[2:]) - (len(raw[2:]) % 2)
-        return raw[2:2 + even_len].decode("utf-16-le", errors="replace")
+        return raw[2:2 + even_len].decode("utf-16-le", errors="replace").replace("\x00", "")
     if raw.startswith(b"\xfe\xff"):
         even_len = len(raw[2:]) - (len(raw[2:]) % 2)
-        return raw[2:2 + even_len].decode("utf-16-be", errors="replace")
+        return raw[2:2 + even_len].decode("utf-16-be", errors="replace").replace("\x00", "")
     if raw.startswith(b"\xef\xbb\xbf"):
-        return raw[3:].decode("utf-8", errors="replace")
+        return raw[3:].decode("utf-8", errors="replace").replace("\x00", "")
 
-    if len(raw) >= 4 and raw.count(b"\x00") > (len(raw) // 4):
+    # If NUL bytes are detected in raw, decode as UTF-16-LE
+    if b"\x00" in raw:
         even_len = len(raw) - (len(raw) % 2)
         try:
-            return raw[:even_len].decode("utf-16-le")
+            return raw[:even_len].decode("utf-16-le").replace("\x00", "")
         except UnicodeDecodeError:
             pass
 
     try:
-        return raw.decode("utf-8")
+        return raw.decode("utf-8").replace("\x00", "")
     except UnicodeDecodeError:
         pass
 
-    for encoding in ("utf-16-le", "cp1252", "latin-1"):
+    for enc in ("utf-16-le", "cp1252", "latin-1"):
         try:
-            if encoding == "utf-16-le":
+            if enc == "utf-16-le":
                 even_len = len(raw) - (len(raw) % 2)
-                return raw[:even_len].decode(encoding)
-            return raw.decode(encoding)
+                return raw[:even_len].decode(enc).replace("\x00", "")
+            return raw.decode(enc).replace("\x00", "")
         except (UnicodeDecodeError, LookupError):
             continue
 
-    return raw.decode("utf-8", errors="ignore")
+    return raw.decode("utf-8", errors="ignore").replace("\x00", "")
+
+
+def detect_log_encoding(filepath: str) -> str:
+    """Detects primary character encoding of an EVE log file."""
+    try:
+        with open(filepath, "rb") as fp:
+            prefix = fp.read(1024)
+            if prefix.startswith(b"\xff\xfe"):
+                return "utf-16-le"
+            if prefix.startswith(b"\xfe\xff"):
+                return "utf-16-be"
+            if prefix.startswith(b"\xef\xbb\xbf"):
+                return "utf-8-sig"
+            if len(prefix) >= 4 and prefix.count(b"\x00") > (len(prefix) // 4):
+                return "utf-16-le"
+    except Exception:
+        pass
+    return "utf-8"
 
 
 def extract_channel_name(filepath: str) -> str:
     base = os.path.basename(filepath)
+    m = _RE_LOG_DATESTAMP.search(base)
+    if m:
+        return base[:m.start()]
     parts = base.split("_")
     if len(parts) >= 2:
         return parts[0]
@@ -171,6 +206,9 @@ class LiveChatMonitor(QThread):
         self.selected_character: Optional[str] = None
         self._need_bootstrap = True
         self._last_active_channels: List[str] = []
+        self._partial_buffers: Dict[str, str] = {}
+        self._line_buffers: Dict[str, str] = self._partial_buffers
+        self._file_encodings: Dict[str, str] = {}
 
     def set_selected_character(self, character_name: Optional[str]) -> None:
         if not character_name or character_name.strip() in ("Auto", "All", "None", ""):
@@ -186,6 +224,8 @@ class LiveChatMonitor(QThread):
         self.gamelog_dir = find_default_gamelog_dir(self.log_dir)
         self.file_positions.clear()
         self.known_files.clear()
+        self._partial_buffers.clear()
+        self._file_encodings.clear()
         self.cached_files = []
         self.last_dir_scan_time = 0.0
         self._need_bootstrap = True
@@ -197,6 +237,8 @@ class LiveChatMonitor(QThread):
         config.custom_intel_channels = pattern_str
         self.file_positions.clear()
         self.known_files.clear()
+        self._partial_buffers.clear()
+        self._file_encodings.clear()
         self.cached_files = []
         self.last_dir_scan_time = 0.0
 
@@ -204,6 +246,8 @@ class LiveChatMonitor(QThread):
         self.channel_filter = (channel_filter or "intel").lower()
         self.file_positions.clear()
         self.known_files.clear()
+        self._partial_buffers.clear()
+        self._file_encodings.clear()
         self.cached_files = []
         self.last_dir_scan_time = 0.0
 
@@ -280,11 +324,18 @@ class LiveChatMonitor(QThread):
         return any(is_safe_log_file(root, filepath) for root in self._allowed_log_roots())
 
     def _list_recent(self, directory: str, limit: int) -> List[str]:
-        if not directory or not os.path.isdir(directory):
+        if not directory or not os.path.isdir(directory) or limit <= 0:
             return []
-        files = [f for f in glob.glob(os.path.join(directory, "*.txt")) if self._is_allowed_log_path(f)]
-        files.sort(key=os.path.getmtime, reverse=True)
-        return files[:limit]
+        try:
+            with os.scandir(directory) as it:
+                entries = [
+                    entry for entry in it
+                    if entry.name.endswith(".txt") and entry.is_file() and self._is_allowed_log_path(entry.path)
+                ]
+                top_entries = heapq.nlargest(limit, entries, key=lambda e: e.stat().st_mtime)
+                return [e.path for e in top_entries]
+        except (OSError, PermissionError):
+            return []
 
     def _get_active_log_files(self, force_rescan: bool = False) -> List[str]:
         now = time.time()
@@ -300,7 +351,16 @@ class LiveChatMonitor(QThread):
             intel_files.sort(key=os.path.getmtime, reverse=True)
             intel_files = intel_files[:20]
 
-        local_files = [f for f in self._list_recent(self.log_dir, 8) if _is_local_file(f)]
+        # Prevent local chat monitoring starvation (BUG-PARSER-04): filter local files before slicing
+        local_files: List[str] = []
+        if os.path.isdir(self.log_dir):
+            all_locals = [
+                f for f in glob.glob(os.path.join(self.log_dir, "*.txt"))
+                if _is_local_file(f) and self._is_allowed_log_path(f)
+            ]
+            all_locals.sort(key=os.path.getmtime, reverse=True)
+            local_files = all_locals[:8]
+
         game_files = self._list_recent(self.gamelog_dir, 4)
 
         merged: List[str] = []
@@ -322,6 +382,8 @@ class LiveChatMonitor(QThread):
                 self.file_positions.pop(path, None)
                 self.known_files.discard(path)
                 self._file_characters.pop(path, None)
+                self._partial_buffers.pop(path, None)
+                self._file_encodings.pop(path, None)
         still_known = set(self._file_characters.values())
         if still_known != self._known_characters:
             self._known_characters = still_known
@@ -392,6 +454,11 @@ class LiveChatMonitor(QThread):
                 active_names.append(channel)
             try:
                 sz = os.path.getsize(path)
+                if path not in self._file_encodings:
+                    self._file_encodings[path] = detect_log_encoding(path)
+                enc = self._file_encodings[path]
+                if "utf-16" in enc.lower():
+                    sz = sz - (sz % 2)
                 self.file_positions[path] = sz
                 self.known_files.add(path)
                 if not _is_local_file(path) and not _is_gamelog_file(path) and sz > 0:
@@ -402,7 +469,8 @@ class LiveChatMonitor(QThread):
                     tail_text = decode_log_bytes(tail_bytes)
                     if tail_text:
                         lines = tail_text.splitlines()[-25:]
-                        self._process_text(path, "\n".join(lines), channel)
+                        trailing_nl = "\n" if tail_text.endswith(("\n", "\r")) else ""
+                        self._process_text(path, "\n".join(lines) + trailing_nl, channel)
             except OSError:
                 continue
             if path not in self._file_characters:
@@ -423,11 +491,26 @@ class LiveChatMonitor(QThread):
         self.active_channels_updated.emit(names)
 
     def _process_text(self, filepath: str, text: str, channel_name: str) -> None:
+        if not text:
+            return
         is_local = _is_local_file(filepath)
         is_game = _is_gamelog_file(filepath)
         emit_intel = (not is_game) and (not is_local or self.channel_filter in ("local", "all"))
 
-        for raw_line in text.splitlines():
+        buffered = self._partial_buffers.get(filepath, "") + text
+        if not text.endswith(("\n", "\r")):
+            lines = buffered.splitlines()
+            if lines:
+                self._partial_buffers[filepath] = lines[-1]
+                lines_to_process = lines[:-1]
+            else:
+                self._partial_buffers[filepath] = buffered
+                lines_to_process = []
+        else:
+            self._partial_buffers[filepath] = ""
+            lines_to_process = buffered.splitlines()
+
+        for raw_line in lines_to_process:
             if is_local or is_game:
                 self._emit_location(self.location.parse_line(raw_line), filepath)
             if not emit_intel:
@@ -462,7 +545,13 @@ class LiveChatMonitor(QThread):
 
             if path not in self.file_positions:
                 try:
-                    self.file_positions[path] = os.path.getsize(path)
+                    sz = os.path.getsize(path)
+                    if path not in self._file_encodings:
+                        self._file_encodings[path] = detect_log_encoding(path)
+                    enc = self._file_encodings[path]
+                    if "utf-16" in enc.lower():
+                        sz = sz - (sz % 2)
+                    self.file_positions[path] = sz
                     self.known_files.add(path)
                     if _is_local_file(path) or _is_gamelog_file(path):
                         self._ingest_location_prefix(path)
@@ -474,14 +563,53 @@ class LiveChatMonitor(QThread):
                 current_size = os.path.getsize(path)
                 last_pos = self.file_positions.get(path, 0)
                 if current_size > last_pos:
+                    if path not in self._file_encodings or (self._file_encodings[path] == "utf-8" and current_size > 0):
+                        old_enc = self._file_encodings.get(path)
+                        new_enc = detect_log_encoding(path)
+                        self._file_encodings[path] = new_enc
+                        if old_enc != new_enc and "utf-16" in new_enc.lower():
+                            if (last_pos % 2) != 0:
+                                last_pos = last_pos - (last_pos % 2)
+                                self.file_positions[path] = last_pos
+                            if old_enc == "utf-8" and last_pos <= 2:
+                                last_pos = 0
+                                self.file_positions[path] = 0
+                            self._partial_buffers.pop(path, None)
+
+                    enc = self._file_encodings[path]
+
+                    # For any UTF-16 file, enforce that last_pos is strictly aligned to even boundaries before seeking
+                    if "utf-16" in enc.lower() and (last_pos % 2) != 0:
+                        last_pos = last_pos - (last_pos % 2)
+                        self.file_positions[path] = last_pos
+
                     read_len = min(current_size - last_pos, int(getattr(config, "max_log_read_bytes", 512 * 1024)))
+                    # For UTF-16 encodings, enforce 2-byte alignment to prevent byte-shift stream desync (BUG-PARSER-02)
+                    if "utf-16" in enc.lower() and (read_len % 2) != 0:
+                        read_len -= 1
+
+                    if read_len <= 0:
+                        continue
+
                     with open(path, "rb") as fp:
                         fp.seek(last_pos)
                         new_bytes = fp.read(read_len)
-                        self.file_positions[path] = last_pos + len(new_bytes)
-                    self._process_text(path, decode_log_bytes(new_bytes), channel)
+
+                    # Ensure byte alignment if partial read ended on odd boundary
+                    if "utf-16" in enc.lower() and (len(new_bytes) % 2) != 0:
+                        new_bytes = new_bytes[:-1]
+
+                    consumed = len(new_bytes)
+                    self.file_positions[path] = last_pos + consumed
+                    if new_bytes:
+                        self._process_text(path, decode_log_bytes(new_bytes, encoding=enc), channel)
                 elif current_size < last_pos:
-                    self.file_positions[path] = current_size
+                    sz = current_size
+                    enc = self._file_encodings.get(path, "")
+                    if "utf-16" in enc.lower():
+                        sz = sz - (sz % 2)
+                    self.file_positions[path] = sz
+                    self._partial_buffers.pop(path, None)
             except PermissionError as exc:
                 log_diagnostic_error(
                     AURAErrorCode.ERR_4002_LOG_STREAM_LOCKED,

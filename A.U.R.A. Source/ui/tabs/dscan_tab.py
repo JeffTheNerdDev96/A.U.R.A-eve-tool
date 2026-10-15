@@ -28,7 +28,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import Qt, pyqtSignal, QTimer
 from PyQt6.QtGui import QColor, QFont
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit, QPushButton,
@@ -101,6 +101,10 @@ class DScanTabWidget(QWidget):
         )
         self.input_edit.setMinimumHeight(80)
         self.input_edit.setMaximumHeight(130)
+        self._input_debounce_timer = QTimer(self)
+        self._input_debounce_timer.setSingleShot(True)
+        self._input_debounce_timer.setInterval(250)
+        self._input_debounce_timer.timeout.connect(self._on_debounced_input_changed)
         self.input_edit.textChanged.connect(self._on_input_changed)
         in_layout.addWidget(self.input_edit)
 
@@ -203,7 +207,10 @@ class DScanTabWidget(QWidget):
         root.addLayout(bottom_bar)
 
     def _on_input_changed(self):
-        # Auto analyze on paste if text is present
+        # Debounce auto-analysis by 250ms to prevent lag on rapid typing
+        self._input_debounce_timer.start(250)
+
+    def _on_debounced_input_changed(self):
         text = self.input_edit.toPlainText().strip()
         if text:
             self._on_analyze()
@@ -214,6 +221,7 @@ class DScanTabWidget(QWidget):
             self.input_edit.setPlainText(clip)
 
     def _on_clear(self):
+        self._input_debounce_timer.stop()
         self.input_edit.clear()
         self.table.setRowCount(0)
         self.total_ships_lbl.setText("Total Hostiles: 0")

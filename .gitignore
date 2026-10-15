@@ -117,6 +117,7 @@ desktop.ini
 .idea/
 .vscode/
 .cursor/
+.agents/
 *.swp
 *.swo
 *~
@@ -135,3 +136,5 @@ release-notes/
 standalone_build/
 **/standalone_build/
 *.tar.gz
+project.md
+test_infra.md

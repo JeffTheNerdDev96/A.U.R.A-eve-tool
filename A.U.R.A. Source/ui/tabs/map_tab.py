@@ -92,82 +92,119 @@ def _force_layout(
     node_ids: Set[int],
     edges: List[Tuple[int, int]],
     origin_id: Optional[int],
-    iterations: int = 100,
+    iterations: int = 40,
 ) -> Dict[int, Tuple[float, float]]:
-    """Fruchterman-Reingold layout with enhanced spacing and breathing room; origin pinned at (0, 0)."""
+    """Fruchterman-Reingold layout with enhanced spacing and breathing room; origin pinned at (0, 0).
+
+    Optimized via symmetric pairwise forces on flat coordinate buffers, early convergence
+    detection (< 0.5px displacement threshold), and pre-mapped edge indices.
+    """
     if not node_ids:
         return {}
     ids = list(node_ids)
     n = len(ids)
+    if n == 1:
+        return {ids[0]: (0.0, 0.0)}
+
+    id_to_idx = {sid: i for i, sid in enumerate(ids)}
+    origin_idx = id_to_idx.get(origin_id) if origin_id is not None else -1
+
     area = max(180000.0, n * 4000.0)
     k = math.sqrt(area / max(n, 1)) * 1.35
-    pos: Dict[int, Tuple[float, float]] = {}
-    for i, sid in enumerate(ids):
-        if sid == origin_id:
-            pos[sid] = (0.0, 0.0)
-        else:
-            angle = (2 * math.pi * i) / max(n, 1)
-            r = k * 3.0
-            pos[sid] = (math.cos(angle) * r, math.sin(angle) * r)
+    k_sq = k * k
+    inv_k = 1.0 / k
 
-    adj: Dict[int, Set[int]] = {sid: set() for sid in ids}
+    px = [0.0] * n
+    py = [0.0] * n
+    two_pi_over_n = (2.0 * math.pi) / n
+    r = k * 3.0
+    for i in range(n):
+        if i == origin_idx:
+            px[i] = 0.0
+            py[i] = 0.0
+        else:
+            angle = two_pi_over_n * i
+            px[i] = math.cos(angle) * r
+            py[i] = math.sin(angle) * r
+
+    mapped_edges = []
     for a, b in edges:
-        if a in adj and b in adj:
-            adj[a].add(b)
-            adj[b].add(a)
+        ia = id_to_idx.get(a)
+        ib = id_to_idx.get(b)
+        if ia is not None and ib is not None:
+            mapped_edges.append((ia, ib))
 
-    def disp(sid: int) -> Tuple[float, float]:
-        return pos[sid]
-
-    def set_disp(sid: int, x: float, y: float) -> None:
-        if sid == origin_id:
-            pos[sid] = (0.0, 0.0)
-        else:
-            pos[sid] = (x, y)
+    disp_x = [0.0] * n
+    disp_y = [0.0] * n
 
     for _ in range(iterations):
-        disp_vec = {sid: [0.0, 0.0] for sid in ids}
-        for v in ids:
-            for u in ids:
-                if u == v:
-                    continue
-                dx = disp(v)[0] - disp(u)[0]
-                dy = disp(v)[1] - disp(u)[1]
+        for i in range(n):
+            disp_x[i] = 0.0
+            disp_y[i] = 0.0
+
+        # Symmetrical pairwise repulsion (upper triangle)
+        for i in range(n):
+            xi = px[i]
+            yi = py[i]
+            for j in range(i + 1, n):
+                dx = xi - px[j]
+                dy = yi - py[j]
                 dist = math.hypot(dx, dy)
                 if dist < 0.01:
                     dist = 0.01
                     dx, dy = 0.01, 0.0
-                repulse = (k * k) / dist
-                disp_vec[v][0] += (dx / dist) * repulse
-                disp_vec[v][1] += (dy / dist) * repulse
+                repulse_factor = k_sq / (dist * dist)
+                fx = dx * repulse_factor
+                fy = dy * repulse_factor
+                disp_x[i] += fx
+                disp_y[i] += fy
+                disp_x[j] -= fx
+                disp_y[j] -= fy
 
-        for a, b in edges:
-            if a not in pos or b not in pos:
-                continue
-            dx = disp(b)[0] - disp(a)[0]
-            dy = disp(b)[1] - disp(a)[1]
+        # Symmetrical edge attraction
+        for ia, ib in mapped_edges:
+            dx = px[ib] - px[ia]
+            dy = py[ib] - py[ia]
             dist = math.hypot(dx, dy)
             if dist < 0.01:
                 dist = 0.01
-            attract = (dist * dist) / k
-            fx = (dx / dist) * attract
-            fy = (dy / dist) * attract
-            disp_vec[a][0] += fx
-            disp_vec[a][1] += fy
-            disp_vec[b][0] -= fx
-            disp_vec[b][1] -= fy
+            attract_factor = dist * inv_k
+            fx = dx * attract_factor
+            fy = dy * attract_factor
+            disp_x[ia] += fx
+            disp_y[ia] += fy
+            disp_x[ib] -= fx
+            disp_y[ib] -= fy
 
-        for v in ids:
-            if v == origin_id:
+        # Displacement integration with max-displacement tracking for early convergence
+        max_disp = 0.0
+        for i in range(n):
+            if i == origin_idx:
                 continue
-            dlen = math.hypot(disp_vec[v][0], disp_vec[v][1])
-            if dlen > 0:
+            dx = disp_x[i]
+            dy = disp_y[i]
+            dlen = math.hypot(dx, dy)
+            if dlen > 0.0:
                 limit = min(dlen, 25.0)
-                disp_vec[v][0] = disp_vec[v][0] / dlen * limit
-                disp_vec[v][1] = disp_vec[v][1] / dlen * limit
-            set_disp(v, disp(v)[0] + disp_vec[v][0], disp(v)[1] + disp_vec[v][1])
+                inv_dlen_limit = limit / dlen
+                actual_dx = dx * inv_dlen_limit
+                actual_dy = dy * inv_dlen_limit
+                disp_len = limit
+            else:
+                actual_dx = 0.0
+                actual_dy = 0.0
+                disp_len = 0.0
 
-    return pos
+            if disp_len > max_disp:
+                max_disp = disp_len
+
+            px[i] += actual_dx
+            py[i] += actual_dy
+
+        if max_disp < 0.5:
+            break
+
+    return {ids[i]: (px[i], py[i]) for i in range(n)}
 
 
 class MapGraphicsView(QGraphicsView):
@@ -612,9 +649,13 @@ class MapTabWidget(QWidget):
         self._visible_ids = visible
         edges = self.eve_map.subgraph_edges(visible)
 
-        # Include route edges explicitly in subgraph
+        # Include route edges explicitly in subgraph avoiding duplicates
+        edge_set = set(edges)
         for r_edge in self._route_edges:
-            edges.append(r_edge)
+            rev_edge = (r_edge[1], r_edge[0])
+            if r_edge not in edge_set and rev_edge not in edge_set:
+                edges.append(r_edge)
+                edge_set.add(r_edge)
 
         anchor_id = self._origin_id if self._origin_id in visible else (self._route_node_ids[0] if self._route_node_ids else None)
         cache_key = (anchor_id, self._jump_range, frozenset(visible), frozenset(self._route_edges))

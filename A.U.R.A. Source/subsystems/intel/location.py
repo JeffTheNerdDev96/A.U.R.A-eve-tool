@@ -64,7 +64,7 @@ class LocationTracker:
         """Commit a resolved location. Returns payload if it changed."""
         rec = None
         if system_id is not None:
-            rec = self.eve_map.resolve_system_id(int(system_id))
+            rec = self.eve_map.resolve_system_id(abs(int(system_id)))
         if rec is None and name:
             rec = self.eve_map.resolve_system_name(name)
         if rec is None:
@@ -91,8 +91,8 @@ class LocationTracker:
                 sid = int(m_id.group(1))
             except ValueError:
                 sid = None
-            if sid and sid > 30000000:
-                return self.apply(None, sid)
+            if sid and abs(sid) > 30000000:
+                return self.apply(None, abs(sid))
 
         m_jump = _RE_JUMPING.search(clean)
         if m_jump:

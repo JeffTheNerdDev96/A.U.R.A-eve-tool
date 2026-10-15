@@ -104,3 +104,16 @@ Inspired by [RIFT](https://riftforeve.online), [PYFA](https://github.com/pyfa-or
 ## License
 
 Adaptive Underworld Recon Array (A.U.R.A.) is free and open-source software distributed under the terms of the **[GNU Affero General Public License Version 3 (AGPL-3.0)](LICENSE.txt)**.
+
+
+---
+
+## AI-Assisted Development & Quality Assurance (V0.7.1-alpha.1+)
+
+**AI is intended to supplement, not replace, development and testing.**
+
+A.U.R.A. has grown beyond its original scope into an all-in-one tool with 11 major features and approximately 60,000 lines of custom code. To manage this complexity as a solo developer, I use AI-assisted code reviews, edge-case testing, and validation alongside custom debugging scripts and automated test suites to identify potential bugs, regressions, and performance issues.
+
+Starting with V0.7.1-alpha.1, releases will undergo additional AI-assisted reviews and audits. AI-generated findings are verified through code inspection, reproducible tests, and existing validation tools to help maintain reliability as the project continues to grow.
+
+Agent-specific configuration and working files, including the `.agents/` directory where applicable, are excluded from version control through `.gitignore` to keep development tooling separate from the project's tracked source code.

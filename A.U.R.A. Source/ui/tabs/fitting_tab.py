@@ -27,7 +27,7 @@ from __future__ import annotations
 import re
 from typing import Any, Dict, List, Optional
 
-from PyQt6.QtCore import Qt, pyqtSignal, QSize
+from PyQt6.QtCore import Qt, pyqtSignal, QSize, QTimer
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton,
@@ -475,7 +475,11 @@ class FittingLabWidget(QWidget):
         self.mod_search = QLineEdit()
         self.mod_search.setPlaceholderText("Search modules…")
         self.mod_search.setFixedHeight(28)
-        self.mod_search.textChanged.connect(self._refresh_module_list)
+        self._search_debounce_timer = QTimer(self)
+        self._search_debounce_timer.setSingleShot(True)
+        self._search_debounce_timer.setInterval(250)
+        self._search_debounce_timer.timeout.connect(self._refresh_module_list)
+        self.mod_search.textChanged.connect(lambda: self._search_debounce_timer.start(250))
         ll.addWidget(self.mod_search)
         self.mod_slot_filter = QComboBox()
         self.mod_slot_filter.addItems(["All slots", "High", "Mid", "Low", "Rig"])

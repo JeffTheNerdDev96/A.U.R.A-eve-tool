@@ -25,7 +25,7 @@ Provides 100% offline lookup for P0 through P4 commodity trees and customs expor
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 # Commodity tier volume per unit in cubic meters (m3)
 TIER_VOLUMES_M3: Dict[str, float] = {
@@ -63,6 +63,10 @@ P0_TO_P1_MAP: Dict[str, str] = {
     "Reactive Gas": "Oxidizing Compound",
     "Suspended Plasma": "Plasmoids",
 }
+
+# Fast O(1) reverse lookup and set membership
+P1_TO_P0_MAP: Dict[str, str] = {p1: p0 for p0, p1 in P0_TO_P1_MAP.items()}
+P1_NAMES: Set[str] = set(P1_TO_P0_MAP.keys())
 
 # P2 Specialized Commodities: {Name: [Input P1_1, Input P1_2]}
 P2_RECIPES: Dict[str, List[str]] = {
@@ -139,7 +143,7 @@ def get_commodity_tier(name: str) -> str:
         return "P3"
     if clean in P2_RECIPES:
         return "P2"
-    if clean in P0_TO_P1_MAP.values():
+    if clean in P1_NAMES:
         return "P1"
     if clean in P0_TO_P1_MAP:
         return "P0"
@@ -163,7 +167,6 @@ def get_recipe_inputs(commodity_name: str) -> List[str]:
         return P3_RECIPES[clean]
     if clean in P2_RECIPES:
         return P2_RECIPES[clean]
-    for p0, p1 in P0_TO_P1_MAP.items():
-        if p1 == clean:
-            return [p0]
+    if clean in P1_TO_P0_MAP:
+        return [P1_TO_P0_MAP[clean]]
     return []

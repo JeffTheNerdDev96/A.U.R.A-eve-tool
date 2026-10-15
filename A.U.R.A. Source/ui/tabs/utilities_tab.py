@@ -33,7 +33,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import Qt, pyqtSignal, QTimer
 from PyQt6.QtGui import QColor, QFont
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit, QPushButton,
@@ -568,6 +568,10 @@ class UtilitiesTabWidget(QWidget):
         self.ref_search = QTextEdit()
         self.ref_search.setFixedHeight(30)
         self.ref_search.setPlaceholderText("Filter item names...")
+        self._ref_debounce_timer = QTimer(self)
+        self._ref_debounce_timer.setSingleShot(True)
+        self._ref_debounce_timer.setInterval(250)
+        self._ref_debounce_timer.timeout.connect(self._on_debounced_ref_filter)
         self.ref_search.textChanged.connect(self._on_ref_filter)
         hdr_row.addWidget(self.ref_search)
         layout.addLayout(hdr_row)
@@ -586,6 +590,10 @@ class UtilitiesTabWidget(QWidget):
         return widget
 
     def _on_ref_filter(self):
+        # Debounce table repopulation by 250ms to prevent UI freezing on typing
+        self._ref_debounce_timer.start(250)
+
+    def _on_debounced_ref_filter(self):
         query = self.ref_search.toPlainText().strip()
         self._populate_ref_table(query)
 

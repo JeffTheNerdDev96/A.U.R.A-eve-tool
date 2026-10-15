@@ -100,12 +100,18 @@ def shutdown_application(window: Any | None = None) -> None:
             _log_shutdown_error(exc, "shutdown: _intel_expire_timer")
 
         # Stop tab-level timers
-        for tab_attr, timer_attr in (("anokis_tab", "poll_timer"), ("map_tab", "_prune_timer")):
+        for tab_attr, timer_attr in (
+            ("anokis_tab", "poll_timer"),
+            ("map_tab", "_prune_timer"),
+            ("combat_tab", "_timer"),
+        ):
             try:
                 tab_widget = getattr(window, tab_attr, None)
                 if tab_widget is not None:
                     timer = getattr(tab_widget, timer_attr, None)
                     if timer is not None and hasattr(timer, "stop"):
+                        if hasattr(timer, "isActive") and not timer.isActive():
+                            continue
                         timer.stop()
             except Exception as exc:
                 _log_shutdown_error(exc, f"shutdown: {tab_attr}.{timer_attr}")

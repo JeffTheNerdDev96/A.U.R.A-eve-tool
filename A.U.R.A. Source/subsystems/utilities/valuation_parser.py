@@ -140,8 +140,8 @@ class CargoValuationParser:
                 total_price = unit_price * qty
                 return ItemValuation(name, qty, unit_price, total_price, vol, group)
 
-        # Check "100x Scourge Heavy Missile" or "Scourge Heavy Missile x 100"
-        m_x_prefix = re.match(r"^([\d,]+)x?\s+(.+)$", clean, re.IGNORECASE)
+        # Check explicit multiplier prefix like "100x Scourge Heavy Missile" or "100 * Scourge Heavy Missile"
+        m_x_prefix = re.match(r"^([\d,]+)\s*[xX*]\s+(.+)$", clean)
         if m_x_prefix:
             qty_str = m_x_prefix.group(1).replace(",", "")
             qty = int(qty_str) if qty_str.isdigit() else 1
@@ -151,6 +151,21 @@ class CargoValuationParser:
             unit_price = lookup_market_price(name)
             vol = cls._estimate_volume(name, qty, "General")
             return ItemValuation(name, qty, unit_price, unit_price * qty, vol, "General")
+
+        # Check space-separated quantity prefix like "100 Scourge Heavy Missile"
+        # Must not match items starting with caliber/dimensions (e.g. "100 mm AutoCannon", "10 MN Afterburner")
+        m_num_prefix = re.match(r"^([\d,]+)\s+(.+)$", clean)
+        if m_num_prefix:
+            rest = m_num_prefix.group(2).strip()
+            if not re.match(r"^(?:mm|mn|gj|km|m3|w|kw|mw)\b", rest, re.IGNORECASE):
+                qty_str = m_num_prefix.group(1).replace(",", "")
+                qty = int(qty_str) if qty_str.isdigit() else 1
+                name = rest
+                if name.lower() in ("name", "item", "item name", "type", "total", "subtotal"):
+                    return None
+                unit_price = lookup_market_price(name)
+                vol = cls._estimate_volume(name, qty, "General")
+                return ItemValuation(name, qty, unit_price, unit_price * qty, vol, "General")
 
         m_x_suffix = re.match(r"^(.+?)\s+x?\s*([\d,]+)$", clean, re.IGNORECASE)
         if m_x_suffix:

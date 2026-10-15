@@ -175,16 +175,11 @@ class KillmailParser:
     @staticmethod
     def _deduce_slot(item_name: str) -> str:
         mod = CANONICAL_MODULES.get(item_name)
+        if not mod:
+            mod = lookup_module(item_name)
         if mod and "slot" in mod:
             s = str(mod["slot"]).lower()
             return "med" if s == "mid" else s
-
-        # Lowercase search
-        item_lower = item_name.lower()
-        for k, v in CANONICAL_MODULES.items():
-            if k.lower() == item_lower:
-                s = str(v.get("slot", "")).lower()
-                return "med" if s == "mid" else s
 
         return "cargo"
 

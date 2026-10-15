@@ -145,6 +145,15 @@ class IntelParser:
                     msg = rest[gt_pos + 1:].strip()
                 else:
                     msg = rest
+        else:
+            gt_pos = clean_line.find(">")
+            if gt_pos > 0:
+                speaker = clean_line[:gt_pos].strip()
+                msg = clean_line[gt_pos + 1:].strip()
+
+        # Exclude EVE System session notifications from generating hostile reports (BUG-PARSER-07)
+        if speaker.strip().lower() in ("eve system", "system") or clean_line.lower().startswith("eve system"):
+            return None
 
         words = [w.strip(_STRIP_CHARS) for w in msg.split() if w.strip(_STRIP_CHARS)]
         if not words:
@@ -152,10 +161,16 @@ class IntelParser:
 
         engine = cls._get_engine()
         found_system: Optional[str] = None
-        for word in words:
-            record = engine.eve_map.resolve_system_name(word)
-            if record:
-                found_system = record["name"].upper()
+        # Test multi-token combinations against resolve_system_name (BUG-PARSER-08)
+        max_n = min(len(words), 5)
+        for n in range(max_n, 0, -1):
+            for i in range(len(words) - n + 1):
+                candidate = " ".join(words[i : i + n])
+                record = engine.eve_map.resolve_system_name(candidate)
+                if record:
+                    found_system = record["name"].upper()
+                    break
+            if found_system:
                 break
 
         if not found_system:
