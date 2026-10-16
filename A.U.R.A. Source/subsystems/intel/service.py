@@ -23,7 +23,7 @@
 Intel subsystem: parse chat lines, track reports, publish EventBus events.
 """
 
-from typing import override
+from typing import override, Any, Optional
 import time
 
 from core.base_subsystem import BaseSubsystem, SubsystemStatus
@@ -64,9 +64,15 @@ class IntelSubsystem(BaseSubsystem):
         rep = self.process_raw_line(line, channel_name)
         return [rep] if rep else []
 
-    def process_raw_line(self, line: str, channel_name: str = "Intel") -> IntelReport | None:
+    def process_raw_line(
+        self,
+        line: str,
+        channel_name: str = "Intel",
+        parsed: Optional[dict[str, Any]] = None,
+    ) -> IntelReport | None:
         """Parse a raw chat log line once, store it, and publish intel events."""
-        parsed = IntelParser.parse_single_line(line, channel_name=channel_name)
+        if parsed is None:
+            parsed = IntelParser.parse_single_line(line, channel_name=channel_name)
         if not parsed:
             return None
 

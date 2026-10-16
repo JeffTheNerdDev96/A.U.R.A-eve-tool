@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Combat & Threat HUD Tab for A.U.R.A. v0.7.1-alpha.2.
+Combat & Threat HUD Tab for A.U.R.A. v0.7.1-alpha.3.
 Displays real-time rolling 10s/30s/60s incoming and outgoing DPS gauges,
 4-layer damage profiles (EM/Thermal/Kinetic/Explosive), active EWAR threat cards,
 live gamelog combat feed, and seamless neural counter-tactics handover.
@@ -62,6 +62,7 @@ class CombatTabWidget(QWidget):
             f"QLabel {{ color:{TEXT_SECONDARY}; }}"
         )
         self._init_ui()
+        self._last_events_signature = None
 
         # 1-second refresh timer
         self._timer = QTimer(self)
@@ -297,61 +298,69 @@ class CombatTabWidget(QWidget):
                 itm.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.ewar_table.setItem(row, col, itm)
 
-        # 5. Update Recent Events Feed (show newest up to 25)
+        # 5. Update Recent Events Feed (show newest up to 25, throttled by event signature)
         events = summary.get("recent_events", [])
-        tail_events = list(reversed(events))[:25]
-        self.feed_table.setRowCount(len(tail_events))
-        for row, ev in enumerate(tail_events):
-            t_str = ev.get("time", "")
-            ev_type = ev.get("type", "")
+        if events:
+            latest = events[-1]
+            latest_sig = (len(events), latest.get("time"), latest.get("type"), latest.get("amount"))
+        else:
+            latest_sig = (0, None, None, None)
 
-            if ev_type == "damage":
-                in_flag = ev.get("incoming", True)
-                dir_str = "INCOMING" if in_flag else "OUTGOING"
-                dir_color = "#ef4444" if in_flag else "#10b981"
-                amt = f"{ev.get('amount', 0):,}"
-                atk = f"{ev.get('attacker', '')} [{ev.get('ship', '')}]"
-                wpn = ev.get("weapon", "")
-                dtype = ev.get("dmg_type", "")
-                qual = ev.get("quality", "")
-            elif ev_type == "ewar":
-                dir_str = "EWAR"
-                dir_color = "#fbbf24"
-                amt = ev.get("intensity", "")
-                atk = f"{ev.get('attacker', '')} [{ev.get('ship', '')}]"
-                wpn = ev.get("ewar_type", "")
-                dtype = "EWAR"
-                qual = "Active"
-            elif ev_type == "destruction":
-                dir_str = "KILL"
-                dir_color = "#ec4899"
-                amt = "DESTROYED"
-                atk = ev.get("victim", "")
-                wpn = ev.get("ship", "")
-                dtype = "Wreck"
-                qual = "Hull Loss"
-            elif ev_type == "mining":
-                dir_str = "MINING"
-                dir_color = "#38bdf8"
-                amt = f"{ev.get('units', 0):,} units"
-                atk = "Strip Miner"
-                wpn = ev.get("ore", "")
-                dtype = f"{ev.get('m3', 0)} m3"
-                qual = "Mined"
-            else:
-                continue
+        if latest_sig != self._last_events_signature:
+            self._last_events_signature = latest_sig
+            tail_events = list(reversed(events))[:25]
+            self.feed_table.setRowCount(len(tail_events))
+            for row, ev in enumerate(tail_events):
+                t_str = ev.get("time", "")
+                ev_type = ev.get("type", "")
 
-            item_time = QTableWidgetItem(t_str)
-            item_dir = QTableWidgetItem(dir_str)
-            item_dir.setForeground(QColor(dir_color))
-            item_amt = QTableWidgetItem(amt)
-            item_atk = QTableWidgetItem(atk)
-            item_wpn = QTableWidgetItem(wpn)
-            item_dtype = QTableWidgetItem(dtype)
-            item_qual = QTableWidgetItem(qual)
+                if ev_type == "damage":
+                    in_flag = ev.get("incoming", True)
+                    dir_str = "INCOMING" if in_flag else "OUTGOING"
+                    dir_color = "#ef4444" if in_flag else "#10b981"
+                    amt = f"{ev.get('amount', 0):,}"
+                    atk = f"{ev.get('attacker', '')} [{ev.get('ship', '')}]"
+                    wpn = ev.get("weapon", "")
+                    dtype = ev.get("dmg_type", "")
+                    qual = ev.get("quality", "")
+                elif ev_type == "ewar":
+                    dir_str = "EWAR"
+                    dir_color = "#fbbf24"
+                    amt = ev.get("intensity", "")
+                    atk = f"{ev.get('attacker', '')} [{ev.get('ship', '')}]"
+                    wpn = ev.get("ewar_type", "")
+                    dtype = "EWAR"
+                    qual = "Active"
+                elif ev_type == "destruction":
+                    dir_str = "KILL"
+                    dir_color = "#ec4899"
+                    amt = "DESTROYED"
+                    atk = ev.get("victim", "")
+                    wpn = ev.get("ship", "")
+                    dtype = "Wreck"
+                    qual = "Hull Loss"
+                elif ev_type == "mining":
+                    dir_str = "MINING"
+                    dir_color = "#38bdf8"
+                    amt = f"{ev.get('units', 0):,} units"
+                    atk = "Strip Miner"
+                    wpn = ev.get("ore", "")
+                    dtype = f"{ev.get('m3', 0)} m3"
+                    qual = "Mined"
+                else:
+                    continue
 
-            for col, itm in enumerate([item_time, item_dir, item_amt, item_atk, item_wpn, item_dtype, item_qual]):
-                self.feed_table.setItem(row, col, itm)
+                item_time = QTableWidgetItem(t_str)
+                item_dir = QTableWidgetItem(dir_str)
+                item_dir.setForeground(QColor(dir_color))
+                item_amt = QTableWidgetItem(amt)
+                item_atk = QTableWidgetItem(atk)
+                item_wpn = QTableWidgetItem(wpn)
+                item_dtype = QTableWidgetItem(dtype)
+                item_qual = QTableWidgetItem(qual)
+
+                for col, itm in enumerate([item_time, item_dir, item_amt, item_atk, item_wpn, item_dtype, item_qual]):
+                    self.feed_table.setItem(row, col, itm)
 
     def _on_reset_click(self):
         self.combat_subsystem.reset_stats()

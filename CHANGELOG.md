@@ -2,9 +2,30 @@
 
 All notable changes to Adaptive Underworld Recon Array (A.U.R.A.) are documented here. Canonical product version lives in `A.U.R.A. Source/core/version.py`.
 
+## [v0.7.1-alpha.3] — 2026-10-15
+
+Active release (Patch Release — Mandatory Version Bump to v0.7.1-alpha.3 + Adversarial Audit & Optimization Verification).
+
+### Changed
+
+- Bumped canonical product version from `v0.7.1-alpha.2` to `v0.7.1-alpha.3` in `A.U.R.A. Source/core/version.py` (`VERSION`, `__version__`, `APP_VERSION`).
+- Aligned all user-facing version references (README, CHANGELOG, SECURITY, CREDITS, LEGAL, USER_GUIDE, DEVELOPER, requirements README, launcher batch scripts, subsystem/tool/UI docstrings, bug report template, `build_temp` version stamps) to `v0.7.1-alpha.3`.
+- Updated installer artifact naming to `AURA_Setup_v0.7.1-alpha.3.exe` (derived automatically from canonical version via `INSTALLER_EXE_NAME`).
+- Updated `scripts/run.bat` and `bat scripts for install/_bootstrap_venv.bat` to reference `v0.7.1-alpha.3` and `AURA_Setup_v0.7.1-alpha.3.exe`.
+- Marked `v0.7.1-alpha.2` as deprecated/superseded in SECURITY supported-versions table.
+- Synchronized test assertions in `test_all_subsystems.py` and `test_codebase_integrity.py` to canonical `v0.7.1-alpha.3`.
+
+### Fixed & Optimized — Whole-Codebase Adversarial Bug Audit & Algorithmic Performance
+
+- **Parsing & Stream Synchronization**: Resolved UTF-16 incremental byte decoding, BOM handling, odd-byte alignment phase desynchronization, line buffering on partial reads, local chat monitor starvation, channel name underscore preservation, negative channel ID absolute normalization, session notice speaker guards, and 21 multi-word solar systems resolution.
+- **Combat & Data Integrity**: Resolved combat log UTF-16 stream parsing, pilot/weapon hyphen splitting, outgoing EWAR role attribution, multi-word mining ore volume calculations, exact module dictionary lookup guarding against whitespace queries, enhanced compressed ore reprocessing yields, and cached killmail module queries.
+- **UI & Lifecycle**: Fixed asynchronous worker timer teardown order in `lifecycle.py` during application shutdown, restored `VOIPTabWidget` in `ui/tabs/__init__.__all__`, and corrected module import path in `tools/benchmark_performance.py`.
+- **Performance Optimizations**: Validated symmetric map force layout optimization (2.26x speedup), directory scanning with `os.scandir` + bounded heap, precompiled regex patterns with fast cache lookups, D-Scan LRU caching (45x-52x hit speedup), and Dogma stacking precomputation.
+- **Opaque-Box E2E Testing**: Integrated and verified comprehensive opaque-box E2E test suite (Tiers 1-4, 91 tests) alongside 6 master subsystem and regression test suites with 100% pass rate.
+
 ## [v0.7.1-alpha.2] — 2026-10-15
 
-Active release (Patch Release — Audit Fixes Implemented + Version Alignment to v0.7.1-alpha.2).
+Patch Release — Audit Fixes Implemented + Version Alignment to v0.7.1-alpha.2 (Superseded by v0.7.1-alpha.3).
 
 ### Changed
 

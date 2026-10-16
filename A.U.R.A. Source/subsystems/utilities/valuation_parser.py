@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-EVE Online Inventory, Cargo & Loot Valuation Parser for A.U.R.A. v0.7.1-alpha.2.
+EVE Online Inventory, Cargo & Loot Valuation Parser for A.U.R.A. v0.7.1-alpha.3.
 Parses clipboard text copied directly from EVE inventory, loot, asset safety,
 or contracts. Computes offline baseline ISK appraisal, volume (m3), and hauler sizing.
 """

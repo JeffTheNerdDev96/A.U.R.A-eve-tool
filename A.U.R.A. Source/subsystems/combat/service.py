@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Combat & Threat Subsystem for A.U.R.A. v0.7.1-alpha.2.
+Combat & Threat Subsystem for A.U.R.A. v0.7.1-alpha.3.
 Tails EVE Online Gamelogs, computes rolling 10s/30s/60s incoming/outgoing DPS,
 aggregates 4-layer damage profiles (EM/Thermal/Kinetic/Explosive), tracks active EWAR debuffs,
 and publishes real-time combat events across the EventBus.
@@ -83,6 +83,19 @@ class CombatSubsystem(BaseSubsystem):
 
         # Recent log lines for UI feed
         self._recent_events: deque[Dict[str, Any]] = deque(maxlen=100)
+
+    @property
+    def total_incoming_damage(self) -> int:
+        return self._total_incoming_damage
+
+    @property
+    def total_outgoing_damage(self) -> int:
+        return self._total_outgoing_damage
+
+    @property
+    def active_ewar(self) -> Dict[tuple[str, str], EWARAction]:
+        with self._lock:
+            return dict(self._active_ewar)
 
     def initialize(self) -> bool:
         """Find the EVE gamelogs directory if available."""
@@ -422,6 +435,13 @@ class CombatSubsystem(BaseSubsystem):
                         active_files = candidates[:self.max_multibox_clients]
                     else:
                         active_files = []
+                    if len(self._file_positions) > max(32, self.max_multibox_clients * 4):
+                        active_set = set(active_files)
+                        for old_p in list(self._file_positions.keys()):
+                            if old_p not in active_set:
+                                self._file_positions.pop(old_p, None)
+                                self._file_encodings.pop(old_p, None)
+                                self._partial_buffers.pop(old_p, None)
                 except Exception:
                     pass
 

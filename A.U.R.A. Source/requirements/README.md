@@ -1,4 +1,4 @@
-# A.U.R.A. v0.7.1-alpha.2 — Multi-Vendor Hardware Acceleration Ecosystem
+# A.U.R.A. v0.7.1-alpha.3 — Multi-Vendor Hardware Acceleration Ecosystem
 
 Feature documentation: [USER_GUIDE.md](../../USER_GUIDE.md) in the repository root.
 

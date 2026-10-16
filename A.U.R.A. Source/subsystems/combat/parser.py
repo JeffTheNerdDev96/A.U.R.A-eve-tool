@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-EVE Online Gamelog Combat & Mining Log Parser for A.U.R.A. v0.7.1-alpha.2.
+EVE Online Gamelog Combat & Mining Log Parser for A.U.R.A. v0.7.1-alpha.3.
 Parses raw combat and mining lines from EVE Online Gamelogs with zero external API calls.
 Extracts damage amounts, 4-tier damage profiles (EM/Therm/Kin/Exp), active EWAR events,
 ship destructions, and mining extraction volumes.
@@ -82,18 +82,26 @@ _TIMESTAMP_RE = re.compile(r"^\[\s*(\d{4}\.\d{2}\.\d{2}\s+\d{2}:\d{2}:\d{2})\s*\
 
 _RE_COMBAT_TO = re.compile(r"^(\d+)\s+to\s+(.+)$")
 _RE_COMBAT_FROM = re.compile(r"(\d+)\s+(?:damage\s+)?from\s+(.+)")
+_RE_DMG_TO = _RE_COMBAT_TO
+_RE_DMG_FROM = _RE_COMBAT_FROM
 _RE_DAMAGE_SPLIT = re.compile(r"\s+-\s+")
 _RE_ACTOR_SHIP = re.compile(r"^([^\[]+)(?:\[([^\]]+)\])?")
 
-_RE_EWAR_FROM_TO = re.compile(r"\b(?:from|by)\s+(.+?)\s+to\s+(.+)$", re.IGNORECASE)
-_RE_EWAR_TO_FROM = re.compile(r"\bto\s+(.+?)\s+(?:from|by)\s+(.+)$", re.IGNORECASE)
-_RE_EWAR_FROM = re.compile(r"\b(?:from|by)\s+([^\[!]+?)(?:\s*\[([^\]]+)\])?(?:\s+to\s+(.+))?[!.]*$", re.IGNORECASE)
-_RE_EWAR_ATTEMPTS = re.compile(r"^([^\[!]+?)(?:\s*\[([^\]]+)\])?\s+attempts?\s+to", re.IGNORECASE)
+_RE_EWAR_FROM_TO = re.compile(r"\b(?:from|by)\s+(.+?)\s+(?:to|on)\s+(.+)$", re.IGNORECASE)
+_RE_EWAR_TO_FROM = re.compile(r"\b(?:to|on)\s+(.+?)\s+(?:from|by)\s+(.+)$", re.IGNORECASE)
+_RE_EWAR_FROM_BY = re.compile(r"\bfrom\s+(.+?)\s+by\s+(.+)$", re.IGNORECASE)
+_RE_EWAR_BY_FROM = re.compile(r"\bby\s+(.+?)\s+from\s+(.+)$", re.IGNORECASE)
+_RE_EWAR_FROM = re.compile(r"\b(?:from|by)\s+([^\[!]+?)(?:\s*\[([^\]]+)\])?(?:\s+(?:to|on)\s+(.+))?[!.]*$", re.IGNORECASE)
+_RE_EWAR_ATTEMPTS = re.compile(
+    r"^(.+?)\s+attempts?\s+to\s+(?:warp\s+scramble|warp\s+disrupt|stasis\s+web(?:ify)?|web(?:ify)?|energy\s+neutraliz\w+|drain\s+energy|neutraliz\w+|target\s+paint\w*|sensor\s+damp\w*|jam\w*|ecm\w*).*?(?:\s+(?:on|to))?(?:\s+([^\[!.]+?(?:\s*\[[^\]]+\])?))?[!.]*$",
+    re.IGNORECASE,
+)
 _RE_EWAR_DRAIN = re.compile(r"(\d+)\s*gj", re.IGNORECASE)
+_RE_GJ = _RE_EWAR_DRAIN
 
 _RE_DESTROY_SELF = re.compile(r"your\s+(.+?)\s+was\s+destroyed", re.IGNORECASE)
 _RE_DESTROY_BELONGING = re.compile(r"(.+?)\s+belonging\s+to\s+(.+?)\s+was\s+destroyed", re.IGNORECASE)
-_RE_DESTROY_POSSESSIVE = re.compile(r"^(.+?)'s\s+(.+?)\s+destroyed", re.IGNORECASE)
+_RE_DESTROY_POSSESSIVE = re.compile(r"(?:^|\s)(.+?)'s\s+(.+?)\s+destroyed", re.IGNORECASE)
 
 _RE_MINED_1 = re.compile(r"mined\s+([\d,]+)\s+units\s+of\s+(.+?)(?:\s+from|[.!]\s*|\s*$)", re.IGNORECASE)
 _RE_MINED_2 = re.compile(r"([\d,]+)\s+units\s+of\s+(.+?)\s+mined(?:\s+from|[.!]\s*|\s*$)", re.IGNORECASE)
@@ -385,55 +393,66 @@ class CombatLogParser:
         def _extract_ewar_actors(text: str) -> Optional[Tuple[str, str, str]]:
             # Returns (attacker, attacker_ship, target) or None if no actor pattern matches
             main_text = _RE_DAMAGE_SPLIT.split(text)[0].strip("!.")
-            # 1. "... from <A> to <B>" or "... by <A> to <B>"
+
+            def _clean_actor(raw: str) -> Tuple[str, str]:
+                m = _RE_ACTOR_SHIP.match(raw.strip())
+                name = m.group(1).strip() if m else raw.strip()
+                s = m.group(2).strip() if m and m.group(2) else ""
+                if name.lower() in ("you", "you!"):
+                    name = "You"
+                return name, s
+
+            # 1. "... from <A> by <B>" (e.g. energy drained from Target by Attacker)
+            m_from_by = _RE_EWAR_FROM_BY.search(main_text)
+            if m_from_by:
+                target_name, _ = _clean_actor(m_from_by.group(1))
+                attacker_name, ship = _clean_actor(m_from_by.group(2))
+                return attacker_name, ship, target_name
+
+            # 2. "... by <B> from <A>"
+            m_by_from = _RE_EWAR_BY_FROM.search(main_text)
+            if m_by_from:
+                attacker_name, ship = _clean_actor(m_by_from.group(1))
+                target_name, _ = _clean_actor(m_by_from.group(2))
+                return attacker_name, ship, target_name
+
+            # 3. "... from <A> to/on <B>" or "... by <A> to/on <B>"
             m_from_to = _RE_EWAR_FROM_TO.search(main_text)
             if m_from_to:
-                from_raw = m_from_to.group(1).strip()
-                to_raw = m_from_to.group(2).strip()
-                m_ship = _RE_ACTOR_SHIP.match(from_raw)
-                attacker = m_ship.group(1).strip() if m_ship else from_raw
-                ship = m_ship.group(2).strip() if m_ship and m_ship.group(2) else ""
-                m_t_ship = _RE_ACTOR_SHIP.match(to_raw)
-                target = m_t_ship.group(1).strip() if m_t_ship else to_raw
-                if to_raw.lower() in ("you", "you!"):
-                    target = "You"
-                return attacker, ship, target
+                attacker_name, ship = _clean_actor(m_from_to.group(1))
+                target_name, _ = _clean_actor(m_from_to.group(2))
+                return attacker_name, ship, target_name
 
-            # 2. "... to <B> from <A>" or "... to <B> by <A>"
+            # 4. "... to/on <B> from/by <A>"
             m_to_from = _RE_EWAR_TO_FROM.search(main_text)
             if m_to_from:
-                to_raw = m_to_from.group(1).strip()
-                from_raw = m_to_from.group(2).strip()
-                m_ship = _RE_ACTOR_SHIP.match(from_raw)
-                attacker = m_ship.group(1).strip() if m_ship else from_raw
-                ship = m_ship.group(2).strip() if m_ship and m_ship.group(2) else ""
-                m_t_ship = _RE_ACTOR_SHIP.match(to_raw)
-                target = m_t_ship.group(1).strip() if m_t_ship else to_raw
-                if to_raw.lower() in ("you", "you!"):
-                    target = "You"
-                return attacker, ship, target
+                target_name, _ = _clean_actor(m_to_from.group(1))
+                attacker_name, ship = _clean_actor(m_to_from.group(2))
+                return attacker_name, ship, target_name
 
-            # 3. "... from <A>" or "... by <A>"
-            m_from = _RE_EWAR_FROM.search(main_text)
-            if m_from:
-                attacker = m_from.group(1).strip()
-                ship = m_from.group(2).strip() if m_from.group(2) else ""
-                to_part = m_from.group(3).strip() if m_from.group(3) else ""
-                if to_part:
-                    m_t_ship = _RE_ACTOR_SHIP.match(to_part)
-                    target = m_t_ship.group(1).strip() if m_t_ship else to_part
-                    if to_part.lower() in ("you", "you!"):
-                        target = "You"
-                else:
-                    target = "Hostile" if attacker.lower() == "you" else "You"
-                return attacker, ship, target
-
-            # 4. "<A> attempts to ... you"
+            # 5. "<A> attempts to ... <B>"
             m_attempts = _RE_EWAR_ATTEMPTS.search(main_text)
             if m_attempts:
-                attacker = m_attempts.group(1).strip()
-                ship = m_attempts.group(2).strip() if m_attempts.group(2) else ""
-                return attacker, ship, "You"
+                attacker_name, ship = _clean_actor(m_attempts.group(1))
+                target_raw = m_attempts.group(2)
+                if target_raw:
+                    target_name, _ = _clean_actor(target_raw)
+                else:
+                    target_name = "Hostile" if attacker_name == "You" else "You"
+                return attacker_name, ship, target_name
+
+            # 6. Fallback: "... from/by <A> [to <B>]"
+            m_from = _RE_EWAR_FROM.search(main_text)
+            if m_from:
+                attacker_name, ship = _clean_actor(m_from.group(1))
+                if m_from.group(2):
+                    ship = m_from.group(2).strip()
+                to_part = m_from.group(3)
+                if to_part:
+                    target_name, _ = _clean_actor(to_part)
+                else:
+                    target_name = "Hostile" if attacker_name == "You" else "You"
+                return attacker_name, ship, target_name
 
             return None
 

@@ -33,6 +33,18 @@ from .models import IntelReport
 
 _STRIP_CHARS = ".,;:!?\"'()[]{}<>`~*|\\/\ufeff\u200b\u200e\u200f\u00a0 \t\r\n"
 
+_SYSTEM_NOISE_PATTERNS = (
+    "channel changed to local",
+    "channel changed to",
+    "connecting to",
+    "connection lost",
+    "channel motd",
+    "session started",
+    "listener:",
+    "channel name:",
+    "channel id:",
+)
+
 # RegEx patterns for counts and keywords
 _RE_HAS_DIGIT = re.compile(r"\d")
 _RE_COUNT_EXPLICIT_PLUS = re.compile(r"\+\s*(\d{1,3})\b")
@@ -127,7 +139,10 @@ class IntelParser:
     def parse_single_line(cls, line: str, channel_name: str = "Intel") -> Optional[Dict[str, Any]]:
         line = clamp_text(strip_control_chars(line or ""), 1024)
         clean_line = line.strip(" \t\r\n\ufeff\u200b\u200e\u200f\u00a0")
-        if not clean_line or clean_line.startswith("---") or "Channel Name:" in clean_line or "Listener:" in clean_line or "Session Started:" in clean_line:
+        if not clean_line or clean_line.startswith("---"):
+            return None
+        clean_lower = clean_line.lower()
+        if any(pat in clean_lower for pat in _SYSTEM_NOISE_PATTERNS):
             return None
 
         speaker = "Unknown"
@@ -152,7 +167,8 @@ class IntelParser:
                 msg = clean_line[gt_pos + 1:].strip()
 
         # Exclude EVE System session notifications from generating hostile reports (BUG-PARSER-07)
-        if speaker.strip().lower() in ("eve system", "system") or clean_line.lower().startswith("eve system"):
+        spk_lower = speaker.strip().lower()
+        if spk_lower in ("eve system", "system") or spk_lower.startswith("eve system") or clean_lower.startswith("eve system"):
             return None
 
         words = [w.strip(_STRIP_CHARS) for w in msg.split() if w.strip(_STRIP_CHARS)]

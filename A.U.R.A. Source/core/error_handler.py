@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Centralized Diagnostic Error Code Subsystem for Adaptive Underworld Recon Array (A.U.R.A.) - v0.7.1-alpha.2.
+Centralized Diagnostic Error Code Subsystem for Adaptive Underworld Recon Array (A.U.R.A.) - v0.7.1-alpha.3.
 Angel Cartel Cybernetics Division.
 
 Provides standardized, searchable error codes (AURA-ERR-xxxx), rich diagnostic logging,

@@ -29,7 +29,7 @@ from typing import Any, Dict, Optional, Tuple
 
 from subsystems.map import EveMapGraph, get_eve_map
 
-_RE_CHANNEL_ID = re.compile(r"Channel ID:\s*(-?\d+)", re.IGNORECASE)
+_RE_CHANNEL_ID = re.compile(r"Channel ID:\s*[\"']?\(?\s*(-?\d+)\s*\)?[\"']?", re.IGNORECASE)
 _RE_LOCAL_CHANGED = re.compile(
     r"(?:Channel changed to Local|local changed to)\s*[:\-]?\s*[\"']?([^\n\"']+)",
     re.IGNORECASE,
@@ -37,6 +37,7 @@ _RE_LOCAL_CHANGED = re.compile(
 _RE_CONNECTING = re.compile(r"Connecting to\s*[\"']?([^\n\"']+)", re.IGNORECASE)
 _RE_JUMPING = re.compile(r"Jumping from\s+(.+?)\s+to\s+(.+)", re.IGNORECASE)
 _RE_LISTENER = re.compile(r"(?:Gamelog\s+)?Listener\s*:\s*([^\r\n]+)", re.IGNORECASE)
+_RE_LOCAL_PREFIX = re.compile(r"^Local\s*[:\-]\s*", re.IGNORECASE)
 
 _SESSION_NOISE = frozenset({
     "tranquility", "singularity", "thunderdome", "serenity",
@@ -91,7 +92,7 @@ class LocationTracker:
                 sid = int(m_id.group(1))
             except ValueError:
                 sid = None
-            if sid and abs(sid) > 30000000:
+            if sid and abs(sid) >= 30000000:
                 return self.apply(None, abs(sid))
 
         m_jump = _RE_JUMPING.search(clean)
@@ -102,7 +103,7 @@ class LocationTracker:
         m_local = _RE_LOCAL_CHANGED.search(clean)
         if m_local:
             dest = _strip_token(m_local.group(1))
-            dest = re.sub(r"^Local\s*[:\-]\s*", "", dest, flags=re.IGNORECASE).strip()
+            dest = _RE_LOCAL_PREFIX.sub("", dest).strip()
             return self.apply(dest, None)
 
         m_conn = _RE_CONNECTING.search(clean)

@@ -21,7 +21,7 @@
 # ==============================================================================
 """
 EVE Online Tactical Database, Comprehensive Combat Matrix & Domain Grounding Engine.
-Customized for A.U.R.A. (Adaptive Underworld Recon Array) — v0.7.1-alpha.2 & Core.
+Customized for A.U.R.A. (Adaptive Underworld Recon Array) — v0.7.1-alpha.3 & Core.
 Contains encyclopedic vessel dossiers (350+ hulls), module matrix (250+ modules),
 subsystems, weapon tracking mathematics, capacitor warfare, and tactical grounding.
 Covers all standard empire, navy, pirate, faction, industrial, capital, and T3 vessels.
@@ -8084,13 +8084,15 @@ _COMMON_STOPWORDS = frozenset({
 @functools.lru_cache(maxsize=4096)
 def lookup_ship(name: str) -> Optional[Dict[str, Any]]:
     """O(1) canonical ship retrieval with C-level LRU caching."""
-    if not name:
+    if not name or not name.strip():
         return None
     raw_lower = name.strip().lower()
     if raw_lower in _FAST_SHIP_LOOKUP:
         return _FAST_SHIP_LOOKUP[raw_lower]
     clean = _RE_CLEAN_ALPHANUM.sub("", raw_lower)
-    return _FAST_SHIP_LOOKUP.get(clean)
+    if clean:
+        return _FAST_SHIP_LOOKUP.get(clean)
+    return None
 
 
 @functools.lru_cache(maxsize=4096)
@@ -8102,10 +8104,10 @@ def lookup_module(name: str) -> Optional[Dict[str, Any]]:
     if raw_lower in _FAST_MODULE_LOOKUP:
         return _FAST_MODULE_LOOKUP[raw_lower]
     clean = _RE_CLEAN_ALPHANUM.sub("", raw_lower)
-    if clean in _FAST_MODULE_LOOKUP:
+    if clean and clean in _FAST_MODULE_LOOKUP:
         return _FAST_MODULE_LOOKUP[clean]
     for base_name, mv in _MODULE_BASE_NAMES:
-        if base_name in raw_lower or raw_lower in base_name:
+        if (base_name and base_name in raw_lower) or (raw_lower and raw_lower in base_name):
             return mv
     return None
 

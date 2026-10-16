@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Survey Scanner Clipboard Parser & Mining Yield Planner for A.U.R.A. v0.7.1-alpha.2.
+Survey Scanner Clipboard Parser & Mining Yield Planner for A.U.R.A. v0.7.1-alpha.3.
 Parses in-game survey scanner results, computes optimal laser cycles,
 depletion timers, extraction rate (m3/hr), and tracks mining session ledgers.
 """

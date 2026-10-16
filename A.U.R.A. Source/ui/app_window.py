@@ -977,6 +977,10 @@ class MainWindow(QMainWindow):
 
         self.custom_channel_edit = QLineEdit()
         self.custom_channel_edit.setText(config.custom_intel_channels)
+        self._custom_channel_debounce_timer = QTimer(self)
+        self._custom_channel_debounce_timer.setSingleShot(True)
+        self._custom_channel_debounce_timer.setInterval(250)
+        self._custom_channel_debounce_timer.timeout.connect(self._on_debounced_custom_filter_text_changed)
         self.custom_channel_edit.textChanged.connect(self._on_custom_filter_text_changed)
 
         self.auto_response_cb = QCheckBox("⚡ A.U.R.A. Auto-Respond to Critical Threats")
@@ -1018,6 +1022,11 @@ class MainWindow(QMainWindow):
         self.intel_list.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.intel_list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.intel_list.viewport().installEventFilter(self)
+        self._last_intel_card_width: int = -1
+        self._intel_resize_timer = QTimer(self)
+        self._intel_resize_timer.setSingleShot(True)
+        self._intel_resize_timer.setInterval(50)
+        self._intel_resize_timer.timeout.connect(self._refresh_intel_card_widths)
         right_layout.addWidget(self.intel_list, stretch=1)
 
         # Feed Action Bar
@@ -1717,6 +1726,11 @@ class MainWindow(QMainWindow):
         self._reapply_feed_filters()
 
     def _on_custom_filter_text_changed(self, text: str):
+        # Debounce custom channel filtering by 250ms on rapid typing (OPT-PERF-03)
+        self._custom_channel_debounce_timer.start(250)
+
+    def _on_debounced_custom_filter_text_changed(self):
+        text = self.custom_channel_edit.text()
         self.chat_monitor.set_custom_patterns(text)
         self._reapply_feed_filters()
 
@@ -1739,10 +1753,13 @@ class MainWindow(QMainWindow):
     def _intel_card_width(self) -> int:
         return max(1, self.intel_list.viewport().width() - 8)
 
-    def _refresh_intel_card_widths(self) -> None:
+    def _refresh_intel_card_widths(self, force: bool = False) -> None:
         if not hasattr(self, "intel_list"):
             return
         width = self._intel_card_width()
+        if not force and width == self._last_intel_card_width:
+            return
+        self._last_intel_card_width = width
         for i in range(self.intel_list.count()):
             item = self.intel_list.item(i)
             widget = self.intel_list.itemWidget(item) if item else None
@@ -1754,7 +1771,9 @@ class MainWindow(QMainWindow):
     def eventFilter(self, obj, event):
         intel = getattr(self, "intel_list", None)
         if intel is not None and obj is intel.viewport() and event.type() == QEvent.Type.Resize:
-            self._refresh_intel_card_widths()
+            new_width = self._intel_card_width()
+            if new_width != self._last_intel_card_width:
+                self._intel_resize_timer.start(50)
         return super().eventFilter(obj, event)
 
     def _remove_intel_row(self, index: int) -> None:

@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Killmail Clipboard Parser & EFT Fit Exporter for A.U.R.A. v0.7.1-alpha.2.
+Killmail Clipboard Parser & EFT Fit Exporter for A.U.R.A. v0.7.1-alpha.3.
 Parses in-game kill report copy text and zKillboard exports, extracts destroyed
 and dropped modules, and reconstructs EFT-compliant ship fittings.
 """
@@ -174,9 +174,12 @@ class KillmailParser:
 
     @staticmethod
     def _deduce_slot(item_name: str) -> str:
-        mod = CANONICAL_MODULES.get(item_name)
+        if not item_name or not item_name.strip():
+            return "cargo"
+        clean = item_name.strip()
+        mod = CANONICAL_MODULES.get(clean)
         if not mod:
-            mod = lookup_module(item_name)
+            mod = lookup_module(clean)
         if mod and "slot" in mod:
             s = str(mod["slot"]).lower()
             return "med" if s == "mid" else s
