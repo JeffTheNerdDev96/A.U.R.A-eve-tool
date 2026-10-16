@@ -2,6 +2,19 @@
 
 All notable changes to Adaptive Underworld Recon Array (A.U.R.A.) are documented here. Canonical product version lives in `A.U.R.A. Source/core/version.py`.
 
+
+---
+
+**AI-assisted testing.** From v0.7.1-alpha.1 onward, bug testing and the resulting edits were AI-assisted, using models from xAI, Anthropic, Meta, OpenAI, and DeepSeek.
+
+
+Ahead of each full release, changelogs will appear on the main or development branches. My 29 custom scripts run against these builds and feed their results to the models, which report bugs, review them, and push fixes to the repo for a final review before release.
+
+Because this process depends on script results, model findings, user feedback, and real-world testing, the delay between a changelog entry and the updated repo files, and before full installer rebuilds, will vary.
+
+---
+
+
 ## [v0.7.1-alpha.6] — 2026-10-16
 
 Active release (Patch Release — Version Bump to v0.7.1-alpha.6 + Adversarial Correctness Audit).

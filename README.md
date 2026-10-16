@@ -108,12 +108,12 @@ Adaptive Underworld Recon Array (A.U.R.A.) is free and open-source software dist
 
 ---
 
-## AI-Assisted Development & Quality Assurance (V0.7.1-alpha.1+)
+## AI-Assisted Development & Quality Assurance (v0.7.1-alpha.1+)
 
 **AI is intended to supplement, not replace, development and testing.**
 
-A.U.R.A. has grown beyond its original scope into an all-in-one tool with 11 major features and approximately 60,000 lines of custom code. To manage this complexity as a solo developer, I use AI-assisted code reviews, edge-case testing, and validation alongside custom debugging scripts and automated test suites to identify potential bugs, regressions, and performance issues.
+A.U.R.A. is an all-in-one tool with 11 major features and about 60,000 lines of custom code. As a solo developer, I use AI-assisted code review, edge-case testing, and validation together with custom debugging scripts and automated test suites to look for bugs, regressions, and performance issues.
 
-Starting with V0.7.1-alpha.1, releases will undergo additional AI-assisted reviews and audits. AI-generated findings are verified through code inspection, reproducible tests, and existing validation tools to help maintain reliability as the project continues to grow.
+From v0.7.1-alpha.1 onward, each release includes an additional AI-assisted review. Suggested fixes and tests are checked in the source, reproduced, and run through the existing validation tools before they are applied.
 
-Agent-specific configuration and working files, including the `.agents/` directory where applicable, are excluded from version control through `.gitignore` to keep development tooling separate from the project's tracked source code.
+Local AI-tool configuration and working files, including the `.agents/` directory, are listed in `.gitignore`. They are not part of the tracked source.
