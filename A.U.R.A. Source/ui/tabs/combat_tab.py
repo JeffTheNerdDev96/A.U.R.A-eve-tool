@@ -319,7 +319,12 @@ class CombatTabWidget(QWidget):
                     dir_str = "INCOMING" if in_flag else "OUTGOING"
                     dir_color = "#ef4444" if in_flag else "#10b981"
                     amt = f"{ev.get('amount', 0):,}"
-                    atk = f"{ev.get('attacker', '')} [{ev.get('ship', '')}]"
+                    if in_flag:
+                        atk = f"{ev.get('attacker', '')} [{ev.get('ship', '')}]" if ev.get("ship") else ev.get("attacker", "")
+                    else:
+                        tgt = ev.get("target", "Target")
+                        shp = ev.get("ship", "")
+                        atk = f"To: {tgt} [{shp}]" if shp else f"To: {tgt}"
                     wpn = ev.get("weapon", "")
                     dtype = ev.get("dmg_type", "")
                     qual = ev.get("quality", "")

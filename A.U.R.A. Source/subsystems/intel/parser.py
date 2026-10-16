@@ -205,22 +205,30 @@ class IntelParser:
         has_medium_hull = any(kw in msg_lower for kw in _MEDIUM_KEYWORDS)
         has_frigate = any(kw in msg_lower for kw in _FRIGATE_KEYWORDS)
 
-        for word in words:
-            w_lower = word.lower()
-            if w_lower in _FAST_SHIP_LOOKUP:
-                ship_data = _FAST_SHIP_LOOKUP[w_lower]
-                canonical = ship_data.get("canonical_name", word)
-                if canonical and canonical not in ships:
-                    ships.append(canonical)
-                s_class = ship_data.get("class", "")
-                if s_class in _CAPITAL_CLASSES:
-                    has_capital = True
-                elif s_class in _BATTLESHIP_CLASSES:
-                    has_battleship = True
-                elif s_class in _MEDIUM_CLASSES:
-                    has_medium_hull = True
-                elif s_class in _FRIGATE_CLASSES:
-                    has_frigate = True
+        # Multi-token ship matching (e.g. "cane fleet", "harbi navy", "caracal navy issue")
+        used_word_indices = set()
+        max_ship_n = min(len(words), 4)
+        for n in range(max_ship_n, 0, -1):
+            for i in range(len(words) - n + 1):
+                if any(idx in used_word_indices for idx in range(i, i + n)):
+                    continue
+                cand_ship = " ".join(words[i : i + n]).lower()
+                if cand_ship in _FAST_SHIP_LOOKUP:
+                    ship_data = _FAST_SHIP_LOOKUP[cand_ship]
+                    canonical = ship_data.get("canonical_name", cand_ship)
+                    if canonical and canonical not in ships:
+                        ships.append(canonical)
+                    s_class = ship_data.get("class", "")
+                    if s_class in _CAPITAL_CLASSES:
+                        has_capital = True
+                    elif s_class in _BATTLESHIP_CLASSES:
+                        has_battleship = True
+                    elif s_class in _MEDIUM_CLASSES:
+                        has_medium_hull = True
+                    elif s_class in _FRIGATE_CLASSES:
+                        has_frigate = True
+                    for idx in range(i, i + n):
+                        used_word_indices.add(idx)
 
         if has_capital and "Capital" not in ships:
             ships.append("Capital")

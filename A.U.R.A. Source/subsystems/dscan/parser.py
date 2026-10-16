@@ -197,7 +197,12 @@ class DScanParser:
             try:
                 m_val = float(m_m.group(1).replace(",", ""))
                 km_val = m_val / 1000.0
-                return f"{m_val:,.0f} m", "Point Range (<= 20 km)", km_val
+                if km_val <= 20:
+                    return f"{m_val:,.0f} m", "Point Range (<= 20 km)", km_val
+                elif km_val <= 150:
+                    return f"{m_val:,.0f} m", "Grid Range (20 - 150 km)", km_val
+                else:
+                    return f"{m_val:,.0f} m", "Off-Grid / Warping (> 150 km / AU)", km_val
             except ValueError:
                 return clean, "Point Range (<= 20 km)", None
 

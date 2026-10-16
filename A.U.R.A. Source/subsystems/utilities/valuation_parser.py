@@ -73,6 +73,44 @@ _VOLUME_HEURISTICS = {
 class CargoValuationParser:
     """Parses raw text pasted from EVE inventory / loot / assets."""
 
+    @staticmethod
+    def _parse_quantity(raw_str: str) -> int:
+        s = raw_str.strip().replace(" ", "")
+        if not s:
+            return 1
+        if "," in s and "." in s:
+            if s.rfind(",") < s.rfind("."):
+                s = s.replace(",", "")
+                try:
+                    return max(1, int(round(float(s))))
+                except ValueError:
+                    return 1
+            else:
+                s = s.replace(".", "").replace(",", ".")
+                try:
+                    return max(1, int(round(float(s))))
+                except ValueError:
+                    return 1
+        if "," in s:
+            parts_comma = s.split(",")
+            if len(parts_comma) == 2 and len(parts_comma[1]) in (1, 2):
+                try:
+                    return max(1, int(round(float(s.replace(",", ".")))))
+                except ValueError:
+                    pass
+            s = s.replace(",", "")
+            return int(s) if s.isdigit() else 1
+        if "." in s:
+            parts_dot = s.split(".")
+            if len(parts_dot) == 2 and len(parts_dot[1]) in (1, 2):
+                try:
+                    return max(1, int(round(float(s))))
+                except ValueError:
+                    pass
+            s = s.replace(".", "")
+            return int(s) if s.isdigit() else 1
+        return int(s) if s.isdigit() else 1
+
     @classmethod
     def parse_clipboard(cls, text: str) -> ValuationReport:
         if not text or not text.strip():
@@ -117,8 +155,7 @@ class CargoValuationParser:
                 if parts[1].lower() in ("quantity", "qty", "count"):
                     return None
 
-                qty_str = parts[1].replace(",", "").replace(".", "").replace(" ", "")
-                qty = int(qty_str) if qty_str.isdigit() else 1
+                qty = cls._parse_quantity(parts[1])
                 group = parts[2] if len(parts) >= 3 else "General"
                 
                 vol = 0.0
@@ -141,10 +178,9 @@ class CargoValuationParser:
                 return ItemValuation(name, qty, unit_price, total_price, vol, group)
 
         # Check explicit multiplier prefix like "100x Scourge Heavy Missile" or "100 * Scourge Heavy Missile"
-        m_x_prefix = re.match(r"^([\d,]+)\s*[xX*]\s+(.+)$", clean)
+        m_x_prefix = re.match(r"^([\d,\.]+)\s*[xX*]\s+(.+)$", clean)
         if m_x_prefix:
-            qty_str = m_x_prefix.group(1).replace(",", "")
-            qty = int(qty_str) if qty_str.isdigit() else 1
+            qty = cls._parse_quantity(m_x_prefix.group(1))
             name = m_x_prefix.group(2).strip()
             if name.lower() in ("name", "item", "item name", "type", "total", "subtotal"):
                 return None
@@ -154,12 +190,11 @@ class CargoValuationParser:
 
         # Check space-separated quantity prefix like "100 Scourge Heavy Missile"
         # Must not match items starting with caliber/dimensions (e.g. "100 mm AutoCannon", "10 MN Afterburner")
-        m_num_prefix = re.match(r"^([\d,]+)\s+(.+)$", clean)
+        m_num_prefix = re.match(r"^([\d,\.]+)\s+(.+)$", clean)
         if m_num_prefix:
             rest = m_num_prefix.group(2).strip()
             if not re.match(r"^(?:mm|mn|gj|km|m3|w|kw|mw)\b", rest, re.IGNORECASE):
-                qty_str = m_num_prefix.group(1).replace(",", "")
-                qty = int(qty_str) if qty_str.isdigit() else 1
+                qty = cls._parse_quantity(m_num_prefix.group(1))
                 name = rest
                 if name.lower() in ("name", "item", "item name", "type", "total", "subtotal"):
                     return None
@@ -167,13 +202,12 @@ class CargoValuationParser:
                 vol = cls._estimate_volume(name, qty, "General")
                 return ItemValuation(name, qty, unit_price, unit_price * qty, vol, "General")
 
-        m_x_suffix = re.match(r"^(.+?)\s+x?\s*([\d,]+)$", clean, re.IGNORECASE)
+        m_x_suffix = re.match(r"^(.+?)\s+x?\s*([\d,\.]+)$", clean, re.IGNORECASE)
         if m_x_suffix:
             name = m_x_suffix.group(1).strip()
             if name.lower() in ("name", "item", "item name", "type", "total", "subtotal"):
                 return None
-            qty_str = m_x_suffix.group(2).replace(",", "")
-            qty = int(qty_str) if qty_str.isdigit() else 1
+            qty = cls._parse_quantity(m_x_suffix.group(2))
             unit_price = lookup_market_price(name)
             vol = cls._estimate_volume(name, qty, "General")
             return ItemValuation(name, qty, unit_price, unit_price * qty, vol, "General")
