@@ -80,6 +80,12 @@ class StaleIntelManager:
 
         for system_name, status in list(self._system_statuses.items()):
             initial_count = len(status.active_reports)
+            if initial_count == 0:
+                # A clear report empties the list but must still age out like any other report.
+                if (now - status.last_updated) >= self.expiration_seconds:
+                    modified_systems.append(system_name)
+                    self._system_statuses.pop(system_name, None)
+                continue
             status.active_reports = [
                 r for r in status.active_reports
                 if (now - r.created_at) < self.expiration_seconds

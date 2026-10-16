@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Killmail Clipboard Parser & EFT Fit Exporter for A.U.R.A. v0.7.1-alpha.5.
+Killmail Clipboard Parser & EFT Fit Exporter for A.U.R.A. v0.7.1-alpha.6.
 Parses in-game kill report copy text and zKillboard exports, extracts destroyed
 and dropped modules, and reconstructs EFT-compliant ship fittings.
 """
@@ -33,6 +33,9 @@ from typing import List, Optional
 from core.eve_data import lookup_module
 from core.eve_modules_data import CANONICAL_MODULES
 from core.input_safety import parse_float_safe
+
+# Whole-line header only: "Expanded Cargohold II" and "Cargo Scanner II" are fitted modules.
+_RE_CARGO_HEADER = re.compile(r"^\[?\s*(?:cargo(?:\s*(?:bay|hold))?|drone\s*bay)\s*\]?\s*:?$", re.IGNORECASE)
 
 
 @dataclass(slots=True)
@@ -117,7 +120,7 @@ class KillmailParser:
             elif "subsystem slots" in line_lower or line_lower.startswith("[subsystem"):
                 current_section = "subsystem"
                 continue
-            elif "cargo" in line_lower or "drone bay" in line_lower or line_lower.startswith("[cargo"):
+            elif _RE_CARGO_HEADER.match(line):
                 current_section = "cargo"
                 continue
 
@@ -199,20 +202,17 @@ class KillmailParser:
     ) -> str:
         lines: List[str] = [f"[{ship}, {pilot}'s Reconstructed Fit]"]
 
-        for l in lows:
-            lines.append(l)
+        # EFT racks are positional, so an empty rack keeps a placeholder line.
+        lines.extend(lows or ["[Empty Low slot]"])
         lines.append("")
 
-        for m in mids:
-            lines.append(m)
+        lines.extend(mids or ["[Empty Med slot]"])
         lines.append("")
 
-        for h in highs:
-            lines.append(h)
+        lines.extend(highs or ["[Empty High slot]"])
         lines.append("")
 
-        for r in rigs:
-            lines.append(r)
+        lines.extend(rigs or ["[Empty Rig slot]"])
 
         if subsystems:
             lines.append("")

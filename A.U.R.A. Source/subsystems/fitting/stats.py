@@ -638,13 +638,18 @@ def is_turret_module(name: str) -> bool:
 
 
 def is_launcher_module(name: str) -> bool:
-    """Returns True if the module consumes a launcher hardpoint."""
+    """Returns True only for weapon launchers that consume a launcher hardpoint.
+
+    Probe launchers occupy a high slot. They do not consume turret or launcher hardpoints.
+    """
     if not name:
         return False
     nl = name.lower()
-    if any(k in nl for k in ["interdiction sphere", "bubble", "defender", "festival"]):
+    if "probe launcher" in nl:
         return False
-    return any(k in nl for k in _LAUNCHER_KEYWORDS) or ("launcher" in nl and not "sphere" in nl)
+    if any(k in nl for k in ("interdiction sphere", "bubble", "defender", "festival")):
+        return False
+    return any(k in nl for k in _LAUNCHER_KEYWORDS)
 
 
 def get_single_fit_group(name: str) -> Optional[str]:
@@ -674,6 +679,38 @@ def get_single_fit_group(name: str) -> Optional[str]:
     return None
 
 
+def module_rack(name: str) -> Optional[str]:
+    """Return high, mid, low, or rig for a module that occupies that rack.
+
+    Probe launchers occupy a high slot only.
+    """
+    if not name:
+        return None
+    if "probe launcher" in name.lower():
+        return "high"
+    info = lookup_module(name) or {}
+    slot = str(info.get("slot") or "").strip().lower()
+    if slot.startswith("high"):
+        return "high"
+    if slot.startswith("mid"):
+        return "mid"
+    if slot.startswith("low"):
+        return "low"
+    if slot.startswith("rig"):
+        return "rig"
+    if is_turret_module(name) or is_launcher_module(name):
+        return "high"
+    return None
+
+
+_RACK_LIMITS = (
+    ("high", "high_slots", "High"),
+    ("mid", "mid_slots", "Mid"),
+    ("low", "low_slots", "Low"),
+    ("rig", "rig_slots", "Rig"),
+)
+
+
 def validate_module_fit(hull_name: str, current_fitted: List[str], new_mod: str) -> Tuple[bool, str]:
     """
     Validates whether new_mod can be added to the hull given current_fitted modules.
@@ -701,7 +738,20 @@ def validate_module_fit(hull_name: str, current_fitted: List[str], new_mod: str)
             if current_launchers >= max_launchers:
                 return False, f"Launcher hardpoint limit reached ({current_launchers}/{max_launchers} occupied)."
 
-    # 3. Single-fit group check
+    # 3. Rack capacity. Probe launchers are limited by high slots, not hardpoints.
+    rack = module_rack(new_mod)
+    if rack:
+        for rack_key, ship_key, label in _RACK_LIMITS:
+            if rack != rack_key:
+                continue
+            limit = ship.get(ship_key)
+            if limit is not None:
+                used = sum(1 for fitted in current_fitted if module_rack(fitted) == rack_key)
+                if used >= int(limit):
+                    return False, f"{label} slot limit reached ({used}/{int(limit)} occupied)."
+            break
+
+    # 4. Single-fit group check
     group = get_single_fit_group(new_mod)
     if group:
         for m in current_fitted:

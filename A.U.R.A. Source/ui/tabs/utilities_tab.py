@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Unified Tactical & Industrial Utilities Tab for A.U.R.A. v0.7.1-alpha.5.
+Unified Tactical & Industrial Utilities Tab for A.U.R.A. v0.7.1-alpha.6.
 Houses 6 comprehensive offline utility suites:
 1. Cargo & Loot Valuation (ISK appraisal, m3 volume, hauler sizing)
 2. Mineral Reprocessing & Refining Calculator (yields, tax, margins)

@@ -1,7 +1,7 @@
 # Legal, Terms of Use, Regulatory Compliance & Operational Disclaimers
 # Adaptive Underworld Recon Array (A.U.R.A.)
 
-Product Version: `v0.7.1-alpha.5`
+Product Version: `v0.7.1-alpha.6`
 Lead Architect & Maintainer: **JeffTheNerdDev96**
 
 > **Legal Construction Note:** For the purposes of this document, the title *Adaptive Underworld Recon Array* may and will be abbreviated interchangeably as **A.U.R.A.** throughout all terms, conditions, disclaimers, and operational clauses below.

@@ -488,7 +488,7 @@ class XMPPTabWidget(QWidget):
 
         is_current_view = (
             (is_groupchat and self.is_groupchat and msg.room_jid.lower() == selected_clean)
-            or (not is_groupchat and not self.is_groupchat and (target_id == selected_bare or recip_id == selected_bare or selected_bare in target_id))
+            or (not is_groupchat and not self.is_groupchat and (target_id == selected_bare or recip_id == selected_bare))
         )
 
         is_self = False

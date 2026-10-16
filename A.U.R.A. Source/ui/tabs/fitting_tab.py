@@ -898,12 +898,13 @@ class FittingLabWidget(QWidget):
     def current_eft(self) -> str:
         hull = self.hull_combo.currentText().strip() or "Unknown"
         fname = self.fit_name_edit.text().strip() or "Custom Fit"
+        # EFT racks are positional, so an empty rack keeps a placeholder line.
         blocks = [
             f"[{hull}, {fname}]",
-            "\n".join(self._slot_names("low")),
-            "\n".join(self._slot_names("mid")),
-            "\n".join(self._slot_names("high")),
-            "\n".join(self._slot_names("rig")),
+            "\n".join(self._slot_names("low")) or "[Empty Low slot]",
+            "\n".join(self._slot_names("mid")) or "[Empty Med slot]",
+            "\n".join(self._slot_names("high")) or "[Empty High slot]",
+            "\n".join(self._slot_names("rig")) or "[Empty Rig slot]",
             "\n".join(self._slot_names("sub")),
             "\n".join(self.drones),
             "\n".join(self.cargo),

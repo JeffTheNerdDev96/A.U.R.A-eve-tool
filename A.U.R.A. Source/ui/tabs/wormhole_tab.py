@@ -81,6 +81,8 @@ def format_lifetime_state(life: LifetimeState, expires_at: Optional[float] = Non
             return (f"EOL ({hrs}h {mins:02d}m)", "#f59e0b")
         return (f"Stable ({hrs}h {mins:02d}m)", TEXT_PRIMARY)
 
+    if life == LifetimeState.NO_TIMER:
+        return ("No Timer", TEXT_HINT)
     if life == LifetimeState.END_OF_LIFE:
         return ("EOL (<4h)", "#f59e0b")
     if life == LifetimeState.CRITICAL:
@@ -222,7 +224,12 @@ class AddSystemDialog(QDialog):
     def get_data(self) -> dict[str, Any]:
         raw_dur = self.duration_combo.currentData()
         dur = 24.0 if raw_dur is None else float(raw_dur)
-        life = LifetimeState.STABLE if dur > 4.0 or dur <= 0.0 else LifetimeState.END_OF_LIFE
+        if dur <= 0.0:
+            life = LifetimeState.NO_TIMER
+        elif dur > 4.0:
+            life = LifetimeState.STABLE
+        else:
+            life = LifetimeState.END_OF_LIFE
         return {
             "parent_system": self.parent_combo.currentText().strip(),
             "target_system": self.target_edit.text().strip().upper(),

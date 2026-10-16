@@ -55,18 +55,22 @@ class FittingParser:
 
         blocks: List[List[str]] = []
         current_block: List[str] = []
+        # A rack of only [Empty ... slot] placeholders still occupies its position in EFT order.
+        block_open = False
 
         for line in raw_lines[1:]:
             if not line:
-                if current_block:
+                if block_open:
                     blocks.append(current_block)
                     current_block = []
+                    block_open = False
             else:
+                block_open = True
                 if line.startswith("[") and line.endswith("]"):
                     continue  # empty slot placeholder e.g. [Empty Low slot]
                 current_block.append(line)
 
-        if current_block:
+        if block_open:
             blocks.append(current_block)
 
         low_slots: List[str] = []

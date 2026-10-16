@@ -2,9 +2,31 @@
 
 All notable changes to Adaptive Underworld Recon Array (A.U.R.A.) are documented here. Canonical product version lives in `A.U.R.A. Source/core/version.py`.
 
+## [v0.7.1-alpha.6] — 2026-10-16
+
+Active release (Patch Release — Version Bump to v0.7.1-alpha.6 + Adversarial Correctness Audit).
+
+### Changed
+
+- Bumped canonical product version from `v0.7.1-alpha.5` to `v0.7.1-alpha.6` in `A.U.R.A. Source/core/version.py` (`VERSION`, `__version__`, `APP_VERSION`).
+- Aligned active version references (README, SECURITY, CREDITS, LEGAL, USER_GUIDE, DEVELOPER, requirements README, launcher batch scripts, subsystem/UI docstrings, bug report template, `.gitignore`) and installer naming (`AURA_Setup_v0.7.1-alpha.6.exe`) to `v0.7.1-alpha.6`.
+- Marked `v0.7.1-alpha.5` as deprecated/superseded in SECURITY supported-versions table.
+- Synchronized version assertions in `test_all_subsystems.py`, `test_codebase_integrity.py`, and `test_tier5_concurrency_stress_hardening.py`.
+
+### Fixed — Adversarial Correctness Audit
+
+- **Multibox location**: Location change detection is tracked per character. A second pilot entering the system the first pilot just entered now updates that pilot's location.
+- **Cleared intel expiry**: A system reported clear now ages out of the radar after the normal expiry window instead of staying forever.
+- **XMPP direct messages**: Conversations match the exact bare JID. Messages from `jimbob@` no longer appear (or mark unread) in `bob@`'s conversation.
+- **EFT empty racks**: An empty rack (all `[Empty ... slot]` lines) keeps its position on import, and the Fitting Lab exports placeholders for empty racks, so later racks are no longer shifted.
+- **Anokis No Timer**: A link added with "No Timer" (lifetime not tracked) shows "No Timer" instead of being labeled "Stable". It still never expires or gets cleared. Timed holes still show Stable or EOL.
+- **Killmail sections**: Modules such as `Expanded Cargohold II` and `Cargo Scanner II` stay in their rack instead of being read as the cargo header.
+- **Killmail EFT**: The reconstructed fit writes placeholders for empty racks, so sending it to the Fitting Lab keeps every rack in place.
+- **Anokis home**: Pressing Set Home on a system already in the chain keeps its signatures and links, and re-homing no longer prunes the upstream systems on the next removal.
+
 ## [v0.7.1-alpha.5] — 2026-10-16
 
-Active release (Patch Release — Mandatory Version Bump to v0.7.1-alpha.5 + Adversarial Error Audit & Edge-Case Hardening).
+Patch Release — Mandatory Version Bump to v0.7.1-alpha.5 + Adversarial Error Audit & Edge-Case Hardening (Superseded by v0.7.1-alpha.6).
 
 ### Changed
 

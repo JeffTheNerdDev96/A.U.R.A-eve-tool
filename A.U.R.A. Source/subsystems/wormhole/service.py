@@ -80,15 +80,21 @@ class WormholeSubsystem(BaseSubsystem):
         if self.active_chain is None:
             self.initialize()
 
-        node = WormholeNode(
-            system_name=system_name,
-            system_class=system_class,
-            custom_name="Home",
-            x=0.0,
-            y=0.0,
-        )
+        node = self.active_chain.nodes.get(system_name)
+        if node is None:
+            node = WormholeNode(
+                system_name=system_name,
+                system_class=system_class,
+                custom_name="Home",
+                x=0.0,
+                y=0.0,
+            )
+            self.active_chain.nodes[system_name] = node
+        else:
+            # Keep scanned signatures and links when an existing system becomes (or stays) home.
+            node.system_class = system_class
+            node.custom_name = "Home"
         self.active_chain.home_system = system_name
-        self.active_chain.nodes[system_name] = node
         self.active_chain.updated_at = time.time()
 
         self.event_bus.publish(
@@ -170,15 +176,16 @@ class WormholeSubsystem(BaseSubsystem):
             return
         home = self.active_chain.home_system
         if home and home in self.active_chain.nodes:
-            # Determine all systems reachable from home system
+            # Determine all systems reachable from home system; wormholes can be jumped both ways.
             reachable = {home}
             changed = True
             while changed:
                 changed = False
                 for c in self.active_chain.connections:
-                    if c.source_system in reachable and c.target_system not in reachable and c.target_system in self.active_chain.nodes:
-                        reachable.add(c.target_system)
-                        changed = True
+                    for a, b in ((c.source_system, c.target_system), (c.target_system, c.source_system)):
+                        if a in reachable and b not in reachable and b in self.active_chain.nodes:
+                            reachable.add(b)
+                            changed = True
 
             # Prune unreachable nodes (cascading orphan removal)
             for node_name in list(self.active_chain.nodes.keys()):

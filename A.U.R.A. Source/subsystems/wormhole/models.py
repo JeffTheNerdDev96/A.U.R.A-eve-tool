@@ -69,6 +69,7 @@ class LifetimeState(StrEnum):
     STABLE = "Stable (>24h or >4h depending on type)"
     END_OF_LIFE = "End of Life (<4h remaining)"
     CRITICAL = "Critical / Imminent Collapse"
+    NO_TIMER = "No Timer"
 
 
 class SignatureGroup(StrEnum):

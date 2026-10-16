@@ -188,7 +188,7 @@ class XMPPChatSubsystem(BaseSubsystem):
                 # Direct message matching: match incoming from contact or outgoing to contact
                 sender_bare = m.sender_jid.split("/", 1)[0].lower()
                 recip_bare = m.recipient_jid.split("/", 1)[0].lower() if m.recipient_jid else ""
-                if sender_bare == t_bare or recip_bare == t_bare or t_bare in sender_bare or (recip_bare and t_bare in recip_bare):
+                if sender_bare == t_bare or recip_bare == t_bare:
                     matched.append(m)
 
         return matched

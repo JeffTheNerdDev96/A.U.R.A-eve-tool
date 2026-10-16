@@ -198,6 +198,8 @@ class LiveChatMonitor(QThread):
         self.cached_files: List[str] = []
         self.last_dir_scan_time: float = 0.0
         self.location = LocationTracker()
+        # Change detection must be per character: multiboxed pilots often enter the same system in turn.
+        self._location_trackers: Dict[str, LocationTracker] = {}
         self._file_characters: Dict[str, str] = {}
         self._character_locations: Dict[str, Dict[str, Any]] = {}
         self._known_characters: Set[str] = set()
@@ -384,6 +386,17 @@ class LiveChatMonitor(QThread):
         for name in list(self._character_locations.keys()):
             if name not in self._known_characters:
                 self._character_locations.pop(name, None)
+        for key in list(self._location_trackers.keys()):
+            if key not in active and key not in self._known_characters:
+                self._location_trackers.pop(key, None)
+
+    def _tracker_for(self, filepath: str) -> LocationTracker:
+        key = self._file_characters.get(filepath) or filepath
+        tracker = self._location_trackers.get(key)
+        if tracker is None:
+            tracker = LocationTracker(self.location.eve_map)
+            self._location_trackers[key] = tracker
+        return tracker
 
     def _emit_location(self, hit: Optional[Dict[str, Any]], filepath: Optional[str] = None) -> None:
         if not hit:
@@ -429,10 +442,11 @@ class LiveChatMonitor(QThread):
         if not blob:
             return
         self._note_listener(filepath, blob)
-        hit = self.location.parse_header_blob(blob)
+        tracker = self._tracker_for(filepath)
+        hit = tracker.parse_header_blob(blob)
         if not hit:
             for line in blob.splitlines():
-                hit = self.location.parse_line(line)
+                hit = tracker.parse_line(line)
                 if hit:
                     break
         self._emit_location(hit, filepath)
@@ -513,7 +527,7 @@ class LiveChatMonitor(QThread):
 
         for raw_line in lines_to_process:
             if is_local or is_game:
-                self._emit_location(self.location.parse_line(raw_line), filepath)
+                self._emit_location(self._tracker_for(filepath).parse_line(raw_line), filepath)
             if not emit_intel:
                 continue
             try:

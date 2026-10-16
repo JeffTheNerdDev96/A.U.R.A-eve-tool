@@ -1,6 +1,6 @@
 # ==============================================================================
 # Git Ignore Configuration for Adaptive Underworld Recon Array (A.U.R.A.)
-# v0.7.1-alpha.5 | Pure Modular Architecture
+# v0.7.1-alpha.6 | Pure Modular Architecture
 # ==============================================================================
 
 # 1. Neural Model Weights & Large AI Artifacts (Local Execution Only)
@@ -138,4 +138,7 @@ standalone_build/
 *.tar.gz
 project.md
 test_infra.md
-.aura/source/tests/*
+
+# 11. Local Test Sources (Private / Local Reference Only)
+A.U.R.A. Source/tests/
+**/A.U.R.A. Source/tests/
