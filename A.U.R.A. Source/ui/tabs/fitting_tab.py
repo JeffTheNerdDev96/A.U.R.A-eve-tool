@@ -1092,6 +1092,21 @@ class FittingLabWidget(QWidget):
             return
         self._fill_from_parsed(parsed)
 
+    def load_eft_string(self, text: str) -> bool:
+        """Parses and loads an EFT formatted string into the fitting slots."""
+        if not text or not text.strip():
+            return False
+        parsed = FittingParser.parse(text)
+        if not parsed or parsed.get("error"):
+            return False
+        self._fill_from_parsed(parsed)
+        return True
+
+    @property
+    def fit_text(self):
+        """Compatibility property for external exporters."""
+        return self.eft_edit
+
     def _export_eft_file(self):
         text = self.current_eft()
         path, _ = QFileDialog.getSaveFileName(

@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Combat & Threat Subsystem for A.U.R.A. v0.7.1-alpha.3.
+Combat & Threat Subsystem for A.U.R.A. v0.7.1-alpha.4.
 Tails EVE Online Gamelogs, computes rolling 10s/30s/60s incoming/outgoing DPS,
 aggregates 4-layer damage profiles (EM/Thermal/Kinetic/Explosive), tracks active EWAR debuffs,
 and publishes real-time combat events across the EventBus.
@@ -329,7 +329,7 @@ class CombatSubsystem(BaseSubsystem):
         cutoff = now - window_sec
         for v in reversed(volleys):
             if v.timestamp < cutoff:
-                break
+                continue
             total_dmg += v.amount
         return total_dmg / window_sec if window_sec > 0 else 0.0
 
@@ -340,7 +340,7 @@ class CombatSubsystem(BaseSubsystem):
         total = 0
         for v in reversed(volleys):
             if v.timestamp < cutoff:
-                break
+                continue
             dtype = v.damage_type.capitalize()
             if dtype == "Em":
                 dtype = "EM"

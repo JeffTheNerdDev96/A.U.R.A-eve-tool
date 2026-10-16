@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Combat & Threat HUD Tab for A.U.R.A. v0.7.1-alpha.3.
+Combat & Threat HUD Tab for A.U.R.A. v0.7.1-alpha.4.
 Displays real-time rolling 10s/30s/60s incoming and outgoing DPS gauges,
 4-layer damage profiles (EM/Thermal/Kinetic/Explosive), active EWAR threat cards,
 live gamelog combat feed, and seamless neural counter-tactics handover.

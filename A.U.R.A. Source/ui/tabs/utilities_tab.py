@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Unified Tactical & Industrial Utilities Tab for A.U.R.A. v0.7.1-alpha.3.
+Unified Tactical & Industrial Utilities Tab for A.U.R.A. v0.7.1-alpha.4.
 Houses 6 comprehensive offline utility suites:
 1. Cargo & Loot Valuation (ISK appraisal, m3 volume, hauler sizing)
 2. Mineral Reprocessing & Refining Calculator (yields, tax, margins)
@@ -42,7 +42,7 @@ from PyQt6.QtWidgets import (
 )
 
 from subsystems.utilities import UtilitiesSubsystem
-from core.eve_market_data import ORE_REPROCESSING_TABLE, BASELINE_ITEM_PRICES
+from core.eve_market_data import ORE_REPROCESSING_TABLE, BASELINE_ITEM_PRICES, MINERAL_PRICES
 from core.eve_pi_data import P4_RECIPES, P3_RECIPES, P2_RECIPES
 from ui.theme import (
     TEXT_PRIMARY, TEXT_SECONDARY, TEXT_HINT,
@@ -598,11 +598,13 @@ class UtilitiesTabWidget(QWidget):
 
     def _populate_ref_table(self, query: str):
         q_lower = query.lower()
-        items = [
-            (name, price, "Standard Market")
-            for name, price in BASELINE_ITEM_PRICES.items()
-            if not query or q_lower in name.lower()
-        ]
+        items = []
+        for name, price in MINERAL_PRICES.items():
+            if not query or q_lower in name.lower() or "mineral" in q_lower:
+                items.append((name, price, "Refined Mineral"))
+        for name, price in BASELINE_ITEM_PRICES.items():
+            if not query or q_lower in name.lower():
+                items.append((name, price, "Standard Market"))
         self.ref_table.setRowCount(len(items))
         for row, (name, price, cat) in enumerate(items):
             it_name = QTableWidgetItem(name)

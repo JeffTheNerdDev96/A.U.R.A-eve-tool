@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-EVE Online Inventory, Cargo & Loot Valuation Parser for A.U.R.A. v0.7.1-alpha.3.
+EVE Online Inventory, Cargo & Loot Valuation Parser for A.U.R.A. v0.7.1-alpha.4.
 Parses clipboard text copied directly from EVE inventory, loot, asset safety,
 or contracts. Computes offline baseline ISK appraisal, volume (m3), and hauler sizing.
 """
@@ -30,7 +30,16 @@ import re
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from core.eve_market_data import lookup_market_price, recommend_hauler
+from core.eve_market_data import lookup_market_price, recommend_hauler, MINERAL_PRICES
+from core.eve_data import lookup_ship
+
+
+_ORE_VOLUMES = {
+    "veldspar": 0.1, "scordite": 0.15, "pyroxeres": 0.3, "plagioclase": 0.35,
+    "omber": 0.6, "kernite": 1.2, "jaspet": 2.0, "hemorphite": 3.0,
+    "hedbergite": 3.0, "gneiss": 5.0, "dark ochre": 8.0, "ochre": 8.0,
+    "spodumain": 16.0, "crokite": 16.0, "bistot": 16.0, "arkonor": 16.0, "mercoxit": 40.0,
+}
 
 
 @dataclass(slots=True)
@@ -222,8 +231,25 @@ class CargoValuationParser:
 
     @staticmethod
     def _estimate_volume(name: str, qty: int, group: str) -> float:
-        lower_name = name.lower()
-        lower_grp = group.lower()
+        lower_name = name.lower().strip()
+        lower_grp = group.lower().strip()
+
+        # Check minerals (all refined minerals are 0.01 m3)
+        if any(lower_name == m.lower() for m in MINERAL_PRICES) or "mineral" in lower_grp:
+            return round(0.01 * qty, 2)
+
+        # Check ores
+        for ore_kw, ore_v in _ORE_VOLUMES.items():
+            if ore_kw in lower_name:
+                return round(ore_v * qty, 2)
+
+        # Check ships via lookup_ship
+        ship_info = lookup_ship(name)
+        if ship_info and "class" in ship_info:
+            hull_class = ship_info["class"].lower()
+            for kw, v in _VOLUME_HEURISTICS.items():
+                if kw in hull_class:
+                    return round(v * qty, 2)
 
         unit_vol = 5.0  # default 5 m3
         for kw, v in _VOLUME_HEURISTICS.items():

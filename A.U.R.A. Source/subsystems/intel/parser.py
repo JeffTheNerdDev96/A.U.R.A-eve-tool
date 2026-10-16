@@ -152,14 +152,23 @@ class IntelParser:
         if clean_line.startswith("["):
             r_bracket = clean_line.find("]")
             if r_bracket > 1:
-                timestamp_str = clean_line[1:r_bracket].strip()
-                rest = clean_line[r_bracket + 1:].strip()
-                gt_pos = rest.find(">")
-                if gt_pos > 0:
-                    speaker = rest[:gt_pos].strip()
-                    msg = rest[gt_pos + 1:].strip()
+                cand_ts = clean_line[1:r_bracket].strip()
+                if any(c.isdigit() for c in cand_ts) and (":" in cand_ts or "." in cand_ts):
+                    timestamp_str = cand_ts
+                    rest = clean_line[r_bracket + 1:].strip()
+                    gt_pos = rest.find(">")
+                    if gt_pos > 0:
+                        speaker = rest[:gt_pos].strip()
+                        msg = rest[gt_pos + 1:].strip()
+                    else:
+                        msg = rest
                 else:
-                    msg = rest
+                    gt_pos = clean_line.find(">")
+                    if gt_pos > 0:
+                        speaker = clean_line[:gt_pos].strip()
+                        msg = clean_line[gt_pos + 1:].strip()
+                    else:
+                        msg = clean_line
         else:
             gt_pos = clean_line.find(">")
             if gt_pos > 0:

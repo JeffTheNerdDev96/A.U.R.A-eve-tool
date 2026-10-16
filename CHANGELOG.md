@@ -2,9 +2,36 @@
 
 All notable changes to Adaptive Underworld Recon Array (A.U.R.A.) are documented here. Canonical product version lives in `A.U.R.A. Source/core/version.py`.
 
+## [v0.7.1-alpha.4] — 2026-10-15
+
+Active release (Patch Release — Mandatory Version Bump to v0.7.1-alpha.4 + Adversarial Error Audit & Edge-Case Hardening).
+
+### Changed
+
+- Bumped canonical product version from `v0.7.1-alpha.3` to `v0.7.1-alpha.4` in `A.U.R.A. Source/core/version.py` (`VERSION`, `__version__`, `APP_VERSION`).
+- Aligned all user-facing version references (README, CHANGELOG, SECURITY, CREDITS, LEGAL, USER_GUIDE, DEVELOPER, requirements README, launcher batch scripts, subsystem/tool/UI docstrings, bug report template, `.gitignore`) to `v0.7.1-alpha.4`.
+- Updated installer artifact naming to `AURA_Setup_v0.7.1-alpha.4.exe` (derived automatically from canonical version via `INSTALLER_EXE_NAME`).
+- Updated `scripts/run.bat` and `bat scripts for install/_bootstrap_venv.bat` to reference `v0.7.1-alpha.4` and `AURA_Setup_v0.7.1-alpha.4.exe`.
+- Marked `v0.7.1-alpha.3` as deprecated/superseded in SECURITY supported-versions table.
+- Synchronized test assertions in `test_all_subsystems.py` and `test_codebase_integrity.py` to canonical `v0.7.1-alpha.4`.
+- Integrated `test_audit_fixes_m4_adversarial.py` into the master test runner `tools/run_all_tests.py`.
+
+### Fixed — Adversarial Bug Audit & Edge-Case Remediation
+
+- **Map Subsystem Routing**: Resolved `MapRouter.get_system` crash on integer system IDs and `None` parameters (`AttributeError: 'int' object has no attribute 'isdigit'`), supporting both string names, integer system IDs, string IDs, and safe `None` routing fallbacks.
+- **Canonical Module Retrieval & Stopword Filtering**: Corrected `lookup_module` fuzzy fallback where single-letter and short common stopwords (`'a'`, `'in'`, `'or'`, `'to'`, `'at'`, `'the'`) produced false positive module matches and caused `KillmailParser._deduce_slot` to misclassify arbitrary text as High slot modules.
+- **Combat Log Parsing & Damage Attribution**: Fixed `CombatLogParser._parse_damage` where `"to You from Hostile Drake [Drake]"` was misclassified as outgoing damage to target `"You from Hostile Drake"`. Extracted `attacker_ship` from alternative `"damage from"` combat lines.
+- **Ship Destruction Event Extraction**: Corrected possessive regex in `_parse_destruction` where `"was"` was improperly captured as part of the ship name (e.g. `"Huginn was"` instead of `"Huginn"`). Added support for self-destruction messages omitting `"was"`.
+- **Combat Rolling Window DPS & Jitter Tolerance**: Replaced short-circuit `break` statements with `continue` in `CombatSubsystem._calc_window_dps` and `_calc_damage_profile` to ensure volleys arriving with minor timestamp jitter or multi-client interleaving are not dropped from rolling DPS windows.
+- **Intel Chat Log Bracket Parsing**: Fixed `IntelParser.parse_single_line` to distinguish true bracketed timestamps containing digits and time delimiters from bracketed channel or solar system message prefixes (e.g. `"[Jita] +5 reds"`), preventing system names from being swallowed.
+- **Cargo & Loot Valuation Volumes**: Updated `CargoValuationParser._estimate_volume` to accurately size refined minerals (0.01 m3/unit), raw ores (0.1 to 40.0 m3/unit), and ships via `lookup_ship` hull classes rather than defaulting to 5.0 m3/unit, preventing inappropriate freighter recommendations for mineral hauls.
+- **Survey Scanner Locale & Number Parsing**: Enhanced `SurveyScannerParser` to handle space-separated and non-breaking space (`\u00a0` / `\u202f`) thousand separators in rock units, volumes, and distances.
+- **Item & Price Reference Index**: Added `MINERAL_PRICES` to `UtilitiesTabWidget._populate_ref_table` so searching for minerals (Tritanium, Isogen, etc.) returns refined mineral market baselines.
+- **External Fit Export UI Connection**: Connected Killmail Importer's "Send to Fitting Subsystem" action by adding `load_eft_string` and `fit_text` property compatibility to `FittingLabWidget`.
+
 ## [v0.7.1-alpha.3] — 2026-10-15
 
-Active release (Patch Release — Mandatory Version Bump to v0.7.1-alpha.3 + Adversarial Audit & Optimization Verification).
+Patch Release — Mandatory Version Bump to v0.7.1-alpha.3 + Adversarial Audit & Optimization Verification (Superseded by v0.7.1-alpha.4).
 
 ### Changed
 

@@ -2021,8 +2021,11 @@ class MainWindow(QMainWindow):
 
     def _handle_external_fit_export(self, eft_str: str):
         """Loads an exported EFT fit string into the Fitting Lab and switches tabs."""
-        if hasattr(self, "fitting_lab") and hasattr(self.fitting_lab, "fit_text"):
-            self.fitting_lab.fit_text.setPlainText(eft_str)
+        if hasattr(self, "fitting_lab") and self.fitting_lab is not None:
+            if hasattr(self.fitting_lab, "load_eft_string"):
+                self.fitting_lab.load_eft_string(eft_str)
+            elif hasattr(self.fitting_lab, "fit_text"):
+                self.fitting_lab.fit_text.setPlainText(eft_str)
         if hasattr(self, "fitting_tab_page"):
             self.tabs.setCurrentIndex(self.tabs.indexOf(self.fitting_tab_page))
 

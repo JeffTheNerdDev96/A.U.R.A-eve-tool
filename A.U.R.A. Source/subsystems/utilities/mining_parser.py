@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Survey Scanner Clipboard Parser & Mining Yield Planner for A.U.R.A. v0.7.1-alpha.3.
+Survey Scanner Clipboard Parser & Mining Yield Planner for A.U.R.A. v0.7.1-alpha.4.
 Parses in-game survey scanner results, computes optimal laser cycles,
 depletion timers, extraction rate (m3/hr), and tracks mining session ledgers.
 """
@@ -87,10 +87,11 @@ class SurveyScannerParser:
             if not ore_name or ore_name.lower() in ("ore", "name", "type", "asteroid", "item"):
                 return None
 
-            units_str = parts[1].replace(",", "").replace(".", "").replace("units", "").strip()
+            units_str = parts[1].replace(",", "").replace(".", "").replace("units", "").replace(" ", "").replace("\u00a0", "").replace("\u202f", "").strip()
             units = int(units_str) if units_str.isdigit() else 0
 
-            vol_m = re.search(r"([\d,.]+)", parts[2])
+            clean_vol = parts[2].replace("\u00a0", "").replace("\u202f", "").replace(" ", "")
+            vol_m = re.search(r"([\d,.]+)", clean_vol)
             volume_m3 = float(vol_m.group(1).replace(",", "")) if vol_m else 0.0
 
             if units == 0 and volume_m3 == 0.0:
@@ -98,7 +99,8 @@ class SurveyScannerParser:
 
             dist_km = 0.0
             if len(parts) >= 4:
-                dist_m = re.search(r"([\d,.]+)", parts[3])
+                clean_dist = parts[3].replace("\u00a0", "").replace("\u202f", "").replace(" ", "")
+                dist_m = re.search(r"([\d,.]+)", clean_dist)
                 if dist_m:
                     dist_km = float(dist_m.group(1).replace(",", ""))
                     if "m" in parts[3].lower() and "km" not in parts[3].lower():
@@ -107,11 +109,13 @@ class SurveyScannerParser:
             return SurveyScannerRock(ore_name, units, volume_m3, dist_km)
 
         # Regex fallback for space/comma separated lines
-        m_regex = re.search(r"([A-Za-z\s]+)\s+([\d,]+)\s*(?:units)?\s+([\d,.]+)\s*m3", clean, re.IGNORECASE)
+        m_regex = re.search(r"([A-Za-z\s]+)\s+([\d,\s\u00a0\u202f]+)\s*(?:units)?\s+([\d,.\s\u00a0\u202f]+)\s*m3", clean, re.IGNORECASE)
         if m_regex:
             ore_name = m_regex.group(1).strip()
-            units = int(m_regex.group(2).replace(",", ""))
-            volume_m3 = float(m_regex.group(3).replace(",", ""))
+            u_str = m_regex.group(2).replace(",", "").replace(" ", "").replace("\u00a0", "").replace("\u202f", "").strip()
+            v_str = m_regex.group(3).replace(",", "").replace(" ", "").replace("\u00a0", "").replace("\u202f", "").strip()
+            units = int(u_str) if u_str.isdigit() else 0
+            volume_m3 = float(v_str) if v_str else 0.0
             return SurveyScannerRock(ore_name, units, volume_m3, 0.0)
 
         return None

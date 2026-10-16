@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-EVE Online Gamelog Combat & Mining Log Parser for A.U.R.A. v0.7.1-alpha.3.
+EVE Online Gamelog Combat & Mining Log Parser for A.U.R.A. v0.7.1-alpha.4.
 Parses raw combat and mining lines from EVE Online Gamelogs with zero external API calls.
 Extracts damage amounts, 4-tier damage profiles (EM/Therm/Kin/Exp), active EWAR events,
 ship destructions, and mining extraction volumes.
@@ -99,9 +99,9 @@ _RE_EWAR_ATTEMPTS = re.compile(
 _RE_EWAR_DRAIN = re.compile(r"(\d+)\s*gj", re.IGNORECASE)
 _RE_GJ = _RE_EWAR_DRAIN
 
-_RE_DESTROY_SELF = re.compile(r"your\s+(.+?)\s+was\s+destroyed", re.IGNORECASE)
-_RE_DESTROY_BELONGING = re.compile(r"(.+?)\s+belonging\s+to\s+(.+?)\s+was\s+destroyed", re.IGNORECASE)
-_RE_DESTROY_POSSESSIVE = re.compile(r"(?:^|\s)(.+?)'s\s+(.+?)\s+destroyed", re.IGNORECASE)
+_RE_DESTROY_SELF = re.compile(r"your\s+(.+?)\s+(?:was\s+)?destroyed", re.IGNORECASE)
+_RE_DESTROY_BELONGING = re.compile(r"(.+?)\s+belonging\s+to\s+(.+?)\s+(?:was\s+)?destroyed", re.IGNORECASE)
+_RE_DESTROY_POSSESSIVE = re.compile(r"(?:^|\s)(.+?)'s\s+(.+?)\s+(?:was\s+)?destroyed", re.IGNORECASE)
 
 _RE_MINED_1 = re.compile(r"mined\s+([\d,]+)\s+units\s+of\s+(.+?)(?:\s+from|[.!]\s*|\s*$)", re.IGNORECASE)
 _RE_MINED_2 = re.compile(r"([\d,]+)\s+units\s+of\s+(.+?)\s+mined(?:\s+from|[.!]\s*|\s*$)", re.IGNORECASE)
@@ -251,6 +251,11 @@ class CombatLogParser:
                 rest = dmg_alt.group(2)
                 alt_parts = [p.strip() for p in _RE_DAMAGE_SPLIT.split(rest)]
                 attacker = alt_parts[0]
+                attacker_ship = ""
+                attacker_match = _RE_ACTOR_SHIP.match(attacker)
+                if attacker_match:
+                    attacker = attacker_match.group(1).strip()
+                    attacker_ship = attacker_match.group(2).strip() if attacker_match.group(2) else ""
                 weapon = alt_parts[1] if len(alt_parts) > 1 else "Weapon"
                 quality = "Hits"
                 if len(alt_parts) >= 3:
@@ -268,7 +273,7 @@ class CombatLogParser:
                     is_incoming=True,
                     target="You",
                     attacker=attacker,
-                    attacker_ship="",
+                    attacker_ship=attacker_ship,
                     weapon=weapon,
                     damage_type=cls.infer_damage_type(rest),
                     quality=quality,
@@ -280,6 +285,13 @@ class CombatLogParser:
 
         parts = [p.strip() for p in _RE_DAMAGE_SPLIT.split(remainder)]
         target_part = parts[0] if len(parts) > 0 else ""
+
+        from_attacker = ""
+        from_split = re.split(r"\s+from\s+", target_part, maxsplit=1, flags=re.IGNORECASE)
+        if len(from_split) == 2:
+            target_part = from_split[0].strip()
+            from_attacker = from_split[1].strip()
+
         is_incoming = target_part.lower() == "you"
 
         attacker = ""
@@ -289,33 +301,61 @@ class CombatLogParser:
         quality = "Hits"
 
         if is_incoming:
-            if len(parts) >= 2:
-                attacker = parts[1]
+            if from_attacker:
+                attacker = from_attacker
                 attacker_match = _RE_ACTOR_SHIP.match(attacker)
                 if attacker_match:
                     attacker = attacker_match.group(1).strip()
                     attacker_ship = attacker_match.group(2).strip() if attacker_match.group(2) else ""
-            if len(parts) >= 3:
-                weapon = parts[2]
-            if len(parts) >= 4:
-                cand = parts[3].strip()
-                if cand.lower() in ("em", "thermal", "kinetic", "explosive"):
-                    explicit_type = cand
-                else:
+                if len(parts) >= 2:
+                    weapon = parts[1]
+                if len(parts) >= 3:
+                    cand = parts[2].strip()
+                    if cand.lower() in ("em", "thermal", "kinetic", "explosive"):
+                        explicit_type = cand
+                    else:
+                        for q in ("Wrecking", "Penetrating", "Glancing", "Hits"):
+                            if q.lower() in cand.lower():
+                                quality = q
+                                break
+                        else:
+                            quality = cand
+                if len(parts) >= 4:
+                    cand4 = parts[3].strip()
                     for q in ("Wrecking", "Penetrating", "Glancing", "Hits"):
-                        if q.lower() in cand.lower():
+                        if q.lower() in cand4.lower():
                             quality = q
                             break
                     else:
-                        quality = cand
-            if len(parts) >= 5:
-                cand5 = parts[4].strip()
-                for q in ("Wrecking", "Penetrating", "Glancing", "Hits"):
-                    if q.lower() in cand5.lower():
-                        quality = q
-                        break
-                else:
-                    quality = cand5
+                        quality = cand4
+            else:
+                if len(parts) >= 2:
+                    attacker = parts[1]
+                    attacker_match = _RE_ACTOR_SHIP.match(attacker)
+                    if attacker_match:
+                        attacker = attacker_match.group(1).strip()
+                        attacker_ship = attacker_match.group(2).strip() if attacker_match.group(2) else ""
+                if len(parts) >= 3:
+                    weapon = parts[2]
+                if len(parts) >= 4:
+                    cand = parts[3].strip()
+                    if cand.lower() in ("em", "thermal", "kinetic", "explosive"):
+                        explicit_type = cand
+                    else:
+                        for q in ("Wrecking", "Penetrating", "Glancing", "Hits"):
+                            if q.lower() in cand.lower():
+                                quality = q
+                                break
+                        else:
+                            quality = cand
+                if len(parts) >= 5:
+                    cand5 = parts[4].strip()
+                    for q in ("Wrecking", "Penetrating", "Glancing", "Hits"):
+                        if q.lower() in cand5.lower():
+                            quality = q
+                            break
+                    else:
+                        quality = cand5
         else:
             # Outgoing hit: target is target_part, attacker is You
             attacker = "You"

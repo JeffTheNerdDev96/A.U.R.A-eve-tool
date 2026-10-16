@@ -25,7 +25,7 @@ Provides sub-millisecond BFS graph routing across EVE Online stargate network.
 """
 
 from collections import deque
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Union
 from .eve_map import get_eve_map, EveMapGraph
 from .models import SystemNode, RouteResult
 
@@ -36,13 +36,19 @@ class MapRouter:
     def __init__(self, map_graph: Optional[EveMapGraph] = None):
         self.map_graph = map_graph or get_eve_map()
 
-    def get_system(self, name_or_id: str) -> Optional[SystemNode]:
+    def get_system(self, name_or_id: Union[str, int, None]) -> Optional[SystemNode]:
         """Resolves system by name or integer ID."""
+        if name_or_id is None:
+            return None
         rec = None
-        if name_or_id.isdigit():
+        if isinstance(name_or_id, int):
+            rec = self.map_graph.get_system(name_or_id)
+        elif isinstance(name_or_id, str) and name_or_id.isdigit():
             rec = self.map_graph.get_system(int(name_or_id))
-        else:
+        elif isinstance(name_or_id, str):
             rec = self.map_graph.resolve_system_name(name_or_id)
+        else:
+            rec = self.map_graph.resolve_system_name(str(name_or_id))
 
         if not rec:
             return None
