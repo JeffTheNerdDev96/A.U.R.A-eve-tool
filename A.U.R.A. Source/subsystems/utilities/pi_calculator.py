@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Planetary Industry (PI) Production Schematics & POCO Tax Calculator for A.U.R.A. v0.7.1-alpha.4.
+Planetary Industry (PI) Production Schematics & POCO Tax Calculator for A.U.R.A. v0.7.1-alpha.5.
 Recursively resolves complex P4/P3/P2 factory schematics down to base P0 planets,
 calculates daily extraction demands, volume requirements, and Customs Office export fees.
 """

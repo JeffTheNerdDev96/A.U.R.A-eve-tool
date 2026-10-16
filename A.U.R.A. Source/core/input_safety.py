@@ -148,13 +148,13 @@ def parse_float_safe(val_str: Any) -> float:
             s = s.replace(".", "").replace(",", ".")
     elif "," in s:
         parts = s.split(",")
-        if len(parts) == 2 and len(parts[1]) in (1, 2):
+        if len(parts) == 2 and (len(parts[1]) in (1, 2) or parts[0].lstrip("-+0") == ""):
             s = s.replace(",", ".")
         else:
             s = s.replace(",", "")
     elif "." in s:
         parts = s.split(".")
-        if len(parts) > 2 or (len(parts) == 2 and len(parts[1]) == 3 and len(parts[0]) <= 3):
+        if len(parts) > 2 or (len(parts) == 2 and len(parts[1]) == 3 and len(parts[0]) <= 3 and parts[0].lstrip("-+0") != ""):
             s = s.replace(".", "")
     try:
         return float(s)

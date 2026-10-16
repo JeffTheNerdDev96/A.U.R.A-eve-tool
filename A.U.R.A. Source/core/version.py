@@ -19,9 +19,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
-VERSION = "v0.7.1-alpha.4"
-__version__ = "0.7.1-alpha.4"
-APP_VERSION = "0.7.1-alpha.4"
+VERSION = "v0.7.1-alpha.5"
+__version__ = "0.7.1-alpha.5"
+APP_VERSION = "0.7.1-alpha.5"
 PUBLISHER = "JeffTheNerdDev96"
 LICENSE = "GNU Affero General Public License v3.0 (AGPL-3.0)"
 COMPANY_URL = "https://github.com/JeffTheNerdDev96/A.U.R.A-eve-tool"

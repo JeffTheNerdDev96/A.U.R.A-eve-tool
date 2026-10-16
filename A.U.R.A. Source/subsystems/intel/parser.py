@@ -63,8 +63,29 @@ _RE_HTML_TAGS = re.compile(r"<[^>]+>")
 
 _CAPITAL_KEYWORDS = frozenset({"titan", "super", "supercarrier", "dread", "dreadnought", "carrier", "fax", "rorqual", "capital"})
 _BATTLESHIP_KEYWORDS = frozenset({"battleship", "battleships", "bs", "marauder", "blops", "black ops"})
-_MEDIUM_KEYWORDS = frozenset({"battlecruiser", "battlecruisers", "bc", "cruiser", "cruisers", "hac", "t3c", "recon", "command ship", "destroyer", "destroyers", "dictor", "hic"})
+_MEDIUM_KEYWORDS = frozenset({"battlecruiser", "battlecruisers", "bc", "cruiser", "cruisers", "hac", "t3c", "recon", "command ship", "destroyer", "destroyers", "dictor", "interdictor", "hic"})
 _FRIGATE_KEYWORDS = frozenset({"frigate", "frigates", "frig", "interceptor", "interceptors", "ceptor", "af", "covops", "bomber", "eas", "shuttle", "corvette", "rookie"})
+
+# Bare "super" is both supercarrier slang and an English intensifier ("super quiet").
+_SUPER_INTENSIFIER_RE = re.compile(
+    r"\bsuper\s+(?:quiet|hot|close|fast|slow|bad|good|nice|easy|hard|low|high|busy|empty|dead|safe|clear|calm|cool|late|early|long|short|far|near|active|stacked|boring)\b",
+    re.IGNORECASE,
+)
+
+
+def _keyword_pattern(words: frozenset[str]) -> re.Pattern[str]:
+    """Whole-word matcher. Optional trailing 's' covers plurals without substring hits."""
+    parts: List[str] = []
+    for word in sorted(words, key=len, reverse=True):
+        body = re.escape(word)
+        parts.append(body if word.endswith("s") else body + r"s?")
+    return re.compile(r"\b(?:" + "|".join(parts) + r")\b", re.IGNORECASE)
+
+
+_RE_CAPITAL_KW = _keyword_pattern(_CAPITAL_KEYWORDS)
+_RE_BATTLESHIP_KW = _keyword_pattern(_BATTLESHIP_KEYWORDS)
+_RE_MEDIUM_KW = _keyword_pattern(_MEDIUM_KEYWORDS)
+_RE_FRIGATE_KW = _keyword_pattern(_FRIGATE_KEYWORDS)
 
 _CAPITAL_CLASSES = frozenset({"Titan", "Supercarrier", "Dreadnought", "Carrier", "Force Auxiliary", "Lancer Dreadnought", "Faction Dreadnought", "Capital Industrial"})
 _BATTLESHIP_CLASSES = frozenset({"Battleship", "Faction Battleship", "Marauder", "Black Ops"})
@@ -210,10 +231,11 @@ class IntelParser:
         ships: List[str] = []
         msg_lower = msg.lower()
 
-        has_capital = any(kw in msg_lower for kw in _CAPITAL_KEYWORDS)
-        has_battleship = any(kw in msg_lower for kw in _BATTLESHIP_KEYWORDS)
-        has_medium_hull = any(kw in msg_lower for kw in _MEDIUM_KEYWORDS)
-        has_frigate = any(kw in msg_lower for kw in _FRIGATE_KEYWORDS)
+        capital_text = _SUPER_INTENSIFIER_RE.sub(" ", msg_lower)
+        has_capital = _RE_CAPITAL_KW.search(capital_text) is not None
+        has_battleship = _RE_BATTLESHIP_KW.search(msg_lower) is not None
+        has_medium_hull = _RE_MEDIUM_KW.search(msg_lower) is not None
+        has_frigate = _RE_FRIGATE_KW.search(msg_lower) is not None
 
         # Multi-token ship matching (e.g. "cane fleet", "harbi navy", "caracal navy issue")
         used_word_indices = set()

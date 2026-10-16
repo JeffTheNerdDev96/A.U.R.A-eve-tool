@@ -1,5 +1,5 @@
 # A.U.R.A. Developer Guide
-**v0.7.1-alpha.4 — Pure Modular Architecture**
+**v0.7.1-alpha.5 — Pure Modular Architecture**
 
 Internal reference for contributors and engineers working on the A.U.R.A. codebase.
 
@@ -19,7 +19,7 @@ A.U.R.A. Source/
 ├── bat scripts for install/       # Hardware-specific venv/wheel installer scripts
 │
 ├── core/                          # Cross-cutting foundational infrastructure
-│   ├── version.py                 # Single source of truth for version (v0.7.1-alpha.4)
+│   ├── version.py                 # Single source of truth for version (v0.7.1-alpha.5)
 │   ├── event_bus.py               # Asynchronous Qt EventBus singleton
 │   ├── events.py                  # Strongly-typed event dataclasses
 │   ├── base_subsystem.py          # Subsystem lifecycle contract
@@ -162,7 +162,7 @@ All standardized error codes live in [`core/error_handler.py`](A.U.R.A.%20Source
 
 | Script | Purpose & Usage |
 |---|---|
-| `build_installer.py` | Compiles the single-executable setup wizard (`AURA_Setup_v0.7.1-alpha.4.exe`) via PyInstaller: freezes the PyQt6 installer GUI and the `AURA_Launcher.exe` stub, stages the Mumble VOIP Opus codec, bundles the MSVC CRT DLLs, and embeds the core application payload zip. |
+| `build_installer.py` | Compiles the single-executable setup wizard (`AURA_Setup_v0.7.1-alpha.5.exe`) via PyInstaller: freezes the PyQt6 installer GUI and the `AURA_Launcher.exe` stub, stages the Mumble VOIP Opus codec, bundles the MSVC CRT DLLs, and embeds the core application payload zip. |
 | `build_standalone.py` | Builds the portable `onedir` distribution (`A.U.R.A Distro/Standalone/`) bundling the pre-configured Python runtime, Qt6 libraries, and model weights. |
 | `installer_gui.py` | Full-featured PyQt6 graphical wizard setup application that handles hardware co-processor probing, component installation, Mumble VOIP Opus codec provisioning (`--no-voip` to skip), desktop shortcut generation, and log path discovery. |
 | `launcher.py` | Production executable entrypoint stub for frozen builds. Configures environment paths, sanitizes runtime flags, and launches `app.py`. |

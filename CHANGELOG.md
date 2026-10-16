@@ -2,9 +2,31 @@
 
 All notable changes to Adaptive Underworld Recon Array (A.U.R.A.) are documented here. Canonical product version lives in `A.U.R.A. Source/core/version.py`.
 
+## [v0.7.1-alpha.5] — 2026-10-16
+
+Active release (Patch Release — Mandatory Version Bump to v0.7.1-alpha.5 + Adversarial Error Audit & Edge-Case Hardening).
+
+### Changed
+
+- Bumped canonical product version from `v0.7.1-alpha.4` to `v0.7.1-alpha.5` in `A.U.R.A. Source/core/version.py` (`VERSION`, `__version__`, `APP_VERSION`).
+- Aligned all user-facing version references (README, CHANGELOG, SECURITY, CREDITS, LEGAL, USER_GUIDE, DEVELOPER, requirements README, launcher batch scripts, subsystem/tool/UI docstrings, bug report template, `.gitignore`) to `v0.7.1-alpha.5`.
+- Updated installer artifact naming to `AURA_Setup_v0.7.1-alpha.5.exe` (derived automatically from canonical version via `INSTALLER_EXE_NAME`).
+- Updated `scripts/run.bat` and `bat scripts for install/_bootstrap_venv.bat` to reference `v0.7.1-alpha.5` and `AURA_Setup_v0.7.1-alpha.5.exe`.
+- Marked `v0.7.1-alpha.4` as deprecated/superseded in SECURITY supported-versions table.
+- Synchronized test assertions in `test_all_subsystems.py` and `test_codebase_integrity.py` to canonical `v0.7.1-alpha.5`.
+
+### Fixed — Adversarial Bug Audit & Edge-Case Remediation
+
+- **Intel hull keywords**: Whole-word matching replaced substring checks so ordinary words (`which`, `please`, `after`, `dreadful`, `superior`, `super quiet`) no longer raise false hull contacts. Real slang (`supers`, `hic`, `frigs`, `interdictor`, `dread`) still classifies.
+- **Probe launchers**: Core and Expanded Probe Launchers occupy a high slot only. They do not consume turret or launcher hardpoints. A full high rack rejects another probe launcher with a high-slot limit.
+- **Warp Core Stabilizer**: One per hull. A second stabilizer is rejected.
+- **Cargo hauler sizing**: Volumes above a freighter recommend Standard Freighter trips. Bowhead's Ship Maintenance Array is not used as general cargo capacity.
+- **Anokis link timer**: "No Timer" (`0` hours) stays at zero instead of being coerced to 24 hours. The 2-hour option is labeled End of Life, matching the lifetime state the timer stores.
+- **Locale numbers**: `0.500`, `.123`, `0,500`, and `,5` parse as decimals. Grouped thousands such as `1.500` and `1,234` still collapse.
+
 ## [v0.7.1-alpha.4] — 2026-10-15
 
-Active release (Patch Release — Mandatory Version Bump to v0.7.1-alpha.4 + Adversarial Error Audit & Edge-Case Hardening).
+Patch Release — Mandatory Version Bump to v0.7.1-alpha.4 + Adversarial Error Audit & Edge-Case Hardening (Superseded by v0.7.1-alpha.5).
 
 ### Changed
 

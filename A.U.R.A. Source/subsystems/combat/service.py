@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Combat & Threat Subsystem for A.U.R.A. v0.7.1-alpha.4.
+Combat & Threat Subsystem for A.U.R.A. v0.7.1-alpha.5.
 Tails EVE Online Gamelogs, computes rolling 10s/30s/60s incoming/outgoing DPS,
 aggregates 4-layer damage profiles (EM/Thermal/Kinetic/Explosive), tracks active EWAR debuffs,
 and publishes real-time combat events across the EventBus.

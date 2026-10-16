@@ -308,11 +308,16 @@ def calculate_reprocessing_yield(
 
 
 def recommend_hauler(total_volume_m3: float) -> Tuple[str, int]:
-    """Recommend the most agile hauler class that fits the required volume."""
-    for name, cap in HAULER_CAPACITIES:
+    """Recommend the most agile general-cargo hauler that fits the required volume.
+
+    Bowhead capacity in this table is a Ship Maintenance Array for assembled
+    hulls, not a cargo hold, so it is excluded from bulk-volume selection.
+    Volumes above one freighter are reported as freighter trips.
+    """
+    cargo_haulers = [(name, cap) for name, cap in HAULER_CAPACITIES if "Ship Maintenance" not in name]
+    for name, cap in cargo_haulers:
         if total_volume_m3 <= cap:
             return name, cap
-    # If larger than any single hauler, calculate freighter trips
-    freighter_name, freighter_cap = HAULER_CAPACITIES[-2]
-    trips = math.ceil(total_volume_m3 / freighter_cap)
+    freighter_name, freighter_cap = cargo_haulers[-1]
+    trips = math.ceil(total_volume_m3 / freighter_cap) if freighter_cap > 0 else 1
     return f"{freighter_name} ({trips} trips needed)", freighter_cap

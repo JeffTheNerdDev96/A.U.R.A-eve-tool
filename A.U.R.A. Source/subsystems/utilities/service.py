@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Unified Utilities Subsystem for A.U.R.A. v0.7.1-alpha.4.
+Unified Utilities Subsystem for A.U.R.A. v0.7.1-alpha.5.
 Coordinates Cargo & Loot Appraisals, Mineral Reprocessing, Survey Scanner planning,
 live Mining Session Ledgers, Killmail EFT generation, and Planetary Industry supply chains.
 """

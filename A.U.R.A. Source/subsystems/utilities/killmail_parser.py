@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-Killmail Clipboard Parser & EFT Fit Exporter for A.U.R.A. v0.7.1-alpha.4.
+Killmail Clipboard Parser & EFT Fit Exporter for A.U.R.A. v0.7.1-alpha.5.
 Parses in-game kill report copy text and zKillboard exports, extracts destroyed
 and dropped modules, and reconstructs EFT-compliant ship fittings.
 """

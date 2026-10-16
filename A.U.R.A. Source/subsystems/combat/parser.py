@@ -20,7 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ==============================================================================
 """
-EVE Online Gamelog Combat & Mining Log Parser for A.U.R.A. v0.7.1-alpha.4.
+EVE Online Gamelog Combat & Mining Log Parser for A.U.R.A. v0.7.1-alpha.5.
 Parses raw combat and mining lines from EVE Online Gamelogs with zero external API calls.
 Extracts damage amounts, 4-tier damage profiles (EM/Therm/Kin/Exp), active EWAR events,
 ship destructions, and mining extraction volumes.

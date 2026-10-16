@@ -36,7 +36,7 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton,
     QFrame, QTableWidget, QTableWidgetItem, QHeaderView, QComboBox,
     QTreeWidget, QTreeWidgetItem, QSplitter, QDialog, QMessageBox,
-    QSizePolicy,
+    QSizePolicy, QApplication,
 )
 
 from subsystems.wormhole import (
@@ -47,6 +47,7 @@ from subsystems.wormhole import (
     SignatureGroup,
     CosmicSignature,
 )
+from core.input_safety import parse_float_safe
 from core.event_bus import get_event_bus
 from core.events import WormholeChainUpdatedEvent
 from ui.theme import (
@@ -189,7 +190,7 @@ class AddSystemDialog(QDialog):
         self.duration_combo.addItem("16 Hours (Short)", 16.0)
         self.duration_combo.addItem("48 Hours (Long / Capital)", 48.0)
         self.duration_combo.addItem("4 Hours (Immediate EOL)", 4.0)
-        self.duration_combo.addItem("2 Hours (Critical)", 2.0)
+        self.duration_combo.addItem("2 Hours (End of Life)", 2.0)
         self.duration_combo.addItem("No Timer", 0.0)
         d_row.addWidget(self.duration_combo, stretch=1)
         layout.addLayout(d_row)
@@ -219,8 +220,9 @@ class AddSystemDialog(QDialog):
         self.accept()
 
     def get_data(self) -> dict[str, Any]:
-        dur = float(self.duration_combo.currentData() or 24.0)
-        life = LifetimeState.STABLE if dur > 4.0 else (LifetimeState.END_OF_LIFE if dur > 0 else LifetimeState.STABLE)
+        raw_dur = self.duration_combo.currentData()
+        dur = 24.0 if raw_dur is None else float(raw_dur)
+        life = LifetimeState.STABLE if dur > 4.0 or dur <= 0.0 else LifetimeState.END_OF_LIFE
         return {
             "parent_system": self.parent_combo.currentText().strip(),
             "target_system": self.target_edit.text().strip().upper(),
@@ -675,38 +677,89 @@ class WormholeTabWidget(QWidget):
             return
         text = self.paste_edit.text().strip()
         if not text:
+            clipboard = QApplication.clipboard()
+            if clipboard:
+                text = (clipboard.text() or "").strip()
+        if not text:
             return
 
-        # Matches probe lines: ID (e.g. ABC-123), Group, Name, Signal %
-        pattern = re.compile(r"([A-Z]{3}-\d{3})\s+([A-Za-z\s]+)?(?:\s+(\d+(?:\.\d+)?%))?", re.IGNORECASE)
-        lines = text.split("\n")
-        added_count = 0
+        sig_id_re = re.compile(r"\b([A-Za-z]{3}-\d{3})\b", re.IGNORECASE)
+        pct_re = re.compile(r"(\d+(?:[.,]\d+)?)\s*%")
+        dist_re = re.compile(r"[\d.,]+\s*(?:au|km|m)\b", re.IGNORECASE)
 
-        for line in lines:
-            m = pattern.search(line)
-            if m:
-                sig_id = m.group(1).upper()
-                raw_group = (m.group(2) or "").strip().lower()
-                grp = SignatureGroup.UNKNOWN
-                if "wormhole" in raw_group:
-                    grp = SignatureGroup.WORMHOLE
-                elif "relic" in raw_group:
-                    grp = SignatureGroup.RELIC
-                elif "data" in raw_group:
-                    grp = SignatureGroup.DATA
-                elif "gas" in raw_group:
-                    grp = SignatureGroup.GAS
-                elif "combat" in raw_group:
-                    grp = SignatureGroup.COMBAT
+        # Break text into per-signature chunks (supports multi-line and single-line/collapsed paste)
+        matches = list(sig_id_re.finditer(text))
+        if not matches:
+            return
 
-                sig = CosmicSignature(
-                    sig_id=sig_id,
-                    group=grp,
-                    name=line.strip(),
-                    signal_strength=100.0,
-                )
-                self.wh_subsystem.add_or_update_signature(self.selected_system, sig_id, sig)
-                added_count += 1
+        chunks = []
+        for i, m in enumerate(matches):
+            start = m.start()
+            end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+            chunk = text[start:end].strip()
+            if chunk:
+                chunks.append(chunk)
+
+        for chunk in chunks:
+            m_id = sig_id_re.search(chunk)
+            if not m_id:
+                continue
+            sig_id = m_id.group(1).upper()
+
+            # Signal strength %
+            signal_pct = 100.0
+            m_pct = pct_re.search(chunk)
+            if m_pct:
+                signal_pct = parse_float_safe(m_pct.group(1))
+
+            # Group and Name extraction
+            if "\t" in chunk:
+                cols = [c.strip() for c in chunk.split("\t") if c.strip()]
+                meaningful = []
+                for c in cols:
+                    if sig_id_re.fullmatch(c):
+                        continue
+                    if pct_re.fullmatch(c):
+                        continue
+                    if dist_re.fullmatch(c):
+                        continue
+                    if c.lower() in ("cosmic signature", "cosmic anomaly"):
+                        continue
+                    meaningful.append(c)
+            else:
+                subbed = sig_id_re.sub("", chunk)
+                subbed = pct_re.sub("", subbed)
+                subbed = dist_re.sub("", subbed)
+                subbed = re.sub(r"\bcosmic (?:signature|anomaly)\b", "", subbed, flags=re.I)
+                meaningful = [w.strip() for w in re.split(r"\s{2,}|\t+", subbed) if w.strip()]
+                if not meaningful:
+                    clean_sub = subbed.strip()
+                    if clean_sub:
+                        meaningful = [clean_sub]
+
+            full_str = " ".join(meaningful).lower()
+            grp = SignatureGroup.UNKNOWN
+            if "wormhole" in full_str:
+                grp = SignatureGroup.WORMHOLE
+            elif "relic" in full_str:
+                grp = SignatureGroup.RELIC
+            elif "data" in full_str:
+                grp = SignatureGroup.DATA
+            elif "gas" in full_str:
+                grp = SignatureGroup.GAS
+            elif "combat" in full_str:
+                grp = SignatureGroup.COMBAT
+
+            # Extract site name
+            name = meaningful[-1] if meaningful else ""
+
+            sig = CosmicSignature(
+                sig_id=sig_id,
+                group=grp,
+                name=name,
+                signal_strength=signal_pct,
+            )
+            self.wh_subsystem.add_or_update_signature(self.selected_system, sig_id, sig)
 
         self.paste_edit.clear()
         self._refresh_signatures_table()

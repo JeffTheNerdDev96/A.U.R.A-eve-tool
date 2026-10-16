@@ -737,12 +737,12 @@ class MapTabWidget(QWidget):
 
             if intel:
                 level = intel.get("level", "INFO")
+                has_threat = (level != "CLEAR")
                 threat_hex = _THREAT_RING.get(level, "#38bdf8")
-                star_color = QColor(threat_hex)
+                star_color = QColor(threat_hex) if has_threat else None
                 if not (is_route_origin or is_current or is_route_dest):
                     ring = QColor(threat_hex)
                     ring_w = 2.8
-                has_threat = (level != "CLEAR")
 
             lbl = QGraphicsTextItem(rec["name"], node)
             if is_current or is_route_origin or is_route_dest:
