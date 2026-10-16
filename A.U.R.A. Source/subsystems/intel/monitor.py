@@ -563,6 +563,16 @@ class LiveChatMonitor(QThread):
             try:
                 current_size = os.path.getsize(path)
                 last_pos = self.file_positions.get(path, 0)
+                if current_size < last_pos:
+                    # File was truncated or rotated in place; reset position to start
+                    last_pos = 0
+                    self.file_positions[path] = 0
+                    self._partial_buffers.pop(path, None)
+                    self._file_encodings.pop(path, None)
+                    if _is_local_file(path) or _is_gamelog_file(path):
+                        self._note_listener(path, self._read_prefix(path, 4096))
+                        self._ingest_location_prefix(path)
+
                 if current_size > last_pos:
                     if path not in self._file_encodings or (self._file_encodings[path] == "utf-8" and current_size > 0):
                         old_enc = self._file_encodings.get(path)
@@ -604,13 +614,6 @@ class LiveChatMonitor(QThread):
                     self.file_positions[path] = last_pos + consumed
                     if new_bytes:
                         self._process_text(path, decode_log_bytes(new_bytes, encoding=enc), channel)
-                elif current_size < last_pos:
-                    sz = current_size
-                    enc = self._file_encodings.get(path, "")
-                    if "utf-16" in enc.lower():
-                        sz = sz - (sz % 2)
-                    self.file_positions[path] = sz
-                    self._partial_buffers.pop(path, None)
             except PermissionError as exc:
                 log_diagnostic_error(
                     AURAErrorCode.ERR_4002_LOG_STREAM_LOCKED,

@@ -35,6 +35,7 @@ from core.eve_data import (
     THREAT_CAPITAL, THREAT_SUPER, THREAT_LOGI, THREAT_PIRATE,
     THREAT_T2_COMBAT, THREAT_HAULER, THREAT_COMBATANT, THREAT_COVERT, THREAT_MINING,
 )
+from core.input_safety import parse_float_safe
 from .models import DScanEntry, DScanClassSummary, DScanAnalysis, DScanSnapshotDiff
 
 _THREAT_BY_KEY = {
@@ -58,9 +59,9 @@ _RE_QTY_SUFFIX = re.compile(r"^(.*?)\s+[xX*]\s*(\d+)$")
 _RE_QTY_LEADING = re.compile(r"^(\d+)\s+([A-Za-z].+)$")
 _RE_TAB_SPLIT = re.compile(r"\t+|\s{2,}")
 _RE_DELIM_SPLIT = re.compile(r"[\t,;|]+")
-_RE_DIST_AU = re.compile(r"([\d\.,]+)\s*au\b", re.IGNORECASE)
-_RE_DIST_KM = re.compile(r"([\d\.,]+)\s*km\b", re.IGNORECASE)
-_RE_DIST_M = re.compile(r"([\d\.,]+)\s*m\b", re.IGNORECASE)
+_RE_DIST_AU = re.compile(r"([\d\.,\s\u00a0\u202f]+?)\s*au\b", re.IGNORECASE)
+_RE_DIST_KM = re.compile(r"([\d\.,\s\u00a0\u202f]+?)\s*km\b", re.IGNORECASE)
+_RE_DIST_M = re.compile(r"([\d\.,\s\u00a0\u202f]+?)\s*m\b", re.IGNORECASE)
 _RE_CHAT_TIME = re.compile(r"^\d{1,2}:\d{2}")
 
 _SORTED_HULLS_BY_LENGTH = sorted(SHIP_DATABASE.keys(), key=len, reverse=True)
@@ -174,7 +175,7 @@ class DScanParser:
         m_au = _RE_DIST_AU.search(clean)
         if m_au:
             try:
-                au_val = float(m_au.group(1).replace(",", ""))
+                au_val = parse_float_safe(m_au.group(1))
                 return f"{au_val:.1f} AU", "Off-Grid / Warping (> 150 km / AU)", au_val * 149597870.7
             except ValueError:
                 return clean, "Off-Grid / Warping (> 150 km / AU)", None
@@ -182,7 +183,7 @@ class DScanParser:
         m_km = _RE_DIST_KM.search(clean)
         if m_km:
             try:
-                km_val = float(m_km.group(1).replace(",", ""))
+                km_val = parse_float_safe(m_km.group(1))
                 if km_val <= 20:
                     return f"{km_val:,.0f} km", "Point Range (<= 20 km)", km_val
                 elif km_val <= 150:
@@ -195,7 +196,7 @@ class DScanParser:
         m_m = _RE_DIST_M.search(clean)
         if m_m and not m_km and not m_au:
             try:
-                m_val = float(m_m.group(1).replace(",", ""))
+                m_val = parse_float_safe(m_m.group(1))
                 km_val = m_val / 1000.0
                 if km_val <= 20:
                     return f"{m_val:,.0f} m", "Point Range (<= 20 km)", km_val

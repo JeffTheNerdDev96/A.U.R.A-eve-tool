@@ -32,6 +32,7 @@ from typing import List, Optional
 
 from core.eve_data import lookup_module
 from core.eve_modules_data import CANONICAL_MODULES
+from core.input_safety import parse_float_safe
 
 
 @dataclass(slots=True)
@@ -95,9 +96,9 @@ class KillmailParser:
                 solar_system = line.split(":", 1)[1].strip()
                 continue
             if "total value:" in line_lower or "value:" in line_lower:
-                m_val = re.search(r"([\d,]+(?:\.\d+)?)", line)
+                m_val = re.search(r"([\d,.\s\u00a0\u202f]+?)(?:\s*isk|\s*$)", line, re.IGNORECASE)
                 if m_val:
-                    total_value = float(m_val.group(1).replace(",", ""))
+                    total_value = parse_float_safe(m_val.group(1))
                 continue
 
             # Section headers

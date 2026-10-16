@@ -32,6 +32,7 @@ from typing import List, Optional
 
 from core.eve_market_data import lookup_market_price, recommend_hauler, MINERAL_PRICES
 from core.eve_data import lookup_ship
+from core.input_safety import parse_float_safe
 
 
 _ORE_VOLUMES = {
@@ -84,7 +85,7 @@ class CargoValuationParser:
 
     @staticmethod
     def _parse_quantity(raw_str: str) -> int:
-        s = raw_str.strip().replace(" ", "")
+        s = raw_str.strip().replace(" ", "").replace("\u00a0", "").replace("\u202f", "")
         if not s:
             return 1
         if "," in s and "." in s:
@@ -108,7 +109,7 @@ class CargoValuationParser:
                 except ValueError:
                     pass
             s = s.replace(",", "")
-            return int(s) if s.isdigit() else 1
+            return max(1, int(s)) if s.isdigit() else 1
         if "." in s:
             parts_dot = s.split(".")
             if len(parts_dot) == 2 and len(parts_dot[1]) in (1, 2):
@@ -117,8 +118,8 @@ class CargoValuationParser:
                 except ValueError:
                     pass
             s = s.replace(".", "")
-            return int(s) if s.isdigit() else 1
-        return int(s) if s.isdigit() else 1
+            return max(1, int(s)) if s.isdigit() else 1
+        return max(1, int(s)) if s.isdigit() else 1
 
     @classmethod
     def parse_clipboard(cls, text: str) -> ValuationReport:
@@ -171,10 +172,10 @@ class CargoValuationParser:
                 vol_found = False
                 for p in parts[2:]:
                     if "m3" in p.lower():
-                        vol_m = re.search(r"([\d,.]+)", p)
+                        vol_m = re.search(r"([\d,.\s\u00a0\u202f]+)", p)
                         if vol_m:
                             try:
-                                vol = float(vol_m.group(1).replace(",", ""))
+                                vol = parse_float_safe(vol_m.group(1))
                                 vol_found = True
                                 break
                             except ValueError:
@@ -187,7 +188,7 @@ class CargoValuationParser:
                 return ItemValuation(name, qty, unit_price, total_price, vol, group)
 
         # Check explicit multiplier prefix like "100x Scourge Heavy Missile" or "100 * Scourge Heavy Missile"
-        m_x_prefix = re.match(r"^([\d,\.]+)\s*[xX*]\s+(.+)$", clean)
+        m_x_prefix = re.match(r"^([\d,.\s\u00a0\u202f]+?)\s*[xX*]\s+(.+)$", clean)
         if m_x_prefix:
             qty = cls._parse_quantity(m_x_prefix.group(1))
             name = m_x_prefix.group(2).strip()
@@ -199,7 +200,7 @@ class CargoValuationParser:
 
         # Check space-separated quantity prefix like "100 Scourge Heavy Missile"
         # Must not match items starting with caliber/dimensions (e.g. "100 mm AutoCannon", "10 MN Afterburner")
-        m_num_prefix = re.match(r"^([\d,\.]+)\s+(.+)$", clean)
+        m_num_prefix = re.match(r"^([\d,.\u00a0\u202f]+)\s+(.+)$", clean)
         if m_num_prefix:
             rest = m_num_prefix.group(2).strip()
             if not re.match(r"^(?:mm|mn|gj|km|m3|w|kw|mw)\b", rest, re.IGNORECASE):
@@ -211,7 +212,7 @@ class CargoValuationParser:
                 vol = cls._estimate_volume(name, qty, "General")
                 return ItemValuation(name, qty, unit_price, unit_price * qty, vol, "General")
 
-        m_x_suffix = re.match(r"^(.+?)\s+x?\s*([\d,\.]+)$", clean, re.IGNORECASE)
+        m_x_suffix = re.match(r"^(.+?)\s+x?\s*([\d,.\u00a0\u202f]+)$", clean, re.IGNORECASE)
         if m_x_suffix:
             name = m_x_suffix.group(1).strip()
             if name.lower() in ("name", "item", "item name", "type", "total", "subtotal"):

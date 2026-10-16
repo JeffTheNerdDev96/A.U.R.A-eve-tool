@@ -38,6 +38,7 @@ _RE_CONNECTING = re.compile(r"Connecting to\s*[\"']?([^\n\"']+)", re.IGNORECASE)
 _RE_JUMPING = re.compile(r"Jumping from\s+(.+?)\s+to\s+(.+)", re.IGNORECASE)
 _RE_LISTENER = re.compile(r"(?:Gamelog\s+)?Listener\s*:\s*([^\r\n]+)", re.IGNORECASE)
 _RE_LOCAL_PREFIX = re.compile(r"^Local\s*[:\-]\s*", re.IGNORECASE)
+_RE_HTML_TAGS = re.compile(r"<[^>]+>")
 
 _SESSION_NOISE = frozenset({
     "tranquility", "singularity", "thunderdome", "serenity",
@@ -82,7 +83,7 @@ class LocationTracker:
         """Parse a single chat or gamelog line for a location change."""
         if not line:
             return None
-        clean = line.strip()
+        clean = _RE_HTML_TAGS.sub("", line).strip()
         if not clean:
             return None
 
@@ -131,7 +132,8 @@ class LocationTracker:
         if not text:
             return None
         for line in text.splitlines()[:30]:
-            m = _RE_LISTENER.search(line)
+            clean_line = _RE_HTML_TAGS.sub("", line).strip()
+            m = _RE_LISTENER.search(clean_line)
             if m:
                 pilot = _strip_token(m.group(1))
                 if pilot and pilot.lower() not in _SESSION_NOISE:

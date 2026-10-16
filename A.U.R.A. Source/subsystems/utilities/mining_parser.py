@@ -31,6 +31,8 @@ import re
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
+from core.input_safety import parse_float_safe
+
 
 @dataclass(slots=True)
 class SurveyScannerRock:
@@ -92,7 +94,7 @@ class SurveyScannerParser:
 
             clean_vol = parts[2].replace("\u00a0", "").replace("\u202f", "").replace(" ", "")
             vol_m = re.search(r"([\d,.]+)", clean_vol)
-            volume_m3 = float(vol_m.group(1).replace(",", "")) if vol_m else 0.0
+            volume_m3 = parse_float_safe(vol_m.group(1)) if vol_m else 0.0
 
             if units == 0 and volume_m3 == 0.0:
                 return None
@@ -102,7 +104,7 @@ class SurveyScannerParser:
                 clean_dist = parts[3].replace("\u00a0", "").replace("\u202f", "").replace(" ", "")
                 dist_m = re.search(r"([\d,.]+)", clean_dist)
                 if dist_m:
-                    dist_km = float(dist_m.group(1).replace(",", ""))
+                    dist_km = parse_float_safe(dist_m.group(1))
                     if "m" in parts[3].lower() and "km" not in parts[3].lower():
                         dist_km = dist_km / 1000.0
 
@@ -113,9 +115,9 @@ class SurveyScannerParser:
         if m_regex:
             ore_name = m_regex.group(1).strip()
             u_str = m_regex.group(2).replace(",", "").replace(" ", "").replace("\u00a0", "").replace("\u202f", "").strip()
-            v_str = m_regex.group(3).replace(",", "").replace(" ", "").replace("\u00a0", "").replace("\u202f", "").strip()
+            v_str = m_regex.group(3).strip()
             units = int(u_str) if u_str.isdigit() else 0
-            volume_m3 = float(v_str) if v_str else 0.0
+            volume_m3 = parse_float_safe(v_str)
             return SurveyScannerRock(ore_name, units, volume_m3, 0.0)
 
         return None

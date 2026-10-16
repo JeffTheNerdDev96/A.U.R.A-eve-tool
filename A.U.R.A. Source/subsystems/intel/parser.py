@@ -59,6 +59,7 @@ _RE_NV = re.compile(r"\b(?:nv|na|no\s*visual|unlocated)\b", re.IGNORECASE)
 
 _RE_CYNO = re.compile(r"\b(?:cyno|cynos|cynou|lit|beacon|dropper|hotdrop|hot-drop)\b", re.IGNORECASE)
 _RE_BUBBLE = re.compile(r"\b(?:bubble|bubbled|bubbles|drag)\b", re.IGNORECASE)
+_RE_HTML_TAGS = re.compile(r"<[^>]+>")
 
 _CAPITAL_KEYWORDS = frozenset({"titan", "super", "supercarrier", "dread", "dreadnought", "carrier", "fax", "rorqual", "capital"})
 _BATTLESHIP_KEYWORDS = frozenset({"battleship", "battleships", "bs", "marauder", "blops", "black ops"})
@@ -138,7 +139,7 @@ class IntelParser:
     @classmethod
     def parse_single_line(cls, line: str, channel_name: str = "Intel") -> Optional[Dict[str, Any]]:
         line = clamp_text(strip_control_chars(line or ""), 1024)
-        clean_line = line.strip(" \t\r\n\ufeff\u200b\u200e\u200f\u00a0")
+        clean_line = _RE_HTML_TAGS.sub("", line).strip(" \t\r\n\ufeff\u200b\u200e\u200f\u00a0")
         if not clean_line or clean_line.startswith("---"):
             return None
         clean_lower = clean_line.lower()

@@ -468,6 +468,13 @@ class CombatSubsystem(BaseSubsystem):
                         continue
 
                     last_pos = self._file_positions.get(path, 0)
+                    if current_size < last_pos:
+                        # File was truncated or rotated in place; reset position to start
+                        last_pos = 0
+                        self._file_positions[path] = 0
+                        self._partial_buffers.pop(path, None)
+                        self._file_encodings.pop(path, None)
+
                     if current_size > last_pos:
                         had_data = True
                         if path not in self._file_encodings or (self._file_encodings[path] == "utf-8" and current_size > 0):
@@ -490,7 +497,7 @@ class CombatSubsystem(BaseSubsystem):
                             last_pos = last_pos - (last_pos % 2)
                             self._file_positions[path] = last_pos
 
-                        read_len = current_size - last_pos
+                        read_len = min(current_size - last_pos, int(getattr(config, "max_log_read_bytes", 512 * 1024)))
                         # Enforce 2-byte alignment for UTF-16
                         if "utf-16" in enc.lower() and (read_len % 2) != 0:
                             read_len -= 1
@@ -526,14 +533,6 @@ class CombatSubsystem(BaseSubsystem):
 
                             for line in lines_to_feed:
                                 self.feed_line(line)
-
-                    elif current_size < last_pos:
-                        sz = current_size
-                        enc = self._file_encodings.get(path, "")
-                        if "utf-16" in enc.lower():
-                            sz = sz - (sz % 2)
-                        self._file_positions[path] = sz
-                        self._partial_buffers.pop(path, None)
 
                 except Exception:
                     continue

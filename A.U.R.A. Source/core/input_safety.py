@@ -27,6 +27,7 @@ from __future__ import annotations
 import html
 import os
 import re
+from typing import Any
 
 # Default caps (overridden by config at runtime where applicable)
 MAX_CHAT_CHARS = 16_000
@@ -125,3 +126,38 @@ def wrap_untrusted(label: str, content: str, max_chars: int | None = None) -> st
     if max_chars is not None:
         body = clamp_text(body, max_chars)
     return f"[{label}]\n{body}\n[/{label}]"
+
+
+def parse_float_safe(val_str: Any) -> float:
+    """
+    Safely parses floating-point strings across international locales (English and European),
+    accounting for comma or dot decimals, thousands separators (comma, dot, space, NBSP),
+    and invalid tokens without throwing ValueError.
+    """
+    if val_str is None:
+        return 0.0
+    if isinstance(val_str, (int, float)):
+        return float(val_str)
+    s = str(val_str).strip().replace(" ", "").replace("\u00a0", "").replace("\u202f", "")
+    if not s:
+        return 0.0
+    if "," in s and "." in s:
+        if s.rfind(",") < s.rfind("."):
+            s = s.replace(",", "")
+        else:
+            s = s.replace(".", "").replace(",", ".")
+    elif "," in s:
+        parts = s.split(",")
+        if len(parts) == 2 and len(parts[1]) in (1, 2):
+            s = s.replace(",", ".")
+        else:
+            s = s.replace(",", "")
+    elif "." in s:
+        parts = s.split(".")
+        if len(parts) > 2 or (len(parts) == 2 and len(parts[1]) == 3 and len(parts[0]) <= 3):
+            s = s.replace(".", "")
+    try:
+        return float(s)
+    except (ValueError, OverflowError):
+        return 0.0
+

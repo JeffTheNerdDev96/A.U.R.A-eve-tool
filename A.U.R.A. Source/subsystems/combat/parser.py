@@ -33,6 +33,8 @@ import time
 from dataclasses import dataclass
 from typing import Optional, Tuple, Union
 
+from core.input_safety import parse_float_safe
+
 
 @dataclass(slots=True)
 class DamageVolley:
@@ -80,8 +82,8 @@ class MiningCycle:
 _HTML_TAG_RE = re.compile(r"<[^>]+>")
 _TIMESTAMP_RE = re.compile(r"^\[\s*(\d{4}\.\d{2}\.\d{2}\s+\d{2}:\d{2}:\d{2})\s*\]\s*(?:\(([^)]+)\)\s*)?(.*)$")
 
-_RE_COMBAT_TO = re.compile(r"^(\d+)\s+to\s+(.+)$")
-_RE_COMBAT_FROM = re.compile(r"(\d+)\s+(?:damage\s+)?from\s+(.+)")
+_RE_COMBAT_TO = re.compile(r"^([\d,.\s\u00a0\u202f]+?)\s+to\s+(.+)$")
+_RE_COMBAT_FROM = re.compile(r"([\d,.\s\u00a0\u202f]+?)\s+(?:damage\s+)?from\s+(.+)")
 _RE_DMG_TO = _RE_COMBAT_TO
 _RE_DMG_FROM = _RE_COMBAT_FROM
 _RE_DAMAGE_SPLIT = re.compile(r"\s+-\s+")
@@ -96,15 +98,15 @@ _RE_EWAR_ATTEMPTS = re.compile(
     r"^(.+?)\s+attempts?\s+to\s+(?:warp\s+scramble|warp\s+disrupt|stasis\s+web(?:ify)?|web(?:ify)?|energy\s+neutraliz\w+|drain\s+energy|neutraliz\w+|target\s+paint\w*|sensor\s+damp\w*|jam\w*|ecm\w*).*?(?:\s+(?:on|to))?(?:\s+([^\[!.]+?(?:\s*\[[^\]]+\])?))?[!.]*$",
     re.IGNORECASE,
 )
-_RE_EWAR_DRAIN = re.compile(r"(\d+)\s*gj", re.IGNORECASE)
+_RE_EWAR_DRAIN = re.compile(r"([\d,.\s\u00a0\u202f]+?)\s*gj", re.IGNORECASE)
 _RE_GJ = _RE_EWAR_DRAIN
 
 _RE_DESTROY_SELF = re.compile(r"your\s+(.+?)\s+(?:was\s+)?destroyed", re.IGNORECASE)
 _RE_DESTROY_BELONGING = re.compile(r"(.+?)\s+belonging\s+to\s+(.+?)\s+(?:was\s+)?destroyed", re.IGNORECASE)
 _RE_DESTROY_POSSESSIVE = re.compile(r"(?:^|\s)(.+?)'s\s+(.+?)\s+(?:was\s+)?destroyed", re.IGNORECASE)
 
-_RE_MINED_1 = re.compile(r"mined\s+([\d,]+)\s+units\s+of\s+(.+?)(?:\s+from|[.!]\s*|\s*$)", re.IGNORECASE)
-_RE_MINED_2 = re.compile(r"([\d,]+)\s+units\s+of\s+(.+?)\s+mined(?:\s+from|[.!]\s*|\s*$)", re.IGNORECASE)
+_RE_MINED_1 = re.compile(r"mined\s+([\d,.\s\u00a0\u202f]+?)\s+units\s+of\s+(.+?)(?:\s+from|[.!]\s*|\s*$)", re.IGNORECASE)
+_RE_MINED_2 = re.compile(r"([\d,.\s\u00a0\u202f]+?)\s+units\s+of\s+(.+?)\s+mined(?:\s+from|[.!]\s*|\s*$)", re.IGNORECASE)
 
 # Damage heuristics based on common weapon / ammo substrings
 _EM_KEYWORDS = ("laser", "pulse", "beam", "conflagration", "scorch", "radio", "gamma", "xray", "ultraviolet", "standard", "crystals", "mjolnir")
@@ -247,7 +249,7 @@ class CombatLogParser:
             # Check format with leading words: "<dmg> from <attacker>"
             dmg_alt = _RE_COMBAT_FROM.search(clean_body)
             if dmg_alt:
-                amount = int(dmg_alt.group(1))
+                amount = max(0, int(round(parse_float_safe(dmg_alt.group(1)))))
                 rest = dmg_alt.group(2)
                 alt_parts = [p.strip() for p in _RE_DAMAGE_SPLIT.split(rest)]
                 attacker = alt_parts[0]
@@ -280,7 +282,7 @@ class CombatLogParser:
                 )
             return None
 
-        amount = int(dmg_val_match.group(1))
+        amount = max(0, int(round(parse_float_safe(dmg_val_match.group(1)))))
         remainder = dmg_val_match.group(2).strip()
 
         parts = [p.strip() for p in _RE_DAMAGE_SPLIT.split(remainder)]
@@ -527,7 +529,11 @@ class CombatLogParser:
                 return None
             attacker, ship, target = actors
             m_drain = _RE_EWAR_DRAIN.search(b_lower)
-            drain_val = f"{m_drain.group(1)} GJ" if m_drain else "Neuted"
+            if m_drain:
+                drain_amt = max(0, int(round(parse_float_safe(m_drain.group(1)))))
+                drain_val = f"{drain_amt} GJ"
+            else:
+                drain_val = "Neuted"
             ewar_type = "NOS" if "drained" in b_lower else "NEUT"
             return EWARAction(ts, time_str, ewar_type, attacker, ship, target, drain_val)
 
@@ -592,8 +598,7 @@ class CombatLogParser:
         if not m:
             m = _RE_MINED_2.search(clean_body)
         if m:
-            units_str = m.group(1).replace(",", "")
-            units = int(units_str)
+            units = max(1, int(round(parse_float_safe(m.group(1)))))
             ore_name = m.group(2).strip()
             ore_lower = ore_name.lower()
             unit_vol = _ORE_VOLUMES.get(ore_lower)

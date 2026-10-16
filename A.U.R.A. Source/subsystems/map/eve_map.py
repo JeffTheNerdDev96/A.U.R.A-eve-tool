@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 from collections import deque
 from typing import AbstractSet, Any, Dict, List, Optional, Set, Tuple
@@ -130,18 +131,39 @@ class EveMapGraph:
         self.loaded = bool(self.systems)
 
     def get_system(self, system_id: int) -> Optional[Dict[str, Any]]:
-        return self.systems.get(int(system_id))
+        try:
+            sid = int(system_id)
+        except (ValueError, TypeError, OverflowError):
+            return None
+        return self.systems.get(sid)
 
     def resolve_system_id(self, system_id: int) -> Optional[Dict[str, Any]]:
         return self.get_system(system_id)
 
-    def resolve_system_name(self, token: str) -> Optional[Dict[str, Any]]:
+    def resolve_system_name(self, token: Any) -> Optional[Dict[str, Any]]:
         """Case-insensitive exact name match. Returns system record or None."""
-        if not token:
+        if token is None:
             return None
+        if isinstance(token, (int, float)):
+            try:
+                sid = int(token)
+                return self.systems.get(sid)
+            except (ValueError, OverflowError):
+                return None
+        if not isinstance(token, str):
+            token = str(token)
+        if "<" in token and ">" in token:
+            token = re.sub(r"<[^>]+>", "", token)
         cleaned = token.strip().strip(".,;:!?\"'()[]{}<>`~*|\\/")
         if not cleaned:
             return None
+        if cleaned.isdigit():
+            try:
+                sid = int(cleaned)
+                if sid in self.systems:
+                    return self.systems.get(sid)
+            except (ValueError, OverflowError):
+                pass
         sid = self.name_to_id.get(cleaned.lower())
         if sid is None:
             return None
